@@ -21,6 +21,7 @@ import Collections from './components/Collections';
 import Upload from './components/Upload';
 import { collection, fetchCollections, collectionLatestFile, getCollectionLatestFile, getFavItemIds } from 'services/collectionService';
 import constants from 'utils/strings/constants';
+import LoadingBar from 'react-top-loading-bar';
 
 enum ITEM_TYPE {
     TIME = 'TIME',
@@ -92,6 +93,7 @@ const DateContainer = styled.div`
 export default function Gallery(props) {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
+    const [loadingProgress, setProgress] = useState(0);
     const [reload, setReload] = useState(0);
     const [collections, setCollections] = useState<collection[]>([]);
     const [collectionLatestFile, setCollectionLatestFile] = useState<
@@ -143,9 +145,14 @@ export default function Gallery(props) {
 
             const collectionLatestFile = await getCollectionLatestFile(collections, token);
             setCollectionLatestFile(collectionLatestFile);
+            var loadingProgress = { value: 0 };
             for await (let data of fetchData(token, collections)) {
                 setData(data);
+                loadingProgress.value = Math.min(95, loadingProgress.value + 3);//m4gic numbers
+                console.log(loadingProgress);
+                setProgress(loadingProgress.value);
             };
+            setProgress(100);
             const favItemIds = await getFavItemIds(data ?? []);
             setFavItemIds(favItemIds);
         }
@@ -306,6 +313,8 @@ export default function Gallery(props) {
 
     return (
         <>
+            <LoadingBar color={'#ff7c05'} progress={loadingProgress}
+                onLoaderFinished={() => setProgress(0)} />
             <Collections
                 collections={collections}
                 selected={router.query.collection?.toString()}
