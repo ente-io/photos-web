@@ -7,17 +7,17 @@ import {
     getFile,
     getPreview,
     fetchData,
+    getLocalFiles,
 } from 'services/fileService';
 import { getData, LS_KEYS } from 'utils/storage/localStorage';
 import PreviewCard from './components/PreviewCard';
-import { getActualKey } from 'utils/common/key';
+import { getActualKey, getToken } from 'utils/common/key';
 import styled from 'styled-components';
 import PhotoSwipe from 'components/PhotoSwipe/PhotoSwipe';
 import { Options } from 'photoswipe';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { VariableSizeList as List } from 'react-window';
 import Collections from './components/Collections';
-import SadFace from 'components/SadFace';
 import Upload from './components/Upload';
 import { collection, fetchCollections, collectionLatestFile, getCollectionLatestFile, getFavItemIds } from 'services/collectionService';
 import constants from 'utils/strings/constants';
@@ -110,25 +110,49 @@ export default function Gallery(props) {
 
     useEffect(() => {
         const key = getKey(SESSION_KEYS.ENCRYPTION_KEY);
-        const token = getData(LS_KEYS.USER).token;
-        if (!key) {
+        const token = getToken();
+        if (!key || !token) {
             router.push('/');
         }
         const main = async () => {
             setLoading(true);
             const encryptionKey = await getActualKey();
             const collections = await fetchCollections(token, encryptionKey);
-            const data = await fetchData(token, collections);
-            const collectionLatestFile = await getCollectionLatestFile(collections, token);
+            const data = await getLocalFiles();
             const favItemIds = await getFavItemIds(data);
             setCollections(collections);
             setData(data);
-            setCollectionLatestFile(collectionLatestFile);
             setFavItemIds(favItemIds);
             setLoading(false);
         };
         main();
         props.setUploadButtonView(true);
+    }, []);
+
+
+    useEffect(() => {
+        const key = getKey(SESSION_KEYS.ENCRYPTION_KEY);
+        const token = getToken();
+        if (!key || !token) {
+            router.push('/');
+        }
+        const syncWithRemote = async () => {
+            const encryptionKey = await getActualKey();
+            const collections = await fetchCollections(token, encryptionKey);
+            setCollections(collections);
+
+            const collectionLatestFile = await getCollectionLatestFile(collections, token);
+            setCollectionLatestFile(collectionLatestFile);
+            let prevData = [];
+            for await (let data of fetchData(token, collections)) {
+                if (data.length > prevData.length)
+                    setData(data);
+                prevData = data;
+            };
+            const favItemIds = await getFavItemIds(data ?? []);
+            setFavItemIds(favItemIds);
+        }
+        syncWithRemote();
     }, [reload]);
 
     if (!data || loading) {
@@ -296,7 +320,7 @@ export default function Gallery(props) {
                 showUploadModal={props.showUploadModal}
                 collectionLatestFile={collectionLatestFile}
                 refetchData={() => setReload(Math.random())}
-                
+
             />
             {filteredData.length ? (
                 <Container>
