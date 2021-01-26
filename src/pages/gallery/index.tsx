@@ -143,11 +143,8 @@ export default function Gallery(props) {
 
             const collectionLatestFile = await getCollectionLatestFile(collections, token);
             setCollectionLatestFile(collectionLatestFile);
-            let prevData = [];
             for await (let data of fetchData(token, collections)) {
-                if (data.length > prevData.length)
-                    setData(data);
-                prevData = data;
+                setData(data);
             };
             const favItemIds = await getFavItemIds(data ?? []);
             setFavItemIds(favItemIds);

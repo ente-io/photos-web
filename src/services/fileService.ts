@@ -77,6 +77,8 @@ export async function* fetchFiles(
     for await (let collection of collections) {
 
         for await (let fetchedFiles of getFiles([collection], null, "100", token)) {
+            if (fetchedFiles.length == 0)
+                continue;
             files.push(...fetchedFiles);
             var latestFiles = new Map<string, file>();
             files.forEach((file) => {
