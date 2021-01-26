@@ -49,54 +49,59 @@ export interface file {
     updationTime: number;
 }
 
+export async function* fetchData(token, collections) {
 
-
-export const fetchData = async (token, collections) => {
-    const resp = await fetchFiles(
-        token,
-        collections
-    );
-
-    return (
-        resp.map((item) => ({
-            ...item,
-            w: window.innerWidth,
-            h: window.innerHeight,
-        }))
-    );
+    for await (let resp of fetchFiles(token, collections)) {
+        yield (
+            resp.map((item) => ({
+                ...item,
+                w: window.innerWidth,
+                h: window.innerHeight,
+            }))
+        );
+    }
 }
 
-export const fetchFiles = async (
+export const getLocalFiles = async () => {
+    let files: Array<file> = (await localForage.getItem<file[]>('files')) || [];
+    return files;
+}
+
+export async function* fetchFiles(
     token: string,
     collections: collection[]
-) => {
-    let files: Array<file> = (await localForage.getItem<file[]>('files')) || [];
-    const fetchedFiles = await getFiles(collections, null, "100", token);
+): AsyncGenerator<file[]> {
 
-    files.push(...fetchedFiles);
-    var latestFiles = new Map<string, file>();
-    files.forEach((file) => {
-        let uid = `${file.collectionID}-${file.id}`;
-        if (!latestFiles.has(uid) || latestFiles.get(uid).updationTime < file.updationTime) {
-            latestFiles.set(uid, file);
+    let files = await getLocalFiles();
+    yield files;
+    for await (let collection of collections) {
+
+        for await (let fetchedFiles of getFiles([collection], null, "100", token)) {
+            files.push(...fetchedFiles);
+            var latestFiles = new Map<string, file>();
+            files.forEach((file) => {
+                let uid = `${file.collectionID}-${file.id}`;
+                if (!latestFiles.has(uid) || latestFiles.get(uid).updationTime < file.updationTime) {
+                    latestFiles.set(uid, file);
+                }
+            });
+            files = [];
+            for (const [_, file] of latestFiles.entries()) {
+                if (!file.isDeleted)
+                    files.push(file);
+            }
+            files = files.sort(
+                (a, b) => b.metadata.creationTime - a.metadata.creationTime
+            );
+            await localForage.setItem('files', files);
+            yield files;
         }
-    });
-    files = [];
-    for (const [_, file] of latestFiles.entries()) {
-        if (!file.isDeleted)
-            files.push(file);
     }
-    files = files.sort(
-        (a, b) => b.metadata.creationTime - a.metadata.creationTime
-    );
-    await localForage.setItem('files', files);
-    return files;
 };
 
-export const getFiles = async (collections: collection[], sinceTime: string, limit: string, token: string): Promise<file[]> => {
+export async function* getFiles(collections: collection[], sinceTime: string, limit: string, token: string): AsyncGenerator<file[]> {
     try {
         const worker = await new CryptoWorker();
-        let promises: Promise<file>[] = [];
         for (const index in collections) {
             const collection = collections[index];
             if (collection.isDeleted) {
@@ -115,8 +120,8 @@ export const getFiles = async (collections: collection[], sinceTime: string, lim
                     {
                         'X-Auth-Token': token
                     });
-                promises.push(...resp.data.diff.map(
-                    async (file: file) => {
+                var response: Promise<file[]> = Promise.all(resp.data.diff.map(
+                    async (file: file): Promise<file> => {
                         if (!file.isDeleted) {
 
                             file.key = await worker.decryptB64(
@@ -129,6 +134,7 @@ export const getFiles = async (collections: collection[], sinceTime: string, lim
                         return file;
                     }
                 ));
+                yield response;
 
                 if (resp.data.diff.length) {
                     time = resp.data.diff.slice(-1)[0].updationTime.toString();
@@ -136,7 +142,6 @@ export const getFiles = async (collections: collection[], sinceTime: string, lim
             } while (resp.data.diff.length);
             await localForage.setItem(`${collection.id}-time`, time);
         }
-        return Promise.all(promises);
     } catch (e) {
         console.log("Get files failed" + e);
     }
