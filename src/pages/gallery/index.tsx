@@ -92,7 +92,6 @@ const DateContainer = styled.div`
 
 export default function Gallery(props) {
     const router = useRouter();
-    const [loading, setLoading] = useState(false);
     const [loadingProgress, setProgress] = useState(0);
     const [reload, setReload] = useState(0);
     const [collections, setCollections] = useState<collection[]>([]);
@@ -116,29 +115,8 @@ export default function Gallery(props) {
         if (!key || !token) {
             router.push('/');
         }
-        const main = async () => {
-            setLoading(true);
-            const encryptionKey = await getActualKey();
-            const collections = await fetchCollections(token, encryptionKey);
-            const data = await getLocalFiles();
-            const favItemIds = await getFavItemIds(data);
-            setCollections(collections);
-            setData(data);
-            setFavItemIds(favItemIds);
-            setLoading(false);
-        };
-        main();
-        props.setUploadButtonView(true);
-    }, []);
-
-
-    useEffect(() => {
-        const key = getKey(SESSION_KEYS.ENCRYPTION_KEY);
-        const token = getToken();
-        if (!key || !token) {
-            router.push('/');
-        }
         const syncWithRemote = async () => {
+            props.setUploadButtonView(true);
             const encryptionKey = await getActualKey();
             const collections = await fetchCollections(token, encryptionKey);
             setCollections(collections);
@@ -146,8 +124,8 @@ export default function Gallery(props) {
             const collectionLatestFile = await getCollectionLatestFile(collections, token);
             setCollectionLatestFile(collectionLatestFile);
             var loadingProgress = { value: 0 };
-            for await (let data of fetchData(token, collections)) {
-                setData(data);
+            for await (let [data, updateRequired] of fetchData(token, collections)) {
+                updateRequired && setData(data);
                 loadingProgress.value = Math.min(95, loadingProgress.value + 3);//m4gic numbers
                 console.log(loadingProgress);
                 setProgress(loadingProgress.value);
@@ -159,7 +137,7 @@ export default function Gallery(props) {
         syncWithRemote();
     }, [reload]);
 
-    if (!data || loading) {
+    if (!data) {
         return (
             <div className='text-center'>
                 <Spinner animation='border' variant='primary' />

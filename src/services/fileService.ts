@@ -49,15 +49,15 @@ export interface file {
     updationTime: number;
 }
 
-export async function* fetchData(token, collections) {
+export async function* fetchData(token, collections): AsyncGenerator<[file[], boolean]> {
 
     for await (let resp of fetchFiles(token, collections)) {
         yield (
-            resp.map((item) => ({
+            [resp[0].map((item) => ({
                 ...item,
                 w: window.innerWidth,
                 h: window.innerHeight,
-            }))
+            })), resp[1]]
         );
     }
 }
@@ -70,15 +70,15 @@ export const getLocalFiles = async () => {
 export async function* fetchFiles(
     token: string,
     collections: collection[]
-): AsyncGenerator<file[]> {
+): AsyncGenerator<[file[], boolean]> {
 
     let files = await getLocalFiles();
-    yield files;
+    yield [files, true];
     for await (let collection of collections) {
-
+        let updateRequired = false;
         for await (let fetchedFiles of getFiles([collection], null, "100", token)) {
-            if (fetchedFiles.length == 0)
-                continue;
+            if (fetchedFiles.length !== 0)
+                updateRequired = true;
             files.push(...fetchedFiles);
             var latestFiles = new Map<string, file>();
             files.forEach((file) => {
@@ -96,8 +96,9 @@ export async function* fetchFiles(
                 (a, b) => b.metadata.creationTime - a.metadata.creationTime
             );
             await localForage.setItem('files', files);
-            yield files;
+
         }
+        yield [files, updateRequired];
     }
 };
 
