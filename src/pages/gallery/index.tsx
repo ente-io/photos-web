@@ -29,6 +29,7 @@ import {
     getLocalCollections
 } from 'services/collectionService';
 import constants from 'utils/strings/constants';
+import InfiniteLoader from 'react-window-infinite-loader';
 
 enum ITEM_TYPE {
     TIME = 'TIME',
@@ -325,7 +326,6 @@ export default function Gallery(props) {
                 showUploadModal={props.showUploadModal}
                 collectionLatestFile={collectionLatestFile}
                 refetchData={() => setReload(Math.random())}
-                
             />
             {filteredData.length ? (
                 <Container>
@@ -384,40 +384,71 @@ export default function Gallery(props) {
                                 }
                             });
 
+                            const loadMoreItems = async (startIndex, stopIndex) => {
+                                const token = getToken();
+                                for (let index = startIndex; index < stopIndex; index++) {
+                                    await Promise.all(timeStampList[index].items.map(async (item, idx) => {
+                                        let actualIndex = timeStampList[index].itemStartIndex + idx;
+                                        const data = filteredData[actualIndex];
+                                        if (data.msrc)
+                                            return;
+                                        const url = await getPreview(token, data);
+                                        data.msrc = url;
+                                        updateUrl(filteredData[index].dataIndex)
+                                    }));
+                                }
+                            }
+                            const isItemLoaded = (index) => {
+                                if (timeStampList[index].itemType === ITEM_TYPE.TIME)
+                                    return true;
+                                const actualIndex = timeStampList[index].itemStartIndex;
+                                const data = filteredData[actualIndex];
+                                return !!data.msrc;
+                            }
                             return (
-                                <List
-                                    itemSize={(index) =>
-                                        timeStampList[index].itemType === ITEM_TYPE.TIME
-                                            ? 30
-                                            : 200
-                                    }
-                                    height={height}
-                                    width={width}
+                                <InfiniteLoader
+                                    isItemLoaded={(isItemLoaded)}
                                     itemCount={timeStampList.length}
-                                    key={`${router.query.collection}-${columns}`}
+                                    loadMoreItems={loadMoreItems}
                                 >
-                                    {({ index, style }) => {
-                                        return (
-                                            <ListItem style={style}>
-                                                <ListContainer>
-                                                    {timeStampList[index].itemType ===
-                                                        ITEM_TYPE.TIME ? (
-                                                            <DateContainer>
-                                                                {timeStampList[index].date}
-                                                            </DateContainer>
-                                                        ) : (
-                                                            timeStampList[index].items.map((item, idx) => {
-                                                                return getThumbnail(
-                                                                    filteredData,
-                                                                    timeStampList[index].itemStartIndex + idx
-                                                                );
-                                                            })
-                                                        )}
-                                                </ListContainer>
-                                            </ListItem>
-                                        );
-                                    }}
-                                </List>
+                                    {({ onItemsRendered, ref }) => (
+                                        <List
+                                            itemSize={(index) =>
+                                                timeStampList[index].itemType === ITEM_TYPE.TIME
+                                                    ? 30
+                                                    : 200
+                                            }
+                                            height={height}
+                                            width={width}
+                                            itemCount={timeStampList.length}
+                                            onItemsRendered={onItemsRendered}
+                                            ref={ref}
+                                            key={`${router.query.collection}-${columns}`}
+                                        >
+                                            {({ index, style }) => {
+                                                return (
+                                                    <ListItem style={style}>
+                                                        <ListContainer>
+                                                            {timeStampList[index].itemType ===
+                                                                ITEM_TYPE.TIME ? (
+                                                                    <DateContainer>
+                                                                        {timeStampList[index].date}
+                                                                    </DateContainer>
+                                                                ) : (
+                                                                    timeStampList[index].items.map((item, idx) => {
+                                                                        return getThumbnail(
+                                                                            filteredData,
+                                                                            timeStampList[index].itemStartIndex + idx
+                                                                        );
+                                                                    })
+                                                                )}
+                                                        </ListContainer>
+                                                    </ListItem>
+                                                );
+                                            }}
+                                        </List>
+                                    )}
+                                </InfiniteLoader>
                             );
                         }}
                     </AutoSizer>
@@ -435,7 +466,8 @@ export default function Gallery(props) {
                     <DeadCenter>
                         <div>{constants.NOTHING_HERE}</div>
                     </DeadCenter>
-                )}
+                )
+            }
         </>
     );
 }
