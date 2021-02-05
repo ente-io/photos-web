@@ -405,11 +405,13 @@ export default function Gallery(props) {
                                 const data = filteredData[actualIndex];
                                 return !!data.msrc;
                             }
+                            const itemCntFor3Pages = (height / 200) * 3;
                             return (
                                 <InfiniteLoader
                                     isItemLoaded={(isItemLoaded)}
                                     itemCount={timeStampList.length}
                                     loadMoreItems={loadMoreItems}
+                                    threshold={itemCntFor3Pages}
                                 >
                                     {({ onItemsRendered, ref }) => (
                                         <List
