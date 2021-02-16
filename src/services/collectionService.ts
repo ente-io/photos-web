@@ -163,20 +163,27 @@ export const getCollectionAndItsLatestFile = (
 ): CollectionAndItsLatestFile[] => {
     const latestFile = new Map<number, file>();
     const collectionMap = new Map<number, collection>();
+    const userID = getData(LS_KEYS.USER).id;
 
-    collections.forEach((collection) =>
-        collectionMap.set(collection.id, collection)
-    );
+    collections.forEach((collection) => {
+        if (
+            collection.owner.id !== userID ||
+            collection.type == CollectionType.favorites
+        ) {
+            return;
+        }
+        collectionMap.set(collection.id, collection);
+    });
     files.forEach((file) => {
         if (!latestFile.has(file.collectionID)) {
             latestFile.set(file.collectionID, file);
         }
     });
     let allCollectionAndItsLatestFile: CollectionAndItsLatestFile[] = [];
-    for (const [collectionID, file] of latestFile) {
+    for (const [_, collection] of collectionMap) {
         allCollectionAndItsLatestFile.push({
-            collection: collectionMap.get(collectionID),
-            file,
+            collection: collection,
+            file: latestFile.get(collection.id),
         });
     }
     return allCollectionAndItsLatestFile;
