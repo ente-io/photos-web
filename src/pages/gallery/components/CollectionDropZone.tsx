@@ -1,6 +1,6 @@
 import React from 'react';
 import UploadService from 'services/uploadService';
-import { getToken } from 'utils/common/key';
+import { getToken } from 'utils/storage/localStorage';
 import DropzoneWrapper from './DropzoneWrapper';
 
 function CollectionDropZone({

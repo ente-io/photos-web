@@ -1,9 +1,9 @@
-import { getToken } from 'utils/common/key';
 import { file } from './fileService';
 import HTTPService from './HTTPService';
 import { getEndpoint } from 'utils/common/apiUtil';
 import * as Comlink from 'comlink';
 import { getFileExtension } from 'utils/common/utilFunctions';
+import { getToken } from 'utils/storage/localStorage';
 
 const ENDPOINT = getEndpoint();
 const CryptoWorker: any =

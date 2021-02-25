@@ -20,7 +20,3 @@ export const getActualKey = async () => {
     );
     return key;
 };
-
-export const getToken = () => {
-    return getData(LS_KEYS.USER)?.token;
-};

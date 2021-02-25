@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { getKey, SESSION_KEYS } from 'utils/storage/sessionStorage';
 import { file, syncData, localFiles } from 'services/fileService';
 import PreviewCard from './components/PreviewCard';
-import { getActualKey, getToken } from 'utils/common/key';
+import { getActualKey } from 'utils/common/key';
 import styled from 'styled-components';
 import PhotoSwipe from 'components/PhotoSwipe/PhotoSwipe';
 import AutoSizer from 'react-virtualized-auto-sizer';
@@ -24,6 +24,7 @@ import {
 import constants from 'utils/strings/constants';
 import AlertBanner from './components/AlertBanner';
 import { Alert } from 'react-bootstrap';
+import { getToken } from 'utils/storage/localStorage';
 
 const DATE_CONTAINER_HEIGHT = 45;
 const IMAGE_CONTAINER_HEIGHT = 200;

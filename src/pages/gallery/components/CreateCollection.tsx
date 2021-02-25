@@ -3,8 +3,8 @@ import { Button, Form, Modal } from 'react-bootstrap';
 import { createAlbum } from 'services/collectionService';
 import UploadService from 'services/uploadService';
 import { CollectionAndItsLatestFile } from 'services/collectionService';
-import { getToken } from 'utils/common/key';
 import constants from 'utils/strings/constants';
+import { getToken } from 'utils/storage/localStorage';
 
 export default function CreateCollection(props) {
     const {

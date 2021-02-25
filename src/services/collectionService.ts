@@ -1,12 +1,12 @@
 import { getEndpoint } from 'utils/common/apiUtil';
-import { getData, LS_KEYS } from 'utils/storage/localStorage';
+import { getData, getToken, LS_KEYS } from 'utils/storage/localStorage';
 import { file } from './fileService';
 import localForage from 'localforage';
 
 import HTTPService from './HTTPService';
 import * as Comlink from 'comlink';
 import { B64EncryptionResult } from './uploadService';
-import { getActualKey, getToken } from 'utils/common/key';
+import { getActualKey } from 'utils/common/key';
 import { user } from './userService';
 
 const CryptoWorker: any =
@@ -55,7 +55,7 @@ const getCollectionSecrets = async (
     masterKey: string
 ) => {
     const worker = await new CryptoWorker();
-    const userID = getData(LS_KEYS.USER).id;
+    const userID = getData(LS_KEYS.USER)?.id;
     let decryptedKey: string;
     if (collection.owner.id == userID) {
         decryptedKey = await worker.decryptB64(
@@ -173,7 +173,7 @@ export const getCollectionAndItsLatestFile = (
         }
     });
     let allCollectionAndItsLatestFile: CollectionAndItsLatestFile[] = [];
-    const userID = getData(LS_KEYS.USER).id;
+    const userID = getData(LS_KEYS.USER)?.id;
 
     for (const collection of collections) {
         if (

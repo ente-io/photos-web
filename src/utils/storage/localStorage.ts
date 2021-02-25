@@ -24,3 +24,7 @@ export const clearData = () => {
     }
     localStorage.clear();
 };
+
+export const getToken = () => {
+    return getData(LS_KEYS.USER)?.token;
+};
