@@ -298,26 +298,31 @@ const englishConstants = {
     CONFIRM_ACCOUNT_DELETE_MESSAGE: () => (
         <>
             <p>
-                are you absolutely sure you want to
-                <strong> delete </strong>
-                your account
-            </p>
-            <p>
                 this action
                 <strong>
                     {' '}
                     <u>cannot</u>
                 </strong>{' '}
-                be undone this will{' '}
+                be undone
+            </p>
+            <p>
+                {' '}
+                this will{' '}
                 <strong>
                     {' '}
                     <u> permanently delete</u>{' '}
                 </strong>
                 all your data from ente
             </p>
+            <p>
+                are you absolutely sure you want to
+                <strong> delete </strong>
+                your account
+            </p>
         </>
     ),
     DELETE_ACCOUNT: 'i understand the consequences , delete my account',
+    DELETE_WARNING: 'DANGER ZONE !!',
     ACCOUNT_DELETED: 'your account and data was successfully deleted',
     SUBSCRIPTION_CANCELLED_PENDING:
         'we were unable to cancel your subscription, please do that manually from your mobile app store',

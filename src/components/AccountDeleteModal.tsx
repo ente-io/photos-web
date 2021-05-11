@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Alert } from 'react-bootstrap';
 import { deleteUser, logoutUser } from 'services/userService';
 import { KeyAttributes } from 'types';
 import { verifyPassphrase } from 'utils/crypto';
@@ -57,6 +58,15 @@ const AccountDeleteModal = (props: Props) => {
                 staticBackdrop: true,
             }}
         >
+            <Alert
+                variant={'danger'}
+                style={{
+                    textAlign: 'center',
+                    padding: '10px 0',
+                }}
+            >
+                <strong>{constants.DELETE_WARNING}</strong>
+            </Alert>
             <h5>{constants.CONFIRM_ACCOUNT_DELETE_MESSAGE()}</h5>
             <div
                 style={{
