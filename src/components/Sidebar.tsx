@@ -27,6 +27,7 @@ import LinkButton from 'pages/gallery/components/LinkButton';
 import { downloadApp } from 'utils/common';
 import { logoutUser } from 'services/userService';
 import { SetDialogMessage } from './MessageDialog';
+import AccountDeleteModal from './AccountDeleteModal';
 
 interface Props {
     files: File[];
@@ -252,13 +253,19 @@ export default function Sidebar(props: Props) {
             >
                 logout
             </LinkButton>
-            <LinkButton
-                variant="danger"
-                style={{ marginTop: '30px' }}
-                onClick={() => null}
-            >
-                delete account
-            </LinkButton>
+            <>
+                <AccountDeleteModal
+                    show={accountDeleteModalView}
+                    onHide={() => setAccountDeleteModalView(false)}
+                />
+                <LinkButton
+                    variant="danger"
+                    style={{ marginTop: '30px' }}
+                    onClick={() => setAccountDeleteModalView(true)}
+                >
+                    delete account
+                </LinkButton>
+            </>
             <div style={{ marginBottom: '50px' }} />
         </Menu>
     );
