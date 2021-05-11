@@ -194,6 +194,7 @@ export default function Gallery() {
                             action: logoutUser,
                             variant: 'primary',
                         },
+                        nonClosable: true,
                     });
                     break;
                 case errorCodes.ERR_KEY_MISSING:
@@ -270,7 +271,7 @@ export default function Gallery() {
             />
             <AlertBanner bannerMessage={bannerMessage} />
             <MessageDialog
-                size={'xl'}
+                size={'lg'}
                 show={dialogView}
                 onHide={() => setDialogView(false)}
                 attributes={dialogMessage}

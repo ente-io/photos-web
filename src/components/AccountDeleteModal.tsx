@@ -32,6 +32,7 @@ const AccountDeleteModal = (props: Props) => {
                         action: logoutUser,
                         variant: 'secondary',
                     },
+                    nonClosable: true,
                 });
             } else {
                 logoutUser();
