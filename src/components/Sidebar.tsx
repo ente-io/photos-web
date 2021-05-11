@@ -251,13 +251,19 @@ export default function Sidebar(props: Props) {
             >
                 logout
             </LinkButton>
-            <LinkButton
-                variant="danger"
-                style={{ marginTop: '30px', marginBottom: '50px' }}
-                onClick={() => null}
-            >
-                delete account
-            </LinkButton>
+            <>
+                <AccountDeleteModal
+                    show={accountDeleteModalView}
+                    onHide={() => setAccountDeleteModalView(false)}
+                />
+                <LinkButton
+                    variant="danger"
+                    style={{ marginTop: '30px', marginBottom: '50px' }}
+                    onClick={() => setAccountDeleteModalView(true)}
+                >
+                    delete account
+                </LinkButton>
+            </>
         </Menu>
     );
 }
