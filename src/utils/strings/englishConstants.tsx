@@ -318,6 +318,9 @@ const englishConstants = {
         </>
     ),
     DELETE_ACCOUNT: 'i understand the consequences , delete my account',
+    ACCOUNT_DELETED: 'your account and data was successfully deleted',
+    SUBSCRIPTION_CANCELLED_PENDING:
+        'we were unable to cancel your subscription, please do that manually from your mobile app store',
 };
 
 export default englishConstants;
