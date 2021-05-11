@@ -126,10 +126,11 @@ export const verifyPassphrase = async (
             );
             return key;
         } catch (e) {
-            console.error(e);
+            console.warn(e);
             new Error(constants.INCORRECT_PASSPHRASE);
         }
     } catch (e) {
+        console.error(e);
         new Error(`${constants.UNKNOWN_ERROR} ${e.message}`);
     }
 };
