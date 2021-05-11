@@ -255,6 +255,7 @@ export default function Sidebar(props: Props) {
                 <AccountDeleteModal
                     show={accountDeleteModalView}
                     onHide={() => setAccountDeleteModalView(false)}
+                    setDialogMessage={props.setDialogMessage}
                 />
                 <LinkButton
                     variant="danger"
