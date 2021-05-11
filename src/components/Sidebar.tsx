@@ -234,7 +234,7 @@ export default function Sidebar(props: Props) {
             ></div>
             <LinkButton
                 variant="danger"
-                style={{ marginTop: '30px', marginBottom: '50px' }}
+                style={{ marginTop: '30px' }}
                 onClick={() =>
                     props.setDialogMessage({
                         title: `${constants.CONFIRM} ${constants.LOGOUT}`,
@@ -250,6 +250,13 @@ export default function Sidebar(props: Props) {
                 }
             >
                 logout
+            </LinkButton>
+            <LinkButton
+                variant="danger"
+                style={{ marginTop: '30px', marginBottom: '50px' }}
+                onClick={() => null}
+            >
+                delete account
             </LinkButton>
         </Menu>
     );
