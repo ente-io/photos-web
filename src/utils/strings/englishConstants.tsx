@@ -323,6 +323,7 @@ const englishConstants = {
             </p>
         </>
     ),
+    DELETE_ACCOUNT_BUTTON: 'delete account',
     DELETE_ACCOUNT: 'i understand the consequences , delete my account',
     DELETE_WARNING: 'DANGER ZONE !!',
     ACCOUNT_DELETED: 'your account and data was successfully deleted',

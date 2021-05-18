@@ -251,7 +251,7 @@ export default function Sidebar(props: Props) {
                     })
                 }
             >
-                logout
+                {constants.LOGOUT}
             </LinkButton>
             <>
                 <AccountDeleteModal
@@ -264,7 +264,7 @@ export default function Sidebar(props: Props) {
                     style={{ marginTop: '30px' }}
                     onClick={() => setAccountDeleteModalView(true)}
                 >
-                    delete account
+                    {constants.DELETE_ACCOUNT_BUTTON}
                 </LinkButton>
             </>
             <div style={{ marginBottom: '50px' }} />
