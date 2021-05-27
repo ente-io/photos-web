@@ -331,6 +331,14 @@ const englishConstants = {
             seconds )
         </span>
     ),
+    PROTECTED: 'protected',
+    PROTECTED_MESSAGE:
+        'end-to-end encrypted with your password, visible only to you',
+    SYNCED: 'synced',
+    SYNCED_MESSAGE: 'available across all your devices web, android and ios',
+    PRESERVED: 'preserved',
+    PRESERVED_MESSAGE:
+        'reliably replicated to a fallout shelter, designed to outlive',
 };
 
 export default englishConstants;

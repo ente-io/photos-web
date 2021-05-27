@@ -288,6 +288,10 @@ const GlobalStyles = createGlobalStyle`
         transition: opacity 0.5s;
    
    }
+   .carousel-inner {
+    height:420px;
+  }
+
 `;
 
 export const LogoImage = styled.img`
