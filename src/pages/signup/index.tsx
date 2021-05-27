@@ -227,21 +227,44 @@ export default function SignUp() {
                                         style={{
                                             textAlign: 'left',
                                         }}
-                                        controlId="formBasicCheckbox-1"
                                     >
-                                        <Form.Check
-                                            checked={acceptTerms}
-                                            onChange={(e) =>
-                                                setAcceptTerms(e.target.checked)
-                                            }
-                                            type="checkbox"
-                                            label={constants.TERMS_AND_CONDITIONS()}
-                                        />
+                                        <label className="container">
+                                            {constants.TERMS_AND_CONDITIONS()}
+                                            <input
+                                                type="checkbox"
+                                                checked={acceptTerms}
+                                                onChange={(e) =>
+                                                    setAcceptTerms(
+                                                        e.target.checked
+                                                    )
+                                                }
+                                            />
+                                            <span className="checkmark"></span>
+                                        </label>
+                                    </Form.Group>
+                                    <Form.Group
+                                        style={{
+                                            textAlign: 'left',
+                                        }}
+                                    >
+                                        <label className="container">
+                                            {constants.CONFIRM_PASSWORD_NOT_SAVED()}
+                                            <input
+                                                type="checkbox"
+                                                checked={understood}
+                                                onChange={(e) =>
+                                                    setUnderstood(
+                                                        e.target.checked
+                                                    )
+                                                }
+                                            />
+                                            <span className="checkmark"></span>
+                                        </label>
                                     </Form.Group>
                                     <SubmitButton
                                         buttonText={constants.SUBMIT}
                                         loading={loading}
-                                        disabled={!acceptTerms}
+                                        disabled={!acceptTerms || !understood}
                                     />
                                 </Form>
                             )}

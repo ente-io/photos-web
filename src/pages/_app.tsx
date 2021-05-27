@@ -291,7 +291,58 @@ const GlobalStyles = createGlobalStyle`
    .carousel-inner {
     height:420px;
   }
-
+  /* Customize the label (the container) */
+  .container {
+    display: block;
+    position: relative;
+    cursor: pointer;
+    padding-left: 30px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  .container input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+  }
+  .checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 20px;
+    width: 20px;
+    background-color: #ccc;
+  }
+.container:hover input ~ .checkmark {
+  background-color: #fff;
+}
+.container input:checked ~ .checkmark {
+  background-color: #2dc262;
+}
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+.container input:checked ~ .checkmark:after {
+  display: block;
+}
+.container .checkmark:after {
+  left: 7px;
+  top: 1px;
+  width: 7px;
+  height: 16px;
+  border: solid white;
+  border-width: 0 3px 3px 0;
+  -webkit-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg);
+}
+  
 `;
 
 export const LogoImage = styled.img`
