@@ -25,6 +25,7 @@ const BigButton = (props) => (
             fontWeight: 900,
             color: '#ddd',
         }}
+        block
     >
         {props.children}
     </Button>
@@ -46,10 +47,8 @@ export default function landing() {
     return (
         <Container>
             <CenteredContainer style={{ fontSize: '20px' }}>
-                {constants.LANDING_PAGE_PREFIX_MESSAGE()}
-            </CenteredContainer>
-            <CenteredContainer>
-                <Carousel className="text-center" controls={false}>
+                <div>{constants.LANDING_PAGE_PREFIX_MESSAGE()}</div>
+                <Carousel style={{ width: '400px' }} controls={false}>
                     <Carousel.Item>
                         <DeadCenter>
                             <img
@@ -102,8 +101,7 @@ export default function landing() {
                         </DeadCenter>
                     </Carousel.Item>
                 </Carousel>
-            </CenteredContainer>
-            <CenteredContainer style={{ justifyContent: 'flex-start' }}>
+
                 <BigButton
                     variant="outline-success"
                     onClick={() => router.push('signup')}
