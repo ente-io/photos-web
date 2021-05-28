@@ -7,6 +7,7 @@ import { Button, Carousel } from 'react-bootstrap';
 import { DeadCenter } from 'pages/gallery';
 import englishConstants from 'utils/strings/englishConstants';
 import styled from 'styled-components';
+import { isFirstLogin } from 'utils/storage';
 
 const HighlightedText = styled.span`
     color: #2dc262;
@@ -37,8 +38,7 @@ export default function landing() {
             router.push('/verify');
         }
         router.prefetch('/login');
-        const hasPreviouslyLoggedIN = !getData(LS_KEYS.IS_FIRST_LOGIN);
-        if (hasPreviouslyLoggedIN) {
+        if (!isFirstLogin()) {
             router.push('/login');
         }
     }, []);
