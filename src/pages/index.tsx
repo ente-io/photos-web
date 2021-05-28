@@ -40,6 +40,11 @@ export default function landing() {
 
     return (
         <Container>
+            <Container
+                style={{ fontSize: '20px', color: '#fff', flex: '0 auto' }}
+            >
+                {constants.LANDING_PAGE_PREFIX_MESSAGE()}
+            </Container>
             <DeadCenter style={{ paddingTop: '3%' }}>
                 <Carousel className="text-center" controls={false}>
                     <Carousel.Item>
@@ -47,7 +52,11 @@ export default function landing() {
                             <img
                                 src="/protected.png"
                                 alt="protected"
-                                style={{ width: '175px', height: '207px' }}
+                                style={{
+                                    width: '175px',
+                                    height: '207px',
+                                    marginBottom: '30px',
+                                }}
                             />
                             <HighlightedText>
                                 {englishConstants.PROTECTED}
@@ -60,7 +69,11 @@ export default function landing() {
                             <img
                                 src="/synced.png"
                                 alt="synced"
-                                style={{ width: '224px', height: '207px' }}
+                                style={{
+                                    width: '224px',
+                                    height: '207px',
+                                    marginBottom: '30px',
+                                }}
                             />
                             <HighlightedText>
                                 {englishConstants.SYNCED}
@@ -73,7 +86,11 @@ export default function landing() {
                             <img
                                 src="/preserved.png"
                                 alt="preserved"
-                                style={{ width: '260px', height: '207px' }}
+                                style={{
+                                    width: '260px',
+                                    height: '207px',
+                                    marginBottom: '30px',
+                                }}
                             />
                             <HighlightedText>
                                 {englishConstants.PRESERVED}

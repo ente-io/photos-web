@@ -14,6 +14,16 @@ const dateString = function (date) {
 const englishConstants = {
     COMPANY_NAME: 'ente',
     LOGIN: 'login',
+    LANDING_PAGE_PREFIX_MESSAGE: () => (
+        <>
+            <div>
+                with <strong>ente</strong>
+            </div>
+            <div>
+                your <strong>memories</strong> are
+            </div>
+        </>
+    ),
     SIGN_UP: 'sign up',
     SIGN_IN: 'sign in',
     NAME: 'name',
