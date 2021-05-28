@@ -388,16 +388,28 @@ export default function App({ Component, pageProps, err }) {
         typeof window !== 'undefined' && !window.navigator.onLine
     );
     useEffect(() => {
-        if (
-            !('serviceWorker' in navigator) ||
-            process.env.NODE_ENV !== 'production'
-        ) {
-            console.warn('Progressive Web App support is disabled');
-            return;
-        }
+        //     // if (
+        //     //     !('serviceWorker' in navigator) ||
+        //     //     process.env.NODE_ENV !== 'production'
+        //     // ) {
+        //     //     console.warn('Progressive Web App support is disabled');
+        //     //     return;
+        //     // }
+        //     // const wb = new Workbox('sw.js', { scope: '/' });
+        //     // wb.register();
 
-        const wb = new Workbox('sw.js', { scope: '/' });
-        wb.register();
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker
+                .getRegistrations()
+                .then(function (registrations) {
+                    for (let registration of registrations) {
+                        registration.unregister();
+                    }
+                })
+                .catch(function (err) {
+                    console.log('Service Worker registration failed: ', err);
+                });
+        }
     }, []);
 
     const setUserOnline = () => setOffline(false);
