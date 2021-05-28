@@ -40,7 +40,7 @@ const GlobalStyles = createGlobalStyle`
         display: flex;
         flex-direction: column;
         background-color: #191919;
-        color: #aaa;
+        color: #ddd;
         font-family:Ubuntu, Arial, sans-serif !important;
     }
 
