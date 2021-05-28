@@ -1,107 +1,104 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/router';
-import Card from 'react-bootstrap/Card';
-import Form from 'react-bootstrap/Form';
-import FormControl from 'react-bootstrap/FormControl';
-import Button from 'react-bootstrap/Button';
 import constants from 'utils/strings/constants';
-import { Formik, FormikHelpers } from 'formik';
-import * as Yup from 'yup';
-import { getOtt } from 'services/userService';
 import Container from 'components/Container';
-import { setData, LS_KEYS, getData } from 'utils/storage/localStorage';
-import SubmitButton from 'components/SubmitButton';
-interface formValues {
-    email: string;
-}
+import { LS_KEYS, getData } from 'utils/storage/localStorage';
+import { Button, Carousel } from 'react-bootstrap';
+import { DeadCenter } from 'pages/gallery';
+import englishConstants from 'utils/strings/englishConstants';
+import styled from 'styled-components';
 
-export default function Home() {
-    const [loading, setLoading] = useState(false);
+const HighlightedText = styled.span`
+    color: #2dc262;
+    font-weight: 900;
+    font-size: 20px;
+    margin-bottom: 20px;
+`;
+
+const BigButton = (props) => (
+    <Button
+        {...props}
+        style={{
+            padding: '15px 100px',
+            marginTop: '20px',
+            fontWeight: 900,
+            color: '#ddd',
+        }}
+    >
+        {props.children}
+    </Button>
+);
+export default function landing() {
     const router = useRouter();
-
     useEffect(() => {
         router.prefetch('/verify');
-        router.prefetch('/signup');
         const user = getData(LS_KEYS.USER);
         if (user?.email) {
             router.push('/verify');
         }
     }, []);
 
-    const loginUser = async (
-        { email }: formValues,
-        { setFieldError }: FormikHelpers<formValues>
-    ) => {
-        try {
-            setLoading(true);
-            await getOtt(email);
-            setData(LS_KEYS.USER, { email });
-            router.push('/verify');
-        } catch (e) {
-            setFieldError('email', `${constants.UNKNOWN_ERROR} ${e.message}`);
-        }
-        setLoading(false);
-    };
-
-    const register = () => {
-        router.push('/signup');
-    };
-
     return (
         <Container>
-            <Card style={{ minWidth: '320px' }} className="text-center">
-                <Card.Body style={{ padding: '40px 30px' }}>
-                    <Card.Title style={{ marginBottom: '32px' }}>
-                        {constants.LOGIN}
-                    </Card.Title>
-                    <Formik<formValues>
-                        initialValues={{ email: '' }}
-                        validationSchema={Yup.object().shape({
-                            email: Yup.string()
-                                .email(constants.EMAIL_ERROR)
-                                .required(constants.REQUIRED),
-                        })}
-                        validateOnChange={false}
-                        validateOnBlur={false}
-                        onSubmit={loginUser}
-                    >
-                        {({
-                            values,
-                            errors,
-                            touched,
-                            handleChange,
-                            handleSubmit,
-                        }) => (
-                            <Form noValidate onSubmit={handleSubmit}>
-                                <Form.Group controlId="formBasicEmail">
-                                    <Form.Control
-                                        type="email"
-                                        placeholder={constants.ENTER_EMAIL}
-                                        value={values.email}
-                                        onChange={handleChange('email')}
-                                        isInvalid={Boolean(
-                                            touched.email && errors.email
-                                        )}
-                                        autoFocus={true}
-                                        disabled={loading}
-                                    />
-                                    <FormControl.Feedback type="invalid">
-                                        {errors.email}
-                                    </FormControl.Feedback>
-                                </Form.Group>
-                                <SubmitButton
-                                    buttonText={constants.LOGIN}
-                                    loading={loading}
-                                />
-                            </Form>
-                        )}
-                    </Formik>
-                    <br />
-                    <Button variant="link" onClick={register}>
-                        {constants.NO_ACCOUNT}
-                    </Button>
-                </Card.Body>
-            </Card>
+            <DeadCenter style={{ paddingTop: '3%' }}>
+                <Carousel className="text-center" controls={false}>
+                    <Carousel.Item>
+                        <DeadCenter>
+                            <img
+                                src="/protected.png"
+                                alt="protected"
+                                style={{ width: '175px', height: '207px' }}
+                            />
+                            <HighlightedText>
+                                {englishConstants.PROTECTED}
+                            </HighlightedText>
+                            <span>{englishConstants.PROTECTED_MESSAGE()}</span>
+                        </DeadCenter>
+                    </Carousel.Item>
+                    <Carousel.Item>
+                        <DeadCenter>
+                            <img
+                                src="/synced.png"
+                                alt="synced"
+                                style={{ width: '224px', height: '207px' }}
+                            />
+                            <HighlightedText>
+                                {englishConstants.SYNCED}
+                            </HighlightedText>
+                            <span>{englishConstants.SYNCED_MESSAGE()}</span>
+                        </DeadCenter>
+                    </Carousel.Item>
+                    <Carousel.Item>
+                        <DeadCenter>
+                            <img
+                                src="/preserved.png"
+                                alt="preserved"
+                                style={{ width: '260px', height: '207px' }}
+                            />
+                            <HighlightedText>
+                                {englishConstants.PRESERVED}
+                            </HighlightedText>
+                            <span>{englishConstants.PRESERVED_MESSAGE()}</span>
+                        </DeadCenter>
+                    </Carousel.Item>
+                </Carousel>
+            </DeadCenter>
+            <DeadCenter
+                style={{ justifyContent: 'flex-start', paddingTop: '1%' }}
+            >
+                <BigButton
+                    variant="outline-success"
+                    onClick={() => router.push('signup')}
+                >
+                    {constants.SIGN_UP}
+                </BigButton>
+                <BigButton
+                    variant="outline-none"
+                    onClick={() => router.push('login')}
+                >
+                    {constants.SIGN_IN}
+                </BigButton>
+            </DeadCenter>
         </Container>
     );
 }
