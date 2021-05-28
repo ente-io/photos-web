@@ -10,16 +10,13 @@ import { getOtt } from 'services/userService';
 import Container from 'components/Container';
 import { setData, LS_KEYS, getData } from 'utils/storage/localStorage';
 import SubmitButton from 'components/SubmitButton';
-import { Button, Carousel } from 'react-bootstrap';
+import { Button } from 'react-bootstrap';
 import {
     generateAndSaveIntermediateKeyAttributes,
     generateKeyAttributes,
     setSessionKeys,
 } from 'utils/crypto';
 import { setJustSignedUp } from 'utils/storage';
-import { DeadCenter } from 'pages/gallery';
-import englishConstants from 'utils/strings/englishConstants';
-import styled from 'styled-components';
 
 interface FormValues {
     email: string;
@@ -31,7 +28,6 @@ export default function SignUp() {
     const [loading, setLoading] = useState(false);
     const router = useRouter();
     const [acceptTerms, setAcceptTerms] = useState(false);
-    const [understood, setUnderstood] = useState(false);
     useEffect(() => {
         router.prefetch('/verify');
         const user = getData(LS_KEYS.USER);
@@ -77,152 +73,114 @@ export default function SignUp() {
 
     return (
         <Container>
-            <Card
-                style={{ width: '460px', marginTop: '50px' }}
-                className="text-center"
-            >
-                <Card.Body style={{ padding: '30px 30px' }}>
-                    <Card.Title
-                        style={{
-                            marginBottom: '32px',
-                            fontSize: '25px',
-                        }}
-                    >
+            <Card style={{ width: '320px' }} className="text-center">
+                <Card.Body style={{ padding: '40px 30px' }}>
+                    <Card.Title style={{ marginBottom: '32px' }}>
                         {constants.SIGN_UP}
                     </Card.Title>
-                    <div style={{ margin: 'auto', width: '360px' }}>
-                        <Formik<FormValues>
-                            initialValues={{
-                                email: '',
-                                passphrase: '',
-                                confirm: '',
-                            }}
-                            validationSchema={Yup.object().shape({
-                                email: Yup.string()
-                                    .email(constants.EMAIL_ERROR)
-                                    .required(constants.REQUIRED),
-                                passphrase: Yup.string().required(
-                                    constants.REQUIRED
-                                ),
-                                confirm: Yup.string().required(
-                                    constants.REQUIRED
-                                ),
-                            })}
-                            validateOnChange={false}
-                            validateOnBlur={false}
-                            onSubmit={registerUser}
-                        >
-                            {({
-                                values,
-                                errors,
-                                touched,
-                                handleChange,
-                                handleSubmit,
-                            }): JSX.Element => (
-                                <Form noValidate onSubmit={handleSubmit}>
-                                    <Form.Group controlId="registrationForm.email">
-                                        <Form.Control
-                                            type="email"
-                                            placeholder={constants.ENTER_EMAIL}
-                                            value={values.email}
-                                            onChange={handleChange('email')}
-                                            isInvalid={Boolean(
-                                                touched.email && errors.email
-                                            )}
-                                            autoFocus={true}
-                                            disabled={loading}
-                                        />
-                                        <FormControl.Feedback type="invalid">
-                                            {errors.email}
-                                        </FormControl.Feedback>
-                                    </Form.Group>
-                                    <Form.Group>
-                                        <Form.Control
-                                            type="password"
-                                            placeholder={
-                                                constants.PASSPHRASE_HINT
-                                            }
-                                            value={values.passphrase}
-                                            onChange={handleChange(
-                                                'passphrase'
-                                            )}
-                                            isInvalid={Boolean(
-                                                touched.passphrase &&
-                                                    errors.passphrase
-                                            )}
-                                            disabled={loading}
-                                        />
-                                        <Form.Control.Feedback type="invalid">
-                                            {errors.passphrase}
-                                        </Form.Control.Feedback>
-                                    </Form.Group>
-                                    <Form.Group>
-                                        <Form.Control
-                                            type="password"
-                                            placeholder={
-                                                constants.RE_ENTER_PASSPHRASE
-                                            }
-                                            value={values.confirm}
-                                            onChange={handleChange('confirm')}
-                                            isInvalid={Boolean(
-                                                touched.confirm &&
-                                                    errors.confirm
-                                            )}
-                                            disabled={loading}
-                                        />
-                                        <Form.Control.Feedback type="invalid">
-                                            {errors.confirm}
-                                        </Form.Control.Feedback>
-                                    </Form.Group>
-                                    <Form.Group
-                                        style={{
-                                            textAlign: 'left',
-                                            paddingTop: '12px',
-                                            marginBottom: '20px',
-                                        }}
-                                    >
-                                        <label className="container">
-                                            {constants.TERMS_AND_CONDITIONS()}
-                                            <input
-                                                type="checkbox"
-                                                checked={acceptTerms}
-                                                onChange={(e) =>
-                                                    setAcceptTerms(
-                                                        e.target.checked
-                                                    )
-                                                }
-                                            />
-                                            <span className="checkmark"></span>
-                                        </label>
-                                    </Form.Group>
-                                    {/* <Form.Group
-                                        style={{
-                                            textAlign: 'left',
-                                        }}
-                                    >
-                                        <label className="container">
-                                            {constants.CONFIRM_PASSWORD_NOT_SAVED()}
-                                            <input
-                                                type="checkbox"
-                                                checked={understood}
-                                                onChange={(e) =>
-                                                    setUnderstood(
-                                                        e.target.checked
-                                                    )
-                                                }
-                                            />
-                                            <span className="checkmark"></span>
-                                        </label>
-                                    </Form.Group> */}
-                                    <SubmitButton
-                                        buttonText={constants.SUBMIT}
-                                        loading={loading}
-                                        disabled={!acceptTerms || !understood}
+                    <Formik<FormValues>
+                        initialValues={{
+                            email: '',
+                            passphrase: '',
+                            confirm: '',
+                        }}
+                        validationSchema={Yup.object().shape({
+                            email: Yup.string()
+                                .email(constants.EMAIL_ERROR)
+                                .required(constants.REQUIRED),
+                            passphrase: Yup.string().required(
+                                constants.REQUIRED
+                            ),
+                            confirm: Yup.string().required(constants.REQUIRED),
+                        })}
+                        validateOnChange={false}
+                        validateOnBlur={false}
+                        onSubmit={registerUser}
+                    >
+                        {({
+                            values,
+                            errors,
+                            touched,
+                            handleChange,
+                            handleSubmit,
+                        }): JSX.Element => (
+                            <Form noValidate onSubmit={handleSubmit}>
+                                <Form.Group controlId="registrationForm.email">
+                                    <Form.Control
+                                        type="email"
+                                        placeholder={constants.ENTER_EMAIL}
+                                        value={values.email}
+                                        onChange={handleChange('email')}
+                                        isInvalid={Boolean(
+                                            touched.email && errors.email
+                                        )}
+                                        autoFocus={true}
+                                        disabled={loading}
                                     />
-                                </Form>
-                            )}
-                        </Formik>
-                    </div>
+                                    <FormControl.Feedback type="invalid">
+                                        {errors.email}
+                                    </FormControl.Feedback>
+                                </Form.Group>
+                                <Form.Group>
+                                    <Form.Control
+                                        type="password"
+                                        placeholder={constants.PASSPHRASE_HINT}
+                                        value={values.passphrase}
+                                        onChange={handleChange('passphrase')}
+                                        isInvalid={Boolean(
+                                            touched.passphrase &&
+                                                errors.passphrase
+                                        )}
+                                        disabled={loading}
+                                    />
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.passphrase}
+                                    </Form.Control.Feedback>
+                                </Form.Group>
+                                <Form.Group>
+                                    <Form.Control
+                                        type="password"
+                                        placeholder={
+                                            constants.RE_ENTER_PASSPHRASE
+                                        }
+                                        value={values.confirm}
+                                        onChange={handleChange('confirm')}
+                                        isInvalid={Boolean(
+                                            touched.confirm && errors.confirm
+                                        )}
+                                        disabled={loading}
+                                    />
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.confirm}
+                                    </Form.Control.Feedback>
+                                </Form.Group>
+                                <Form.Group
+                                    style={{
+                                        textAlign: 'left',
+                                        paddingTop: '12px',
+                                        marginBottom: '20px',
+                                    }}
+                                >
+                                    <label className="container">
+                                        {constants.TERMS_AND_CONDITIONS()}
+                                        <input
+                                            type="checkbox"
+                                            checked={acceptTerms}
+                                            onChange={(e) =>
+                                                setAcceptTerms(e.target.checked)
+                                            }
+                                        />
+                                        <span className="checkmark"></span>
+                                    </label>
+                                </Form.Group>
+                                <SubmitButton
+                                    buttonText={constants.SUBMIT}
+                                    loading={loading}
+                                    disabled={!acceptTerms}
+                                />
+                            </Form>
+                        )}
+                    </Formik>
                     <Button
                         variant="link"
                         onClick={router.back}
