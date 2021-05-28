@@ -291,6 +291,18 @@ const GlobalStyles = createGlobalStyle`
    .carousel-inner {
     height:420px;
   }
+  .carousel-indicators li {
+    width: 10px;
+    height: 10px;
+    border-radius: 100%;
+    margin: 10px;
+   
+    
+  }
+  .carousel-indicators .active{
+    background-color:#2dc262;
+  }
+ 
   /* Customize the label (the container) */
   .container {
     display: block;
