@@ -9,7 +9,7 @@ import CryptoWorker, {
     generateAndSaveIntermediateKeyAttributes,
 } from 'utils/crypto';
 import { getActualKey } from 'utils/common/key';
-import { logoutUser, setKeys, UpdatedKey } from 'services/userService';
+import { setKeys, UpdatedKey } from 'services/userService';
 import SetPasswordForm from 'components/SetPasswordForm';
 
 export interface KEK {
