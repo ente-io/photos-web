@@ -6,6 +6,7 @@ import router from 'next/router';
 import { clearData } from 'utils/storage/localStorage';
 import localForage from 'utils/storage/localForage';
 import { getToken } from 'utils/common/key';
+import { setIsFirstLogin } from 'utils/storage';
 
 export interface UpdatedKey {
     kekSalt: string;
@@ -83,6 +84,7 @@ export const SetRecoveryKey = (token: string, recoveryKey: RecoveryKey) => {
 export const logoutUser = async () => {
     clearKeys();
     clearData();
+    setIsFirstLogin(false);
     const cache = await caches.delete('thumbs');
     await clearFiles();
     router.push('/login');
