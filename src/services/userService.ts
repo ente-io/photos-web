@@ -85,7 +85,7 @@ export const logoutUser = async () => {
     clearData();
     const cache = await caches.delete('thumbs');
     await clearFiles();
-    router.push('/');
+    router.push('/login');
 };
 
 export const clearFiles = async () => {
