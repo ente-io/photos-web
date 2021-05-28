@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import constants from 'utils/strings/constants';
-import Container from 'components/Container';
+import Container, { CenteredContainer } from 'components/Container';
 import { LS_KEYS, getData } from 'utils/storage/localStorage';
 import { Button, Carousel } from 'react-bootstrap';
 import { DeadCenter } from 'pages/gallery';
@@ -45,12 +45,10 @@ export default function landing() {
 
     return (
         <Container>
-            <Container
-                style={{ fontSize: '20px', color: '#fff', flex: '0 auto' }}
-            >
+            <CenteredContainer style={{ fontSize: '20px' }}>
                 {constants.LANDING_PAGE_PREFIX_MESSAGE()}
-            </Container>
-            <DeadCenter style={{ paddingTop: '3%' }}>
+            </CenteredContainer>
+            <CenteredContainer>
                 <Carousel className="text-center" controls={false}>
                     <Carousel.Item>
                         <DeadCenter>
@@ -104,10 +102,8 @@ export default function landing() {
                         </DeadCenter>
                     </Carousel.Item>
                 </Carousel>
-            </DeadCenter>
-            <DeadCenter
-                style={{ justifyContent: 'flex-start', paddingTop: '1%' }}
-            >
+            </CenteredContainer>
+            <CenteredContainer style={{ justifyContent: 'flex-start' }}>
                 <BigButton
                     variant="outline-success"
                     onClick={() => router.push('signup')}
@@ -120,7 +116,7 @@ export default function landing() {
                 >
                     {constants.SIGN_IN}
                 </BigButton>
-            </DeadCenter>
+            </CenteredContainer>
         </Container>
     );
 }
