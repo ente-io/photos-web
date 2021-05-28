@@ -15,6 +15,7 @@ const englishConstants = {
     COMPANY_NAME: 'ente',
     LOGIN: 'login',
     SIGN_UP: 'sign up',
+    SIGN_IN: 'sign in',
     NAME: 'name',
     ENTER_NAME: 'your name',
     EMAIL: 'email',
