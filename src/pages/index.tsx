@@ -36,6 +36,11 @@ export default function landing() {
         if (user?.email) {
             router.push('/verify');
         }
+        router.prefetch('/login');
+        const hasPreviouslyLoggedIN = !getData(LS_KEYS.IS_FIRST_LOGIN);
+        if (hasPreviouslyLoggedIN) {
+            router.push('/login');
+        }
     }, []);
 
     return (
