@@ -10,6 +10,14 @@ const Container = styled.div`
     padding: 10px;
 `;
 
+export const CenteredContainer = styled.div`
+    display: flex;
+    align-items: center;
+    text-align: center;
+    flex-direction: column;
+    padding: 10px;
+`;
+
 export default Container;
 
 export const DisclaimerContainer = styled.div`
