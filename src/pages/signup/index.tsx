@@ -88,58 +88,60 @@ export default function SignUp() {
 
     return (
         <Container>
-            <Card style={{ width: '500px' }} className="text-center">
-                <Card.Body style={{ padding: '10px 30px' }}>
-                    <Carousel>
-                        <Carousel.Item>
-                            <DeadCenter>
-                                <Image
-                                    src="/protected.png"
-                                    alt="protected"
-                                    style={{ marginLeft: '25px' }}
-                                />
-                                <HighlightedText>
-                                    {englishConstants.PROTECTED}
-                                </HighlightedText>
-                                <span>
-                                    {englishConstants.PROTECTED_MESSAGE}
-                                </span>
-                            </DeadCenter>
-                        </Carousel.Item>
-                        <Carousel.Item>
-                            <DeadCenter>
-                                <Image src="/synced.png" alt="protected" />
-                                <HighlightedText>
-                                    {englishConstants.SYNCED}
-                                </HighlightedText>
-                                <span>{englishConstants.SYNCED_MESSAGE}</span>
-                            </DeadCenter>
-                        </Carousel.Item>
-                        <Carousel.Item>
-                            <DeadCenter>
-                                <Image
-                                    src="/preserved.png"
-                                    alt="protected"
-                                    style={{ width: '280px' }}
-                                />
-                                <HighlightedText>
-                                    {englishConstants.PRESERVED}
-                                </HighlightedText>
-                                <span>
-                                    {englishConstants.PRESERVED_MESSAGE}
-                                </span>
-                            </DeadCenter>
-                        </Carousel.Item>
-                    </Carousel>
+            <Carousel style={{ width: '400px' }} className="text-center" controls={false}>
+                <Carousel.Item>
+                    <DeadCenter>
+                        <Image
+                            src="/protected.png"
+                            alt="protected"
+                            style={{ width: '175px', height: '207px' }}
+                        />
+                        <HighlightedText>
+                            {englishConstants.PROTECTED}
+                        </HighlightedText>
+                        <span>
+                            {englishConstants.PROTECTED_MESSAGE()}
+                        </span>
+                    </DeadCenter>
+                </Carousel.Item>
+                <Carousel.Item>
+                    <DeadCenter>
+                        <Image src="/synced.png" alt="synced"
+                            style={{ width: '224px', height: '207px' }} />
+                        <HighlightedText>
+                            {englishConstants.SYNCED}
+                        </HighlightedText>
+                        <span>{englishConstants.SYNCED_MESSAGE()}</span>
+                    </DeadCenter>
+                </Carousel.Item>
+                <Carousel.Item>
+                    <DeadCenter>
+                        <Image
+                            src="/preserved.png"
+                            alt="preserved"
+                            style={{ width: '260px', height: '207px' }}
+                        />
+                        <HighlightedText>
+                            {englishConstants.PRESERVED}
+                        </HighlightedText>
+                        <span>
+                            {englishConstants.PRESERVED_MESSAGE()}
+                        </span>
+                    </DeadCenter>
+                </Carousel.Item>
+            </Carousel>
+            <Card style={{ width: '460px', marginTop: '50px' }} className="text-center">
+                <Card.Body style={{ padding: '30px 30px' }}>
+
                     <Card.Title
                         style={{
-                            marginBottom: '20px',
+                            marginBottom: '32px',
                             fontSize: '25px',
                         }}
                     >
                         {constants.SIGN_UP}
                     </Card.Title>
-                    <div style={{ margin: 'auto', width: '400px' }}>
+                    <div style={{ margin: 'auto', width: '360px' }}>
                         <Formik<FormValues>
                             initialValues={{
                                 email: '',
@@ -197,7 +199,7 @@ export default function SignUp() {
                                             )}
                                             isInvalid={Boolean(
                                                 touched.passphrase &&
-                                                    errors.passphrase
+                                                errors.passphrase
                                             )}
                                             disabled={loading}
                                         />
@@ -215,7 +217,7 @@ export default function SignUp() {
                                             onChange={handleChange('confirm')}
                                             isInvalid={Boolean(
                                                 touched.confirm &&
-                                                    errors.confirm
+                                                errors.confirm
                                             )}
                                             disabled={loading}
                                         />
@@ -226,6 +228,8 @@ export default function SignUp() {
                                     <Form.Group
                                         style={{
                                             textAlign: 'left',
+                                            paddingTop: '12px',
+                                            marginBottom: '20px',
                                         }}
                                     >
                                         <label className="container">
@@ -242,7 +246,7 @@ export default function SignUp() {
                                             <span className="checkmark"></span>
                                         </label>
                                     </Form.Group>
-                                    <Form.Group
+                                    {/* <Form.Group
                                         style={{
                                             textAlign: 'left',
                                         }}
@@ -260,7 +264,7 @@ export default function SignUp() {
                                             />
                                             <span className="checkmark"></span>
                                         </label>
-                                    </Form.Group>
+                                    </Form.Group> */}
                                     <SubmitButton
                                         buttonText={constants.SUBMIT}
                                         loading={loading}
@@ -270,8 +274,7 @@ export default function SignUp() {
                             )}
                         </Formik>
                     </div>
-                    <br />
-                    <Button variant="link" onClick={router.back}>
+                    <Button variant="link" onClick={router.back} style={{ marginTop: "32px" }}>
                         {constants.GO_BACK}
                     </Button>
                 </Card.Body>

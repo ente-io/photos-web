@@ -332,13 +332,26 @@ const englishConstants = {
         </span>
     ),
     PROTECTED: 'protected',
-    PROTECTED_MESSAGE:
-        'end-to-end encrypted with your password, visible only to you',
+    PROTECTED_MESSAGE: () => (
+        <>
+            <div>end-to-end encrypted with your password,</div>
+            <div>visible only to you</div>
+        </>
+    ),
     SYNCED: 'synced',
-    SYNCED_MESSAGE: 'available across all your devices web, android and ios',
+    SYNCED_MESSAGE: () => (
+        <>
+            <div>available across all your devices,</div>
+            <div>web, android and ios</div>
+        </>
+    ),
     PRESERVED: 'preserved',
-    PRESERVED_MESSAGE:
-        'reliably replicated to a fallout shelter, designed to outlive',
+    PRESERVED_MESSAGE: () => (
+        <>
+            <div>reliably replicated to a fallout shelter,</div>
+            <div>designed to outlive</div>
+        </>
+    ),
 };
 
 export default englishConstants;
