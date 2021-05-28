@@ -73,7 +73,7 @@ export default function SignUp() {
 
     return (
         <Container>
-            <Card style={{ width: '320px' }} className="text-center">
+            <Card style={{ minWidth: '320px' }} className="text-center">
                 <Card.Body style={{ padding: '40px 30px' }}>
                     <Card.Title style={{ marginBottom: '32px' }}>
                         {constants.SIGN_UP}
