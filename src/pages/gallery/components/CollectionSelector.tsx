@@ -41,6 +41,7 @@ function CollectionSelector({
     useEffect(() => {
         if (directlyShowNextModal && attributes) {
             attributes.showNextModal();
+            props.onHide();
         }
     }, [attributes]);
 
