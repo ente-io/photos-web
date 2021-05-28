@@ -21,17 +21,6 @@ import { DeadCenter } from 'pages/gallery';
 import englishConstants from 'utils/strings/englishConstants';
 import styled from 'styled-components';
 
-const Image = styled.img`
-    width: 250px;
-    height: 250px;
-    margin-bottom: 30px;
-`;
-const HighlightedText = styled.span`
-    color: #2dc262;
-    font-weight: 900;
-    font-size: 20px;
-    margin-bottom: 20px;
-`;
 interface FormValues {
     email: string;
     passphrase: string;
@@ -88,51 +77,11 @@ export default function SignUp() {
 
     return (
         <Container>
-            <Carousel style={{ width: '400px' }} className="text-center" controls={false}>
-                <Carousel.Item>
-                    <DeadCenter>
-                        <Image
-                            src="/protected.png"
-                            alt="protected"
-                            style={{ width: '175px', height: '207px' }}
-                        />
-                        <HighlightedText>
-                            {englishConstants.PROTECTED}
-                        </HighlightedText>
-                        <span>
-                            {englishConstants.PROTECTED_MESSAGE()}
-                        </span>
-                    </DeadCenter>
-                </Carousel.Item>
-                <Carousel.Item>
-                    <DeadCenter>
-                        <Image src="/synced.png" alt="synced"
-                            style={{ width: '224px', height: '207px' }} />
-                        <HighlightedText>
-                            {englishConstants.SYNCED}
-                        </HighlightedText>
-                        <span>{englishConstants.SYNCED_MESSAGE()}</span>
-                    </DeadCenter>
-                </Carousel.Item>
-                <Carousel.Item>
-                    <DeadCenter>
-                        <Image
-                            src="/preserved.png"
-                            alt="preserved"
-                            style={{ width: '260px', height: '207px' }}
-                        />
-                        <HighlightedText>
-                            {englishConstants.PRESERVED}
-                        </HighlightedText>
-                        <span>
-                            {englishConstants.PRESERVED_MESSAGE()}
-                        </span>
-                    </DeadCenter>
-                </Carousel.Item>
-            </Carousel>
-            <Card style={{ width: '460px', marginTop: '50px' }} className="text-center">
+            <Card
+                style={{ width: '460px', marginTop: '50px' }}
+                className="text-center"
+            >
                 <Card.Body style={{ padding: '30px 30px' }}>
-
                     <Card.Title
                         style={{
                             marginBottom: '32px',
@@ -199,7 +148,7 @@ export default function SignUp() {
                                             )}
                                             isInvalid={Boolean(
                                                 touched.passphrase &&
-                                                errors.passphrase
+                                                    errors.passphrase
                                             )}
                                             disabled={loading}
                                         />
@@ -217,7 +166,7 @@ export default function SignUp() {
                                             onChange={handleChange('confirm')}
                                             isInvalid={Boolean(
                                                 touched.confirm &&
-                                                errors.confirm
+                                                    errors.confirm
                                             )}
                                             disabled={loading}
                                         />
@@ -274,7 +223,11 @@ export default function SignUp() {
                             )}
                         </Formik>
                     </div>
-                    <Button variant="link" onClick={router.back} style={{ marginTop: "32px" }}>
+                    <Button
+                        variant="link"
+                        onClick={router.back}
+                        style={{ marginTop: '32px' }}
+                    >
                         {constants.GO_BACK}
                     </Button>
                 </Card.Body>
