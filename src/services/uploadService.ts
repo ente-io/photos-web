@@ -18,6 +18,8 @@ import {
 import { Collection } from './collectionService';
 import { File, fileAttribute } from './fileService';
 import HTTPService from './HTTPService';
+import { createFFmpeg } from '@ffmpeg/ffmpeg';
+
 
 const ENDPOINT = getEndpoint();
 
@@ -36,7 +38,7 @@ const MIN_STREAM_FILE_SIZE = 20 * 1024 * 1024;
 const CHUNKS_COMBINED_FOR_UPLOAD = 5;
 const RANDOM_PERCENTAGE_PROGRESS_FOR_PUT = () => 90 + 10 * Math.random();
 const NULL_LOCATION: Location = { latitude: null, longitude: null };
-const WAIT_TIME_THUMBNAIL_GENERATION = 30 * 1000;
+const WAIT_TIME_THUMBNAIL_GENERATION = 2 * 1000;
 const FILE_UPLOAD_FAILED = -1;
 const FILE_UPLOAD_SKIPPED = -2;
 const FILE_UPLOAD_COMPLETED = 100;
@@ -728,8 +730,26 @@ class UploadService {
             );
             return thumbnail;
         } catch (e) {
-            console.error('Error generating thumbnail ', e);
-            throw e;
+            console.error('Error generating thumbnail failed with canvas method', e);
+            const ffmpeg = createFFmpeg({
+                log: true,
+            });
+            const IS_COMPATIBLE = typeof SharedArrayBuffer === 'function';
+            if (!IS_COMPATIBLE) {
+                throw e;
+            }
+            console.log('Loading ffmpeg-core.js');
+            await ffmpeg.load();
+            console.log('Start transcoding');
+            ffmpeg.FS('writeFile', file.name, await this.getUint8ArrayView(
+                reader,
+                file,
+            ));
+
+            await ffmpeg.run('-i', file.name, '-ss', '00:00:01.000', '-vframes', '1', 'thumb.png');
+            console.log('Complete transcoding');
+            const thumb = ffmpeg.FS('readFile', 'thumb.png');
+            return thumb;
         }
     }
 
