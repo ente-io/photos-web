@@ -23,7 +23,7 @@
         "@typescript-eslint"
     ],
     "rules": {
-        "indent": ["error", 4],
+        "indent": ["error", 4,{ "SwitchCase": 1 }],
         "class-methods-use-this": "off",
         "react/prop-types": "off",
         "react/display-name": "off",
