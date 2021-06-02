@@ -129,11 +129,13 @@ export enum UPLOAD_STAGES {
 class UploadService {
     private cryptoWorkers = new Array<ComlinkWorker>(MAX_CONCURRENT_UPLOADS);
 
-    private ffmpegInstances = new Array<FFmpeg>(MAX_CONCURRENT_UPLOADS);
+    private ffmpegWorker: FFmpeg = null;
 
     private uploadURLs: UploadURL[] = [];
 
     private uploadURLFetchInProgress: Promise<any> = null;
+
+    private thumbnailGenerationInProgress: Promise<any> = null;
 
     private perFileProgress: number;
 
@@ -214,6 +216,8 @@ class UploadService {
                 console.error('error fetching uploadURLs', e);
                 ErrorHandler(e);
             }
+            this.ffmpegWorker = await this.getFfmpegInstance();
+
             const uploadProcesses = [];
             for (
                 let i = 0;
@@ -221,12 +225,10 @@ class UploadService {
                 i++
             ) {
                 this.cryptoWorkers[i] = getDedicatedCryptoWorker();
-                this.ffmpegInstances[i] = await this.getFfmpegInstance();
                 uploadProcesses.push(
                     this.uploader(
                         await new this.cryptoWorkers[i].comlink(),
                         new FileReader(),
-                        this.ffmpegInstances[i],
                         this.filesToBeUploaded.pop(),
                     ),
                 );
@@ -243,7 +245,6 @@ class UploadService {
         } finally {
             for (let i = 0; i < MAX_CONCURRENT_UPLOADS; i++) {
                 this.cryptoWorkers[i]?.worker.terminate();
-                this.ffmpegInstances[i] = null;
             }
         }
     }
@@ -251,14 +252,13 @@ class UploadService {
     private async uploader(
         worker: any,
         reader: FileReader,
-        ffmeg: FFmpeg,
         fileWithCollection: FileWithCollection,
     ) {
         const { file: rawFile, collection } = fileWithCollection;
         this.fileProgress.set(rawFile.name, 0);
         this.updateProgressBarUI();
         try {
-            let file: FileInMemory = await this.readFile(reader, rawFile, ffmeg);
+            let file: FileInMemory = await this.readFile(reader, rawFile);
             if (this.fileAlreadyInCollection(file, collection)) {
                 // set progress to -2 indicating that file upload was skipped
                 this.fileProgress.set(rawFile.name, FILE_UPLOAD_SKIPPED);
@@ -300,7 +300,6 @@ class UploadService {
                 await this.uploader(
                     worker,
                     reader,
-                    ffmeg,
                     this.filesToBeUploaded.pop(),
                 );
             }
@@ -356,12 +355,11 @@ class UploadService {
         return false;
     }
 
-    private async readFile(reader: FileReader, receivedFile: globalThis.File, ffmpeg: FFmpeg) {
+    private async readFile(reader: FileReader, receivedFile: globalThis.File) {
         try {
             const thumbnail = await this.generateThumbnail(
                 reader,
                 receivedFile,
-                ffmpeg,
             );
 
             let fileType: FILE_TYPE;
@@ -630,134 +628,148 @@ class UploadService {
     private async generateThumbnail(
         reader: FileReader,
         file: globalThis.File,
-        ffmpeg: FFmpeg,
     ): Promise<Uint8Array> {
-        try {
-            const canvas = document.createElement('canvas');
-            // eslint-disable-next-line camelcase
-            const canvas_CTX = canvas.getContext('2d');
-            let imageURL = null;
-            if (file.type.match(TYPE_IMAGE) || fileIsHEIC(file.name)) {
-                if (fileIsHEIC(file.name)) {
-                    file = new globalThis.File(
-                        [await convertHEIC2JPEG(file)],
-                        null,
-                        null,
-                    );
-                }
-                let image = new Image();
-                imageURL = URL.createObjectURL(file);
-                image.setAttribute('src', imageURL);
-                await new Promise((resolve, reject) => {
-                    image.onload = () => {
-                        try {
-                            const thumbnailWidth = (image.width * THUMBNAIL_HEIGHT) / image.height;
-                            canvas.width = thumbnailWidth;
-                            canvas.height = THUMBNAIL_HEIGHT;
-                            canvas_CTX.drawImage(
-                                image,
-                                0,
-                                0,
-                                thumbnailWidth,
-                                THUMBNAIL_HEIGHT,
-                            );
-                            image = undefined;
-                            resolve(null);
-                        } catch (e) {
-                            console.error(e);
-                            reject(new Error(`${THUMBNAIL_GENERATION_FAILED} err: ${e}`));
-                        }
-                    };
-                    setTimeout(
-                        () => reject(
-                            new Error(`${THUMBNAIL_GENERATION_FAILED} err:wait time exceeded`),
-                        ),
-                        WAIT_TIME_THUMBNAIL_GENERATION,
-                    );
-                });
-            } else {
-                await new Promise((resolve, reject) => {
-                    let video = document.createElement('video');
-                    imageURL = URL.createObjectURL(file);
-                    video.addEventListener('timeupdate', () => {
-                        try {
-                            const thumbnailWidth = (video.videoWidth * THUMBNAIL_HEIGHT) /
-                                video.videoHeight;
-                            canvas.width = thumbnailWidth;
-                            canvas.height = THUMBNAIL_HEIGHT;
-                            canvas_CTX.drawImage(
-                                video,
-                                0,
-                                0,
-                                thumbnailWidth,
-                                THUMBNAIL_HEIGHT,
-                            );
-                            video = null;
-                            resolve(null);
-                        } catch (e) {
-                            console.error(e);
-                            reject(new Error(`${THUMBNAIL_GENERATION_FAILED} err: ${e}`));
-                        }
-                    });
-                    video.preload = 'metadata';
-                    video.src = imageURL;
-                    video.currentTime = 3;
-                    setTimeout(
-                        () => reject(
-                            new Error(`${THUMBNAIL_GENERATION_FAILED} err:
-                                wait time exceeded`),
-                        ),
-                        WAIT_TIME_THUMBNAIL_GENERATION,
-                    );
-                });
-            }
-            URL.revokeObjectURL(imageURL);
-            let thumbnailBlob = null;
-            let attempts = 0;
-            let quality = 1;
-
-            do {
-                attempts++;
-                quality /= 2;
-                thumbnailBlob = await new Promise((resolve) => {
-                    canvas.toBlob(
-                        (blob) => {
-                            resolve(blob);
-                        },
-                        'image/jpeg',
-                        quality,
-                    );
-                });
-                thumbnailBlob = thumbnailBlob ?? new Blob([]);
-            } while (
-                thumbnailBlob.size > MIN_THUMBNAIL_SIZE &&
-                attempts <= MAX_ATTEMPTS
-            );
-            const thumbnail = await this.getUint8ArrayView(
-                reader,
-                thumbnailBlob,
-            );
-            return thumbnail;
-        } catch (e) {
+        let canvas: HTMLCanvasElement = null;
+        if (file.type.match(TYPE_IMAGE) || fileIsHEIC(file.name)) {
+            canvas = await this.generateImageThumbnailWithCanvas(file);
+        } else {
             try {
-                console.error('Error generating thumbnail failed with canvas method', e);
-
-                console.log('Start transcoding');
-                ffmpeg.FS('writeFile', file.name, await this.getUint8ArrayView(
-                    reader,
-                    file,
-                ));
-
-                await ffmpeg.run('-i', file.name, '-ss', '00:00:01.000', '-vframes', '1', 'thumb.png');
-                console.log('Complete transcoding');
-                const thumb = ffmpeg.FS('readFile', 'thumb.png');
-                return thumb;
+                const thumb = await this.generateThumbnailUsingFfmpeg(reader, file);
+                file = new globalThis.File(
+                    [thumb],
+                    null,
+                    null,
+                );
+                canvas = await this.generateImageThumbnailWithCanvas(file);
             } catch (e) {
-                // ignore and send blank thumbnail
                 console.error('Error generating thumbnail failed with ffmpeg method', e);
+                canvas = await this.generateVideoThumbnailWithCanvas(file);
             }
         }
+        let thumbnailBlob = null;
+        let attempts = 0;
+        let quality = 1;
+        do {
+            attempts++;
+            quality /= 2;
+            thumbnailBlob = await new Promise((resolve) => {
+                canvas.toBlob(
+                    (blob) => {
+                        resolve(blob);
+                    },
+                    'image/jpeg',
+                    quality,
+                );
+            });
+            thumbnailBlob = thumbnailBlob ?? new Blob([]);
+        } while (
+            thumbnailBlob.size > MIN_THUMBNAIL_SIZE &&
+            attempts <= MAX_ATTEMPTS
+        );
+        const thumbnail = await this.getUint8ArrayView(
+            reader,
+            thumbnailBlob,
+        );
+        return thumbnail;
     }
+    private async generateImageThumbnailWithCanvas(file: globalThis.File) {
+        const canvas = document.createElement('canvas');
+        // eslint-disable-next-line camelcase
+        const canvas_CTX = canvas.getContext('2d');
+        let imageURL = null;
+        if (fileIsHEIC(file.name)) {
+            file = new globalThis.File(
+                [await convertHEIC2JPEG(file)],
+                null,
+                null,
+            );
+        }
+        let image = new Image();
+        imageURL = URL.createObjectURL(file);
+        image.setAttribute('src', imageURL);
+        try {
+            await new Promise((resolve, reject) => {
+                image.onload = () => {
+                    try {
+                        const thumbnailWidth = (image.width * THUMBNAIL_HEIGHT) / image.height;
+                        canvas.width = thumbnailWidth;
+                        canvas.height = THUMBNAIL_HEIGHT;
+                        canvas_CTX.drawImage(
+                            image,
+                            0,
+                            0,
+                            thumbnailWidth,
+                            THUMBNAIL_HEIGHT,
+                        );
+                        image = undefined;
+                        resolve(null);
+                    } catch (e) {
+                        console.error(e);
+                        reject(new Error(`${THUMBNAIL_GENERATION_FAILED} err: ${e}`));
+                    }
+                };
+                setTimeout(
+                    () => reject(
+                        new Error(`${THUMBNAIL_GENERATION_FAILED} err:wait time exceeded`),
+                    ),
+                    WAIT_TIME_THUMBNAIL_GENERATION,
+                );
+            });
+        } catch (e) {
+            console.error(e);
+            // ignore;
+        }
+        URL.revokeObjectURL(imageURL);
+        return canvas;
+    }
+    private async generateVideoThumbnailWithCanvas(file: globalThis.File) {
+        const canvas = document.createElement('canvas');
+        // eslint-disable-next-line camelcase
+        const canvas_CTX = canvas.getContext('2d');
+        let videoURL = null;
+        try {
+            await new Promise((resolve, reject) => {
+                let video = document.createElement('video');
+                videoURL = URL.createObjectURL(file);
+                video.addEventListener('timeupdate', () => {
+                    try {
+                        const thumbnailWidth = (video.videoWidth * THUMBNAIL_HEIGHT) /
+                            video.videoHeight;
+                        canvas.width = thumbnailWidth;
+                        canvas.height = THUMBNAIL_HEIGHT;
+                        canvas_CTX.drawImage(
+                            video,
+                            0,
+                            0,
+                            thumbnailWidth,
+                            THUMBNAIL_HEIGHT,
+                        );
+                        video = null;
+                        resolve(null);
+                    } catch (e) {
+                        console.error(e);
+                        reject(new Error(`${THUMBNAIL_GENERATION_FAILED} err: ${e}`));
+                    }
+                });
+                video.preload = 'metadata';
+                video.src = videoURL;
+                video.currentTime = 3;
+                setTimeout(
+                    () => reject(
+                        new Error(`${THUMBNAIL_GENERATION_FAILED} err:
+                        wait time exceeded`),
+                    ),
+                    WAIT_TIME_THUMBNAIL_GENERATION,
+                );
+            });
+        } catch (e) {
+            console.error(e);
+            // ignore;
+        }
+        URL.revokeObjectURL(videoURL);
+        return canvas;
+    }
+
 
     private getFileStream(reader: FileReader, file: globalThis.File) {
         const self = this;
@@ -1068,16 +1080,44 @@ class UploadService {
         }
     }
     private async getFfmpegInstance() {
-        const ffmpeg = createFFmpeg({
-            log: true,
-        });
+        const ffmpeg = createFFmpeg();
         const IS_COMPATIBLE = typeof SharedArrayBuffer === 'function';
         if (!IS_COMPATIBLE) {
-            throw new Error(FFMPEG_LOAD_FAILED);
+            return null;
         }
         console.log('Loading ffmpeg-core.js');
-        await ffmpeg.load();
+        if (!ffmpeg.isLoaded()) {
+            await ffmpeg.load();
+        }
         return ffmpeg;
+    }
+    private async generateThumbnailUsingFfmpeg(reader: FileReader, file: globalThis.File) {
+        if (!this.ffmpegWorker) {
+            throw new Error(FFMPEG_LOAD_FAILED);
+        }
+        if (this.thumbnailGenerationInProgress) {
+            this.thumbnailGenerationInProgress = (async () => {
+                await this.thumbnailGenerationInProgress;
+                await WaitFor2Seconds();
+            })();
+            await this.thumbnailGenerationInProgress;
+        }
+        this.thumbnailGenerationInProgress = null;
+        console.log('Start transcoding');
+        this.thumbnailGenerationInProgress = (async (): Promise<Uint8Array> => {
+            this.ffmpegWorker.FS('writeFile', file.name, await this.getUint8ArrayView(
+                reader,
+                file,
+            ));
+
+            await this.ffmpegWorker.run('-i', file.name, '-ss', '00:00:01.000', '-vframes', '1', 'thumb.png');
+            console.log('Complete transcoding');
+            const thumb = this.ffmpegWorker.FS('readFile', 'thumb.png');
+            return thumb;
+        })();
+        const thumbnail = await this.thumbnailGenerationInProgress;
+        this.thumbnailGenerationInProgress = null;
+        return thumbnail;
     }
 }
 
