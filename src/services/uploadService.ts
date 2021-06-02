@@ -4,6 +4,7 @@ import { FILE_TYPE } from 'pages/gallery';
 import { checkConnectivity, WaitFor2Seconds } from 'utils/common';
 import {
     ErrorHandler,
+    FFMPEG_LOAD_FAILED,
     THUMBNAIL_GENERATION_FAILED,
 } from 'utils/common/errorUtil';
 import { ComlinkWorker, getDedicatedCryptoWorker } from 'utils/crypto';
@@ -18,7 +19,7 @@ import {
 import { Collection } from './collectionService';
 import { File, fileAttribute } from './fileService';
 import HTTPService from './HTTPService';
-import { createFFmpeg } from '@ffmpeg/ffmpeg';
+import { createFFmpeg, FFmpeg } from '@ffmpeg/ffmpeg';
 
 
 const ENDPOINT = getEndpoint();
@@ -110,7 +111,7 @@ interface ProcessedFile {
     metadata: fileAttribute;
     filename: string;
 }
-interface BackupedFile extends Omit<ProcessedFile, 'filename'> {}
+interface BackupedFile extends Omit<ProcessedFile, 'filename'> { }
 
 interface uploadFile extends BackupedFile {
     collectionID: number;
@@ -127,6 +128,8 @@ export enum UPLOAD_STAGES {
 
 class UploadService {
     private cryptoWorkers = new Array<ComlinkWorker>(MAX_CONCURRENT_UPLOADS);
+
+    private ffmpegInstances = new Array<FFmpeg>(MAX_CONCURRENT_UPLOADS);
 
     private uploadURLs: UploadURL[] = [];
 
@@ -147,9 +150,7 @@ class UploadService {
     private progressBarProps;
 
     private uploadErrors: Error[];
-
     private existingFilesCollectionWise: Map<number, File[]>;
-
     public async uploadFiles(
         filesWithCollectionToUpload: FileWithCollection[],
         existingFiles: File[],
@@ -158,6 +159,7 @@ class UploadService {
         try {
             checkConnectivity();
             progressBarProps.setUploadStage(UPLOAD_STAGES.START);
+
 
             this.filesCompleted = 0;
             this.fileProgress = new Map<string, number>();
@@ -219,10 +221,12 @@ class UploadService {
                 i++
             ) {
                 this.cryptoWorkers[i] = getDedicatedCryptoWorker();
+                this.ffmpegInstances[i] = await this.getFfmpegInstance();
                 uploadProcesses.push(
                     this.uploader(
                         await new this.cryptoWorkers[i].comlink(),
                         new FileReader(),
+                        this.ffmpegInstances[i],
                         this.filesToBeUploaded.pop(),
                     ),
                 );
@@ -239,6 +243,7 @@ class UploadService {
         } finally {
             for (let i = 0; i < MAX_CONCURRENT_UPLOADS; i++) {
                 this.cryptoWorkers[i]?.worker.terminate();
+                this.ffmpegInstances[i] = null;
             }
         }
     }
@@ -246,13 +251,14 @@ class UploadService {
     private async uploader(
         worker: any,
         reader: FileReader,
+        ffmeg: FFmpeg,
         fileWithCollection: FileWithCollection,
     ) {
         const { file: rawFile, collection } = fileWithCollection;
         this.fileProgress.set(rawFile.name, 0);
         this.updateProgressBarUI();
         try {
-            let file: FileInMemory = await this.readFile(reader, rawFile);
+            let file: FileInMemory = await this.readFile(reader, rawFile, ffmeg);
             if (this.fileAlreadyInCollection(file, collection)) {
                 // set progress to -2 indicating that file upload was skipped
                 this.fileProgress.set(rawFile.name, FILE_UPLOAD_SKIPPED);
@@ -294,6 +300,7 @@ class UploadService {
                 await this.uploader(
                     worker,
                     reader,
+                    ffmeg,
                     this.filesToBeUploaded.pop(),
                 );
             }
@@ -349,23 +356,24 @@ class UploadService {
         return false;
     }
 
-    private async readFile(reader: FileReader, receivedFile: globalThis.File) {
+    private async readFile(reader: FileReader, receivedFile: globalThis.File, ffmpeg: FFmpeg) {
         try {
             const thumbnail = await this.generateThumbnail(
                 reader,
                 receivedFile,
+                ffmpeg,
             );
 
             let fileType: FILE_TYPE;
             switch (receivedFile.type.split('/')[0]) {
-            case TYPE_IMAGE:
-                fileType = FILE_TYPE.IMAGE;
-                break;
-            case TYPE_VIDEO:
-                fileType = FILE_TYPE.VIDEO;
-                break;
-            default:
-                fileType = FILE_TYPE.OTHERS;
+                case TYPE_IMAGE:
+                    fileType = FILE_TYPE.IMAGE;
+                    break;
+                case TYPE_VIDEO:
+                    fileType = FILE_TYPE.VIDEO;
+                    break;
+                default:
+                    fileType = FILE_TYPE.OTHERS;
             }
             if (
                 fileType === FILE_TYPE.OTHERS &&
@@ -390,7 +398,7 @@ class UploadService {
             const metadata = {
                 title: receivedFile.name,
                 creationTime:
-                        creationTime || receivedFile.lastModified * 1000,
+                    creationTime || receivedFile.lastModified * 1000,
                 modificationTime: receivedFile.lastModified * 1000,
                 latitude: location?.latitude,
                 longitude: location?.latitude,
@@ -622,6 +630,7 @@ class UploadService {
     private async generateThumbnail(
         reader: FileReader,
         file: globalThis.File,
+        ffmpeg: FFmpeg,
     ): Promise<Uint8Array> {
         try {
             const canvas = document.createElement('canvas');
@@ -730,26 +739,23 @@ class UploadService {
             );
             return thumbnail;
         } catch (e) {
-            console.error('Error generating thumbnail failed with canvas method', e);
-            const ffmpeg = createFFmpeg({
-                log: true,
-            });
-            const IS_COMPATIBLE = typeof SharedArrayBuffer === 'function';
-            if (!IS_COMPATIBLE) {
-                throw e;
-            }
-            console.log('Loading ffmpeg-core.js');
-            await ffmpeg.load();
-            console.log('Start transcoding');
-            ffmpeg.FS('writeFile', file.name, await this.getUint8ArrayView(
-                reader,
-                file,
-            ));
+            try {
+                console.error('Error generating thumbnail failed with canvas method', e);
 
-            await ffmpeg.run('-i', file.name, '-ss', '00:00:01.000', '-vframes', '1', 'thumb.png');
-            console.log('Complete transcoding');
-            const thumb = ffmpeg.FS('readFile', 'thumb.png');
-            return thumb;
+                console.log('Start transcoding');
+                ffmpeg.FS('writeFile', file.name, await this.getUint8ArrayView(
+                    reader,
+                    file,
+                ));
+
+                await ffmpeg.run('-i', file.name, '-ss', '00:00:01.000', '-vframes', '1', 'thumb.png');
+                console.log('Complete transcoding');
+                const thumb = ffmpeg.FS('readFile', 'thumb.png');
+                return thumb;
+            } catch (e) {
+                // ignore and send blank thumbnail
+                console.error('Error generating thumbnail failed with ffmpeg method', e);
+            }
         }
     }
 
@@ -953,8 +959,8 @@ class UploadService {
                         Math.min(
                             Math.round(
                                 percentPerPart * index +
-                                    (percentPerPart * event.loaded) /
-                                        event.total,
+                                (percentPerPart * event.loaded) /
+                                event.total,
                             ),
                             98,
                         ),
@@ -1060,6 +1066,18 @@ class UploadService {
                 throw e;
             }
         }
+    }
+    private async getFfmpegInstance() {
+        const ffmpeg = createFFmpeg({
+            log: true,
+        });
+        const IS_COMPATIBLE = typeof SharedArrayBuffer === 'function';
+        if (!IS_COMPATIBLE) {
+            throw new Error(FFMPEG_LOAD_FAILED);
+        }
+        console.log('Loading ffmpeg-core.js');
+        await ffmpeg.load();
+        return ffmpeg;
     }
 }
 
