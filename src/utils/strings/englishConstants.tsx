@@ -4,7 +4,7 @@ import React from 'react';
  * Global English constants.
  */
 
-const dateString = function(date) {
+const dateString = function (date) {
     return new Date(date / 1000).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'long',
@@ -26,7 +26,7 @@ const englishConstants = {
     VERIFY_EMAIL: 'verify email',
     EMAIL_SENT: ({ email }) => (
         <p>
-        we have sent a mail to <b>{email}</b>
+            we have sent a mail to <b>{email}</b>
         </p>
     ),
     CHECK_INBOX: 'please check your inbox (and spam) to complete verification',
@@ -46,7 +46,7 @@ const englishConstants = {
         'please enter a password that we can use to encrypt your data',
     PASSPHRASE_DISCLAIMER: () => (
         <p>
-        we don't store your password, so if you forget,
+            we don't store your password, so if you forget,
             <strong> we will not be able to help you</strong>
             {' '}
         recover your data.
@@ -78,12 +78,12 @@ const englishConstants = {
             {' - '}
             {(() => {
                 switch (progress) {
-                case -1:
-                    return 'failed';
-                case -2:
-                    return 'already uploaded, skipping...';
-                default:
-                    return `${progress}%`;
+                    case -1:
+                        return 'failed';
+                    case -2:
+                        return 'already uploaded, skipping...';
+                    default:
+                        return `${progress}%`;
                 }
             })()}
         </div>
@@ -160,13 +160,13 @@ const englishConstants = {
     MESSAGE: 'message',
     INSTALL_MOBILE_APP: () => (
         <>
-        install our{' '}
+            install our{' '}
             <a
                 href="https://play.google.com/store/apps/details?id=io.ente.photos"
                 target="_blank"
                 style={{ color: '#2dc262' }} rel="noreferrer"
             >
-              android
+                android
             </a>
             {' '}
         or
@@ -176,7 +176,7 @@ const englishConstants = {
                 style={{ color: '#2dc262' }}
                 target="_blank" rel="noreferrer"
             >
-              ios app
+                ios app
                 {' '}
             </a>
         to automatically backup all your photos
@@ -208,7 +208,7 @@ const englishConstants = {
     FREE_SUBSCRIPTION_INFO: (expiryTime) => (
         <>
             <p>
-            you are on the <strong>free</strong>
+                you are on the <strong>free</strong>
                 {' '}
             plan that expires on{' '}
                 {dateString(expiryTime)}
@@ -217,23 +217,23 @@ const englishConstants = {
     ),
     RENEWAL_ACTIVE_SUBSCRIPTION_INFO: (expiryTime) => (
         <p>
-        your subscription will renew on{dateString(expiryTime)}
+            your subscription will renew on {dateString(expiryTime)}
         </p>
     ),
 
     RENEWAL_CANCELLED_SUBSCRIPTION_INFO: (expiryTime) => (
         <>
             <p>
-            your subscription will be cancelled on {dateString(expiryTime)}
+                your subscription will be cancelled on {dateString(expiryTime)}
             </p>
         </>
     ),
 
     USAGE_INFO: (usage, quota) => (
         <p>
-        you have used {usage}
+            you have used {usage}
             {' '}
-        GB out of your{quota}
+        GB out of your {quota}
             {' '}
         GB quota
         </p>
@@ -265,8 +265,8 @@ const englishConstants = {
     CANCEL_SUBSCRIPTION_MESSAGE: () => (
         <>
             <p>
-            all of your data will be deleted from our servers at the end of
-            this billing period.
+                all of your data will be deleted from our servers at the end of
+                this billing period.
             </p>
             <p>are you sure that you want to unsubscribe?</p>
         </>
@@ -291,8 +291,8 @@ const englishConstants = {
         <>
             <p>are you sure you want to delete this album?</p>
             <p>
-            all files that are present only in this album will be
-            permanently deleted
+                all files that are present only in this album will be
+                permanently deleted
             </p>
         </>
     ),
@@ -314,25 +314,25 @@ const englishConstants = {
     SEARCH_HINT: () => <span>New York, April 14, Christmas...</span>,
     TERMS_AND_CONDITIONS: () => (
         <p>
-        I agree to the{' '}
+            I agree to the{' '}
             <a href="https://ente.io/terms" target="_blank" rel="noreferrer">
-            terms
+                terms
             </a>
             {' '}
         and
             {' '}
             <a href="https://ente.io/privacy" target="_blank" rel="noreferrer">
-            privacy policy
+                privacy policy
             </a>
             {' '}
         </p>
     ),
     CONFIRM_PASSWORD_NOT_SAVED: () => (
         <p>
-        i understand that if i lose my password , i may lose my data since
+            i understand that if i lose my password , i may lose my data since
         my data is{' '}
             <a href="https://ente.io/encryption" target="_blank" rel="noreferrer">
-            end-to-end encrypted
+                end-to-end encrypted
             </a>
             {' '}
         with ente
@@ -340,7 +340,7 @@ const englishConstants = {
     ),
     SEARCH_STATS: ({ resultCount, timeTaken }) => (
         <span>
-        found <span style={{ color: '#2dc262' }}>{resultCount}</span>
+            found <span style={{ color: '#2dc262' }}>{resultCount}</span>
             {' '}
         memories (
             {' '}
@@ -354,6 +354,8 @@ const englishConstants = {
     ),
     NOT_FILE_OWNER: 'deleting shared collection files is not allowed',
     ADD_TO_COLLECTION: 'add to collection',
+    VIDEO_PLAYBACK_FAILED: 'video format not supported',
+    VIDEO_PLAYBACK_FAILED_DOWNLOAD_INSTEAD: 'this video cannot be played on your browser',
 };
 
 export default englishConstants;

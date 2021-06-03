@@ -19,12 +19,14 @@ import { VariableSizeList as List } from 'react-window';
 import PhotoSwipe from 'components/PhotoSwipe/PhotoSwipe';
 import { isInsideBox, isSameDay as isSameDayAnyYear } from 'utils/search';
 import CloudUpload from './CloudUpload';
+import { SetDialogMessage } from './MessageDialog';
+import { VIDEO_PLAYBACK_FAILED } from 'utils/common/errorUtil';
 
 const DATE_CONTAINER_HEIGHT = 45;
 const IMAGE_CONTAINER_HEIGHT = 200;
 const NO_OF_PAGES = 2;
 const A_DAY = 24 * 60 * 60 * 1000;
-
+const WAIT_FOR_VIDEO_PLAYBACK = 1 * 1000;
 interface TimeStampListItem {
     itemType: ITEM_TYPE;
     items?: File[];
@@ -119,6 +121,8 @@ interface Props {
     searchMode: boolean;
     search: Search;
     setSearchStats: setSearchStats;
+    deleted?: number[];
+    setDialogMessage: SetDialogMessage
 }
 
 const PhotoFrame = ({
@@ -134,6 +138,8 @@ const PhotoFrame = ({
     searchMode,
     search,
     setSearchStats,
+    deleted,
+    setDialogMessage,
 }: Props) => {
     const [open, setOpen] = useState(false);
     const [currentIndex, setCurrentIndex] = useState<number>(0);
@@ -154,7 +160,7 @@ const PhotoFrame = ({
     useEffect(() => {
         listRef.current?.resetAfterIndex(0);
         setFetching({});
-    }, [files]);
+    }, [files, search, deleted]);
 
     const updateUrl = (index: number) => (url: string) => {
         files[index] = {
@@ -270,13 +276,59 @@ const PhotoFrame = ({
             }
             updateSrcUrl(item.dataIndex, url);
             if (item.metadata.fileType === FILE_TYPE.VIDEO) {
-                item.html = `
-                    <video width="320" height="240" controls>
-                        <source src="${url}" />
-                        Your browser does not support the video tag.
-                    </video>
-                `;
-                delete item.src;
+                try {
+                    await new Promise((resolve, reject) => {
+                        const video = document.createElement('video');
+                        video.addEventListener('timeupdate', function () {
+                            clearTimeout(t);
+                            resolve(null);
+                        });
+                        video.preload = 'metadata';
+                        video.src = url;
+                        video.currentTime = 3;
+                        const t = setTimeout(
+                            () => {
+                                reject(
+                                    Error(`${VIDEO_PLAYBACK_FAILED} err: wait time exceeded`),
+                                );
+                            },
+                            WAIT_FOR_VIDEO_PLAYBACK,
+                        );
+                    });
+                    item.html = `
+                        <video width="320" height="240" controls>
+                            <source src="${url}" />
+                            Your browser does not support the video tag.
+                        </video>
+                    `;
+                    delete item.src;
+                } catch (e) {
+                    const downloadFile = async () => {
+                        const a = document.createElement('a');
+                        a.style.display = 'none';
+                        a.href = url;
+                        a.download = item.metadata.title;
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        setOpen(false);
+                    };
+                    setDialogMessage({
+                        title: constants.VIDEO_PLAYBACK_FAILED,
+                        content: constants.VIDEO_PLAYBACK_FAILED_DOWNLOAD_INSTEAD,
+                        staticBackdrop: true,
+                        proceed: {
+                            text: constants.DOWNLOAD,
+                            action: downloadFile,
+                            variant: 'success',
+                        },
+                        close: {
+                            text: constants.CLOSE,
+                            action: () => setOpen(false),
+                        },
+                    });
+                    return;
+                }
             } else {
                 item.src = url;
             }
@@ -298,6 +350,9 @@ const PhotoFrame = ({
             dataIndex: index,
         }))
         .filter((item) => {
+            if (deleted.includes(item.id)) {
+                return false;
+            }
             if (
                 search.date &&
                 !isSameDayAnyYear(search.date)(
@@ -327,8 +382,8 @@ const PhotoFrame = ({
 
     const isSameDay = (first, second) => (
         first.getFullYear() === second.getFullYear() &&
-            first.getMonth() === second.getMonth() &&
-            first.getDate() === second.getDate()
+        first.getMonth() === second.getMonth() &&
+        first.getDate() === second.getDate()
     );
 
     return (
@@ -437,41 +492,41 @@ const PhotoFrame = ({
 
                             const generateKey = (index) => {
                                 switch (timeStampList[index].itemType) {
-                                case ITEM_TYPE.TILE:
-                                    return `${timeStampList[index].items[0].id}-${timeStampList[index].items.slice(-1)[0].id}`;
-                                default:
-                                    return `${timeStampList[index].id}-${index}`;
+                                    case ITEM_TYPE.TILE:
+                                        return `${timeStampList[index].items[0].id}-${timeStampList[index].items.slice(-1)[0].id}`;
+                                    default:
+                                        return `${timeStampList[index].id}-${index}`;
                                 }
                             };
 
                             const getItemSize = (index) => {
                                 switch (timeStampList[index].itemType) {
-                                case ITEM_TYPE.TIME:
-                                    return DATE_CONTAINER_HEIGHT;
-                                case ITEM_TYPE.TILE:
-                                    return IMAGE_CONTAINER_HEIGHT;
-                                default:
-                                    return timeStampList[index].height;
+                                    case ITEM_TYPE.TIME:
+                                        return DATE_CONTAINER_HEIGHT;
+                                    case ITEM_TYPE.TILE:
+                                        return IMAGE_CONTAINER_HEIGHT;
+                                    default:
+                                        return timeStampList[index].height;
                                 }
                             };
 
                             const renderListItem = (listItem) => {
                                 switch (listItem.itemType) {
-                                case ITEM_TYPE.TIME:
-                                    return (
-                                        <DateContainer>
-                                            {listItem.date}
-                                        </DateContainer>
-                                    );
-                                case ITEM_TYPE.BANNER:
-                                    return listItem.banner;
-                                default:
-                                    return (listItem.items.map(
-                                        (item, idx) => getThumbnail(
-                                            filteredData,
-                                            listItem.itemStartIndex + idx,
-                                        ),
-                                    ));
+                                    case ITEM_TYPE.TIME:
+                                        return (
+                                            <DateContainer>
+                                                {listItem.date}
+                                            </DateContainer>
+                                        );
+                                    case ITEM_TYPE.BANNER:
+                                        return listItem.banner;
+                                    default:
+                                        return (listItem.items.map(
+                                            (item, idx) => getThumbnail(
+                                                filteredData,
+                                                listItem.itemStartIndex + idx,
+                                            ),
+                                        ));
                                 }
                             };
 
@@ -491,7 +546,7 @@ const PhotoFrame = ({
                                             <ListContainer
                                                 columns={
                                                     timeStampList[index].itemType === ITEM_TYPE.TILE ?
-                                                        columns :1
+                                                        columns : 1
                                                 }
                                             >
                                                 {renderListItem(timeStampList[index])}

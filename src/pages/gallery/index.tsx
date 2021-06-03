@@ -145,6 +145,9 @@ export default function Gallery() {
     const loadingBar = useRef(null);
     const [searchMode, setSearchMode] = useState(false);
     const [searchStats, setSearchStats] = useState(null);
+    const [syncInProgress, setSyncInProgress] = useState(false);
+    const [resync, setResync] = useState(false);
+    const [deleted, setDeleted] = useState<number[]>([]);
 
     useEffect(() => {
         const key = getKey(SESSION_KEYS.ENCRYPTION_KEY);
@@ -195,6 +198,11 @@ export default function Gallery() {
     useEffect(() => setCollectionNamerView(true), [collectionNamerAttributes]);
 
     const syncWithRemote = async () => {
+        if (syncInProgress) {
+            setResync(true);
+            return;
+        }
+        setSyncInProgress(true);
         try {
             checkConnectivity();
             if (!(await isTokenValid())) {
@@ -245,6 +253,11 @@ export default function Gallery() {
         } finally {
             loadingBar.current?.complete();
         }
+        setSyncInProgress(false);
+        if (resync) {
+            setResync(false);
+            syncWithRemote();
+        }
     };
 
     const clearSelection = function () {
@@ -286,12 +299,13 @@ export default function Gallery() {
     const deleteFileHelper = async () => {
         loadingBar.current?.continuousStart();
         try {
+            const fileIds = getSelectedFileIds(selected);
             await deleteFiles(
-                getSelectedFileIds(selected),
+                fileIds,
                 clearSelection,
                 syncWithRemote,
-
             );
+            setDeleted([...deleted, ...fileIds]);
         } catch (e) {
             loadingBar.current.complete();
             switch (e.status?.toString()) {
@@ -421,6 +435,8 @@ export default function Gallery() {
                     searchMode={searchMode}
                     search={search}
                     setSearchStats={setSearchStats}
+                    deleted={deleted}
+                    setDialogMessage={setDialogMessage}
                 />
                 {selected.count > 0 && (
                     <SelectedFileOptions
