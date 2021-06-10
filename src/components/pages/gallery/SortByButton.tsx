@@ -16,8 +16,8 @@ const Container = styled.div`
     @media (max-width: 450px) {
         width: 100%;
     }
-    &>div{
-        width:200px;
+    &>.select{
+        width:150px;
     }
 `;
 
@@ -67,7 +67,7 @@ const customStyles = {
         color: '#d1d1d1',
     }),
 };
-const sortByOptions: SortByOption[] = [{ label: 'creation time', value: SortByVariant.ByCreationTime }, { label: 'modification time', value: SortByVariant.ByModificationTime }];
+const sortByOptions: SortByOption[] = [{ label: 'last taken', value: SortByVariant.ByCreationTime }, { label: 'last modified', value: SortByVariant.ByModificationTime }];
 
 export default function SortByButton(props: Props) {
     const updateSortBy = (selectedOption: SortByOption) => {
@@ -78,7 +78,7 @@ export default function SortByButton(props: Props) {
     };
     return (
         <Container>
-            <Select defaultValue={sortByOptions[0]} options={sortByOptions} styles={customStyles} isSearchable={false} onChange={updateSortBy} />
+            <Select className={'select'} defaultValue={sortByOptions[0]} options={sortByOptions} styles={customStyles} isSearchable={false} onChange={updateSortBy} />
         </Container>
     );
 }
