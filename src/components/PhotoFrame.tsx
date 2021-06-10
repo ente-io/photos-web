@@ -20,6 +20,7 @@ import PhotoSwipe from 'components/PhotoSwipe/PhotoSwipe';
 import { isInsideBox, isSameDay as isSameDayAnyYear } from 'utils/search';
 import { SetDialogMessage } from './MessageDialog';
 import { VIDEO_PLAYBACK_FAILED } from 'utils/common/errorUtil';
+import { SortByVariant } from './pages/gallery/SortByButton';
 
 const DATE_CONTAINER_HEIGHT = 45;
 const IMAGE_CONTAINER_HEIGHT = 200;
@@ -115,6 +116,7 @@ interface Props {
     loadingBar;
     searchMode: boolean;
     search: Search;
+    sortBy: SortByVariant;
     setSearchStats: setSearchStats;
     deleted?: number[];
     setDialogMessage: SetDialogMessage
@@ -132,6 +134,7 @@ const PhotoFrame = ({
     loadingBar,
     searchMode,
     search,
+    sortBy,
     setSearchStats,
     deleted,
     setDialogMessage,
@@ -274,7 +277,7 @@ const PhotoFrame = ({
                 try {
                     await new Promise((resolve, reject) => {
                         const video = document.createElement('video');
-                        video.addEventListener('timeupdate', function() {
+                        video.addEventListener('timeupdate', function () {
                             clearTimeout(t);
                             resolve(null);
                         });
@@ -374,11 +377,14 @@ const PhotoFrame = ({
             }
             return false;
         });
+    if (sortBy === SortByVariant.ByModificationTime) {
+        filteredData.sort((a, b) => b.metadata.modificationTime - a.metadata.modificationTime);
+    }
 
     const isSameDay = (first, second) => (
         first.getFullYear() === second.getFullYear() &&
-            first.getMonth() === second.getMonth() &&
-            first.getDate() === second.getDate()
+        first.getMonth() === second.getMonth() &&
+        first.getDate() === second.getDate()
     );
 
     return (
@@ -386,7 +392,7 @@ const PhotoFrame = ({
             {!isFirstLoad && files.length === 0 && !searchMode ? (
                 <EmptyScreen>
                     <img height={150} src='/images/gallery.png' />
-                    <br/>
+                    <br />
                     <Button
                         variant="outline-success"
                         onClick={openFileUploader}
@@ -542,7 +548,7 @@ const PhotoFrame = ({
                                             <ListContainer
                                                 columns={
                                                     timeStampList[index].itemType === ITEM_TYPE.TILE ?
-                                                        columns :1
+                                                        columns : 1
                                                 }
                                             >
                                                 {renderListItem(timeStampList[index])}

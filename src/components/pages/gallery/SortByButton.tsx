@@ -21,15 +21,16 @@ const Container = styled.div`
     }
 `;
 
-export type SortBy = {
-    value: SortByVariant,
-};
-export type SortByOption = {
+interface Props {
+    setSortBy: (sortBy: SortByVariant) => void;
+}
+
+type SortByOption = {
     label: string,
     value: SortByVariant,
 };
 
-enum SortByVariant {
+export enum SortByVariant {
     ByCreationTime,
     ByModificationTime
 }
@@ -67,10 +68,17 @@ const customStyles = {
     }),
 };
 const sortByOptions: SortByOption[] = [{ label: 'creation time', value: SortByVariant.ByCreationTime }, { label: 'modification time', value: SortByVariant.ByModificationTime }];
-export default function SortByButton() {
+
+export default function SortByButton(props: Props) {
+    const updateSortBy = (selectedOption: SortByOption) => {
+        if (!selectedOption) {
+            return;
+        }
+        props.setSortBy(selectedOption.value);
+    };
     return (
         <Container>
-            <Select defaultValue={sortByOptions[0]} options={sortByOptions} styles={customStyles} isSearchable={false} />
+            <Select defaultValue={sortByOptions[0]} options={sortByOptions} styles={customStyles} isSearchable={false} onChange={updateSortBy} />
         </Container>
     );
 }

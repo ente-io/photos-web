@@ -55,6 +55,7 @@ import PlanSelector from 'components/pages/gallery/PlanSelector';
 import Upload from 'components/pages/gallery/Upload';
 import Collections from 'components/pages/gallery/Collections';
 import { AppContext } from 'pages/_app';
+import SortByButton, { SortByVariant } from 'components/pages/gallery/SortByButton';
 
 export enum FILE_TYPE {
     IMAGE,
@@ -130,6 +131,7 @@ export default function Gallery() {
         date: null,
         location: null,
     });
+    const [sortBy, setSortBy] = useState<SortByVariant>(SortByVariant.ByCreationTime);
     const [uploadInProgress, setUploadInProgress] = useState(false);
     const {
         getRootProps,
@@ -429,6 +431,7 @@ export default function Gallery() {
                     showPlanSelectorModal={() => setPlanModalView(true)}
                 />
                 <UploadButton isFirstFetch={isFirstFetch} openFileUploader={openFileUploader} />
+                <SortByButton setSortBy={setSortBy} />
                 <PhotoFrame
                     files={files}
                     setFiles={setFiles}
@@ -441,6 +444,7 @@ export default function Gallery() {
                     loadingBar={loadingBar}
                     searchMode={searchMode}
                     search={search}
+                    sortBy={sortBy}
                     setSearchStats={setSearchStats}
                     deleted={deleted}
                     setDialogMessage={setDialogMessage}
