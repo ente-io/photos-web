@@ -175,7 +175,7 @@ class UploadService {
                     // ignore files with name starting with . (hidden files)
                     return;
                 }
-                if (file.name.slice(-4) === TYPE_JSON) {
+                if (file.name.endsWith(TYPE_JSON)) {
                     metadataFiles.push(fileWithCollection.file);
                 } else {
                     actualFiles.push(fileWithCollection);
