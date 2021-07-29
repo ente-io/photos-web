@@ -94,7 +94,7 @@ const englishConstants = {
     UPLOADING_FILES: 'file upload',
     NOT_UPLOAD_FILE_LIST: 'list of files not uploaded',
     UNSUPPORTED_FILE_LIST: 'unsupported files',
-    FILE_UPLOAD_PROGRESS: (name:string, progress:number, finished=false) => (
+    FILE_UPLOAD_PROGRESS: (name:string, progress:number) => (
         <div id={name}>
             <strong>{name}</strong>
             {' - '}
@@ -103,11 +103,29 @@ const englishConstants = {
                     case -1:
                         return 'failed';
                     case -2:
-                        return finished?'skipped duplicate':'already uploaded, skipping...';
+                        return 'already uploaded, skipping...';
                     case -3:
-                        return finished?'skipped unsupported format':',unsupported file format, skipping....';
+                        return ',unsupported file format, skipping....';
                     default:
                         return `${progress}%`;
+                }
+            })()}
+        </div>
+    ),
+    FILE_UPLOAD_RESULT: (name:string, progress:number) => (
+        <div id={name}>
+            <strong>{name}</strong>
+            {' - '}
+            {(() => {
+                switch (progress) {
+                    case -1:
+                        return 'failed';
+                    case -2:
+                        return 'skipped duplicate';
+                    case -3:
+                        return 'skipped unsupported format';
+                    default:
+                        return `uploaded`;
                 }
             })()}
         </div>
@@ -447,7 +465,7 @@ const englishConstants = {
     RETRY_EXPORT_: 'retry failed exports',
     LOCAL_STORAGE_NOT_ACCESSIBLE: 'local storage not accessible',
     LOCAL_STORAGE_NOT_ACCESSIBLE_MESSAGE: 'your browser or an addon is blocking ente from saving data into local storage. please try loading this page after switching your browsing mode.',
-    RETRY: 'retry',
+    RETRY_FAILED: 'retry failed files',
 };
 
 export default englishConstants;

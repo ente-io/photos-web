@@ -142,6 +142,7 @@ class UploadService {
     private filesCompleted: number;
     private totalFileCount: number;
     private fileProgress: Map<string, number>;
+    private uploadResult:Map<string, number>;
     private metadataMap: Map<string, Object>;
     private filesToBeUploaded: FileWithCollection[];
     private progressBarProps;
@@ -160,6 +161,7 @@ class UploadService {
 
             this.filesCompleted = 0;
             this.fileProgress = new Map<string, number>();
+            this.uploadResult = new Map<string, number>();
             this.failedFiles = [];
             this.metadataMap = new Map<string, object>();
             this.progressBarProps = progressBarProps;
@@ -290,7 +292,6 @@ class UploadService {
                 file = null;
                 uploadFile = null;
 
-                this.fileProgress.delete(rawFile.name);
                 this.filesCompleted++;
             }
         } catch (e) {
@@ -300,6 +301,8 @@ class UploadService {
             this.fileProgress.set(rawFile.name, FileUploadErrorCode.FAILED);
             handleError(e);
         }
+        this.uploadResult.set(rawFile.name, this.fileProgress.get(rawFile.name));
+        this.fileProgress.delete(rawFile.name);
         this.updateProgressBarUI();
 
         if (this.filesToBeUploaded.length > 0) {
@@ -315,7 +318,7 @@ class UploadService {
     }
 
     private updateProgressBarUI() {
-        const { setPercentComplete, setFileCounter, setFileProgress } =
+        const { setPercentComplete, setFileCounter, setFileProgress, setUploadResult } =
             this.progressBarProps;
         setFileCounter({
             finished: this.filesCompleted,
@@ -334,6 +337,7 @@ class UploadService {
         }
         setPercentComplete(percentComplete);
         setFileProgress(this.fileProgress);
+        setUploadResult(this.uploadResult);
     }
 
     private fileAlreadyInCollection(
