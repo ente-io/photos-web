@@ -15,7 +15,6 @@ import * as convert from 'xml-js';
 import { ENCRYPTION_CHUNK_SIZE } from 'types';
 import { getToken } from 'utils/common/key';
 import {
-    fileIsHEIC,
     convertHEIC2JPEG,
     sortFilesIntoCollections,
     sortFiles,
@@ -24,6 +23,7 @@ import {
 } from 'utils/file';
 import { logError } from 'utils/sentry';
 import localForage from 'utils/storage/localForage';
+import FileType, { FileTypeResult } from 'file-type/browser';
 const ENDPOINT = getEndpoint();
 
 const THUMBNAIL_HEIGHT = 720;
@@ -33,7 +33,7 @@ const MIN_THUMBNAIL_SIZE = 50000;
 const MAX_CONCURRENT_UPLOADS = 4;
 const TYPE_IMAGE = 'image';
 const TYPE_VIDEO = 'video';
-const TYPE_HEIC = 'HEIC';
+const TYPE_HEIC = 'heic';
 const TYPE_JSON = 'json';
 const SOUTH_DIRECTION = 'S';
 const WEST_DIRECTION = 'W';
@@ -258,8 +258,10 @@ class UploadService {
                 this.fileProgress.set(rawFile.name, FileUploadErrorCode.SKIPPED);
                 this.updateProgressBarUI();
                 await sleep(TwoSecondInMillSeconds);
-                // remove completed files for file progress list
-                this.fileProgress.delete(rawFile.name);
+            } else if (file.metadata.fileType===FILE_TYPE.OTHERS) {
+                this.fileProgress.set(rawFile.name, FileUploadErrorCode.UNSUPPORTED);
+                this.updateProgressBarUI();
+                await sleep(TwoSecondInMillSeconds);
             } else {
                 let encryptedFile: EncryptedFile =
                     await this.encryptFile(worker, file, collection.key);
@@ -365,13 +367,14 @@ class UploadService {
 
     private async readFile(reader: FileReader, receivedFile: globalThis.File) {
         try {
-            const { thumbnail, hasStaticThumbnail } = await this.generateThumbnail(
-                reader,
-                receivedFile,
-            );
+            const filedata =
+                receivedFile.size > MIN_STREAM_FILE_SIZE ?
+                    this.getFileStream(reader, receivedFile) :
+                    await this.getUint8ArrayView(reader, receivedFile);
 
             let fileType: FILE_TYPE;
-            switch (receivedFile.type.split('/')[0]) {
+            const mimeType=await this.getMimeType(filedata);
+            switch (mimeType.split('/')[0]) {
                 case TYPE_IMAGE:
                     fileType = FILE_TYPE.IMAGE;
                     break;
@@ -381,13 +384,14 @@ class UploadService {
                 default:
                     fileType = FILE_TYPE.OTHERS;
             }
-            if (
-                fileType === FILE_TYPE.OTHERS &&
-                receivedFile.type.length === 0 &&
-                receivedFile.name.endsWith(TYPE_HEIC)
-            ) {
-                fileType = FILE_TYPE.IMAGE;
-            }
+            const isHEIC= mimeType.split('/')[1].toLocaleLowerCase()===TYPE_HEIC;
+
+            const { thumbnail, hasStaticThumbnail } = await this.generateThumbnail(
+                reader,
+                receivedFile,
+                fileType,
+                isHEIC,
+            );
 
             const { location, creationTime } = await this.getExifData(
                 reader,
@@ -416,10 +420,6 @@ class UploadService {
             if (hasStaticThumbnail) {
                 metadata['hasStaticThumbnail'] = hasStaticThumbnail;
             }
-            const filedata =
-                receivedFile.size > MIN_STREAM_FILE_SIZE ?
-                    this.getFileStream(reader, receivedFile) :
-                    await this.getUint8ArrayView(reader, receivedFile);
 
             return {
                 filedata,
@@ -648,6 +648,8 @@ class UploadService {
     private async generateThumbnail(
         reader: FileReader,
         file: globalThis.File,
+        fileType:FILE_TYPE,
+        isHEIC:boolean,
     ): Promise<{ thumbnail: Uint8Array, hasStaticThumbnail: boolean }> {
         try {
             let hasStaticThumbnail = false;
@@ -657,8 +659,8 @@ class UploadService {
             let imageURL = null;
             let timeout = null;
             try {
-                if (file.type.match(TYPE_IMAGE) || fileIsHEIC(file.name)) {
-                    if (fileIsHEIC(file.name)) {
+                if (fileType===FILE_TYPE.IMAGE || isHEIC) {
+                    if (isHEIC) {
                         file = new globalThis.File(
                             [await convertHEIC2JPEG(file)],
                             null,
@@ -777,7 +779,7 @@ class UploadService {
         }
     }
 
-    private getFileStream(reader: FileReader, file: globalThis.File) {
+    private getFileStream(reader: FileReader, file: globalThis.File):DataStream {
         const self = this;
         const fileChunkReader = (async function* fileChunkReaderMaker(
             fileSize,
@@ -1092,6 +1094,15 @@ class UploadService {
         }
 
         return dd;
+    }
+    private async getMimeType(file:Uint8Array | DataStream) {
+        let result:FileTypeResult=null;
+        if (isDataStream(file)) {
+            result= await FileType.fromStream(file.stream);
+        } else {
+            result=await FileType.fromBuffer(file);
+        }
+        return result.mime;
     }
 }
 

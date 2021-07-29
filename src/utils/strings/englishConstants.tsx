@@ -92,9 +92,9 @@ const englishConstants = {
         3: 'backup complete!',
     },
     UPLOADING_FILES: 'file upload',
-    FAILED_UPLOAD_FILE_LIST: 'upload failed for following files',
+    NOT_UPLOAD_FILE_LIST: 'list of files not uploaded',
     UNSUPPORTED_FILE_LIST: 'unsupported files',
-    FILE_UPLOAD_PROGRESS: (name, progress) => (
+    FILE_UPLOAD_PROGRESS: (name:string, progress:number, finished=false) => (
         <div id={name}>
             <strong>{name}</strong>
             {' - '}
@@ -103,9 +103,9 @@ const englishConstants = {
                     case -1:
                         return 'failed';
                     case -2:
-                        return 'already uploaded, skipping...';
+                        return finished?'skipped duplicate':'already uploaded, skipping...';
                     case -3:
-                        return 'unsupported file format, ignored';
+                        return finished?'skipped unsupported format':',unsupported file format, skipping....';
                     default:
                         return `${progress}%`;
                 }

@@ -30,7 +30,7 @@ export default function UploadProgress(props: Props) {
             fileProgressStatuses.push({ fileName: file.name, progress: FileUploadErrorCode.UNSUPPORTED });
         }
         fileProgressStatuses.sort((a, b) => {
-            if (b.progress !== -1 && a.progress === -1) return 1;
+            if (b.progress >=0 && a.progress <0) return 1;
         });
     }
     return (
@@ -64,7 +64,7 @@ export default function UploadProgress(props: Props) {
                 {props.uploadStage===UPLOAD_STAGES.FINISH ? (
                     fileProgressStatuses.length !== 0 && (
                         <Alert variant="warning">
-                            {constants.FAILED_UPLOAD_FILE_LIST}
+                            {constants.NOT_UPLOAD_FILE_LIST}
                         </Alert>
                     )
                 ) :
@@ -87,12 +87,12 @@ export default function UploadProgress(props: Props) {
                     >
                         {fileProgressStatuses.map(({ fileName, progress }) => (
                             <li key={fileName} style={{ marginTop: '12px' }}>
-                                {props.uploadStage===UPLOAD_STAGES.FINISH ?
-                                    fileName :
+                                {
                                     constants.FILE_UPLOAD_PROGRESS(
                                         fileName,
-                                        progress,
-                                    )}
+                                        progress, props.uploadStage===UPLOAD_STAGES.FINISH,
+                                    )
+                                }
                             </li>
                         ))}
                     </ul>
