@@ -254,14 +254,20 @@ class UploadService {
         this.fileProgress.set(rawFile.name, 0);
         this.updateProgressBarUI();
         try {
-            let file: FileInMemory = await this.readFile(reader, rawFile);
-            if (this.fileAlreadyInCollection(file, collection)) {
-                // set progress to -2 indicating that file upload was skipped
-                this.fileProgress.set(rawFile.name, FileUploadErrorCode.SKIPPED);
+            let file: FileInMemory = null;
+            let unsupported=false;
+            try {
+                file=await this.readFile(reader, rawFile);
+            } catch (e) {
+                unsupported=true;
+            }
+            if (unsupported || file.metadata.fileType===FILE_TYPE.OTHERS) {
+                this.fileProgress.set(rawFile.name, FileUploadErrorCode.UNSUPPORTED);
                 this.updateProgressBarUI();
                 await sleep(TwoSecondInMillSeconds);
-            } else if (file.metadata.fileType===FILE_TYPE.OTHERS) {
-                this.fileProgress.set(rawFile.name, FileUploadErrorCode.UNSUPPORTED);
+            } else if (this.fileAlreadyInCollection(file, collection)) {
+                // set progress to -2 indicating that file upload was skipped
+                this.fileProgress.set(rawFile.name, FileUploadErrorCode.SKIPPED);
                 this.updateProgressBarUI();
                 await sleep(TwoSecondInMillSeconds);
             } else {
