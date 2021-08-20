@@ -7,6 +7,7 @@ import { Collection } from './collectionService';
 import HTTPService from './HTTPService';
 import { logError } from 'utils/sentry';
 import { decryptFile, sortFiles } from 'utils/file';
+import { sleep } from 'utils/common';
 
 const ENDPOINT = getEndpoint();
 const DIFF_LIMIT: number = 1000;
@@ -149,6 +150,7 @@ export const getFiles = async (
                     'X-Auth-Token': token,
                 }
             );
+            await sleep(2000);
 
             decryptedFiles.push(
                 ...(await Promise.all(
