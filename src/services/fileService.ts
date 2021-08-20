@@ -150,7 +150,7 @@ export const getFiles = async (
                     'X-Auth-Token': token,
                 }
             );
-            await sleep(100);
+            await sleep(2000);
 
             decryptedFiles.push(
                 ...(await Promise.all(
