@@ -13,10 +13,85 @@ import { logError } from 'utils/sentry';
 import { decodeMotionPhoto } from './motionPhotoService';
 import { getMimeTypeFromBlob } from './upload/readFileService';
 
+const MAX_RUNNING_PROCESSES = 5;
+interface getPreviewRequest {
+    file: File;
+    callback: (response) => void;
+}
+
+interface getFileRequest {
+    file: File;
+    forPreview: boolean;
+    callback: (response) => void;
+}
 class DownloadManager {
     private fileDownloads = new Map<string, string>();
 
     private thumbnailDownloads = new Map<number, string>();
+
+    private getPreviewQueue: getPreviewRequest[] = [];
+    private getFileQueue: getFileRequest[] = [];
+
+    private runningGetPreviewProcesses = 0;
+    private runningGetFileProcesses = 0;
+
+    // get preview queue
+    public async queueUpGetPreviewRequest(file: File) {
+        const url: string = await new Promise((resolve) => {
+            this.getPreviewQueue.push({ file, callback: resolve });
+            this.pollGetPreviewQueue();
+        });
+        return url;
+    }
+
+    async pollGetPreviewQueue() {
+        if (this.runningGetPreviewProcesses < MAX_RUNNING_PROCESSES) {
+            this.runningGetPreviewProcesses++;
+            await this.processGetPreviewQueue();
+            this.runningGetPreviewProcesses--;
+        }
+    }
+
+    public async processGetPreviewQueue() {
+        while (this.getPreviewQueue.length > 0) {
+            const request = this.getPreviewQueue.pop();
+            const response = await this.getPreview(request.file);
+            request.callback(response);
+            await this.processGetPreviewQueue();
+        }
+    }
+
+    // get file queue
+
+    public async queueUpGetFileRequest(file: File, forPreview: boolean) {
+        const url: string = await new Promise((resolve) => {
+            this.getFileQueue.push({ file, forPreview, callback: resolve });
+            this.pollGetFileQueue();
+        });
+        return url;
+    }
+
+    async pollGetFileQueue() {
+        if (this.runningGetFileProcesses < MAX_RUNNING_PROCESSES) {
+            this.runningGetFileProcesses++;
+            await this.processGetFileQueue();
+            this.runningGetFileProcesses--;
+        }
+    }
+    public async processGetFileQueue() {
+        while (this.getFileQueue.length > 0) {
+            const request = this.getFileQueue.pop();
+            if (!request) {
+                return;
+            }
+            const response = await this.getFile(
+                request.file,
+                request.forPreview
+            );
+            request.callback(response);
+            await this.processGetFileQueue();
+        }
+    }
 
     public async getPreview(file: File) {
         try {

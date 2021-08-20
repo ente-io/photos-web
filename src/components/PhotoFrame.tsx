@@ -271,7 +271,7 @@ const PhotoFrame = ({
             if (galleryContext.thumbs.has(item.id)) {
                 url = galleryContext.thumbs.get(item.id);
             } else {
-                url = await DownloadManager.getPreview(item);
+                url = await DownloadManager.queueUpGetPreviewRequest(item);
                 galleryContext.thumbs.set(item.id, url);
             }
             updateUrl(item.dataIndex)(url);
@@ -294,7 +294,7 @@ const PhotoFrame = ({
             if (galleryContext.files.has(item.id)) {
                 url = galleryContext.files.get(item.id);
             } else {
-                url = await DownloadManager.getFile(item, true);
+                url = await DownloadManager.queueUpGetFileRequest(item, true);
                 galleryContext.files.set(item.id, url);
             }
             updateSrcUrl(item.dataIndex, url);
