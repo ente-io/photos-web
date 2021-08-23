@@ -114,6 +114,12 @@ export const logoutUser = async () => {
     router.push('/');
 };
 
+export const clearFiledata = async () => {
+    // ignore server logout result as logoutUser can be triggered before sign up or on token expiry
+    await caches.delete('thumbs');
+    await clearFiles();
+};
+
 export const clearFiles = async () => {
     await localForage.clear();
 };
