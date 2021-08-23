@@ -151,13 +151,21 @@ export const getFiles = async (
                 }
             );
             await sleep(2000);
-            const decryptedFiles = await decryptFiles(
-                resp.data.diff,
+            const nonDeletedFiles: File[] = resp.data.diff.filter(
+                (file: File) => !file.isDeleted
+            );
+            const deletedCollectionFiles: File[] = resp.data.diff.filter(
+                (file: File) => file.isDeleted
+            );
+            const decryptedCollectionFiles = await decryptFiles(
+                nonDeletedFiles,
                 collection
             );
-            /* -----------TODO-----
-                Check how deleted file are handled
-            */
+            const allCollectionFiles = [
+                ...decryptedCollectionFiles,
+                ...deletedCollectionFiles,
+            ];
+            decryptedFiles.push(...allCollectionFiles);
 
             if (resp.data.diff.length) {
                 time = resp.data.diff.slice(-1)[0].updationTime;
