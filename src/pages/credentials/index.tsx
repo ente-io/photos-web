@@ -10,7 +10,7 @@ import CryptoWorker, {
     generateAndSaveIntermediateKeyAttributes,
     SaveKeyInSessionStore,
 } from 'utils/crypto';
-import { logoutUser } from 'services/userService';
+import { clearFiledata, logoutUser } from 'services/userService';
 import { isFirstLogin } from 'utils/storage';
 import SingleInputForm from 'components/SingleInputForm';
 import Container from 'components/Container';
@@ -75,7 +75,7 @@ export default function Credentials() {
                 }
                 await SaveKeyInSessionStore(SESSION_KEYS.ENCRYPTION_KEY, key);
                 await decryptAndStoreToken(key);
-
+                await clearFiledata();
                 router.push('/gallery');
             } catch (e) {
                 logError(e);
