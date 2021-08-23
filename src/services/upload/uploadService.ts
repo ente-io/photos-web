@@ -49,7 +49,7 @@ export interface EncryptionResult {
 }
 export interface B64EncryptionResult {
     encryptedData: string;
-    key: string;
+    key?: string;
     nonce: string;
 }
 

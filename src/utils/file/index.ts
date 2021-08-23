@@ -1,5 +1,6 @@
 import { Collection } from 'services/collectionService';
 import { File } from 'services/fileService';
+import { B64EncryptionResult } from 'services/upload/uploadService';
 import { runningInBrowser } from 'utils/common';
 import CryptoWorker from 'utils/crypto';
 
@@ -134,6 +135,34 @@ export async function decryptFile(file: File, collection: Collection) {
     );
     file.metadata = await worker.decryptMetadata(file);
     return file;
+}
+
+export async function decryptFiles(files: File[], collection: Collection) {
+    const worker = await new CryptoWorker();
+    const encryptedFileKeys = files.map(
+        (file): B64EncryptionResult => ({
+            encryptedData: file.encryptedKey,
+            nonce: file.keyDecryptionNonce,
+        })
+    );
+    const decryptFileKeys = await worker.decryptB64List(
+        encryptedFileKeys,
+        collection.key
+    );
+    const filesWithKey = files.map((file: File, idx) => ({
+        ...file,
+        key: decryptFileKeys[idx],
+    }));
+    const decryptMetadataList = await worker.decryptMetadataList(filesWithKey);
+
+    const decryptedFiles = files.map(
+        (file, idx): File => ({
+            ...file,
+            metadata: decryptMetadataList[idx],
+            key: decryptFileKeys[idx],
+        })
+    );
+    return decryptedFiles;
 }
 
 export function removeUnnecessaryFileProps(files: File[]): File[] {

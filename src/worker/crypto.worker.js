@@ -11,6 +11,10 @@ export class Crypto {
         return JSON.parse(new TextDecoder().decode(encodedMetadata));
     }
 
+    async decryptMetadataList(files) {
+        return files.map(async (file) => await this.decryptMetadata(file));
+    }
+
     async decryptThumbnail(fileData, header, key) {
         return libsodium.decryptChaChaOneShot(fileData, header, key);
     }
@@ -90,6 +94,19 @@ export class Crypto {
 
     async decryptB64(data, nonce, key) {
         return libsodium.decryptB64(data, nonce, key);
+    }
+
+    async decryptB64List(encryptedDataList, key) {
+        const d = await encryptedDataList.map(
+            async (encryptedData) =>
+                await libsodium.decryptB64(
+                    encryptedData.encryptedData,
+                    encryptedData.nonce,
+                    key
+                )
+        );
+        console.log(d);
+        return d;
     }
 
     async decryptToUTF8(data, nonce, key) {

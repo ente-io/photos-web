@@ -6,7 +6,7 @@ import { DataStream, MetadataObject } from './upload/uploadService';
 import { Collection } from './collectionService';
 import HTTPService from './HTTPService';
 import { logError } from 'utils/sentry';
-import { decryptFile, sortFiles } from 'utils/file';
+import { decryptFiles, sortFiles } from 'utils/file';
 import { sleep } from 'utils/common';
 
 const ENDPOINT = getEndpoint();
@@ -151,17 +151,16 @@ export const getFiles = async (
                 }
             );
             await sleep(2000);
-
-            decryptedFiles.push(
-                ...(await Promise.all(
-                    resp.data.diff.map(async (file: File) => {
-                        if (!file.isDeleted) {
-                            file = await decryptFile(file, collection);
-                        }
-                        return file;
-                    }) as Promise<File>[]
-                ))
+            const nonDeletedFiles: File[] = resp.data.diff.filter(
+                (file: File) => !file.isDeleted
             );
+            const decryptedFiles = await decryptFiles(
+                nonDeletedFiles,
+                collection
+            );
+            /* -----------TODO-----
+                Check how deleted file are handled
+            */
 
             if (resp.data.diff.length) {
                 time = resp.data.diff.slice(-1)[0].updationTime;
