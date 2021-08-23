@@ -85,7 +85,7 @@ class DownloadManager {
 
     public async processGetPreviewQueue() {
         const request = this.getPreviewQueue.pop();
-        if (!request || request.isCanceled) {
+        if (!request || request.isCanceled.status) {
             return null;
         }
         const response = await this.getPreview(request.file, request.canceller);
