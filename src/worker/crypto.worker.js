@@ -12,7 +12,9 @@ export class Crypto {
     }
 
     async decryptMetadataList(files) {
-        return files.map(async (file) => await this.decryptMetadata(file));
+        return Promise.all(
+            files.map(async (file) => await this.decryptMetadata(file))
+        );
     }
 
     async decryptThumbnail(fileData, header, key) {
@@ -97,16 +99,16 @@ export class Crypto {
     }
 
     async decryptB64List(encryptedDataList, key) {
-        const d = await encryptedDataList.map(
-            async (encryptedData) =>
-                await libsodium.decryptB64(
-                    encryptedData.encryptedData,
-                    encryptedData.nonce,
-                    key
-                )
+        return Promise.all(
+            encryptedDataList.map(
+                async (encryptedData) =>
+                    await libsodium.decryptB64(
+                        encryptedData.encryptedData,
+                        encryptedData.nonce,
+                        key
+                    )
+            )
         );
-        console.log(d);
-        return d;
     }
 
     async decryptToUTF8(data, nonce, key) {
