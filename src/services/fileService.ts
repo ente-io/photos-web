@@ -151,11 +151,8 @@ export const getFiles = async (
                 }
             );
             await sleep(2000);
-            const nonDeletedFiles: File[] = resp.data.diff.filter(
-                (file: File) => !file.isDeleted
-            );
             const decryptedFiles = await decryptFiles(
-                nonDeletedFiles,
+                resp.data.diff,
                 collection
             );
             /* -----------TODO-----
