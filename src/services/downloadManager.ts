@@ -13,7 +13,7 @@ import { logError } from 'utils/sentry';
 import { decodeMotionPhoto } from './motionPhotoService';
 import { getMimeTypeFromBlob } from './upload/readFileService';
 
-const MAX_RUNNING_PROCESSES = 10;
+const MAX_RUNNING_PROCESSES = 1;
 interface getPreviewRequest {
     file: File;
     callback: (response) => void;
