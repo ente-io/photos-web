@@ -130,10 +130,9 @@ export default function PreviewCard(props: IProps) {
     useLayoutEffect(() => {
         if (file && !file.msrc) {
             const main = async () => {
-                const { canceller, urlPromise } =
-                    DownloadManager.queueUpGetPreviewRequest(file);
-                cancellerRef.current = canceller;
-                const url = await urlPromise;
+                const response = DownloadManager.queueUpGetPreviewRequest(file);
+                cancellerRef.current = response.canceller;
+                const url = await response.urlPromise;
                 if (isMounted.current) {
                     setImgSrc(url);
                     thumbs.set(file.id, url);
@@ -163,7 +162,7 @@ export default function PreviewCard(props: IProps) {
         return () => {
             // cool cool cool
             isMounted.current = false;
-            cancellerRef.current.exec();
+            cancellerRef.current && cancellerRef.current.exec();
         };
     }, [file]);
 
