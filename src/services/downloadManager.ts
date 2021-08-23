@@ -7,7 +7,7 @@ import {
     fileNameWithoutExtension,
     generateStreamFromArrayBuffer,
 } from 'utils/file';
-import HTTPService from './HTTPService';
+import HTTPService, { RequestCanceller } from './HTTPService';
 import { File, FILE_TYPE } from './fileService';
 import { logError } from 'utils/sentry';
 import { decodeMotionPhoto } from './motionPhotoService';
@@ -17,6 +17,8 @@ const MAX_RUNNING_PROCESSES = 1;
 interface getPreviewRequest {
     file: File;
     callback: (response) => void;
+    isCanceled: { status: boolean };
+    canceller: { exec: () => void };
 }
 
 interface getFileRequest {
@@ -35,7 +37,11 @@ class DownloadManager {
     private runningGetPreviewProcesses = 0;
     private runningGetFileProcesses = 0;
 
-    public async queueUpGetPreviewRequest(file: File) {
+    private cache: Cache;
+
+    constructor() {}
+
+    public queueUpGetPreviewRequest(file: File) {
         const pollQueue = async () => {
             if (this.runningGetPreviewProcesses < MAX_RUNNING_PROCESSES) {
                 this.runningGetPreviewProcesses++;
@@ -43,11 +49,23 @@ class DownloadManager {
                 this.runningGetPreviewProcesses--;
             }
         };
-        const url: string = await new Promise((resolve) => {
-            this.getPreviewQueue.push({ file, callback: resolve });
+        const isCanceled = { status: false };
+        const canceller: RequestCanceller = {
+            exec: () => {
+                isCanceled.status = true;
+            },
+        };
+
+        const urlPromise = new Promise<string>((resolve) => {
+            this.getPreviewQueue.push({
+                file,
+                callback: resolve,
+                isCanceled,
+                canceller,
+            });
             pollQueue();
         });
-        return url;
+        return { urlPromise, canceller };
     }
 
     public async queueUpGetFileRequest(file: File, forPreview: boolean) {
@@ -67,10 +85,10 @@ class DownloadManager {
 
     public async processGetPreviewQueue() {
         const request = this.getPreviewQueue.pop();
-        if (!request) {
-            return;
+        if (!request || request.isCanceled) {
+            return null;
         }
-        const response = await this.getPreview(request.file);
+        const response = await this.getPreview(request.file, request.canceller);
         request.callback(response);
         this.processGetPreviewQueue();
     }
@@ -85,32 +103,44 @@ class DownloadManager {
         this.processGetPreviewQueue();
     }
 
-    public async getPreview(file: File) {
+    public async getPreview(file: File, canceller: RequestCanceller) {
         try {
             const token = getToken();
             if (!token) {
                 return null;
             }
-            const cache = await caches.open('thumbs');
-            const cacheResp: Response = await cache.match(file.id.toString());
-            if (cacheResp) {
-                return URL.createObjectURL(await cacheResp.blob());
-            }
             if (!this.thumbnailDownloads.get(file.id)) {
-                const download = await this.downloadThumb(token, cache, file);
+                if (!this.cache) {
+                    this.cache = await caches.open('thumbs');
+                }
+                const cacheResp: Response = await this.cache.match(
+                    file.id.toString()
+                );
+                if (cacheResp) {
+                    return URL.createObjectURL(await cacheResp.blob());
+                }
+                const download = await this.downloadThumb(
+                    token,
+                    file,
+                    canceller
+                );
                 this.thumbnailDownloads.set(file.id, download);
             }
-            return await this.thumbnailDownloads.get(file.id);
+            return this.thumbnailDownloads.get(file.id);
         } catch (e) {
             logError(e, 'get preview Failed');
         }
     }
-    downloadThumb = async (token: string, cache: Cache, file: File) => {
+    downloadThumb = async (
+        token: string,
+        file: File,
+        canceller: RequestCanceller
+    ) => {
         const resp = await HTTPService.get(
             getThumbnailUrl(file.id),
             null,
             { 'X-Auth-Token': token },
-            { responseType: 'arraybuffer' }
+            { responseType: 'arraybuffer', canceller }
         );
         const worker = await new CryptoWorker();
         const decrypted: any = await worker.decryptThumbnail(
@@ -119,7 +149,7 @@ class DownloadManager {
             file.key
         );
         try {
-            await cache.put(
+            await this.cache.put(
                 file.id.toString(),
                 new Response(new Blob([decrypted]))
             );
