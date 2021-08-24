@@ -19,12 +19,18 @@ import DateIcon from './icons/DateIcon';
 import SearchIcon from './icons/SearchIcon';
 import CrossIcon from './icons/CrossIcon';
 
-const Wrapper = styled.div<{ isDisabled: boolean }>`
+const Wrapper = styled.div<{ isDisabled: boolean; isOpen: boolean }>`
     position: fixed;
     top: 0;
     z-index: 1000;
+    display: ${({ isOpen }) => (isOpen ? 'flex' : 'none')};
     width: 100%;
-    display: flex;
+    background: #111;
+    @media (min-width: 625px) {
+        display: flex;
+        width: calc(100vw - 140px);
+        margin: 0 70px;
+    }
     align-items: center;
     min-height: 64px;
     transition: opacity 1s ease;
@@ -34,12 +40,15 @@ const Wrapper = styled.div<{ isDisabled: boolean }>`
 
 const SearchButton = styled.div<{ isOpen: boolean }>`
     display: none;
-    @media (max-width: 640px) {
-        display: ${({ isOpen }) => (!isOpen ? 'inherit' : 'none')};
-        padding: 0 20px;
+    @media (max-width: 624px) {
+        display: ${({ isOpen }) => (!isOpen ? 'flex' : 'none')};
         right: 80px;
         cursor: pointer;
         position: fixed;
+        top: 0;
+        z-index: 1000;
+        align-items: center;
+        min-height: 64px;
     }
 `;
 
@@ -51,17 +60,11 @@ const SearchStatsContainer = styled.div`
     margin-bottom: 8px;
 `;
 
-const SearchInput = styled.div<{ isOpen: boolean }>`
+const SearchInput = styled.div`
     width: 100%;
     display: flex;
     align-items: center;
-    background: #111;
-    @media (max-width: 640px) {
-        display: ${({ isOpen }) => (isOpen ? 'flex' : 'none')};
-        width: 100%;
-        padding: 0 20px;
-    }
-    width: 484px;
+    max-width: 484px;
     margin: auto;
 `;
 
@@ -271,8 +274,8 @@ export default function SearchBar(props: Props) {
                     {constants.SEARCH_STATS(props.searchStats)}
                 </SearchStatsContainer>
             )}
-            <Wrapper isDisabled={props.isFirstFetch}>
-                <SearchInput isOpen={props.isOpen}>
+            <Wrapper isDisabled={props.isFirstFetch} isOpen={props.isOpen}>
+                <SearchInput>
                     <div
                         style={{
                             flex: 1,
@@ -303,12 +306,12 @@ export default function SearchBar(props: Props) {
                         )}
                     </div>
                 </SearchInput>
-                <SearchButton
-                    isOpen={props.isOpen}
-                    onClick={() => !props.isFirstFetch && props.setOpen(true)}>
-                    <SearchIcon />
-                </SearchButton>
             </Wrapper>
+            <SearchButton
+                isOpen={props.isOpen}
+                onClick={() => !props.isFirstFetch && props.setOpen(true)}>
+                <SearchIcon />
+            </SearchButton>
         </>
     );
 }
