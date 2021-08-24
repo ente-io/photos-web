@@ -12,6 +12,7 @@ import { File, FILE_TYPE } from './fileService';
 import { logError } from 'utils/sentry';
 import { decodeMotionPhoto } from './motionPhotoService';
 import { getMimeTypeFromBlob } from './upload/readFileService';
+import { sleep } from 'utils/common';
 
 const MAX_RUNNING_PROCESSES = 1;
 interface getPreviewRequest {
@@ -88,6 +89,7 @@ class DownloadManager {
         }
         const response = await this.getPreview(request.file, request.canceller);
         request.callback(response);
+        await sleep(1000);
         this.processGetPreviewQueue();
     }
 

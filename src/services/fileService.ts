@@ -150,7 +150,7 @@ export const getFiles = async (
                     'X-Auth-Token': token,
                 }
             );
-            await sleep(2000);
+            await sleep(1000);
             const nonDeletedFiles: File[] = resp.data.diff.filter(
                 (file: File) => !file.isDeleted
             );
