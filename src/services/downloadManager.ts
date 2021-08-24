@@ -101,7 +101,7 @@ class DownloadManager {
         this.processGetPreviewQueue();
     }
 
-    public async getPreview(file: File, canceller: RequestCanceller) {
+    public async getPreview(file: File, canceller?: RequestCanceller) {
         try {
             const token = getToken();
             if (!token) {
