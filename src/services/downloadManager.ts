@@ -39,8 +39,6 @@ class DownloadManager {
 
     private cache: Cache;
 
-    constructor() {}
-
     public queueUpGetPreviewRequest(file: File) {
         const pollQueue = async () => {
             if (this.runningGetPreviewProcesses < MAX_RUNNING_PROCESSES) {
