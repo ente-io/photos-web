@@ -22,6 +22,11 @@ interface getPreviewRequest {
     canceller: { exec: () => void };
 }
 
+export interface ObjectURL {
+    url: string;
+    active: boolean;
+}
+
 interface getFileRequest {
     file: File;
     forPreview: boolean;
@@ -30,7 +35,7 @@ interface getFileRequest {
 class DownloadManager {
     private fileDownloads = new Map<string, string>();
 
-    private thumbnailDownloads = new Map<number, string>();
+    private thumbnailDownloads = new Map<number, ObjectURL>();
 
     private getPreviewQueue: getPreviewRequest[] = [];
     private getFileQueue: getFileRequest[] = [];
@@ -116,15 +121,16 @@ class DownloadManager {
                 const cacheResp: Response = await this.cache.match(
                     file.id.toString()
                 );
+                let url = null;
                 if (cacheResp) {
-                    return URL.createObjectURL(await cacheResp.blob());
+                    url = URL.createObjectURL(await cacheResp.blob());
+                } else {
+                    url = await this.downloadThumb(token, file, canceller);
                 }
-                const download = await this.downloadThumb(
-                    token,
-                    file,
-                    canceller
-                );
-                this.thumbnailDownloads.set(file.id, download);
+                this.thumbnailDownloads.set(file.id, {
+                    url,
+                    active: true,
+                });
             }
             return this.thumbnailDownloads.get(file.id);
         } catch (e) {
