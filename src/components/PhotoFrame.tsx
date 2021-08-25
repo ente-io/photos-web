@@ -65,6 +65,11 @@ const ListItem = styled.div`
     justify-content: center;
 `;
 
+const PlaceHolderDiv = styled.div`
+    background: #222;
+    margin-bottom: ${GAP_BTW_TILES}px;
+`;
+
 const getTemplateColumns = (columns: number, groups?: number[]): string => {
     if (groups) {
         const sum = groups.reduce((acc, item) => acc + item, 0);
@@ -641,7 +646,8 @@ const PhotoFrame = ({
                             };
 
                             const renderListItem = (
-                                listItem: TimeStampListItem
+                                listItem: TimeStampListItem,
+                                isScrolling: boolean
                             ) => {
                                 switch (listItem.itemType) {
                                     case ITEM_TYPE.TIME:
@@ -666,10 +672,14 @@ const PhotoFrame = ({
                                     default: {
                                         const ret = listItem.items.map(
                                             (item, idx) =>
-                                                getThumbnail(
-                                                    filteredData,
-                                                    listItem.itemStartIndex +
-                                                        idx
+                                                isScrolling ? (
+                                                    <PlaceHolderDiv />
+                                                ) : (
+                                                    getThumbnail(
+                                                        filteredData,
+                                                        listItem.itemStartIndex +
+                                                            idx
+                                                    )
                                                 )
                                         );
                                         if (listItem.groups) {
@@ -698,8 +708,9 @@ const PhotoFrame = ({
                                     width={width}
                                     itemCount={timeStampList.length}
                                     itemKey={generateKey}
-                                    overscanCount={extraRowsToRender}>
-                                    {({ index, style }) => (
+                                    overscanCount={extraRowsToRender}
+                                    useIsScrolling>
+                                    {({ index, style, isScrolling }) => (
                                         <ListItem style={style}>
                                             <ListContainer
                                                 columns={columns}
@@ -707,7 +718,8 @@ const PhotoFrame = ({
                                                     timeStampList[index].groups
                                                 }>
                                                 {renderListItem(
-                                                    timeStampList[index]
+                                                    timeStampList[index],
+                                                    isScrolling
                                                 )}
                                             </ListContainer>
                                         </ListItem>
