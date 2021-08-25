@@ -11,7 +11,7 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Button } from 'react-bootstrap';
 import { File, FILE_TYPE } from 'services/fileService';
 import styled from 'styled-components';
-import DownloadManager from 'services/downloadManager';
+import DownloadManager, { ObjectURL } from 'services/downloadManager';
 import constants from 'utils/strings/constants';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { VariableSizeList as List } from 'react-window';
@@ -267,13 +267,12 @@ const PhotoFrame = ({
 
     const getSlideData = async (instance: any, index: number, item: File) => {
         if (!item.msrc) {
-            let url: string;
-            if (galleryContext.thumbs.has(item.id)) {
-                url = galleryContext.thumbs.get(item.id);
-            } else {
-                const url = await DownloadManager.getPreview(item);
-                galleryContext.thumbs.set(item.id, url);
+            let objectURL: ObjectURL = galleryContext.thumbs.get(item.id);
+            if (!objectURL?.active) {
+                objectURL = await DownloadManager.getPreview(item);
+                galleryContext.thumbs.set(item.id, objectURL);
             }
+            const url = objectURL.url;
             updateUrl(item.dataIndex)(url);
             item.msrc = url;
             if (!item.src) {

@@ -130,12 +130,13 @@ export default function PreviewCard(props: IProps) {
     useLayoutEffect(() => {
         if (file && !file.msrc) {
             const main = async () => {
-                const url = await DownloadManager.getPreview(file);
+                const objectURL = await DownloadManager.getPreview(file);
+                const url = objectURL.url;
                 // cancellerRef.current = response.canceller;
                 // const url = await response.urlPromise;
                 if (isMounted.current) {
                     setImgSrc(url);
-                    thumbs.set(file.id, url);
+                    thumbs.set(file.id, objectURL);
                     file.msrc = url;
                     if (!file.src) {
                         file.src = url;
@@ -145,7 +146,7 @@ export default function PreviewCard(props: IProps) {
             };
 
             if (thumbs.has(file.id)) {
-                const thumbImgSrc = thumbs.get(file.id);
+                const thumbImgSrc = thumbs.get(file.id)?.url;
                 setImgSrc(thumbImgSrc);
                 file.msrc = thumbImgSrc;
                 if (!file.src) {
@@ -160,9 +161,13 @@ export default function PreviewCard(props: IProps) {
             }
         }
         return () => {
-            // cool cool cool
             isMounted.current = false;
             cancellerRef.current && cancellerRef.current.exec();
+            const objectURL = thumbs.get(file.id);
+            if (objectURL?.active) {
+                URL.revokeObjectURL(objectURL.url);
+                objectURL.active = false;
+            }
         };
     }, [file]);
 
