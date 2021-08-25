@@ -163,7 +163,6 @@ export default function PreviewCard(props: IProps) {
             // cool cool cool
             isMounted.current = false;
             cancellerRef.current && cancellerRef.current.exec();
-            imgSrc && URL.revokeObjectURL(imgSrc);
         };
     }, [file]);
 
