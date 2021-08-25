@@ -7,7 +7,7 @@ import {
     fileNameWithoutExtension,
     generateStreamFromArrayBuffer,
 } from 'utils/file';
-import HTTPService from './HTTPService';
+import HTTPService, { RequestCanceller } from './HTTPService';
 import { File, FILE_TYPE } from './fileService';
 import { logError } from 'utils/sentry';
 import { decodeMotionPhoto } from './motionPhotoService';
@@ -17,6 +17,8 @@ const MAX_RUNNING_PROCESSES = 5;
 interface getPreviewRequest {
     file: File;
     callback: (response) => void;
+    isCanceled: { status: boolean };
+    canceller: { exec: () => void };
 }
 
 interface getFileRequest {
@@ -36,12 +38,25 @@ class DownloadManager {
     private runningGetFileProcesses = 0;
 
     // get preview queue
-    public async queueUpGetPreviewRequest(file: File) {
-        const url: string = await new Promise((resolve) => {
-            this.getPreviewQueue.push({ file, callback: resolve });
+    public queueUpGetPreviewRequest(file: File) {
+        const isCanceled = { status: false };
+        const canceller: RequestCanceller = {
+            exec: () => {
+                isCanceled.status = true;
+            },
+        };
+
+        const urlPromise = new Promise<string>((resolve) => {
+            this.getPreviewQueue.push({
+                file,
+                callback: resolve,
+                isCanceled,
+                canceller,
+            });
             this.pollGetPreviewQueue();
         });
-        return url;
+
+        return { urlPromise, canceller };
     }
 
     async pollGetPreviewQueue() {
@@ -55,7 +70,16 @@ class DownloadManager {
     public async processGetPreviewQueue() {
         while (this.getPreviewQueue.length > 0) {
             const request = this.getPreviewQueue.pop();
-            const response = await this.getPreview(request.file);
+            let response: string;
+
+            if (request.isCanceled.status) {
+                response = null;
+            } else {
+                response = await this.getPreview(
+                    request.file,
+                    request.canceller
+                );
+            }
             request.callback(response);
             await this.processGetPreviewQueue();
         }
@@ -93,7 +117,7 @@ class DownloadManager {
         }
     }
 
-    public async getPreview(file: File) {
+    public async getPreview(file: File, canceller: RequestCanceller) {
         try {
             const token = getToken();
             if (!token) {
@@ -105,7 +129,12 @@ class DownloadManager {
                 return URL.createObjectURL(await cacheResp.blob());
             }
             if (!this.thumbnailDownloads.get(file.id)) {
-                const download = await this.downloadThumb(token, cache, file);
+                const download = await this.downloadThumb(
+                    token,
+                    cache,
+                    file,
+                    canceller
+                );
                 this.thumbnailDownloads.set(file.id, download);
             }
             return await this.thumbnailDownloads.get(file.id);
@@ -113,12 +142,17 @@ class DownloadManager {
             logError(e, 'get preview Failed');
         }
     }
-    downloadThumb = async (token: string, cache: Cache, file: File) => {
+    downloadThumb = async (
+        token: string,
+        cache: Cache,
+        file: File,
+        canceller: RequestCanceller
+    ) => {
         const resp = await HTTPService.get(
             getThumbnailUrl(file.id),
             null,
             { 'X-Auth-Token': token },
-            { responseType: 'arraybuffer' }
+            { responseType: 'arraybuffer', canceller }
         );
         const worker = await new CryptoWorker();
         const decrypted: any = await worker.decryptThumbnail(

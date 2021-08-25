@@ -276,7 +276,8 @@ const PhotoFrame = ({
             if (galleryContext.thumbs.has(item.id)) {
                 url = galleryContext.thumbs.get(item.id);
             } else {
-                url = await DownloadManager.queueUpGetPreviewRequest(item);
+                const response = DownloadManager.queueUpGetPreviewRequest(item);
+                url = await response.urlPromise;
                 galleryContext.thumbs.set(item.id, url);
             }
             updateUrl(item.dataIndex)(url);
