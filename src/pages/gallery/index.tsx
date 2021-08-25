@@ -61,7 +61,6 @@ import Upload from 'components/pages/gallery/Upload';
 import Collections from 'components/pages/gallery/Collections';
 import { AppContext } from 'pages/_app';
 import { CustomError, ServerErrorCodes } from 'utils/common/errorUtil';
-import { ObjectURL } from 'services/downloadManager';
 
 export const DeadCenter = styled.div`
     flex: 1;
@@ -97,7 +96,7 @@ export interface SearchStats {
 }
 
 type GalleryContextType = {
-    thumbs: Map<number, ObjectURL>;
+    thumbs: Map<number, string>;
     files: Map<number, string>;
 };
 
