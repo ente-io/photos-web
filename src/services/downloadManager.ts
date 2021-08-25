@@ -36,6 +36,11 @@ class DownloadManager {
 
     private runningGetPreviewProcesses = 0;
     private runningGetFileProcesses = 0;
+    private cache: Cache;
+
+    async initCache() {
+        this.cache = await caches.open('thumbs');
+    }
 
     // get preview queue
     public queueUpGetPreviewRequest(file: File) {
@@ -123,28 +128,30 @@ class DownloadManager {
             if (!token) {
                 return null;
             }
-            const cache = await caches.open('thumbs');
-            const cacheResp: Response = await cache.match(file.id.toString());
-            if (cacheResp) {
-                return URL.createObjectURL(await cacheResp.blob());
-            }
             if (!this.thumbnailDownloads.get(file.id)) {
+                if (!this.cache) {
+                    await this.initCache();
+                }
+                const cacheResp: Response = await this.cache.match(
+                    file.id.toString()
+                );
+                if (cacheResp) {
+                    return URL.createObjectURL(await cacheResp.blob());
+                }
                 const download = await this.downloadThumb(
                     token,
-                    cache,
                     file,
                     canceller
                 );
                 this.thumbnailDownloads.set(file.id, download);
             }
-            return await this.thumbnailDownloads.get(file.id);
+            return this.thumbnailDownloads.get(file.id);
         } catch (e) {
             logError(e, 'get preview Failed');
         }
     }
     downloadThumb = async (
         token: string,
-        cache: Cache,
         file: File,
         canceller: RequestCanceller
     ) => {
@@ -161,7 +168,10 @@ class DownloadManager {
             file.key
         );
         try {
-            await cache.put(
+            if (!this.cache) {
+                await this.initCache();
+            }
+            await this.cache.put(
                 file.id.toString(),
                 new Response(new Blob([decrypted]))
             );
