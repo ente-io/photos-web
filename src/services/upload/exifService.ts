@@ -2,6 +2,7 @@ import EXIF from 'exif-js';
 
 import { logError } from 'utils/sentry';
 import { NULL_LOCATION, Location } from './metadataService';
+import { getUint8ArrayView } from './readFileService';
 
 const SOUTH_DIRECTION = 'S';
 const WEST_DIRECTION = 'W';
@@ -12,11 +13,12 @@ interface ParsedEXIFData {
 }
 
 export async function getExifData(
-    worker,
+    reader: FileReader,
     receivedFile: globalThis.File
 ): Promise<ParsedEXIFData> {
     try {
-        const fileChunk = await worker.getUint8ArrayView(
+        const fileChunk = await getUint8ArrayView(
+            reader,
             receivedFile.slice(0, CHUNK_SIZE_FOR_EXIF_READING)
         );
         const exifData = EXIF.readFromBinaryFile(fileChunk.buffer);

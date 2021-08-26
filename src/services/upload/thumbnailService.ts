@@ -3,6 +3,7 @@ import { CustomError } from 'utils/common/errorUtil';
 import { convertHEIC2JPEG } from 'utils/file';
 import { logError } from 'utils/sentry';
 import { BLACK_THUMBNAIL_BASE64 } from '../../../public/images/black-thumbnail-b64';
+import { getUint8ArrayView } from './readFileService';
 
 const THUMBNAIL_HEIGHT = 720;
 const MAX_ATTEMPTS = 3;
@@ -11,7 +12,7 @@ const MIN_THUMBNAIL_SIZE = 50000;
 const WAIT_TIME_THUMBNAIL_GENERATION = 10 * 1000;
 
 export async function generateThumbnail(
-    worker,
+    reader: FileReader,
     file: globalThis.File,
     fileType: FILE_TYPE,
     isHEIC: boolean
@@ -27,7 +28,7 @@ export async function generateThumbnail(
                 canvas = await generateVideoThumbnail(file);
             }
             const thumbnailBlob = await thumbnailCanvasToBlob(canvas);
-            thumbnail = await worker.getUint8ArrayView(thumbnailBlob);
+            thumbnail = await getUint8ArrayView(reader, thumbnailBlob);
             if (thumbnail.length === 0) {
                 throw Error('EMPTY THUMBNAIL');
             }

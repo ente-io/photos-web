@@ -25,6 +25,7 @@ interface UploadResponse {
     file?: File;
 }
 export default async function uploader(
+    reader: FileReader,
     worker: any,
     existingFilesInCollection: File[],
     fileWithCollection: FileWithCollection
@@ -40,12 +41,12 @@ export default async function uploader(
     let fileWithMetadata: FileWithMetadata = null;
 
     try {
-        fileTypeInfo = await getFileType(worker, rawFile);
+        fileTypeInfo = await getFileType(reader, rawFile);
         if (fileTypeInfo.fileType === FILE_TYPE.OTHERS) {
             throw Error(CustomError.UNSUPPORTED_FILE_FORMAT);
         }
         metadata = await uploadService.getFileMetadata(
-            worker,
+            reader,
             rawFile,
             collection,
             fileTypeInfo
@@ -58,7 +59,7 @@ export default async function uploader(
             return { fileUploadResult: FileUploadResults.SKIPPED };
         }
 
-        file = await UploadService.readFile(worker, rawFile, fileTypeInfo);
+        file = await UploadService.readFile(reader, rawFile, fileTypeInfo);
         if (file.hasStaticThumbnail) {
             metadata.hasStaticThumbnail = true;
         }

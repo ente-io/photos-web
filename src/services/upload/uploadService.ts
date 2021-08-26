@@ -104,20 +104,20 @@ class UploadService {
     }
 
     async readFile(
-        worker: any,
+        reader: FileReader,
         rawFile: globalThis.File,
         fileTypeInfo: FileTypeInfo
     ): Promise<FileInMemory> {
         const isHEIC = fileIsHEIC(fileTypeInfo.exactType);
 
         const { thumbnail, hasStaticThumbnail } = await generateThumbnail(
-            worker,
+            reader,
             rawFile,
             fileTypeInfo.fileType,
             isHEIC
         );
 
-        const filedata = await getFileData(worker, rawFile);
+        const filedata = await getFileData(reader, rawFile);
 
         return {
             filedata,
@@ -127,7 +127,7 @@ class UploadService {
     }
 
     async getFileMetadata(
-        worker: any,
+        reader: any,
         rawFile: File,
         collection: Collection,
         fileTypeInfo: FileTypeInfo
@@ -138,7 +138,7 @@ class UploadService {
                 getMetadataMapKey(collection.id, originalName)
             ) ?? {};
         const extractedMetadata: MetadataObject = await extractMetadata(
-            worker,
+            reader,
             rawFile,
             fileTypeInfo
         );

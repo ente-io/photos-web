@@ -82,10 +82,9 @@ class DownloadManager {
 
                     const typeFromExtension =
                         file.metadata.title.split('.')[-1];
-                    const worker = await new CryptoWorker();
-
+                    const reader = new FileReader();
                     const mimeType =
-                        (await getMimeTypeFromBlob(worker, fileBlob)) ??
+                        (await getMimeTypeFromBlob(reader, fileBlob)) ??
                         typeFromExtension;
 
                     if (fileIsHEIC(mimeType)) {

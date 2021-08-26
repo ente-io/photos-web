@@ -28,11 +28,11 @@ const NULL_PARSED_METADATA_JSON: ParsedMetaDataJSON = {
 };
 
 export async function extractMetadata(
-    worker,
+    reader: FileReader,
     receivedFile: globalThis.File,
     fileTypeInfo: FileTypeInfo
 ) {
-    const { location, creationTime } = await getExifData(worker, receivedFile);
+    const { location, creationTime } = await getExifData(reader, receivedFile);
 
     const extractedMetadata: MetadataObject = {
         title: receivedFile.name,
@@ -48,10 +48,12 @@ export async function extractMetadata(
 export const getMetadataMapKey = (collectionID: number, title: string) =>
     `${collectionID}_${title}`;
 
-export async function parseMetadataJSON(receivedFile: globalThis.File) {
+export async function parseMetadataJSON(
+    reader: FileReader,
+    receivedFile: globalThis.File
+) {
     try {
         const metadataJSON: object = await new Promise((resolve, reject) => {
-            const reader = new FileReader();
             reader.onabort = () => reject(Error('file reading was aborted'));
             reader.onerror = () => reject(Error('file reading has failed'));
             reader.onload = () => {
