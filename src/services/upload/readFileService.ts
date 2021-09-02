@@ -5,7 +5,7 @@ import {
 import { logError } from 'utils/sentry';
 import { FILE_READER_CHUNK_SIZE, MULTIPART_PART_SIZE } from './uploadService';
 import FileType from 'file-type/browser';
-import { CustomError } from 'utils/common/errorUtil';
+import { CustomError, errorWithContext } from 'utils/common/errorUtil';
 
 const TYPE_VIDEO = 'video';
 const TYPE_IMAGE = 'image';
@@ -147,7 +147,6 @@ export async function getUint8ArrayView(
             reader.readAsArrayBuffer(file);
         });
     } catch (e) {
-        logError(e, 'error reading file to byte-array');
-        throw e;
+        throw errorWithContext(e, 'error reading file to byte-array');
     }
 }

@@ -5,6 +5,7 @@ import { convertToHumanReadable } from 'utils/billingUtil';
 import HTTPService from './HTTPService';
 import { logError } from 'utils/sentry';
 import { getPaymentToken } from './userService';
+import { errorWithContext } from 'utils/common/errorUtil';
 
 const ENDPOINT = getEndpoint();
 
@@ -165,8 +166,7 @@ class billingService {
                 window.location.origin
             }/gallery`;
         } catch (e) {
-            logError(e, 'unable to get payments url');
-            throw e;
+            throw errorWithContext(e, 'unable to get payments url');
         }
     }
 

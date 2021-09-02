@@ -19,7 +19,7 @@ import { ProgressUpdater } from 'components/pages/gallery/Upload';
 import uploader from './uploader';
 import UIService from './uiService';
 import UploadService from './uploadService';
-import { CustomError } from 'utils/common/errorUtil';
+import { CustomError, errorWithContext } from 'utils/common/errorUtil';
 
 const MAX_CONCURRENT_UPLOADS = 4;
 const FILE_UPLOAD_COMPLETED = 100;
@@ -101,8 +101,7 @@ class UploadManager {
             UIService.setUploadStage(UPLOAD_STAGES.FINISH);
             UIService.setPercentComplete(FILE_UPLOAD_COMPLETED);
         } catch (e) {
-            logError(e, 'uploading failed with error');
-            throw e;
+            throw errorWithContext(e, 'uploading failed with error');
         } finally {
             for (let i = 0; i < MAX_CONCURRENT_UPLOADS; i++) {
                 this.cryptoWorkers[i]?.worker.terminate();

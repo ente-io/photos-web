@@ -1,6 +1,5 @@
 import { fileAttribute, FILE_TYPE } from '../fileService';
 import { Collection } from '../collectionService';
-import { logError } from 'utils/sentry';
 import UploadHttpClient from './uploadHttpClient';
 import {
     extractMetadata,
@@ -17,7 +16,7 @@ import { encryptFiledata } from './encryptionService';
 import { ENCRYPTION_CHUNK_SIZE } from 'types';
 import { uploadStreamUsingMultipart } from './multiPartUploadService';
 import UIService from './uiService';
-import { handleUploadError } from 'utils/common/errorUtil';
+import { errorWithContext } from 'utils/common/errorUtil';
 import { MetadataMap } from './uploadManager';
 import { fileIsHEIC } from 'utils/file';
 
@@ -182,8 +181,7 @@ class UploadService {
             };
             return result;
         } catch (e) {
-            logError(e, 'Error encrypting files');
-            throw e;
+            throw errorWithContext(e, 'Error encrypting files');
         }
     }
 
@@ -226,8 +224,7 @@ class UploadService {
             };
             return backupedFile;
         } catch (e) {
-            logError(e, 'error uploading to bucket');
-            throw e;
+            throw errorWithContext(e, 'error uploading to bucket');
         }
     }
 
@@ -258,8 +255,7 @@ class UploadService {
             await this.fetchUploadURLs();
             // checking for any subscription related errors
         } catch (e) {
-            logError(e, 'prefetch uploadURL failed');
-            handleUploadError(e);
+            throw errorWithContext(e, 'prefetch uploadURL failed');
         }
     }
 

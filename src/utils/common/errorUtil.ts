@@ -24,7 +24,7 @@ export enum CustomError {
     STORAGE_QUOTA_EXCEEDED = 'storage quota exceeded',
     SESSION_EXPIRED_MESSAGE = 'session expired',
     TYPE_DETECTION_FAILED = 'type detection failed',
-    SIGNUP_FAILED = 'signup failed',
+    RESPONSE_DATA_MISSING = 'response data missing',
 }
 
 function parseUploadError(error: AxiosResponse) {

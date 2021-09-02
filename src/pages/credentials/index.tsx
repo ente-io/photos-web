@@ -57,7 +57,7 @@ export default function Credentials() {
                     keyAttributes.memLimit
                 );
             } catch (e) {
-                logError(e, 'failed to derive key');
+                logError(e, 'failed to derive key to verify passphrase');
                 throw e;
             }
             try {

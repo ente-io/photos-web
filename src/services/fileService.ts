@@ -7,6 +7,7 @@ import { Collection } from './collectionService';
 import HTTPService from './HTTPService';
 import { logError } from 'utils/sentry';
 import { decryptFile, sortFiles } from 'utils/file';
+import { errorWithContext } from 'utils/common/errorUtil';
 
 const ENDPOINT = getEndpoint();
 const DIFF_LIMIT: number = 1000;
@@ -223,7 +224,6 @@ export const deleteFiles = async (
         clearSelection();
         syncWithRemote();
     } catch (e) {
-        logError(e, 'delete failed');
-        throw e;
+        throw errorWithContext(e, 'delete failed');
     }
 };

@@ -22,7 +22,10 @@ import UploadManager, {
 } from 'services/upload/uploadManager';
 import uploadManager from 'services/upload/uploadManager';
 import { METADATA_FOLDER_NAME } from 'services/exportService';
-import { getUserFacingErrorMessage } from 'utils/common/errorUtil';
+import {
+    errorWithContext,
+    getUserFacingErrorMessage,
+} from 'utils/common/errorUtil';
 
 const FIRST_ALBUM_NAME = 'My First Album';
 
@@ -254,14 +257,13 @@ export default function Upload(props: Props) {
                 }
             } catch (e) {
                 setProgressView(false);
-                logError(e, 'Failed to create album');
                 props.setDialogMessage({
                     title: constants.ERROR,
                     staticBackdrop: true,
                     close: { variant: 'danger' },
                     content: constants.CREATE_ALBUM_FAILED,
                 });
-                throw e;
+                throw errorWithContext(e, 'Failed to create album');
             }
             await uploadFiles(filesWithCollectionToUpload, collections);
         } catch (e) {

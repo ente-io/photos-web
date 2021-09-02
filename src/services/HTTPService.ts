@@ -16,11 +16,13 @@ class HTTPService {
         axios.interceptors.response.use(
             (response) => Promise.resolve(response),
             (err) => {
-                if (!err.response) {
+                if (err.response) {
+                    return Promise.reject(err.response);
+                } else if (err.request) {
+                    return Promise.reject(err.request);
+                } else {
                     return Promise.reject(err);
                 }
-                const { response } = err;
-                return Promise.reject(response);
             }
         );
     }

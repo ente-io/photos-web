@@ -11,6 +11,7 @@ import { B64EncryptionResult } from 'utils/crypto';
 import HTTPService from './HTTPService';
 import { File } from './fileService';
 import { logError } from 'utils/sentry';
+import { errorWithContext } from 'utils/common/errorUtil';
 
 const ENDPOINT = getEndpoint();
 
@@ -127,8 +128,7 @@ const getCollections = async (
         );
         return collections;
     } catch (e) {
-        logError(e, 'getCollections failed');
-        throw e;
+        throw errorWithContext(e, 'getCollections failed');
     }
 };
 
@@ -284,8 +284,7 @@ export const createCollection = async (
         );
         return createdCollection;
     } catch (e) {
-        logError(e, 'create collection failed');
-        throw e;
+        throw errorWithContext(e, 'create collection failed');
     }
 };
 
@@ -302,25 +301,33 @@ const postCollection = async (
         );
         return response.data.collection;
     } catch (e) {
-        logError(e, 'post Collection failed ');
+        throw errorWithContext(e, 'post Collection failed ');
     }
 };
 
 export const addToFavorites = async (file: File) => {
-    let favCollection = await getFavCollection();
-    if (!favCollection) {
-        favCollection = await createCollection(
-            'Favorites',
-            CollectionType.favorites
-        );
-        await localForage.setItem(FAV_COLLECTION, favCollection);
+    try {
+        let favCollection = await getFavCollection();
+        if (!favCollection) {
+            favCollection = await createCollection(
+                'Favorites',
+                CollectionType.favorites
+            );
+            await localForage.setItem(FAV_COLLECTION, favCollection);
+        }
+        await addToCollection(favCollection, [file]);
+    } catch (e) {
+        logError(e, 'add to favorite failed');
     }
-    await addToCollection(favCollection, [file]);
 };
 
 export const removeFromFavorites = async (file: File) => {
-    const favCollection = await getFavCollection();
-    await removeFromCollection(favCollection, [file]);
+    try {
+        const favCollection = await getFavCollection();
+        await removeFromCollection(favCollection, [file]);
+    } catch (e) {
+        logError(e, 'remove from favourite failed');
+    }
 };
 
 export const addToCollection = async (
@@ -357,7 +364,7 @@ export const addToCollection = async (
             { 'X-Auth-Token': token }
         );
     } catch (e) {
-        logError(e, 'Add to collection Failed ');
+        throw errorWithContext(e, 'Add to collection Failed ');
     }
 };
 const removeFromCollection = async (collection: Collection, files: File[]) => {
@@ -380,7 +387,7 @@ const removeFromCollection = async (collection: Collection, files: File[]) => {
             { 'X-Auth-Token': token }
         );
     } catch (e) {
-        logError(e, 'remove from collection failed ');
+        throw errorWithContext(e, 'remove from collection failed ');
     }
 };
 
@@ -465,8 +472,7 @@ export const shareCollection = async (
             }
         );
     } catch (e) {
-        logError(e, 'share collection failed ');
-        throw e;
+        throw errorWithContext(e, 'share collection failed ');
     }
 };
 
@@ -489,8 +495,7 @@ export const unshareCollection = async (
             }
         );
     } catch (e) {
-        logError(e, 'unshare collection failed ');
-        throw e;
+        throw errorWithContext(e, 'unshare collection failed ');
     }
 };
 

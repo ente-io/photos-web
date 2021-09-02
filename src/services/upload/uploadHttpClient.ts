@@ -1,10 +1,13 @@
 import HTTPService from 'services/HTTPService';
 import { getEndpoint } from 'utils/common/apiUtil';
 import { getToken } from 'utils/common/key';
-import { logError } from 'utils/sentry';
 import { UploadFile, UploadURL } from './uploadService';
 import { File } from '../fileService';
-import { CustomError, handleUploadError } from 'utils/common/errorUtil';
+import {
+    CustomError,
+    errorWithContext,
+    handleUploadError,
+} from 'utils/common/errorUtil';
 import { retryAsyncFunction } from 'utils/network';
 import { MultipartUploadURLs } from './multiPartUploadService';
 
@@ -29,8 +32,7 @@ class UploadHttpClient {
             );
             return response.data;
         } catch (e) {
-            logError(e, 'upload Files Failed');
-            throw e;
+            throw errorWithContext(e, 'upload Files Failed');
         }
     }
 
@@ -57,8 +59,7 @@ class UploadHttpClient {
             }
             return this.uploadURLFetchInProgress;
         } catch (e) {
-            logError(e, 'fetch upload-url failed ');
-            throw e;
+            throw errorWithContext(e, 'fetch upload-url failed ');
         }
     }
 
@@ -80,8 +81,7 @@ class UploadHttpClient {
 
             return response.data['urls'];
         } catch (e) {
-            logError(e, 'fetch multipart-upload-url failed');
-            throw e;
+            throw errorWithContext(e, 'fetch multipart-upload-url failed');
         }
     }
 
@@ -102,8 +102,7 @@ class UploadHttpClient {
             );
             return fileUploadURL.objectKey;
         } catch (e) {
-            logError(e, 'putFile to dataStore failed ');
-            throw e;
+            throw errorWithContext(e, 'putFile to dataStore failed ');
         }
     }
 
@@ -123,15 +122,13 @@ class UploadHttpClient {
                 );
                 if (!resp?.headers?.etag) {
                     const err = Error(CustomError.ETAG_MISSING);
-                    logError(err, 'putFile in parts failed');
-                    throw err;
+                    throw errorWithContext(err, 'putFile in parts failed');
                 }
                 return resp;
             });
             return response.headers.etag as string;
         } catch (e) {
-            logError(e, 'put filePart failed');
-            throw e;
+            throw errorWithContext(e, 'put filePart failed');
         }
     }
 
@@ -143,8 +140,7 @@ class UploadHttpClient {
                 })
             );
         } catch (e) {
-            logError(e, 'put file in parts failed');
-            throw e;
+            throw errorWithContext(e, 'put file in parts failed');
         }
     }
 }

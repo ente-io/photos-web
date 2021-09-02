@@ -46,8 +46,7 @@ export async function generateThumbnail(
         }
         return { thumbnail, hasStaticThumbnail };
     } catch (e) {
-        logError(e, 'Error generating thumbnail');
-        throw e;
+        throw errorWithContext(e, 'Error generating static thumbnail');
     }
 }
 
@@ -137,10 +136,10 @@ export async function generateVideoThumbnail(file: globalThis.File) {
                 clearTimeout(timeout);
                 resolve(null);
             } catch (e) {
-                const err = Error(
-                    `${CustomError.THUMBNAIL_GENERATION_FAILED} err: ${e}`
+                const err = errorWithContext(
+                    e,
+                    CustomError.THUMBNAIL_GENERATION_FAILED
                 );
-                logError(e, CustomError.THUMBNAIL_GENERATION_FAILED);
                 reject(err);
             }
         });

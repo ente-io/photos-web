@@ -1,6 +1,5 @@
 import { createFFmpeg, FFmpeg } from '@ffmpeg/ffmpeg';
-import { CustomError } from 'utils/common/errorUtil';
-import { logError } from 'utils/sentry';
+import { CustomError, errorWithContext } from 'utils/common/errorUtil';
 import QueueProcessor from './upload/queueProcessor';
 import { getUint8ArrayView } from './upload/readFileService';
 
@@ -18,8 +17,7 @@ class FFmpegService {
             await this.isLoading;
             this.isLoading = null;
         } catch (e) {
-            logError(e, 'ffmpeg load failed');
-            throw e;
+            throw errorWithContext(e, 'ffmpeg load failed');
         }
     }
 
@@ -74,8 +72,7 @@ async function generateThumbnailHelper(ffmpeg: FFmpeg, file: File) {
         ffmpeg.FS('unlink', inputFileName);
         return thumb;
     } catch (e) {
-        logError(e, 'ffmpeg thumbnail generation failed');
-        throw e;
+        throw errorWithContext(e, 'ffmpeg thumbnail generation failed');
     }
 }
 

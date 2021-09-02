@@ -9,6 +9,7 @@ import HTTPService from './HTTPService';
 import { B64EncryptionResult } from 'utils/crypto';
 import { logError } from 'utils/sentry';
 import { Subscription } from './billingService';
+import { CustomError } from 'utils/common/errorUtil';
 
 export interface UpdatedKey {
     kekSalt: string;
@@ -140,19 +141,20 @@ export const isTokenValid = async () => {
                 'X-Auth-Token': getToken(),
             }
         );
-        try {
-            if (!resp.data['hasSetKeys']) {
-                try {
-                    await putAttributes(
-                        getToken(),
-                        getData(LS_KEYS.ORIGINAL_KEY_ATTRIBUTES)
-                    );
-                } catch (e) {
-                    logError(e, 'put attribute failed');
-                }
+        if (!resp || !resp.data) {
+            const err = Error(CustomError.RESPONSE_DATA_MISSING);
+            logError(err, 'hasSetKeys not set in session validity response');
+            throw err;
+        }
+        if (!resp.data['hasSetKeys']) {
+            try {
+                await putAttributes(
+                    getToken(),
+                    getData(LS_KEYS.ORIGINAL_KEY_ATTRIBUTES)
+                );
+            } catch (e) {
+                logError(e, 'put attribute failed');
             }
-        } catch (e) {
-            logError(e, 'hasSetKeys not set in session validity response');
         }
         return true;
     } catch (e) {
