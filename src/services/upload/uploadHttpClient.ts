@@ -44,12 +44,19 @@ class UploadHttpClient {
                     if (!token) {
                         return;
                     }
-                    this.uploadURLFetchInProgress = HTTPService.get(
-                        `${ENDPOINT}/files/upload-urls`,
-                        {
-                            count: Math.min(MAX_URL_REQUESTS, count * 2),
-                        },
-                        { 'X-Auth-Token': token }
+                    this.uploadURLFetchInProgress = await retryAsyncFunction(
+                        () =>
+                            HTTPService.get(
+                                `${ENDPOINT}/files/upload-urls`,
+                                {
+                                    count: Math.min(
+                                        MAX_URL_REQUESTS,
+                                        count * 2
+                                    ),
+                                },
+                                { 'X-Auth-Token': token }
+                            ),
+                        handleUploadError
                     );
                     const response = await this.uploadURLFetchInProgress;
                     urlStore.push(...response.data['urls']);
@@ -71,12 +78,16 @@ class UploadHttpClient {
             if (!token) {
                 return;
             }
-            const response = await HTTPService.get(
-                `${ENDPOINT}/files/multipart-upload-urls`,
-                {
-                    count,
-                },
-                { 'X-Auth-Token': token }
+            const response = await retryAsyncFunction(
+                () =>
+                    HTTPService.get(
+                        `${ENDPOINT}/files/multipart-upload-urls`,
+                        {
+                            count,
+                        },
+                        { 'X-Auth-Token': token }
+                    ),
+                handleUploadError
             );
 
             return response.data['urls'];
