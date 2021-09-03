@@ -29,7 +29,7 @@ export default class ErrorWithContext extends Error {
         this.stack =
             this.stack
                 .split('\n')
-                .slice(5 + shift, 6 + shift)
+                .slice(4 + shift, 5 + shift)
                 .join('\n') +
             '\n' +
             originalError.stack;
