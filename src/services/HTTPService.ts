@@ -19,9 +19,9 @@ class HTTPService {
                 if (err.response) {
                     return Promise.reject(err.response);
                 } else if (err.request) {
-                    return Promise.reject(err.request);
+                    return Promise.reject(Error('no response was received'));
                 } else {
-                    return Promise.reject(err);
+                    return Promise.reject(Error(err));
                 }
             }
         );
