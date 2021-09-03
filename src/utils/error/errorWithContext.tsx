@@ -27,6 +27,12 @@ export default class ErrorWithContext extends Error {
             (originalError as ErrorWithContext).rootCause ||
             originalError ||
             this;
-        this.stack = this.stack + '\n' + originalError.stack;
+        this.stack =
+            this.stack
+                .split('\n')
+                .slice(4 + shift, 5 + shift)
+                .join('\n') +
+            '\n' +
+            originalError.stack;
     }
 }
