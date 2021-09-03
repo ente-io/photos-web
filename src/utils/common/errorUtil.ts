@@ -1,4 +1,5 @@
 import { AxiosResponse } from 'axios';
+import ErrorWithContext from 'utils/error/errorWithContext';
 import constants from 'utils/strings/constants';
 
 export const ServerErrorCodes = {
@@ -47,20 +48,16 @@ function parseUploadError(error: AxiosResponse) {
         }
     }
     if (parsedMessage) {
-        return {
-            parsedError: new Error(parsedMessage),
-        };
+        return new Error(parsedMessage);
     } else {
-        return {
-            parsedError: new Error(CustomError.UNKNOWN_ERROR),
-        };
+        return new Error(CustomError.UNKNOWN_ERROR);
     }
 }
 
 export function handleUploadError(error: AxiosResponse | Error): Error {
     let parsedError: Error = null;
     if ('status' in error) {
-        parsedError = parseUploadError(error).parsedError;
+        parsedError = parseUploadError(error);
     } else {
         parsedError = error;
     }
@@ -90,11 +87,15 @@ export function getUserFacingErrorMessage(
     }
 }
 
-export function errorWithContext(originalError: Error, context: string) {
-    const errorWithContext = new Error(context);
-    errorWithContext.stack =
-        errorWithContext.stack.split('\n').slice(2, 4).join('\n') +
-        '\n' +
-        originalError.stack;
+export function errorWithContext(
+    originalError: Error,
+    context: string,
+    shift = 0
+) {
+    const errorWithContext = new ErrorWithContext(
+        originalError as ErrorWithContext,
+        context,
+        shift
+    );
     return errorWithContext;
 }
