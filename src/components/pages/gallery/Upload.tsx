@@ -26,6 +26,7 @@ import {
     errorWithContext,
     getUserFacingErrorMessage,
 } from 'utils/common/errorUtil';
+import ErrorWithContext from 'utils/error/errorWithContext';
 
 const FIRST_ALBUM_NAME = 'My First Album';
 
@@ -285,7 +286,9 @@ export default function Upload(props: Props) {
             );
         } catch (err) {
             const message = getUserFacingErrorMessage(
-                err.message,
+                (err as ErrorWithContext).rootCause.message ||
+                    (err as Error).message ||
+                    err,
                 galleryContext.showPlanSelectorModal
             );
             props.setBannerMessage(message);
@@ -305,7 +308,9 @@ export default function Upload(props: Props) {
             await uploadManager.retryFailedFiles();
         } catch (err) {
             const message = getUserFacingErrorMessage(
-                err.message,
+                (err as ErrorWithContext).rootCause.message ||
+                    (err as Error).message ||
+                    err,
                 galleryContext.showPlanSelectorModal
             );
             appContext.resetSharedFiles();
