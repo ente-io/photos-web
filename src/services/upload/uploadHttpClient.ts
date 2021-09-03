@@ -67,7 +67,6 @@ class UploadHttpClient {
             return this.uploadURLFetchInProgress;
         } catch (e) {
             const err = errorWithContext(e, 'fetch upload-url failed ', 1);
-            console.log(err);
             throw err;
         }
     }
