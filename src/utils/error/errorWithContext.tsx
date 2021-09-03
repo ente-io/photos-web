@@ -15,7 +15,6 @@ export default class ErrorWithContext extends Error {
             );
         }
         super(context);
-        console.log(this);
         this.parent = originalError;
         this.ancestors = [];
         let ancestors = this.parent;
