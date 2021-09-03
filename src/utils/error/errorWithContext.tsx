@@ -6,6 +6,7 @@ export default class ErrorWithContext extends Error {
     constructor(
         originalError: ErrorWithContext | null = null,
         context: string,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         shift: number
     ) {
         if (!context) {
@@ -14,6 +15,7 @@ export default class ErrorWithContext extends Error {
             );
         }
         super(context);
+        console.log(this);
         this.parent = originalError;
         this.ancestors = [];
         let ancestors = this.parent;
@@ -25,12 +27,6 @@ export default class ErrorWithContext extends Error {
             (originalError as ErrorWithContext).rootCause ||
             originalError ||
             this;
-        this.stack =
-            this.stack
-                .split('\n')
-                .slice(4 + shift, 5 + shift)
-                .join('\n') +
-            '\n' +
-            originalError.stack;
+        this.stack = this.stack + '\n' + originalError.stack;
     }
 }
