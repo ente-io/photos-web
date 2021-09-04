@@ -45,8 +45,8 @@ class DownloadManager {
     ) => {
         const resp = await HTTPService.get(
             getThumbnailUrl(file.id),
+            { token: token },
             null,
-            { 'X-Auth-Token': token },
             { responseType: 'arraybuffer' }
         );
         const worker = await new CryptoWorker();
@@ -102,8 +102,8 @@ class DownloadManager {
         ) {
             const resp = await HTTPService.get(
                 getFileUrl(file.id),
+                { token: token },
                 null,
-                { 'X-Auth-Token': token },
                 { responseType: 'arraybuffer' }
             );
             const decrypted: any = await worker.decryptFile(
