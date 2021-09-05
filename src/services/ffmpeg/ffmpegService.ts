@@ -12,7 +12,7 @@ class FFmpegService {
             const worker = new Worker(
                 new URL('worker/ffmpeg.worker.js', import.meta.url)
             );
-            this.ffmpegWorker = Comlink.wrap(worker);
+            this.ffmpegWorker = await new (Comlink.wrap(worker) as any)();
             await this.ffmpegWorker.init();
         } catch (e) {
             logError(e, 'ffmpeg load failed');
