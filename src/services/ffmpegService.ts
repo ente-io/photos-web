@@ -14,6 +14,7 @@ class FFmpegService {
             this.ffmpeg = createFFmpeg({
                 corePath: '/js/ffmpeg/ffmpeg-core.js',
                 mainName: 'main',
+                log: true,
             });
             this.isLoading = this.ffmpeg.load();
             await this.isLoading;
@@ -45,8 +46,8 @@ class FFmpegService {
 
 async function generateThumbnailHelper(ffmpeg: FFmpeg, file: File) {
     try {
-        const inputFileName = `${Date.now().toString}-${file.name}`;
-        const thumbFileName = `${Date.now().toString}-thumb.png`;
+        const inputFileName = `${Date.now().toString()}-${file.name}`;
+        const thumbFileName = `${Date.now().toString()}-thumb.jpeg`;
         ffmpeg.FS(
             'writeFile',
             inputFileName,
@@ -56,6 +57,19 @@ async function generateThumbnailHelper(ffmpeg: FFmpeg, file: File) {
         let thumb = null;
         while (seekTime > 0) {
             try {
+                console.log(
+                    '-ss',
+                    `00:00:0${seekTime.toFixed(3)}`,
+                    '-i',
+                    inputFileName,
+                    '-s',
+                    '960x540',
+                    '-f',
+                    'image2',
+                    '-vframes',
+                    '1',
+                    thumbFileName
+                );
                 await ffmpeg.run(
                     '-i',
                     inputFileName,
