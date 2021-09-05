@@ -186,10 +186,9 @@ export async function convertForPreview(file: File, fileBlob: Blob) {
     }
 
     const typeFromExtension = file.metadata.title.split('.')[-1];
-    const worker = await new CryptoWorker();
-
+    const fileReader = new FileReader();
     const mimeType =
-        (await getMimeTypeFromBlob(worker, fileBlob)) ?? typeFromExtension;
+        (await getMimeTypeFromBlob(fileReader, fileBlob)) ?? typeFromExtension;
 
     if (fileIsHEIC(mimeType)) {
         fileBlob = await convertHEIC2JPEG(fileBlob);
