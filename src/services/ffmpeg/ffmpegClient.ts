@@ -1,25 +1,19 @@
 import { createFFmpeg, FFmpeg } from 'ffmpeg';
 import { getUint8ArrayView } from 'utils/readFile';
-import { logError } from 'utils/sentry';
 
 class FFmpegClient {
     private ffmpeg: FFmpeg = null;
     isLoading = null;
 
     async init() {
-        try {
-            this.ffmpeg = createFFmpeg({
-                corePath: '/js/ffmpeg/ffmpeg-core.js',
-                mainName: 'main',
-                log: true,
-            });
-            this.isLoading = this.ffmpeg.load();
-            await this.isLoading;
-            this.isLoading = null;
-        } catch (e) {
-            logError(e, 'ffmpeg load failed');
-            throw e;
-        }
+        this.ffmpeg = createFFmpeg({
+            corePath: '/js/ffmpeg/ffmpeg-core.js',
+            mainName: 'main',
+            log: true,
+        });
+        this.isLoading = this.ffmpeg.load();
+        await this.isLoading;
+        this.isLoading = null;
     }
 
     async generateThumbnail(file: File) {
@@ -60,19 +54,16 @@ class FFmpegClient {
             }
             this.ffmpeg.FS('unlink', inputFileName);
             return thumb;
-        } catch (e) {
-            logError(e, 'ffmpeg thumbnail generation failed');
-            throw e;
         } finally {
             try {
                 this.ffmpeg.FS('unlink', inputFileName);
             } catch (e) {
-                logError(e, 'input file unlink failed');
+                // ignore
             }
             try {
                 this.ffmpeg.FS('unlink', thumbFileName);
             } catch (e) {
-                logError(e, 'thumbnail file unlink failed');
+                // ignore
             }
         }
     }
