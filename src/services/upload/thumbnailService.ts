@@ -30,6 +30,7 @@ export async function generateThumbnail(
                     return { thumbnail: thumb, hasStaticThumbnail: false };
                 } catch (e) {
                     canvas = await generateVideoThumbnail(file);
+                    throw e;
                 }
             }
             const thumbnailBlob = await thumbnailCanvasToBlob(canvas);
@@ -43,6 +44,7 @@ export async function generateThumbnail(
                 c.charCodeAt(0)
             );
             hasStaticThumbnail = true;
+            throw e;
         }
         return { thumbnail, hasStaticThumbnail };
     } catch (e) {

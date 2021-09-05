@@ -103,6 +103,7 @@ export default async function uploader(
             file: decryptedFile,
         };
     } catch (e) {
+        console.log(e);
         const fileFormat =
             fileTypeInfo.exactType ?? rawFile.name.split('.').pop();
         logError(e, 'file upload failed', { fileFormat });

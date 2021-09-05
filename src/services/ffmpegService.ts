@@ -13,6 +13,7 @@ class FFmpegService {
         try {
             this.ffmpeg = createFFmpeg({
                 corePath: '/js/ffmpeg/ffmpeg-core.js',
+                mainName: 'main',
             });
             this.isLoading = this.ffmpeg.load();
             await this.isLoading;
