@@ -113,7 +113,7 @@ export async function parseMetadataJSON(
         }
         return { title, parsedMetaDataJSON } as ParsedMetaDataJSONWithTitle;
     } catch (e) {
-        logError(e);
+        logError(e, 'parseMetadataJSON failed');
         // ignore
     }
 }
