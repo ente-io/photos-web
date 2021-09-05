@@ -1,4 +1,4 @@
-import { createFFmpeg, FFmpeg } from '@ffmpeg/ffmpeg';
+import { createFFmpeg, FFmpeg } from 'ffmpeg';
 import { CustomError } from 'utils/common/errorUtil';
 import { logError } from 'utils/sentry';
 import QueueProcessor from './upload/queueProcessor';
