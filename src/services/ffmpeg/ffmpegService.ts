@@ -13,6 +13,7 @@ class FFmpegService {
                 new URL('worker/ffmpeg.worker.js', import.meta.url)
             );
             this.ffmpegWorker = await new (Comlink.wrap(worker) as any)();
+
             await this.ffmpegWorker.init();
         } catch (e) {
             logError(e, 'ffmpeg load failed');
@@ -27,11 +28,13 @@ class FFmpegService {
         if (this.ffmpegWorker.isLoading()) {
             await this.ffmpegWorker.isLoading();
         }
-        const response = this.generateThumbnailProcessor.queueUpRequest(
-            this.ffmpegWorker.generateThumbnail.bind(null, file)
-        );
+        // const response = this.generateThumbnailProcessor.queueUpRequest(
+        //     this.ffmpegWorker.generateThumbnail.bind(null, file)
+        // );
 
-        const thumbnail = await response.promise;
+        // const thumbnail = await response.promise;
+        const thumbnail = await this.ffmpegWorker.generateThumbnail(file);
+        console.log(URL.createObjectURL(new Blob([thumbnail])));
         if (!thumbnail) {
             throw Error(CustomError.THUMBNAIL_GENERATION_FAILED);
         }
