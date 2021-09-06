@@ -1,11 +1,17 @@
 import { createFFmpeg, FFmpeg } from 'ffmpeg';
-import { getUint8ArrayView } from 'utils/readFile';
+
+const WORKING_DIR = 'working';
+const WORKERFS = 'WORKERFS';
 
 class FFmpegClient {
     private ffmpeg: FFmpeg = null;
     isLoading = null;
+    workingDirectoryExists = false;
 
     async init() {
+        if (this.isLoading) {
+            await this.isLoading();
+        }
         this.ffmpeg = createFFmpeg({
             corePath: '/js/ffmpeg/ffmpeg-core.js',
             mainName: 'main',
@@ -24,10 +30,9 @@ class FFmpegClient {
             throw Error('ffmpeg not loaded');
         }
         const inputFileName = `${Date.now().toString()}-${file.name}`;
-        const thumbFileName = `${Date.now().toString()}-thumb.jpeg`;
-
+        const thumbFilePath = `${WORKING_DIR}/${Date.now().toString()}-thumb.jpeg`;
         try {
-            await this.writeFile(inputFileName, file);
+            this.loadFile(inputFileName, file);
 
             let seekTime = 1.0;
             let thumb = null;
@@ -37,55 +42,44 @@ class FFmpegClient {
                         '-ss',
                         `00:00:0${seekTime.toFixed(3)}`,
                         '-i',
-                        inputFileName,
+                        `${WORKING_DIR}/${inputFileName}`,
                         '-s',
                         '960x540',
                         '-f',
                         'image2',
                         '-vframes',
                         '1',
-                        thumbFileName
+                        thumbFilePath
                     );
-                    thumb = this.ffmpeg.FS('readFile', thumbFileName);
+                    thumb = this.ffmpeg.FS('readFile', thumbFilePath);
                     break;
                 } catch (e) {
                     seekTime = Number((seekTime / 10).toFixed(3));
                 }
             }
-            this.ffmpeg.FS('unlink', inputFileName);
             return thumb;
         } finally {
-            try {
-                this.ffmpeg.FS('unlink', inputFileName);
-            } catch (e) {
-                // ignore
-            }
-            try {
-                this.ffmpeg.FS('unlink', thumbFileName);
-            } catch (e) {
-                // ignore
-            }
+            this.cleanUp();
         }
     }
 
-    private async writeFile(saveName: string, file: File) {
-        this.ffmpeg.FS(
-            'writeFile',
-            saveName,
-            await getUint8ArrayView(new FileReader(), file)
-        );
-        //     const FS = this.ffmpeg.FS;
-        //     const rootDirs = FS('readdir', '/');
-        //     if (rootDirs.indexOf('input') === -1) {
-        //         FS('mkdir', '/input');
-        //     } else {
-        //         this.ffmpeg.FS('unmount', 'input');
-        //     }
-        //     if (rootDirs.indexOf('output') === -1) {
-        //         FS('mkdir', '/output');
-        //     }
-        //     const tmpfile = new File([file], 'file', { type: file.type });
-        //     FS('mount', 'WORKERFS', { files: [tmpfile] }, '/input');
+    private loadFile(inputFileName: string, file: File) {
+        const FS = this.ffmpeg.FS;
+        if (!this.workingDirectoryExists) {
+            FS('mkdir', WORKING_DIR);
+            this.workingDirectoryExists = true;
+        }
+        const tmpfile = new File([file], inputFileName, { type: file.type });
+
+        FS('mount', WORKERFS, { files: [tmpfile] }, WORKING_DIR);
+    }
+
+    private cleanUp() {
+        try {
+            this.ffmpeg.FS('unmount', WORKING_DIR);
+        } catch (e) {
+            // ignore
+        }
     }
 }
 
