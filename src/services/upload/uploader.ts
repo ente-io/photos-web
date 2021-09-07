@@ -76,6 +76,12 @@ export default async function uploader(
             thumbnail: file.thumbnail,
             metadata,
         };
+        if (process.env.NEXT_PUBLIC_SKIP_PUT === 'yes') {
+            UIService.setFileProgress(rawFile.name, FileUploadResults.SKIPPED);
+            // wait two second before removing the file from the progress in file section
+            await sleep(TwoSecondInMillSeconds);
+            return { fileUploadResult: FileUploadResults.SKIPPED };
+        }
 
         encryptedFile = await UploadService.encryptFile(
             worker,
