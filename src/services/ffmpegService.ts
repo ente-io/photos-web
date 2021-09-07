@@ -31,8 +31,8 @@ class FFmpegService {
     }
     closeFFMPEG() {
         try {
-            this.ffmpeg.exit();
             this.ffmpeg = null;
+            this.ffmpeg.exit();
         } catch (e) {
             // ignore
         }
