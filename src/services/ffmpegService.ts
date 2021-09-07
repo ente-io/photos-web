@@ -4,11 +4,18 @@ import { logError } from 'utils/sentry';
 import QueueProcessor from './upload/queueProcessor';
 import { getUint8ArrayView } from './upload/readFileService';
 
+const WAIT_BEFORE_CLOSE_IN_MILLISECOND = 5000; // 5 sec
+const MAX_CONCURRENT_THUMBNAIL_GENERATION = 1;
+
 class FFmpegService {
     private ffmpeg: FFmpeg = null;
     private isLoading = null;
 
-    private generateThumbnailProcessor = new QueueProcessor<Uint8Array>(1);
+    private generateThumbnailProcessor = new QueueProcessor<Uint8Array>(
+        MAX_CONCURRENT_THUMBNAIL_GENERATION,
+        () => this.closeFFMPEG(),
+        WAIT_BEFORE_CLOSE_IN_MILLISECOND
+    );
     async init() {
         try {
             this.ffmpeg = createFFmpeg({
@@ -20,6 +27,14 @@ class FFmpegService {
         } catch (e) {
             logError(e, 'ffmpeg load failed');
             throw e;
+        }
+    }
+    closeFFMPEG() {
+        try {
+            this.ffmpeg.exit();
+            this.ffmpeg = null;
+        } catch (e) {
+            // ignore
         }
     }
 
