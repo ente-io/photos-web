@@ -31,11 +31,11 @@ class FFmpegService {
     }
     closeFFMPEG() {
         try {
-            this.ffmpeg = null;
             this.ffmpeg.exit();
         } catch (e) {
             // ignore
         }
+        this.ffmpeg = null;
     }
 
     async generateThumbnail(file: File) {
