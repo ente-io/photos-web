@@ -77,8 +77,8 @@ export default async function uploader(
             metadata,
         };
         if (process.env.NEXT_PUBLIC_SKIP_PUT === 'yes') {
+            // for local testing of  file reading and thumbnail generation , we can skip the put
             UIService.setFileProgress(rawFile.name, FileUploadResults.SKIPPED);
-            // wait two second before removing the file from the progress in file section
             await sleep(TwoSecondInMillSeconds);
             return { fileUploadResult: FileUploadResults.SKIPPED };
         }
