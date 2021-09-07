@@ -29,6 +29,16 @@ class FFmpegService {
             throw e;
         }
     }
+
+    async getFFmpegInstance(): Promise<FFmpeg> {
+        if (!this.ffmpeg) {
+            await this.init();
+        }
+        if (this.isLoading) {
+            await this.isLoading;
+        }
+        return this.ffmpeg;
+    }
     closeFFMPEG() {
         try {
             this.ffmpeg.exit();
@@ -39,14 +49,12 @@ class FFmpegService {
     }
 
     async generateThumbnail(file: File) {
-        if (!this.ffmpeg) {
-            await this.init();
-        }
-        if (this.isLoading) {
-            await this.isLoading;
-        }
         const response = this.generateThumbnailProcessor.queueUpRequest(
-            generateThumbnailHelper.bind(null, this.ffmpeg, file)
+            generateThumbnailHelper.bind(
+                null,
+                () => this.getFFmpegInstance(),
+                file
+            )
         );
 
         const thumbnail = await response.promise;
@@ -57,8 +65,12 @@ class FFmpegService {
     }
 }
 
-async function generateThumbnailHelper(ffmpeg: FFmpeg, file: File) {
+async function generateThumbnailHelper(
+    getFFmpegInstance: () => Promise<FFmpeg>,
+    file: File
+) {
     try {
+        const ffmpeg = await getFFmpegInstance();
         const inputFileName = `${Date.now().toString}-${file.name}`;
         const thumbFileName = `${Date.now().toString}-thumb.png`;
         ffmpeg.FS(
