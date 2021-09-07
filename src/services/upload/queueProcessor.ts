@@ -55,7 +55,7 @@ export default class QueueProcessor<T> {
         clearTimeout(this.onInactiveCallTimer);
         while (this.requestQueue.length > 0) {
             const queueItem = this.requestQueue.pop();
-            let response: string;
+            let response = null;
 
             if (queueItem.isCanceled.status) {
                 response = null;
