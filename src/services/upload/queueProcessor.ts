@@ -14,7 +14,13 @@ export default class QueueProcessor<T> {
 
     private requestInProcessing = 0;
 
-    constructor(private maxParallelProcesses: number) {}
+    private onInactiveCallTimer = null;
+
+    constructor(
+        private maxParallelProcesses: number,
+        private onInactive: () => void = () => {},
+        private waitBeforeInactive = 0
+    ) {}
 
     public queueUpRequest(request: () => Promise<T>) {
         const isCanceled = { status: false };
@@ -46,6 +52,7 @@ export default class QueueProcessor<T> {
     }
 
     public async processQueue() {
+        clearTimeout(this.onInactiveCallTimer);
         while (this.requestQueue.length > 0) {
             const queueItem = this.requestQueue.pop();
             let response: string;
@@ -60,7 +67,10 @@ export default class QueueProcessor<T> {
                 }
             }
             queueItem.callback(response);
-            await this.processQueue();
         }
+        this.onInactiveCallTimer = setTimeout(
+            () => this.onInactive(),
+            this.waitBeforeInactive
+        );
     }
 }
