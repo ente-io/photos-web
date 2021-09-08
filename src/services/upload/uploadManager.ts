@@ -1,7 +1,6 @@
 import { File, getLocalFiles } from '../fileService';
 import { Collection, getLocalCollections } from '../collectionService';
 import { SetFiles } from 'pages/gallery';
-import { ComlinkWorker, getDedicatedCryptoWorker } from 'utils/crypto';
 import {
     sortFilesIntoCollections,
     sortFiles,
@@ -19,7 +18,7 @@ import { ProgressUpdater } from 'components/pages/gallery/Upload';
 import uploader from './uploader';
 import UIService from './uiService';
 import UploadService from './uploadService';
-import { CustomError } from 'utils/common/errorUtil';
+import UploadWorker from './uploadWorker';
 
 const MAX_CONCURRENT_UPLOADS = 4;
 const FILE_UPLOAD_COMPLETED = 100;
@@ -49,7 +48,6 @@ export enum UPLOAD_STAGES {
 export type MetadataMap = Map<string, ParsedMetaDataJSON>;
 
 class UploadManager {
-    private cryptoWorkers = new Array<ComlinkWorker>(MAX_CONCURRENT_UPLOADS);
     private metadataMap: MetadataMap;
     private filesToBeUploaded: FileWithCollection[];
     private failedFiles: FileWithCollection[];
@@ -96,6 +94,9 @@ class UploadManager {
             }
             if (mediaFiles.length) {
                 UIService.setUploadStage(UPLOAD_STAGES.START);
+                await UploadWorker.initWorkerPool(
+                    Math.min(MAX_CONCURRENT_UPLOADS, mediaFiles.length) + 1
+                );
                 await this.uploadMediaFiles(mediaFiles);
             }
             UIService.setUploadStage(UPLOAD_STAGES.FINISH);
@@ -104,9 +105,7 @@ class UploadManager {
             logError(e, 'uploading failed with error');
             throw e;
         } finally {
-            for (let i = 0; i < MAX_CONCURRENT_UPLOADS; i++) {
-                this.cryptoWorkers[i]?.worker.terminate();
-            }
+            UploadWorker.terminateWorkers();
         }
     }
 
@@ -151,21 +150,12 @@ class UploadManager {
             i < MAX_CONCURRENT_UPLOADS && this.filesToBeUploaded.length > 0;
             i++
         ) {
-            const cryptoWorker = getDedicatedCryptoWorker();
-            if (!cryptoWorker) {
-                throw Error(CustomError.FAILED_TO_LOAD_WEB_WORKER);
-            }
-            this.cryptoWorkers[i] = cryptoWorker;
-            uploadProcesses.push(
-                this.uploadNextFileInQueue(
-                    await new this.cryptoWorkers[i].comlink()
-                )
-            );
+            uploadProcesses.push(this.uploadNextFileInQueue());
         }
         await Promise.all(uploadProcesses);
     }
 
-    private async uploadNextFileInQueue(worker: any) {
+    private async uploadNextFileInQueue() {
         while (this.filesToBeUploaded.length > 0) {
             const fileWithCollection = this.filesToBeUploaded.pop();
             const existingFilesInCollection =
@@ -177,7 +167,6 @@ class UploadManager {
             );
             fileWithCollection.collection = collection;
             const { fileUploadResult, file } = await uploader(
-                worker,
                 existingFilesInCollection,
                 fileWithCollection
             );
