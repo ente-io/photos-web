@@ -15,8 +15,8 @@ import UploadService, {
     MetadataObject,
     UploadFile,
 } from './uploadService';
-import uploadService from './uploadService';
 import { FileTypeInfo, getFileType } from './readFileService';
+import UploadWorker from './uploadWorker';
 
 const TwoSecondInMillSeconds = 2000;
 const FIVE_GB_IN_BYTES = 5 * 1024 * 1024 * 1024;
@@ -25,11 +25,11 @@ interface UploadResponse {
     file?: File;
 }
 export default async function uploader(
-    worker: any,
     existingFilesInCollection: File[],
     fileWithCollection: FileWithCollection
 ): Promise<UploadResponse> {
     const { file: rawFile, collection } = fileWithCollection;
+    const worker = await UploadWorker.get();
 
     UIService.setFileProgress(rawFile.name, 0);
 
@@ -53,7 +53,7 @@ export default async function uploader(
         if (fileTypeInfo.fileType === FILE_TYPE.OTHERS) {
             throw Error(CustomError.UNSUPPORTED_FILE_FORMAT);
         }
-        metadata = await uploadService.getFileMetadata(
+        metadata = await UploadService.getFileMetadata(
             worker,
             rawFile,
             collection,
@@ -144,5 +144,6 @@ export default async function uploader(
         file = null;
         fileWithMetadata = null;
         encryptedFile = null;
+        UploadWorker.release(worker);
     }
 }
