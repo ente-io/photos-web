@@ -82,6 +82,11 @@ export default async function uploader(
             fileWithMetadata,
             collection.key
         );
+        UIService.setFileProgress(rawFile.name, FileUploadResults.SKIPPED);
+        // wait two second before removing the file from the progress in file section
+        await sleep(TwoSecondInMillSeconds);
+        UIService.increaseFileUploaded();
+        return { fileUploadResult: FileUploadResults.SKIPPED };
 
         const backupedFile: BackupedFile = await UploadService.uploadToBucket(
             encryptedFile.file
