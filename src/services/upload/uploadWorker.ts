@@ -1,35 +1,34 @@
 import { CustomError } from 'utils/common/errorUtil';
-import { getDedicatedCryptoWorker } from 'utils/crypto';
+import { ComlinkWorker, getDedicatedCryptoWorker } from 'utils/crypto';
 
 class UploadWorker {
-    private internalWorkers: Worker[] = [];
-    private comlinkRemotes: any = [];
+    private comlinkWorkers: ComlinkWorker[] = [];
     async initWorkerPool(size: number) {
-        while (this.internalWorkers.length < size) {
+        while (this.comlinkWorkers.length < size) {
             await this.addNewWorker();
         }
     }
     private async addNewWorker() {
         try {
             const comlinkWorker = getDedicatedCryptoWorker();
-            this.internalWorkers.push(comlinkWorker.worker);
-            this.comlinkRemotes.push(await new comlinkWorker.comlink());
+            this.comlinkWorkers.push(comlinkWorker);
         } catch (e) {
             throw Error(CustomError.FAILED_TO_LOAD_WEB_WORKER);
         }
     }
 
-    async get() {
-        return this.comlinkRemotes.shift();
+    get() {
+        return this.comlinkWorkers.shift();
     }
 
-    release(comlinkRemote: any) {
-        this.comlinkRemotes.push(comlinkRemote);
+    async release(comlinkWorker: ComlinkWorker) {
+        comlinkWorker.worker.terminate();
+        await this.addNewWorker();
     }
 
     terminateWorkers() {
-        for (let i = 0; i < this.internalWorkers.length; i++) {
-            this.internalWorkers[i].terminate();
+        for (let i = 0; i < this.comlinkWorkers.length; i++) {
+            this.comlinkWorkers[i].worker.terminate();
         }
     }
 }

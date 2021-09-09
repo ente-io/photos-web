@@ -29,8 +29,8 @@ export default async function uploader(
     fileWithCollection: FileWithCollection
 ): Promise<UploadResponse> {
     const { file: rawFile, collection } = fileWithCollection;
-    const worker = await UploadWorker.get();
-
+    const comlinkWorker = UploadWorker.get();
+    const worker = await new comlinkWorker.comlink();
     UIService.setFileProgress(rawFile.name, 0);
 
     let file: FileInMemory = null;
@@ -138,6 +138,6 @@ export default async function uploader(
         file = null;
         fileWithMetadata = null;
         encryptedFile = null;
-        UploadWorker.release(worker);
+        await UploadWorker.release(comlinkWorker);
     }
 }
