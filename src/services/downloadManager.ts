@@ -58,12 +58,12 @@ class DownloadManager {
         }
     }
 
-    private downloadThumb = async (
+    private async downloadThumb(
         token: string,
         thumbnailCache: Cache,
         file: File,
         canceller: RequestCanceller
-    ) => {
+    ) {
         const resp = await HTTPService.get(
             getThumbnailUrl(file.id),
             null,
@@ -85,9 +85,9 @@ class DownloadManager {
             // TODO: handle storage full exception.
         }
         return URL.createObjectURL(new Blob([decrypted]));
-    };
+    }
 
-    public async getFile(file: File, forPreview = false) {
+    public getFile(file: File, forPreview = false) {
         const response = this.getFileProcessor.queueUpRequest(
             (canceller: RequestCanceller) =>
                 this.getFileHelper(file, forPreview, canceller)

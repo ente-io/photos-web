@@ -128,7 +128,8 @@ export default function PreviewCard(props: IProps) {
     useLayoutEffect(() => {
         if (file && !file.msrc) {
             const main = async () => {
-                const url = await DownloadManager.getPreview(file);
+                const response = await DownloadManager.getThumbnail(file);
+                const url = await response.promise;
                 if (isMounted.current) {
                     setImgSrc(url);
                     thumbs.set(file.id, url);
