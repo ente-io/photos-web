@@ -8,9 +8,6 @@ interface IQueryPrams {
     [paramName: string]: any;
 }
 
-export interface RequestCanceller {
-    exec: () => void;
-}
 /**
  * Service to manage all HTTP calls.
  */

@@ -2,119 +2,49 @@ import { getToken } from 'utils/common/key';
 import { getFileUrl, getThumbnailUrl } from 'utils/common/apiUtil';
 import CryptoWorker from 'utils/crypto';
 import { generateStreamFromArrayBuffer, convertForPreview } from 'utils/file';
-import HTTPService, { RequestCanceller } from './HTTPService';
+import HTTPService from './HTTPService';
 import { File, FILE_TYPE } from './fileService';
 import { logError } from 'utils/sentry';
+import QueueProcessor, { RequestCanceller } from './upload/queueProcessor';
 
 const MAX_RUNNING_PROCESSES = 5;
-interface getPreviewRequest {
-    file: File;
-    callback: (response) => void;
-    isCanceled: { status: boolean };
-    canceller: { exec: () => void };
-}
 
-interface getFileRequest {
-    file: File;
-    forPreview: boolean;
-    callback: (response) => void;
-}
 class DownloadManager {
     private fileObjectUrlPromise = new Map<string, Promise<string>>();
     private thumbnailObjectUrlPromise = new Map<number, Promise<string>>();
 
-    private getPreviewQueue: getPreviewRequest[] = [];
-    private getFileQueue: getFileRequest[] = [];
+    private getThumbnailProcessor = new QueueProcessor<string>(
+        MAX_RUNNING_PROCESSES
+    );
+    private getFileProcessor = new QueueProcessor<string>(
+        MAX_RUNNING_PROCESSES
+    );
 
-    private runningGetPreviewProcesses = 0;
-    private runningGetFileProcesses = 0;
     private cache: Cache;
 
     async initCache() {
         this.cache = await caches.open('thumbs');
     }
 
-    // get preview queue
-    public queueUpGetPreviewRequest(file: File) {
-        const isCanceled = { status: false };
-        const canceller: RequestCanceller = {
-            exec: () => {
-                isCanceled.status = true;
-            },
-        };
-
-        const urlPromise = new Promise<string>((resolve) => {
-            this.getPreviewQueue.push({
-                file,
-                callback: resolve,
-                isCanceled,
-                canceller,
-            });
-            this.pollGetPreviewQueue();
-        });
-
-        return { urlPromise, canceller };
-    }
-
-    async pollGetPreviewQueue() {
-        if (this.runningGetPreviewProcesses < MAX_RUNNING_PROCESSES) {
-            this.runningGetPreviewProcesses++;
-            await this.processGetPreviewQueue();
-            this.runningGetPreviewProcesses--;
-        }
-    }
-
-    public async processGetPreviewQueue() {
-        while (this.getPreviewQueue.length > 0) {
-            const request = this.getPreviewQueue.pop();
-            let response: string;
-
-            if (request.isCanceled.status) {
-                response = null;
-            } else {
-                response = await this.getPreview(
-                    request.file,
-                    request.canceller
-                );
-            }
-            request.callback(response);
-            await this.processGetPreviewQueue();
-        }
+    // get thumbnail queue
+    public queueUpGetThumbRequest(file: File) {
+        const response = this.getThumbnailProcessor.queueUpRequest(
+            (canceller: RequestCanceller) => this.getThumbnail(file, canceller)
+        );
+        return response;
     }
 
     // get file queue
 
     public async queueUpGetFileRequest(file: File, forPreview: boolean) {
-        const url: string = await new Promise((resolve) => {
-            this.getFileQueue.push({ file, forPreview, callback: resolve });
-            this.pollGetFileQueue();
-        });
-        return url;
+        const response = this.getFileProcessor.queueUpRequest(
+            (canceller: RequestCanceller) =>
+                this.getFile(file, forPreview, canceller)
+        );
+        return response;
     }
 
-    async pollGetFileQueue() {
-        if (this.runningGetFileProcesses < MAX_RUNNING_PROCESSES) {
-            this.runningGetFileProcesses++;
-            await this.processGetFileQueue();
-            this.runningGetFileProcesses--;
-        }
-    }
-    public async processGetFileQueue() {
-        while (this.getFileQueue.length > 0) {
-            const request = this.getFileQueue.pop();
-            if (!request) {
-                return;
-            }
-            const response = await this.getFile(
-                request.file,
-                request.forPreview
-            );
-            request.callback(response);
-            await this.processGetFileQueue();
-        }
-    }
-
-    public async getPreview(file: File, canceller: RequestCanceller) {
+    public async getThumbnail(file: File, canceller: RequestCanceller) {
         try {
             const token = getToken();
             if (!token) {
@@ -170,10 +100,14 @@ class DownloadManager {
         return URL.createObjectURL(new Blob([decrypted]));
     };
 
-    getFile = async (file: File, forPreview = false) => {
+    getFile = async (
+        file: File,
+        forPreview = false,
+        canceller: RequestCanceller
+    ) => {
         try {
             const getFilePromise = (async () => {
-                const fileStream = await this.downloadFile(file);
+                const fileStream = await this.downloadFile(file, canceller);
                 let fileBlob = await new Response(fileStream).blob();
                 if (forPreview) {
                     fileBlob = await convertForPreview(file, fileBlob);
@@ -194,7 +128,7 @@ class DownloadManager {
         }
     };
 
-    async downloadFile(file: File) {
+    async downloadFile(file: File, canceller: RequestCanceller) {
         const worker = await new CryptoWorker();
         const token = getToken();
         if (!token) {
@@ -208,7 +142,7 @@ class DownloadManager {
                 getFileUrl(file.id),
                 null,
                 { 'X-Auth-Token': token },
-                { responseType: 'arraybuffer' }
+                { responseType: 'arraybuffer', canceller }
             );
             const decrypted: any = await worker.decryptFile(
                 new Uint8Array(resp.data),
@@ -217,6 +151,8 @@ class DownloadManager {
             );
             return generateStreamFromArrayBuffer(decrypted);
         }
+        // TODO
+        // implement fetch request cancelling
         const resp = await fetch(getFileUrl(file.id), {
             headers: {
                 'X-Auth-Token': token,
