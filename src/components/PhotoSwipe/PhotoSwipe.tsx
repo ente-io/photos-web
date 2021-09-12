@@ -300,7 +300,7 @@ function PhotoSwipe(props: Iprops) {
         const a = document.createElement('a');
         a.style.display = 'none';
         loadingBar.current.continuousStart();
-        a.href = await DownloadManger.getFile(file);
+        a.href = await DownloadManger.getFileHelper(file, false);
         loadingBar.current.complete();
         if (file.metadata.fileType === FILE_TYPE.LIVE_PHOTO) {
             a.download = fileNameWithoutExtension(file.metadata.title) + '.zip';

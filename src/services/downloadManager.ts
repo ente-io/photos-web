@@ -5,12 +5,31 @@ import { generateStreamFromArrayBuffer, convertForPreview } from 'utils/file';
 import HTTPService from './HTTPService';
 import { File, FILE_TYPE } from './fileService';
 import { logError } from 'utils/sentry';
+import QueueProcessor, { RequestCanceller } from './upload/queueProcessor';
+
+const MAX_CONCURRENT_THUMBNAIL_DOWNLOAD = 5;
+const MAX_CONCURRENT_FILE_DOWNLOAD = 5;
 
 class DownloadManager {
     private fileObjectUrlPromise = new Map<string, Promise<string>>();
     private thumbnailObjectUrlPromise = new Map<number, Promise<string>>();
 
-    public async getPreview(file: File) {
+    private getThumbnailProcessor = new QueueProcessor<string>(
+        MAX_CONCURRENT_THUMBNAIL_DOWNLOAD
+    );
+    private getFileProcessor = new QueueProcessor<string>(
+        MAX_CONCURRENT_FILE_DOWNLOAD
+    );
+
+    async getThumbnail(file: File) {
+        const response = this.getThumbnailProcessor.queueUpRequest(
+            (canceller: RequestCanceller) =>
+                this.getThumbnailHelper(file, canceller)
+        );
+        return response;
+    }
+
+    private async getThumbnailHelper(file: File, canceller: RequestCanceller) {
         try {
             const token = getToken();
             if (!token) {
@@ -24,10 +43,11 @@ class DownloadManager {
                 return URL.createObjectURL(await cacheResp.blob());
             }
             if (!this.thumbnailObjectUrlPromise.get(file.id)) {
-                const downloadPromise = this._downloadThumb(
+                const downloadPromise = this.downloadThumb(
                     token,
                     thumbnailCache,
-                    file
+                    file,
+                    canceller
                 );
                 this.thumbnailObjectUrlPromise.set(file.id, downloadPromise);
             }
@@ -38,16 +58,17 @@ class DownloadManager {
         }
     }
 
-    _downloadThumb = async (
+    private downloadThumb = async (
         token: string,
         thumbnailCache: Cache,
-        file: File
+        file: File,
+        canceller: RequestCanceller
     ) => {
         const resp = await HTTPService.get(
             getThumbnailUrl(file.id),
             null,
             { 'X-Auth-Token': token },
-            { responseType: 'arraybuffer' }
+            { responseType: 'arraybuffer', canceller }
         );
         const worker = await new CryptoWorker();
         const decrypted: any = await worker.decryptThumbnail(
@@ -66,10 +87,22 @@ class DownloadManager {
         return URL.createObjectURL(new Blob([decrypted]));
     };
 
-    getFile = async (file: File, forPreview = false) => {
+    public async getFile(file: File, forPreview = false) {
+        const response = this.getFileProcessor.queueUpRequest(
+            (canceller: RequestCanceller) =>
+                this.getFileHelper(file, forPreview, canceller)
+        );
+        return response;
+    }
+
+    public async getFileHelper(
+        file: File,
+        forPreview: boolean,
+        canceller?: RequestCanceller
+    ) {
         try {
             const getFilePromise = (async () => {
-                const fileStream = await this.downloadFile(file);
+                const fileStream = await this.downloadFile(file, canceller);
                 let fileBlob = await new Response(fileStream).blob();
                 if (forPreview) {
                     fileBlob = await convertForPreview(file, fileBlob);
@@ -88,9 +121,9 @@ class DownloadManager {
         } catch (e) {
             logError(e, 'Failed to get File');
         }
-    };
+    }
 
-    async downloadFile(file: File) {
+    private async downloadFile(file: File, canceller: RequestCanceller) {
         const worker = await new CryptoWorker();
         const token = getToken();
         if (!token) {
@@ -104,7 +137,7 @@ class DownloadManager {
                 getFileUrl(file.id),
                 null,
                 { 'X-Auth-Token': token },
-                { responseType: 'arraybuffer' }
+                { responseType: 'arraybuffer', canceller }
             );
             const decrypted: any = await worker.decryptFile(
                 new Uint8Array(resp.data),
@@ -113,6 +146,8 @@ class DownloadManager {
             );
             return generateStreamFromArrayBuffer(decrypted);
         }
+        // TODO
+        // implement fetch request cancelling
         const resp = await fetch(getFileUrl(file.id), {
             headers: {
                 'X-Auth-Token': token,
