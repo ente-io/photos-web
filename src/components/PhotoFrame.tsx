@@ -123,7 +123,7 @@ const EmptyScreen = styled.div`
     align-items: center;
     flex-direction: column;
     flex: 1;
-    color: #2dc262;
+    color: #51cd7c;
 
     & > svg {
         filter: drop-shadow(3px 3px 5px rgba(45, 194, 98, 0.5));
@@ -497,6 +497,9 @@ const PhotoFrame = ({
             {!isFirstLoad && files.length === 0 && !searchMode ? (
                 <EmptyScreen>
                     <img height={150} src="/images/gallery.png" />
+                    <div style={{ color: '#a6a6a6', marginTop: '16px' }}>
+                        {constants.UPLOAD_FIRST_PHOTO_DESCRIPTION}
+                    </div>
                     <Button
                         variant="outline-success"
                         onClick={openFileUploader}
@@ -506,6 +509,7 @@ const PhotoFrame = ({
                             paddingRight: '32px',
                             paddingTop: '12px',
                             paddingBottom: '12px',
+                            fontWeight: 900,
                         }}>
                         {constants.UPLOAD_FIRST_PHOTO}
                     </Button>

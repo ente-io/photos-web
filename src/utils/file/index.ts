@@ -1,9 +1,11 @@
 import { Collection } from 'services/collectionService';
-import { File } from 'services/fileService';
-import { runningInBrowser } from 'utils/common';
+import { File, FILE_TYPE } from 'services/fileService';
+import { decodeMotionPhoto } from 'services/motionPhotoService';
+import { getMimeTypeFromBlob } from 'services/upload/readFileService';
 import CryptoWorker from 'utils/crypto';
 
 export const TYPE_HEIC = 'heic';
+export const TYPE_HEIF = 'heif';
 const UNSUPPORTED_FORMATS = ['flv', 'mkv', '3gp', 'avi', 'wmv'];
 
 export function downloadAsFile(filename: string, content: string) {
@@ -22,17 +24,11 @@ export function downloadAsFile(filename: string, content: string) {
     a.remove();
 }
 
-export async function convertHEIC2JPEG(fileBlob: Blob): Promise<Blob> {
-    const heic2any = runningInBrowser() && require('heic2any');
-    return await heic2any({
-        blob: fileBlob,
-        toType: 'image/jpeg',
-        quality: 1,
-    });
-}
-
 export function fileIsHEIC(mimeType: string) {
-    return mimeType.toLowerCase().endsWith(TYPE_HEIC);
+    return (
+        mimeType.toLowerCase().endsWith(TYPE_HEIC) ||
+        mimeType.toLowerCase().endsWith(TYPE_HEIF)
+    );
 }
 
 export function sortFilesIntoCollections(files: File[]) {
@@ -170,4 +166,22 @@ export function generateStreamFromArrayBuffer(data: Uint8Array) {
             controller.close();
         },
     });
+}
+
+export async function convertForPreview(file: File, fileBlob: Blob) {
+    if (file.metadata.fileType === FILE_TYPE.LIVE_PHOTO) {
+        const originalName = fileNameWithoutExtension(file.metadata.title);
+        const motionPhoto = await decodeMotionPhoto(fileBlob, originalName);
+        fileBlob = new Blob([motionPhoto.image]);
+    }
+
+    const typeFromExtension = file.metadata.title.split('.')[-1];
+    const worker = await new CryptoWorker();
+
+    const mimeType =
+        (await getMimeTypeFromBlob(worker, fileBlob)) ?? typeFromExtension;
+    if (fileIsHEIC(mimeType)) {
+        fileBlob = await worker.convertHEIC2JPEG(fileBlob);
+    }
+    return fileBlob;
 }

@@ -1,8 +1,8 @@
 import { FILE_TYPE } from 'services/fileService';
-import { CustomError } from 'utils/common/errorUtil';
-import { convertHEIC2JPEG } from 'utils/file';
+import { CustomError, errorWithContext } from 'utils/common/errorUtil';
 import { logError } from 'utils/sentry';
 import { BLACK_THUMBNAIL_BASE64 } from '../../../public/images/black-thumbnail-b64';
+import FFmpegService from 'services/ffmpegService';
 
 const THUMBNAIL_HEIGHT = 720;
 const MAX_ATTEMPTS = 3;
@@ -22,9 +22,14 @@ export async function generateThumbnail(
         let thumbnail: Uint8Array;
         try {
             if (fileType === FILE_TYPE.IMAGE) {
-                canvas = await generateImageThumbnail(file, isHEIC);
+                canvas = await generateImageThumbnail(worker, file, isHEIC);
             } else {
-                canvas = await generateVideoThumbnail(file);
+                try {
+                    const thumb = await FFmpegService.generateThumbnail(file);
+                    return { thumbnail: thumb, hasStaticThumbnail: false };
+                } catch (e) {
+                    canvas = await generateVideoThumbnail(file);
+                }
             }
             const thumbnailBlob = await thumbnailCanvasToBlob(canvas);
             thumbnail = await worker.getUint8ArrayView(thumbnailBlob);
@@ -32,7 +37,7 @@ export async function generateThumbnail(
                 throw Error('EMPTY THUMBNAIL');
             }
         } catch (e) {
-            logError(e);
+            logError(e, 'uploading static thumbnail');
             thumbnail = Uint8Array.from(atob(BLACK_THUMBNAIL_BASE64), (c) =>
                 c.charCodeAt(0)
             );
@@ -40,12 +45,13 @@ export async function generateThumbnail(
         }
         return { thumbnail, hasStaticThumbnail };
     } catch (e) {
-        logError(e, 'Error generating thumbnail');
+        logError(e, 'Error generating static thumbnail');
         throw e;
     }
 }
 
 export async function generateImageThumbnail(
+    worker,
     file: globalThis.File,
     isHEIC: boolean
 ) {
@@ -56,7 +62,11 @@ export async function generateImageThumbnail(
     let timeout = null;
 
     if (isHEIC) {
-        file = new globalThis.File([await convertHEIC2JPEG(file)], null, null);
+        file = new globalThis.File(
+            [await worker.convertHEIC2JPEG(file)],
+            null,
+            null
+        );
     }
     let image = new Image();
     imageURL = URL.createObjectURL(file);
@@ -79,13 +89,11 @@ export async function generateImageThumbnail(
                 clearTimeout(timeout);
                 resolve(null);
             } catch (e) {
-                reject(e);
-                logError(e);
-                reject(
-                    Error(
-                        `${CustomError.THUMBNAIL_GENERATION_FAILED} err: ${e}`
-                    )
+                const err = errorWithContext(
+                    e,
+                    `${CustomError.THUMBNAIL_GENERATION_FAILED} err: ${e}`
                 );
+                reject(err);
             }
         };
         timeout = setTimeout(
@@ -136,7 +144,7 @@ export async function generateVideoThumbnail(file: globalThis.File) {
                 const err = Error(
                     `${CustomError.THUMBNAIL_GENERATION_FAILED} err: ${e}`
                 );
-                logError(err);
+                logError(e, CustomError.THUMBNAIL_GENERATION_FAILED);
                 reject(err);
             }
         });
@@ -157,7 +165,7 @@ export async function generateVideoThumbnail(file: globalThis.File) {
     return canvas;
 }
 
-export async function thumbnailCanvasToBlob(canvas: HTMLCanvasElement) {
+async function thumbnailCanvasToBlob(canvas: HTMLCanvasElement) {
     let thumbnailBlob = null;
     let attempts = 0;
     let quality = 1;

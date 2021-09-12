@@ -1,8 +1,8 @@
-import { KeyAttributes } from 'types';
+import { KeyAttributes, PAGES } from 'types';
 import { getEndpoint } from 'utils/common/apiUtil';
 import { clearKeys } from 'utils/storage/sessionStorage';
 import router from 'next/router';
-import { clearData } from 'utils/storage/localStorage';
+import { clearData, getData, LS_KEYS } from 'utils/storage/localStorage';
 import localForage from 'utils/storage/localForage';
 import { getToken } from 'utils/common/key';
 import HTTPService from './HTTPService';
@@ -25,6 +25,8 @@ export interface RecoveryKey {
     recoveryKeyDecryptionNonce: string;
 }
 const ENDPOINT = getEndpoint();
+
+const HAS_SET_KEYS = 'hasSetKeys';
 
 export interface User {
     id: number;
@@ -86,6 +88,19 @@ export const getPublicKey = async (email: string) => {
     return resp.data.publicKey;
 };
 
+export const getPaymentToken = async () => {
+    const token = getToken();
+
+    const resp = await HTTPService.get(
+        `${ENDPOINT}/users/payment-token`,
+        null,
+        {
+            'X-Auth-Token': token,
+        }
+    );
+    return resp.data['paymentToken'];
+};
+
 export const verifyOtt = (email: string, ott: string) =>
     HTTPService.post(`${ENDPOINT}/users/verify-email`, { email, ott });
 
@@ -111,7 +126,7 @@ export const logoutUser = async () => {
     clearData();
     await caches.delete('thumbs');
     await clearFiles();
-    router.push('/');
+    router.push(PAGES.ROOT);
 };
 
 export const clearFiledata = async () => {
@@ -126,9 +141,33 @@ export const clearFiles = async () => {
 
 export const isTokenValid = async () => {
     try {
-        await HTTPService.get(`${ENDPOINT}/users/session-validity`, null, {
-            'X-Auth-Token': getToken(),
-        });
+        if (!getToken()) {
+            return false;
+        }
+        const resp = await HTTPService.get(
+            `${ENDPOINT}/users/session-validity/v2`,
+            null,
+            {
+                'X-Auth-Token': getToken(),
+            }
+        );
+        try {
+            if (resp.data[HAS_SET_KEYS] === undefined) {
+                throw Error('resp.data.hasSetKey undefined');
+            }
+            if (!resp.data['hasSetKeys']) {
+                try {
+                    await putAttributes(
+                        getToken(),
+                        getData(LS_KEYS.ORIGINAL_KEY_ATTRIBUTES)
+                    );
+                } catch (e) {
+                    logError(e, 'put attribute failed');
+                }
+            }
+        } catch (e) {
+            logError(e, 'hasSetKeys not set in session validity response');
+        }
         return true;
     } catch (e) {
         return false;

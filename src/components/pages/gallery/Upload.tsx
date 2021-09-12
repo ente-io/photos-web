@@ -12,7 +12,7 @@ import UploadProgress from './UploadProgress';
 import ChoiceModal from './ChoiceModal';
 import { SetCollectionNamerAttributes } from './CollectionNamer';
 import { SetCollectionSelectorAttributes } from './CollectionSelector';
-import { SetFiles, SetLoading } from 'pages/gallery';
+import { GalleryContext, SetFiles, SetLoading } from 'pages/gallery';
 import { AppContext } from 'pages/_app';
 import { logError } from 'utils/sentry';
 import { FileRejection } from 'react-dropzone';
@@ -22,6 +22,9 @@ import UploadManager, {
 } from 'services/upload/uploadManager';
 import uploadManager from 'services/upload/uploadManager';
 import { METADATA_FOLDER_NAME } from 'services/exportService';
+import { getUserFacingErrorMessage } from 'utils/common/errorUtil';
+
+const FIRST_ALBUM_NAME = 'My First Album';
 
 interface Props {
     syncWithRemote: (force?: boolean, silent?: boolean) => Promise<void>;
@@ -73,6 +76,7 @@ export default function Upload(props: Props) {
     const [fileAnalysisResult, setFileAnalysisResult] =
         useState<AnalysisResult>(null);
     const appContext = useContext(AppContext);
+    const galleryContext = useContext(GalleryContext);
 
     useEffect(() => {
         UploadManager.initUploader(
@@ -93,7 +97,7 @@ export default function Upload(props: Props) {
         ) {
             props.setLoading(true);
 
-            let fileAnalysisResult;
+            let fileAnalysisResult: AnalysisResult;
             if (props.acceptedFiles?.length > 0) {
                 // File selection by drag and drop or selection of file.
                 fileAnalysisResult = analyseUploadFiles();
@@ -106,7 +110,7 @@ export default function Upload(props: Props) {
             props.setCollectionSelectorAttributes({
                 callback: uploadFilesToExistingCollection,
                 showNextModal: nextModal.bind(null, fileAnalysisResult),
-                title: 'upload to collection',
+                title: constants.UPLOAD_TO_COLLECTION,
             });
             props.setLoading(false);
         }
@@ -120,25 +124,38 @@ export default function Upload(props: Props) {
         setPercentComplete(0);
         setProgressView(true);
     };
-    const showCreateCollectionModal = (fileAnalysisResult?: AnalysisResult) => {
-        props.setCollectionNamerAttributes({
-            title: constants.CREATE_COLLECTION,
-            buttonText: constants.CREATE,
-            autoFilledName: fileAnalysisResult?.suggestedCollectionName,
-            callback: async (collectionName) => {
-                props.closeCollectionSelector();
-                await uploadFilesToNewCollections(
-                    UPLOAD_STRATEGY.SINGLE_COLLECTION,
-                    collectionName
-                );
-            },
-        });
+    const showCreateCollectionModal = (
+        fileAnalysisResult: AnalysisResult,
+        isFirstAlbum?: boolean
+    ) => {
+        const uploadToNewCollection = async (collectionName: string) => {
+            props.closeCollectionSelector();
+            await uploadFilesToNewCollections(
+                UPLOAD_STRATEGY.SINGLE_COLLECTION,
+                collectionName
+            );
+        };
+        if (fileAnalysisResult.suggestedCollectionName) {
+            uploadToNewCollection(fileAnalysisResult.suggestedCollectionName);
+        } else if (isFirstAlbum) {
+            uploadToNewCollection(FIRST_ALBUM_NAME);
+        } else {
+            props.setCollectionNamerAttributes({
+                title: constants.CREATE_COLLECTION,
+                buttonText: constants.CREATE,
+                autoFilledName: fileAnalysisResult?.suggestedCollectionName,
+                callback: uploadToNewCollection,
+            });
+        }
     };
 
-    const nextModal = (fileAnalysisResult: AnalysisResult) => {
+    const nextModal = (
+        fileAnalysisResult: AnalysisResult,
+        isFirstAlbum: boolean
+    ) => {
         fileAnalysisResult?.multipleFolders
             ? setChoiceModalView(true)
-            : showCreateCollectionModal(fileAnalysisResult);
+            : showCreateCollectionModal(fileAnalysisResult, isFirstAlbum);
     };
 
     function analyseUploadFiles(): AnalysisResult {
@@ -265,7 +282,11 @@ export default function Upload(props: Props) {
                 collections
             );
         } catch (err) {
-            props.setBannerMessage(err.message);
+            const message = getUserFacingErrorMessage(
+                err.message,
+                galleryContext.showPlanSelectorModal
+            );
+            props.setBannerMessage(message);
             setProgressView(false);
             throw err;
         } finally {
@@ -281,8 +302,12 @@ export default function Upload(props: Props) {
             await props.syncWithRemote(true, true);
             await uploadManager.retryFailedFiles();
         } catch (err) {
+            const message = getUserFacingErrorMessage(
+                err.message,
+                galleryContext.showPlanSelectorModal
+            );
             appContext.resetSharedFiles();
-            props.setBannerMessage(err.message);
+            props.setBannerMessage(message);
             setProgressView(false);
         } finally {
             props.setUploadInProgress(false);
