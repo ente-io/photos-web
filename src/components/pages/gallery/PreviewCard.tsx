@@ -6,6 +6,7 @@ import DownloadManager from 'services/downloadManager';
 import useLongPress from 'utils/common/useLongPress';
 import { GalleryContext } from 'pages/gallery';
 import { GAP_BTW_TILES } from 'types';
+import { RequestCanceller } from 'services/upload/queueProcessor';
 
 interface IProps {
     file: File;
@@ -125,10 +126,12 @@ export default function PreviewCard(props: IProps) {
         selectOnClick,
     } = props;
     const isMounted = useRef(true);
+    const requestCanceller = useRef<RequestCanceller>(null);
     useLayoutEffect(() => {
         if (file && !file.msrc) {
             const main = async () => {
                 const response = await DownloadManager.getThumbnail(file);
+                requestCanceller.current = response.canceller;
                 const url = await response.promise;
                 if (isMounted.current) {
                     setImgSrc(url);
@@ -159,6 +162,7 @@ export default function PreviewCard(props: IProps) {
         return () => {
             // cool cool cool
             isMounted.current = false;
+            requestCanceller.current && requestCanceller.current.exec();
         };
     }, [file]);
 
