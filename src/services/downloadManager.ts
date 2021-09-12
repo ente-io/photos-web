@@ -123,7 +123,7 @@ class DownloadManager {
         }
     }
 
-    private async downloadFile(file: File, canceller: RequestCanceller) {
+    async downloadFile(file: File, canceller?: RequestCanceller) {
         const worker = await new CryptoWorker();
         const token = getToken();
         if (!token) {
