@@ -8,6 +8,10 @@ interface RequestQueueItem {
 export interface RequestCanceller {
     exec: () => void;
 }
+export interface QueueUpResponse<T> {
+    promise: Promise<T>;
+    canceller: RequestCanceller;
+}
 
 export default class QueueProcessor<T> {
     private requestQueue: RequestQueueItem[] = [];
@@ -18,7 +22,7 @@ export default class QueueProcessor<T> {
 
     public queueUpRequest(
         request: (canceller?: RequestCanceller) => Promise<T>
-    ) {
+    ): QueueUpResponse<T> {
         const isCanceled = { status: false };
         const canceller: RequestCanceller = {
             exec: () => {
@@ -50,15 +54,14 @@ export default class QueueProcessor<T> {
     public async processQueue() {
         while (this.requestQueue.length > 0) {
             const queueItem = this.requestQueue.pop();
-            let response = null;
-
+            let response: any;
             if (queueItem.isCanceled.status) {
                 response = null;
             } else {
                 try {
                     response = await queueItem.request(queueItem.canceller);
                 } catch (e) {
-                    response = null;
+                    // ignore
                 }
             }
             queueItem.callback(response);
