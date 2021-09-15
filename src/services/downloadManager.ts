@@ -6,6 +6,7 @@ import HTTPService from './HTTPService';
 import { File, FILE_TYPE } from './fileService';
 import { logError } from 'utils/sentry';
 import QueueProcessor, { RequestCanceller } from './upload/queueProcessor';
+import { CustomError } from 'utils/common/errorUtil';
 
 const MAX_CONCURRENT_THUMBNAIL_DOWNLOAD = 5;
 const MAX_CONCURRENT_FILE_DOWNLOAD = 5;
@@ -119,7 +120,11 @@ class DownloadManager {
                 `${file.id}_${forPreview}`
             );
         } catch (e) {
-            logError(e, 'Failed to get File');
+            if (e.message === CustomError.REQUEST_CANCELLED) {
+                // ignore
+            } else {
+                logError(e, 'Failed to get File');
+            }
         }
     }
 
@@ -146,13 +151,25 @@ class DownloadManager {
             );
             return generateStreamFromArrayBuffer(decrypted);
         }
-        // TODO
-        // implement fetch request cancelling
-        const resp = await fetch(getFileUrl(file.id), {
-            headers: {
-                'X-Auth-Token': token,
-            },
-        });
+        const controller = new AbortController();
+        const { signal } = controller;
+        canceller.exec = () => controller.abort();
+
+        let resp = null;
+        try {
+            resp = await fetch(getFileUrl(file.id), {
+                signal,
+                headers: {
+                    'X-Auth-Token': token,
+                },
+            });
+        } catch (e) {
+            if (e.name === 'AbortError') {
+                throw CustomError.REQUEST_CANCELLED;
+            } else {
+                throw e;
+            }
+        }
         const reader = resp.body.getReader();
         const stream = new ReadableStream({
             async start(controller) {
