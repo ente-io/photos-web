@@ -19,6 +19,7 @@ import PhotoSwipe from 'components/PhotoSwipe/PhotoSwipe';
 import { isInsideBox, isSameDay as isSameDayAnyYear } from 'utils/search';
 import { SetDialogMessage } from './MessageDialog';
 import { CustomError } from 'utils/common/errorUtil';
+import { RequestCanceller } from 'services/upload/queueProcessor';
 import {
     GAP_BTW_TILES,
     DATE_CONTAINER_HEIGHT,
@@ -166,7 +167,9 @@ const PhotoFrame = ({
 }: Props) => {
     const [open, setOpen] = useState(false);
     const [currentIndex, setCurrentIndex] = useState<number>(0);
-    const [fetching, setFetching] = useState<{ [k: number]: boolean }>({});
+    const [fetching, setFetching] = useState<{ [k: number]: RequestCanceller }>(
+        {}
+    );
     const startTime = Date.now();
     const galleryContext = useContext(GalleryContext);
     const listRef = useRef(null);
@@ -267,14 +270,13 @@ const PhotoFrame = ({
 
     const getSlideData = async (instance: any, index: number, item: File) => {
         if (!item.msrc) {
-            let url: string;
-            if (galleryContext.thumbs.has(item.id)) {
-                url = galleryContext.thumbs.get(item.id);
-            } else {
+            if (!galleryContext.thumbs.has(item.id)) {
                 const response = await DownloadManager.getThumbnail(item);
-                url = await response.promise;
+                const url = await response.promise;
                 galleryContext.thumbs.set(item.id, url);
             }
+            const url = galleryContext.thumbs.get(item.id);
+
             updateUrl(item.dataIndex)(url);
             item.msrc = url;
             if (!item.src) {
@@ -289,82 +291,91 @@ const PhotoFrame = ({
                 // ignore
             }
         }
-        if (!fetching[item.dataIndex]) {
-            fetching[item.dataIndex] = true;
-            let url: string;
-            if (galleryContext.files.has(item.id)) {
-                url = galleryContext.files.get(item.id);
-            } else {
+
+        if (!galleryContext.files.get(item.id)) {
+            if (!fetching[item.dataIndex]) {
                 const response = DownloadManager.getFile(item, true);
-                url = await response.promise;
+                fetching[item.dataIndex] = response.canceller;
+                const url = await response.promise;
                 galleryContext.files.set(item.id, url);
+                fetching[item.dataIndex] = null;
             }
-            updateSrcUrl(item.dataIndex, url);
-            if (item.metadata.fileType === FILE_TYPE.VIDEO) {
-                try {
-                    await new Promise((resolve, reject) => {
-                        const video = document.createElement('video');
-                        video.addEventListener('timeupdate', function () {
-                            clearTimeout(t);
-                            resolve(null);
-                        });
-                        video.preload = 'metadata';
-                        video.src = url;
-                        video.currentTime = 3;
-                        const t = setTimeout(() => {
-                            reject(
-                                Error(
-                                    `${CustomError.VIDEO_PLAYBACK_FAILED} err: wait time exceeded`
-                                )
-                            );
-                        }, WAIT_FOR_VIDEO_PLAYBACK);
+        }
+        const url = galleryContext.files.get(item.id);
+        updateSrcUrl(item.dataIndex, url);
+        if (item.metadata.fileType === FILE_TYPE.VIDEO) {
+            try {
+                await new Promise((resolve, reject) => {
+                    const video = document.createElement('video');
+                    video.addEventListener('timeupdate', function () {
+                        clearTimeout(t);
+                        resolve(null);
                     });
-                    item.html = `
+                    video.preload = 'metadata';
+                    video.src = url;
+                    video.currentTime = 3;
+                    const t = setTimeout(() => {
+                        reject(
+                            Error(
+                                `${CustomError.VIDEO_PLAYBACK_FAILED} err: wait time exceeded`
+                            )
+                        );
+                    }, WAIT_FOR_VIDEO_PLAYBACK);
+                });
+                item.html = `
                         <video width="320" height="240" controls>
                             <source src="${url}" />
                             Your browser does not support the video tag.
                         </video>
                     `;
-                    delete item.src;
-                } catch (e) {
-                    const downloadFile = async () => {
-                        const a = document.createElement('a');
-                        a.style.display = 'none';
-                        a.href = url;
-                        a.download = item.metadata.title;
-                        document.body.appendChild(a);
-                        a.click();
-                        a.remove();
-                        setOpen(false);
-                    };
-                    setDialogMessage({
-                        title: constants.VIDEO_PLAYBACK_FAILED,
-                        content:
-                            constants.VIDEO_PLAYBACK_FAILED_DOWNLOAD_INSTEAD,
-                        staticBackdrop: true,
-                        proceed: {
-                            text: constants.DOWNLOAD,
-                            action: downloadFile,
-                            variant: 'success',
-                        },
-                        close: {
-                            text: constants.CLOSE,
-                            action: () => setOpen(false),
-                        },
-                    });
-                    return;
-                }
-            } else {
-                item.src = url;
-            }
-            item.w = window.innerWidth;
-            item.h = window.innerHeight;
-            try {
-                instance.invalidateCurrItems();
-                instance.updateSize(true);
+                delete item.src;
             } catch (e) {
-                // ignore
+                const downloadFile = async () => {
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = item.metadata.title;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    setOpen(false);
+                };
+                setDialogMessage({
+                    title: constants.VIDEO_PLAYBACK_FAILED,
+                    content: constants.VIDEO_PLAYBACK_FAILED_DOWNLOAD_INSTEAD,
+                    staticBackdrop: true,
+                    proceed: {
+                        text: constants.DOWNLOAD,
+                        action: downloadFile,
+                        variant: 'success',
+                    },
+                    close: {
+                        text: constants.CLOSE,
+                        action: () => setOpen(false),
+                    },
+                });
+                return;
             }
+        } else {
+            item.src = url;
+        }
+        item.w = window.innerWidth;
+        item.h = window.innerHeight;
+        try {
+            instance.invalidateCurrItems();
+            instance.updateSize(true);
+        } catch (e) {
+            // ignore
+        }
+    };
+
+    const cancelSlideDataRequest = async (
+        instance: any,
+        index: number,
+        item: File
+    ) => {
+        if (fetching[item.dataIndex]) {
+            fetching[item.dataIndex].exec();
         }
     };
 
@@ -728,6 +739,7 @@ const PhotoFrame = ({
                         currentIndex={currentIndex}
                         onClose={handleClose}
                         gettingData={getSlideData}
+                        cancelGettingData={cancelSlideDataRequest}
                         favItemIds={favItemIds}
                         loadingBar={loadingBar}
                     />
