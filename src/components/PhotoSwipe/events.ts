@@ -16,4 +16,5 @@ export default [
     'updateScrollOffset',
     'preventDragEvent',
     'shareLinkClick',
+    'cancelGettingData',
 ];

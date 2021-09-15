@@ -25,6 +25,7 @@ interface Iprops {
     currentIndex?: number;
     onClose?: (needUpdate: boolean) => void;
     gettingData: (instance: any, index: number, item: File) => void;
+    cancelGettingData: (instance: any, index: number, item: File) => void;
     id?: string;
     className?: string;
     favItemIds: Set<number>;
