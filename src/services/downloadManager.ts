@@ -3,7 +3,7 @@ import { getFileUrl, getThumbnailUrl } from 'utils/common/apiUtil';
 import CryptoWorker from 'utils/crypto';
 import { generateStreamFromArrayBuffer, convertForPreview } from 'utils/file';
 import HTTPService from './HTTPService';
-import { File, FILE_TYPE } from './fileService';
+import { File } from './fileService';
 import { logError } from 'utils/sentry';
 import QueueProcessor, { RequestCanceller } from './upload/queueProcessor';
 import { CustomError } from 'utils/common/errorUtil';
@@ -134,97 +134,93 @@ class DownloadManager {
         if (!token) {
             return null;
         }
-        if (
-            file.metadata.fileType === FILE_TYPE.IMAGE ||
-            file.metadata.fileType === FILE_TYPE.LIVE_PHOTO ||
-            file.metadata.fileType === FILE_TYPE.VIDEO
-        ) {
-            const resp = await HTTPService.get(
-                getFileUrl(file.id),
-                null,
-                { 'X-Auth-Token': token },
-                { responseType: 'arraybuffer', canceller }
-            );
-            const decrypted: any = await worker.decryptFile(
-                new Uint8Array(resp.data),
-                await worker.fromB64(file.file.decryptionHeader),
-                file.key
-            );
-            return generateStreamFromArrayBuffer(decrypted);
-        }
-        // This code will not run in any case but is needed for streaming which will be added later
-        const controller = new AbortController();
-        const { signal } = controller;
-        canceller.exec = () => controller.abort();
+        const resp = await HTTPService.get(
+            getFileUrl(file.id),
+            null,
+            { 'X-Auth-Token': token },
+            { responseType: 'arraybuffer', canceller }
+        );
+        const decrypted: any = await worker.decryptFile(
+            new Uint8Array(resp.data),
+            await worker.fromB64(file.file.decryptionHeader),
+            file.key
+        );
+        return generateStreamFromArrayBuffer(decrypted);
 
-        let resp = null;
-        try {
-            resp = await fetch(getFileUrl(file.id), {
-                signal,
-                headers: {
-                    'X-Auth-Token': token,
-                },
-            });
-        } catch (e) {
-            if (e.name === 'AbortError') {
-                throw CustomError.REQUEST_CANCELLED;
-            } else {
-                throw e;
-            }
-        }
-        const reader = resp.body.getReader();
-        const stream = new ReadableStream({
-            async start(controller) {
-                const decryptionHeader = await worker.fromB64(
-                    file.file.decryptionHeader
-                );
-                const fileKey = await worker.fromB64(file.key);
-                const { pullState, decryptionChunkSize } =
-                    await worker.initDecryption(decryptionHeader, fileKey);
-                let data = new Uint8Array();
-                // The following function handles each data chunk
-                function push() {
-                    // "done" is a Boolean and value a "Uint8Array"
-                    reader.read().then(async ({ done, value }) => {
-                        // Is there more data to read?
-                        if (!done) {
-                            const buffer = new Uint8Array(
-                                data.byteLength + value.byteLength
-                            );
-                            buffer.set(new Uint8Array(data), 0);
-                            buffer.set(new Uint8Array(value), data.byteLength);
-                            if (buffer.length > decryptionChunkSize) {
-                                const fileData = buffer.slice(
-                                    0,
-                                    decryptionChunkSize
-                                );
-                                const { decryptedData } =
-                                    await worker.decryptChunk(
-                                        fileData,
-                                        pullState
-                                    );
-                                controller.enqueue(decryptedData);
-                                data = buffer.slice(decryptionChunkSize);
-                            } else {
-                                data = buffer;
-                            }
-                            push();
-                        } else {
-                            if (data) {
-                                const { decryptedData } =
-                                    await worker.decryptChunk(data, pullState);
-                                controller.enqueue(decryptedData);
-                                data = null;
-                            }
-                            controller.close();
-                        }
-                    });
-                }
+        //  This code will not run in any case but is needed for streaming which will be added later
 
-                push();
-            },
-        });
-        return stream;
+        // const controller = new AbortController();
+        // const { signal } = controller;
+        // canceller.exec = () => controller.abort();
+
+        // let resp = null;
+        // try {
+        //     resp = await fetch(getFileUrl(file.id), {
+        //         signal,
+        //         headers: {
+        //             'X-Auth-Token': token,
+        //         },
+        //     });
+        // } catch (e) {
+        //     if (e.name === 'AbortError') {
+        //         throw CustomError.REQUEST_CANCELLED;
+        //     } else {
+        //         throw e;
+        //     }
+        // }
+        // const reader = resp.body.getReader();
+        // const stream = new ReadableStream({
+        //     async start(controller) {
+        //         const decryptionHeader = await worker.fromB64(
+        //             file.file.decryptionHeader
+        //         );
+        //         const fileKey = await worker.fromB64(file.key);
+        //         const { pullState, decryptionChunkSize } =
+        //             await worker.initDecryption(decryptionHeader, fileKey);
+        //         let data = new Uint8Array();
+        //         // The following function handles each data chunk
+        //         function push() {
+        //             // "done" is a Boolean and value a "Uint8Array"
+        //             reader.read().then(async ({ done, value }) => {
+        //                 // Is there more data to read?
+        //                 if (!done) {
+        //                     const buffer = new Uint8Array(
+        //                         data.byteLength + value.byteLength
+        //                     );
+        //                     buffer.set(new Uint8Array(data), 0);
+        //                     buffer.set(new Uint8Array(value), data.byteLength);
+        //                     if (buffer.length > decryptionChunkSize) {
+        //                         const fileData = buffer.slice(
+        //                             0,
+        //                             decryptionChunkSize
+        //                         );
+        //                         const { decryptedData } =
+        //                             await worker.decryptChunk(
+        //                                 fileData,
+        //                                 pullState
+        //                             );
+        //                         controller.enqueue(decryptedData);
+        //                         data = buffer.slice(decryptionChunkSize);
+        //                     } else {
+        //                         data = buffer;
+        //                     }
+        //                     push();
+        //                 } else {
+        //                     if (data) {
+        //                         const { decryptedData } =
+        //                             await worker.decryptChunk(data, pullState);
+        //                         controller.enqueue(decryptedData);
+        //                         data = null;
+        //                     }
+        //                     controller.close();
+        //                 }
+        //             });
+        //         }
+
+        //         push();
+        //     },
+        // });
+        // return stream;
     }
 }
 
