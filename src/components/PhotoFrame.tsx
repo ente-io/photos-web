@@ -297,11 +297,11 @@ const PhotoFrame = ({
                 fetching[item.dataIndex] = response;
             }
             const url = await fetching[item.dataIndex].promise;
+            fetching[item.dataIndex] = null;
             if (!url) {
                 return;
             }
             galleryContext.files.set(item.id, url);
-            fetching[item.dataIndex] = null;
             updateSrcUrl(item.dataIndex, url);
             if (item.metadata.fileType === FILE_TYPE.VIDEO) {
                 try {
