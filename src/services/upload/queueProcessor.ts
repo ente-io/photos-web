@@ -1,3 +1,5 @@
+import { logError } from 'utils/sentry';
+
 interface RequestQueueItem {
     request: (canceller?: RequestCanceller) => Promise<any>;
     callback: (response) => void;
@@ -61,6 +63,7 @@ export default class QueueProcessor<T> {
                 try {
                     response = await queueItem.request(queueItem.canceller);
                 } catch (e) {
+                    logError(e, 'queue processing failed');
                     // ignore
                 }
             }
