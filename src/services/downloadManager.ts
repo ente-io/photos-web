@@ -152,6 +152,7 @@ class DownloadManager {
             );
             return generateStreamFromArrayBuffer(decrypted);
         }
+        // This code will not run in any case but is needed for streaming which will be added later
         const controller = new AbortController();
         const { signal } = controller;
         canceller.exec = () => controller.abort();
