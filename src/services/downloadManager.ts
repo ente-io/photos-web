@@ -101,6 +101,7 @@ class DownloadManager {
         forPreview: boolean,
         canceller?: RequestCanceller
     ) {
+        const fileUID = `${file.id}_${forPreview}`;
         try {
             const getFilePromise = (async () => {
                 const fileStream = await this.downloadFile(file, canceller);
@@ -110,16 +111,15 @@ class DownloadManager {
                 }
                 return URL.createObjectURL(fileBlob);
             })();
-            if (!this.fileObjectUrlPromise.get(`${file.id}_${forPreview}`)) {
+            if (!this.fileObjectUrlPromise.get(fileUID)) {
                 this.fileObjectUrlPromise.set(
                     `${file.id}_${forPreview}`,
                     getFilePromise
                 );
             }
-            return await this.fileObjectUrlPromise.get(
-                `${file.id}_${forPreview}`
-            );
+            return await this.fileObjectUrlPromise.get(fileUID);
         } catch (e) {
+            this.fileObjectUrlPromise.delete(fileUID);
             if (e.message === CustomError.REQUEST_CANCELLED) {
                 // ignore
             } else {
