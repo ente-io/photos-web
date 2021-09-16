@@ -383,8 +383,10 @@ const PhotoFrame = ({
     ) => {
         if (fetching[item.dataIndex]) {
             fetching[item.dataIndex].cancelTimer = setTimeout(() => {
-                fetching[item.dataIndex].canceller.exec();
-                fetching[item.dataIndex] = null;
+                if (fetching[item.dataIndex]) {
+                    fetching[item.dataIndex].canceller.exec();
+                    fetching[item.dataIndex] = null;
+                }
             }, WAIT_BEFORE_FETCH_CANCEL);
         }
     };
