@@ -160,7 +160,6 @@ export default function PreviewCard(props: IProps) {
             }
         }
         return () => {
-            // cool cool cool
             isMounted.current = false;
             requestCanceller.current && requestCanceller.current.exec();
         };
