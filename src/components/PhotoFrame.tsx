@@ -32,7 +32,7 @@ import {
 const NO_OF_PAGES = 2;
 const A_DAY = 24 * 60 * 60 * 1000;
 const WAIT_FOR_VIDEO_PLAYBACK = 1 * 1000;
-
+const WAIT_BEFORE_FETCH_CANCEL = 5 * 1000;
 interface TimeStampListItem {
     itemType: ITEM_TYPE;
     items?: File[];
@@ -46,6 +46,10 @@ interface TimeStampListItem {
     banner?: any;
     id?: string;
     height?: number;
+}
+
+interface FetchingFile extends QueueUpResponse<string> {
+    cancelTimer?: NodeJS.Timeout;
 }
 
 const Container = styled.div`
@@ -168,7 +172,7 @@ const PhotoFrame = ({
     const [open, setOpen] = useState(false);
     const [currentIndex, setCurrentIndex] = useState<number>(0);
     const [fetching, setFetching] = useState<{
-        [k: number]: QueueUpResponse<string>;
+        [k: number]: FetchingFile;
     }>({});
     const startTime = Date.now();
     const galleryContext = useContext(GalleryContext);
@@ -296,6 +300,7 @@ const PhotoFrame = ({
                 const response = DownloadManager.getFile(item, true);
                 fetching[item.dataIndex] = response;
             }
+            clearTimeout(fetching[item.dataIndex].cancelTimer);
             const url = await fetching[item.dataIndex].promise;
             fetching[item.dataIndex] = null;
             if (!url) {
@@ -377,8 +382,10 @@ const PhotoFrame = ({
         item: File
     ) => {
         if (fetching[item.dataIndex]) {
-            fetching[item.dataIndex].canceller.exec();
-            fetching[item.dataIndex] = null;
+            fetching[item.dataIndex].cancelTimer = setTimeout(() => {
+                fetching[item.dataIndex].canceller.exec();
+                fetching[item.dataIndex] = null;
+            }, WAIT_BEFORE_FETCH_CANCEL);
         }
     };
 
