@@ -2,10 +2,10 @@ import { getToken } from 'utils/common/key';
 import { getFileUrl, getThumbnailUrl } from 'utils/common/apiUtil';
 import CryptoWorker from 'utils/crypto';
 import { generateStreamFromArrayBuffer, convertForPreview } from 'utils/file';
-import HTTPService from './HTTPService';
+import HTTPService, { RequestCanceller } from './HTTPService';
 import { File } from './fileService';
 import { logError } from 'utils/sentry';
-import QueueProcessor, { RequestCanceller } from './upload/queueProcessor';
+import QueueProcessor from './upload/queueProcessor';
 import { CustomError } from 'utils/common/errorUtil';
 
 const MAX_CONCURRENT_THUMBNAIL_DOWNLOAD = 500;

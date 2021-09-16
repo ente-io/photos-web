@@ -1,5 +1,5 @@
 import { ProgressUpdater } from 'components/pages/gallery/Upload';
-import { RequestCanceller } from './queueProcessor';
+import { RequestCanceller } from 'services/HTTPService';
 import { UPLOAD_STAGES } from './uploadManager';
 
 export const RANDOM_PERCENTAGE_PROGRESS_FOR_PUT = () => 90 + 10 * Math.random();
