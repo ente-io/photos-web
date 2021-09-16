@@ -1,4 +1,5 @@
 import { ProgressUpdater } from 'components/pages/gallery/Upload';
+import { RequestCanceller } from './queueProcessor';
 import { UPLOAD_STAGES } from './uploadManager';
 
 export const RANDOM_PERCENTAGE_PROGRESS_FOR_PUT = () => 90 + 10 * Math.random();
@@ -84,16 +85,16 @@ class UIService {
         percentPerPart = RANDOM_PERCENTAGE_PROGRESS_FOR_PUT(),
         index = 0
     ) {
-        const cancel = { exec: null };
+        const canceller: RequestCanceller = { exec: null };
         let timeout = null;
         const resetTimeout = () => {
             if (timeout) {
                 clearTimeout(timeout);
             }
-            timeout = setTimeout(() => cancel.exec(), 30 * 1000);
+            timeout = setTimeout(() => canceller.exec(), 30 * 1000);
         };
         return {
-            cancel,
+            canceller,
             onUploadProgress: (event) => {
                 filename &&
                     this.fileProgress.set(

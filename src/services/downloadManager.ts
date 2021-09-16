@@ -69,7 +69,7 @@ class DownloadManager {
             getThumbnailUrl(file.id),
             null,
             { 'X-Auth-Token': token },
-            { responseType: 'arraybuffer', cancel: canceller }
+            { responseType: 'arraybuffer', canceller }
         );
         const worker = await new CryptoWorker();
         const decrypted: any = await worker.decryptThumbnail(
@@ -143,7 +143,7 @@ class DownloadManager {
                 getFileUrl(file.id),
                 null,
                 { 'X-Auth-Token': token },
-                { responseType: 'arraybuffer', cancel: canceller }
+                { responseType: 'arraybuffer', canceller }
             );
             const decrypted: any = await worker.decryptFile(
                 new Uint8Array(resp.data),

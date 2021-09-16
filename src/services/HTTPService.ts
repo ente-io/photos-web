@@ -77,10 +77,10 @@ class HTTPService {
             ...this.headers,
             ...config.headers,
         };
-        if (customConfig?.cancel) {
+        if (customConfig?.canceller) {
             config.cancelToken = new axios.CancelToken(
                 (c) =>
-                    (customConfig.cancel.exec = () =>
+                    (customConfig.canceller.exec = () =>
                         c(CustomError.REQUEST_CANCELLED))
             );
         }
