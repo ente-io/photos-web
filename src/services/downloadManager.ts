@@ -8,7 +8,7 @@ import { logError } from 'utils/sentry';
 import QueueProcessor, { RequestCanceller } from './upload/queueProcessor';
 import { CustomError } from 'utils/common/errorUtil';
 
-const MAX_CONCURRENT_THUMBNAIL_DOWNLOAD = 5;
+const MAX_CONCURRENT_THUMBNAIL_DOWNLOAD = 500;
 const MAX_CONCURRENT_FILE_DOWNLOAD = 5;
 
 class DownloadManager {
