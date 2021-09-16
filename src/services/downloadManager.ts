@@ -7,7 +7,7 @@ import { File, FILE_TYPE } from './fileService';
 import { logError } from 'utils/sentry';
 import QueueProcessor, { RequestCanceller } from './upload/queueProcessor';
 
-const MAX_CONCURRENT_THUMBNAIL_DOWNLOAD = 20;
+const MAX_CONCURRENT_THUMBNAIL_DOWNLOAD = 500;
 const MAX_CONCURRENT_FILE_DOWNLOAD = 5;
 
 class DownloadManager {
