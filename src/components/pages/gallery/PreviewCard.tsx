@@ -6,7 +6,7 @@ import DownloadManager from 'services/downloadManager';
 import useLongPress from 'utils/common/useLongPress';
 import { GalleryContext } from 'pages/gallery';
 import { GAP_BTW_TILES } from 'types';
-import { RequestCanceller } from 'services/upload/queueProcessor';
+import { RequestCanceller } from 'services/HTTPService';
 
 interface IProps {
     file: File;

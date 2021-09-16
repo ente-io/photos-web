@@ -19,7 +19,7 @@ import PhotoSwipe from 'components/PhotoSwipe/PhotoSwipe';
 import { isInsideBox, isSameDay as isSameDayAnyYear } from 'utils/search';
 import { SetDialogMessage } from './MessageDialog';
 import { CustomError } from 'utils/common/errorUtil';
-import { QueueUpResponse } from 'services/upload/queueProcessor';
+import { QueueUpResponse } from 'services/queueProcessor';
 import {
     GAP_BTW_TILES,
     DATE_CONTAINER_HEIGHT,

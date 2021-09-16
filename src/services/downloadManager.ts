@@ -5,7 +5,7 @@ import { generateStreamFromArrayBuffer, convertForPreview } from 'utils/file';
 import HTTPService, { RequestCanceller } from './HTTPService';
 import { File } from './fileService';
 import { logError } from 'utils/sentry';
-import QueueProcessor from './upload/queueProcessor';
+import QueueProcessor from './queueProcessor';
 import { CustomError } from 'utils/common/errorUtil';
 
 const MAX_CONCURRENT_THUMBNAIL_DOWNLOAD = 500;
