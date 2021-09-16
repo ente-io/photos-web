@@ -1,3 +1,4 @@
+import { FILE_TYPE } from 'services/fileService';
 import { logError } from 'utils/sentry';
 import { getExifData } from './exifService';
 import { FileTypeInfo } from './readFileService';
@@ -28,18 +29,21 @@ const NULL_PARSED_METADATA_JSON: ParsedMetaDataJSON = {
 };
 
 export async function extractMetadata(
-    worker,
     receivedFile: globalThis.File,
     fileTypeInfo: FileTypeInfo
 ) {
-    const { location, creationTime } = await getExifData(worker, receivedFile);
+    let exifData = null;
+    if (fileTypeInfo.fileType === FILE_TYPE.IMAGE) {
+        exifData = await getExifData(receivedFile);
+    }
 
     const extractedMetadata: MetadataObject = {
         title: receivedFile.name,
-        creationTime: creationTime || receivedFile.lastModified * 1000,
+        creationTime:
+            exifData?.creationTime ?? receivedFile.lastModified * 1000,
         modificationTime: receivedFile.lastModified * 1000,
-        latitude: location?.latitude,
-        longitude: location?.longitude,
+        latitude: exifData?.location?.latitude,
+        longitude: exifData?.location?.longitude,
         fileType: fileTypeInfo.fileType,
     };
     return extractedMetadata;

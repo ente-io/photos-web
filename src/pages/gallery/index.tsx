@@ -23,6 +23,7 @@ import {
     getFavItemIds,
     getLocalCollections,
     getNonEmptyCollections,
+    setLocalCollection,
 } from 'services/collectionService';
 import constants from 'utils/strings/constants';
 import billingService from 'services/billingService';
@@ -119,7 +120,9 @@ export default function Gallery() {
         useState<CollectionAndItsLatestFile[]>([]);
     const [files, setFiles] = useState<File[]>(null);
     const [favItemIds, setFavItemIds] = useState<Set<number>>();
-    const [bannerMessage, setBannerMessage] = useState<string>(null);
+    const [bannerMessage, setBannerMessage] = useState<JSX.Element | string>(
+        null
+    );
     const [isFirstLoad, setIsFirstLoad] = useState(false);
     const [isFirstFetch, setIsFirstFetch] = useState(false);
     const [selected, setSelected] = useState<selectedState>({ count: 0 });
@@ -258,6 +261,7 @@ export default function Gallery() {
             collectionFilesCount.set(id, files.length);
         }
         setCollections(nonEmptyCollections);
+        setLocalCollection(nonEmptyCollections);
         setCollectionsAndTheirLatestFile(collectionsAndTheirLatestFile);
         setCollectionFilesCount(collectionFilesCount);
         const favItemIds = await getFavItemIds(files);
@@ -276,21 +280,30 @@ export default function Gallery() {
     if (!files) {
         return <div />;
     }
-    const addToCollectionHelper = (
+    const addToCollectionHelper = async (
         collectionName: string,
         collection: Collection
     ) => {
         loadingBar.current?.continuousStart();
-        addFilesToCollection(
-            setCollectionSelectorView,
-            selected,
-            files,
-            clearSelection,
-            syncWithRemote,
-            selectCollection,
-            collectionName,
-            collection
-        );
+        try {
+            await addFilesToCollection(
+                setCollectionSelectorView,
+                selected,
+                files,
+                clearSelection,
+                syncWithRemote,
+                selectCollection,
+                collectionName,
+                collection
+            );
+        } catch (e) {
+            setDialogMessage({
+                title: constants.ERROR,
+                staticBackdrop: true,
+                close: { variant: 'danger' },
+                content: constants.UNKNOWN_ERROR,
+            });
+        }
     };
 
     const showCreateCollectionModal = () =>
@@ -410,9 +423,6 @@ export default function Gallery() {
                     collectionsAndTheirLatestFile={
                         collectionsAndTheirLatestFile
                     }
-                    directlyShowNextModal={
-                        collectionsAndTheirLatestFile?.length === 0
-                    }
                     attributes={collectionSelectorAttributes}
                 />
                 <Upload
@@ -436,6 +446,7 @@ export default function Gallery() {
                     setUploadInProgress={setUploadInProgress}
                     fileRejections={fileRejections}
                     setFiles={setFiles}
+                    isFirstUpload={collectionsAndTheirLatestFile?.length === 0}
                 />
                 <Sidebar
                     collections={collections}
