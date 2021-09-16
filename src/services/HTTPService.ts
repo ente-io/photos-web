@@ -1,4 +1,5 @@
 import axios, { AxiosRequestConfig } from 'axios';
+import { CustomError } from 'utils/common/errorUtil';
 
 interface IHTTPHeaders {
     [headerKey: string]: any;
@@ -78,7 +79,9 @@ class HTTPService {
         };
         if (customConfig?.cancel) {
             config.cancelToken = new axios.CancelToken(
-                (c) => (customConfig.cancel.exec = c)
+                (c) =>
+                    (customConfig.cancel.exec = () =>
+                        c(CustomError.REQUEST_CANCELLED))
             );
         }
         return await axios({ ...config, ...customConfig });
