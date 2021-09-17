@@ -1,8 +1,6 @@
 /* eslint-disable no-undef */
 import * as Comlink from 'comlink';
 import FFmpegClient from 'services/ffmpeg/ffmpegClient';
-
-importScripts('/js/ffmpeg/ffmpeg-core.js');
 export class FFmpegWorker {
     async init() {
         return FFmpegClient.init();
