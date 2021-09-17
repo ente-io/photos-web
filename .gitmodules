@@ -5,3 +5,4 @@
 [submodule "thirdparty/ffmpeg"]
 	path = thirdparty/ffmpeg
 	url = git@github.com:Abhinav-grd/ffmpeg.wasm.git
+	branch = worker-version
