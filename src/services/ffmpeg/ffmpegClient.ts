@@ -8,7 +8,7 @@ class FFmpegClient {
     async init() {
         this.ffmpeg = createFFmpeg({
             corePath: '/js/ffmpeg/ffmpeg-core.js',
-            mainName: 'main',
+            singleThread: true,
             log: true,
         });
         this.isLoading = this.ffmpeg.load();
