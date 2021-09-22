@@ -19,7 +19,7 @@ export const ALL_SECTION = 0;
 
 interface CollectionProps {
     collections: Collection[];
-    selected?: number;
+    activeCollection?: number;
     setActiveCollection: (id?: number) => void;
     setDialogMessage: SetDialogMessage;
     syncWithRemote: () => Promise<void>;
@@ -71,7 +71,7 @@ const Chip = styled.button<{ active: boolean }>`
 `;
 
 export default function Collections(props: CollectionProps) {
-    const { selected, collections, setActiveCollection } = props;
+    const { activeCollection, collections, setActiveCollection } = props;
     const [selectedCollectionID, setSelectedCollectionID] =
         useState<number>(null);
     const collectionRef = useRef<HTMLDivElement>(null);
@@ -127,7 +127,7 @@ export default function Collections(props: CollectionProps) {
     const scrollCollection = (direction: SCROLL_DIRECTION) => () => {
         collectionRef.current.scrollBy(250 * direction, 0);
     };
-    const renderTooltip = (collectionID) => {
+    const renderTooltip = (collectionID: number) => {
         const fileCount = props.collectionFilesCount?.get(collectionID) ?? 0;
         return (
             <Tooltip
@@ -135,10 +135,8 @@ export default function Collections(props: CollectionProps) {
                     padding: '0',
                     paddingBottom: '5px',
                 }}
-                id="button-tooltip"
-                {...props}>
+                id="button-tooltip">
                 <div
-                    {...props}
                     style={{
                         backgroundColor: '#282828',
                         padding: '2px 10px',
@@ -174,7 +172,7 @@ export default function Collections(props: CollectionProps) {
                     )}
                     <Wrapper ref={collectionRef} onScroll={updateScrollObj}>
                         <Chip
-                            active={!selected}
+                            active={activeCollection === 0}
                             onClick={clickHandler(ALL_SECTION)}>
                             All
                             <div
@@ -191,7 +189,7 @@ export default function Collections(props: CollectionProps) {
                                 delay={{ show: 250, hide: 400 }}
                                 overlay={renderTooltip(item.id)}>
                                 <Chip
-                                    active={selected === item.id}
+                                    active={activeCollection === item.id}
                                     onClick={clickHandler(item.id)}>
                                     {item.name}
                                     {item.type !== CollectionType.favorites &&
