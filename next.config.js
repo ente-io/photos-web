@@ -33,12 +33,8 @@ module.exports = withSentryConfig(
                 swSrc: 'src/serviceWorker.js',
                 exclude: [/manifest\.json$/i],
             },
-            webpack: (config) => {
-                config.output.hotUpdateMainFilename =
-                    'static/webpack/[fullhash].[runtime].hot-update.json';
-                return config;
-            },
 
+            // added to enabled shared Array buffer - https://web.dev/coop-coep/
             headers() {
                 return [
                     {
@@ -47,6 +43,13 @@ module.exports = withSentryConfig(
                         headers: COOP_COEP_Headers,
                     },
                 ];
+            },
+            // https://dev.to/marcinwosinek/how-to-add-resolve-fallback-to-webpack-5-in-nextjs-10-i6j
+            webpack: (config, { isServer }) => {
+                if (!isServer) {
+                    config.resolve.fallback.fs = false;
+                }
+                return config;
             },
         })
     ),

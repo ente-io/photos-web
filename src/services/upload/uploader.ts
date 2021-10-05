@@ -55,7 +55,6 @@ export default async function uploader(
             throw Error(CustomError.UNSUPPORTED_FILE_FORMAT);
         }
         metadata = await uploadService.getFileMetadata(
-            reader,
             rawFile,
             collection,
             fileTypeInfo
@@ -68,7 +67,12 @@ export default async function uploader(
             return { fileUploadResult: FileUploadResults.SKIPPED };
         }
 
-        file = await UploadService.readFile(reader, rawFile, fileTypeInfo);
+        file = await UploadService.readFile(
+            reader,
+            worker,
+            rawFile,
+            fileTypeInfo
+        );
         if (file.hasStaticThumbnail) {
             metadata.hasStaticThumbnail = true;
         }
