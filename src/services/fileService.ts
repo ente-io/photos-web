@@ -191,15 +191,13 @@ export const getFiles = async (
                 }
             );
 
-            decryptedFiles.push(
-                ...(await Promise.all(
-                    resp.data.diff.map(async (file: File) => {
-                        if (!file.isDeleted) {
-                            file = await decryptFile(file, collection);
-                        }
-                        return file;
-                    }) as Promise<File>[]
-                ))
+            await Promise.all(
+                resp.data.diff.map(async (file: File) => {
+                    if (!file.isDeleted) {
+                        file = await decryptFile(file, collection);
+                        decryptedFiles.push(file);
+                    }
+                }) as Promise<File>[]
             );
 
             if (resp.data.diff.length) {
