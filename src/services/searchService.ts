@@ -3,10 +3,15 @@ import { getEndpoint } from 'utils/common/apiUtil';
 import { getToken } from 'utils/common/key';
 import { DateValue, Suggestion, SuggestionType } from 'components/SearchBar';
 import HTTPService from './HTTPService';
-import { Collection } from './collectionService';
 import { File } from './fileService';
 import { User } from './userService';
 import { getData, LS_KEYS } from 'utils/storage/localStorage';
+import { Collection } from './collectionService';
+import constants from 'utils/strings/constants';
+import {
+    ALL_SECTION,
+    ARCHIVE_SECTION,
+} from 'components/pages/gallery/Collections';
 
 const ENDPOINT = getEndpoint();
 const DIGITS = new Set(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
@@ -108,10 +113,16 @@ export function getYearSuggestion(searchPhrase: string): Suggestion[] {
 export function searchCollection(
     searchPhrase: string,
     collections: Collection[]
-): Collection[] {
-    return collections.filter((collection) =>
-        collection.name.toLowerCase().includes(searchPhrase)
-    );
+): { id: number; name: string }[] {
+    return [
+        ...collections,
+        { id: ALL_SECTION, name: constants.ALL },
+        { id: ARCHIVE_SECTION, name: constants.ARCHIVE },
+    ]
+        .filter((collection) =>
+            collection.name.toLowerCase().includes(searchPhrase)
+        )
+        .map((collection) => ({ id: collection.id, name: collection.name }));
 }
 
 export function searchFiles(searchPhrase: string, files: File[]) {
