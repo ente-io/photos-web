@@ -114,7 +114,7 @@ export const syncFiles = async (
             (await getFiles(
                 collection,
                 lastSyncTime,
-                DIFF_LIMIT,
+
                 files,
                 setFiles
             )) ?? [];
@@ -163,16 +163,12 @@ export const syncFiles = async (
 export const getFiles = async (
     collection: Collection,
     sinceTime: number,
-    limit: number,
     files: File[],
     setFiles: (files: File[]) => void
 ): Promise<File[]> => {
     try {
         const decryptedFiles: File[] = [];
-        let time =
-            sinceTime ||
-            (await localForage.getItem<number>(`${collection.id}-time`)) ||
-            0;
+        let time = sinceTime;
         let resp;
         do {
             const token = getToken();
@@ -184,7 +180,7 @@ export const getFiles = async (
                 {
                     collectionID: collection.id,
                     sinceTime: time,
-                    limit,
+                    limit: DIFF_LIMIT,
                 },
                 {
                     'X-Auth-Token': token,
@@ -211,7 +207,7 @@ export const getFiles = async (
                             b.metadata.creationTime - a.metadata.creationTime
                     )
             );
-        } while (resp.data.diff.length === limit);
+        } while (resp.data.diff.length === DIFF_LIMIT);
         return decryptedFiles;
     } catch (e) {
         logError(e, 'Get files failed');
