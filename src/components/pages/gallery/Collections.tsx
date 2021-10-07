@@ -16,6 +16,7 @@ import { User } from 'services/userService';
 import styled from 'styled-components';
 import { IMAGE_CONTAINER_MAX_WIDTH } from 'types';
 import { getSelectedCollection } from 'utils/collection';
+import { sleep } from 'utils/common';
 import { getData, LS_KEYS } from 'utils/storage/localStorage';
 import constants from 'utils/strings/constants';
 import { SetCollectionNamerAttributes } from './CollectionNamer';
@@ -97,13 +98,7 @@ export default function Collections(props: CollectionProps) {
     const [selectedCollectionID, setSelectedCollectionID] =
         useState<number>(null);
     const collectionWrapperRef = useRef<HTMLDivElement>(null);
-    const collectionChipsRef = props.collections.reduce(
-        (refMap, collection) => {
-            refMap[collection.id] = React.createRef();
-            return refMap;
-        },
-        {}
-    );
+    const [collectionChipsRef, setCollectionChipsRef] = useState({});
     const [collectionShareModalView, setCollectionShareModalView] =
         useState(false);
     const [scrollObj, setScrollObj] = useState<{
@@ -133,10 +128,23 @@ export default function Collections(props: CollectionProps) {
         collectionWrapperRef.current.scrollLeft = 0;
     }, [collections]);
 
-    useEffect(() => {
-        collectionChipsRef[activeCollection]?.current.scrollIntoView({
+    const scrollToCollection = async (collectionID: number) => {
+        await sleep(200);
+        collectionChipsRef[collectionID]?.scrollIntoView({
             inline: 'center',
         });
+    };
+
+    const updateRef = (collectionID: number, ref: HTMLButtonElement) =>
+        setCollectionChipsRef((collectionChipsRef) => {
+            if (!collectionChipsRef[collectionID]) {
+                collectionChipsRef[collectionID] = ref;
+            }
+            return collectionChipsRef;
+        });
+
+    useEffect(() => {
+        scrollToCollection(activeCollection);
     }, [activeCollection]);
 
     const clickHandler = (collectionID?: number) => () => {
@@ -211,6 +219,7 @@ export default function Collections(props: CollectionProps) {
                         ref={collectionWrapperRef}
                         onScroll={updateScrollObj}>
                         <Chip
+                            ref={(ref) => updateRef(ALL_SECTION, ref)}
                             active={activeCollection === ALL_SECTION}
                             onClick={clickHandler(ALL_SECTION)}>
                             {constants.ALL}
@@ -232,7 +241,7 @@ export default function Collections(props: CollectionProps) {
                                 delay={{ show: 250, hide: 400 }}
                                 overlay={renderTooltip(item.id)}>
                                 <Chip
-                                    ref={collectionChipsRef[item.id]}
+                                    ref={(ref) => updateRef(item.id, ref)}
                                     active={activeCollection === item.id}
                                     onClick={clickHandler(item.id)}>
                                     {item.name}
@@ -264,6 +273,7 @@ export default function Collections(props: CollectionProps) {
                         ))}
                         <Chip
                             active={activeCollection === ARCHIVE_SECTION}
+                            ref={(ref) => updateRef(ARCHIVE_SECTION, ref)}
                             onClick={clickHandler(ARCHIVE_SECTION)}>
                             {constants.ARCHIVE}
                             <div
