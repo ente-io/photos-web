@@ -6,12 +6,12 @@ import { DataStream, MetadataObject } from './upload/uploadService';
 import { Collection } from './collectionService';
 import HTTPService from './HTTPService';
 import { logError } from 'utils/sentry';
-import { decryptFile, sortFiles } from 'utils/file';
+import { appendPhotoSwipeProps, decryptFile, sortFiles } from 'utils/file';
 
 const ENDPOINT = getEndpoint();
 const DIFF_LIMIT: number = 1000;
 
-const FILES = 'files';
+const FILES_TABLE = 'files';
 
 export interface fileAttribute {
     encryptedData?: DataStream | Uint8Array;
@@ -87,8 +87,22 @@ export const NEW_MAGIC_METADATA: MagicMetadata = {
 };
 
 export const getLocalFiles = async () => {
-    const files: Array<File> = (await localForage.getItem<File[]>(FILES)) || [];
+    const files: Array<File> =
+        (await localForage.getItem<File[]>(FILES_TABLE)) || [];
     return files;
+};
+
+const getLastSynTime = async (collection: Collection) => {
+    return (await localForage.getItem<number>(`${collection.id}-time`)) ?? 0;
+};
+
+export const updateLocalFiles = async (
+    collection: Collection,
+    files: File[],
+    time: number
+) => {
+    await localForage.setItem(FILES_TABLE, files);
+    await localForage.setItem(`${collection.id}-time`, time);
 };
 
 export const syncFiles = async (
@@ -96,121 +110,104 @@ export const syncFiles = async (
     setFiles: (files: File[]) => void
 ) => {
     const localFiles = await getLocalFiles();
-    let files = await removeDeletedCollectionFiles(collections, localFiles);
-    if (files.length !== localFiles.length) {
-        await localForage.setItem('files', files);
-        setFiles(files);
+    let updatedFileList = await removeDeletedCollectionFiles(
+        collections,
+        localFiles
+    );
+    if (updatedFileList.length !== localFiles.length) {
+        await localForage.setItem(FILES_TABLE, updatedFileList);
+        setFiles(updatedFileList);
     }
     for (const collection of collections) {
         if (!getToken()) {
             continue;
         }
-        const lastSyncTime =
-            (await localForage.getItem<number>(`${collection.id}-time`)) ?? 0;
+        const lastSyncTime = await getLastSynTime(collection);
+
         if (collection.updationTime === lastSyncTime) {
             continue;
         }
-        const fetchedFiles =
-            (await getFiles(
+        try {
+            updatedFileList = await updateFileList(
                 collection,
                 lastSyncTime,
-
-                files,
+                updatedFileList,
                 setFiles
-            )) ?? [];
-        files.push(...fetchedFiles);
-        const latestVersionFiles = new Map<string, File>();
-        files.forEach((file) => {
-            const uid = `${file.collectionID}-${file.id}`;
-            if (
-                !latestVersionFiles.has(uid) ||
-                latestVersionFiles.get(uid).updationTime < file.updationTime
-            ) {
-                latestVersionFiles.set(uid, file);
-            }
-        });
-        files = [];
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        for (const [_, file] of latestVersionFiles) {
-            if (file.isDeleted) {
-                continue;
-            }
-            files.push(file);
+            );
+            setFiles(appendPhotoSwipeProps(updatedFileList));
+        } catch (e) {
+            // ignore
         }
-        files = sortFiles(files);
-        await localForage.setItem('files', files);
-        await localForage.setItem(
-            `${collection.id}-time`,
-            collection.updationTime
-        );
-        setFiles(
-            files.map((item) => ({
-                ...item,
-                w: window.innerWidth,
-                h: window.innerHeight,
-            }))
-        );
     }
-    return {
-        files: files.map((item) => ({
-            ...item,
-            w: window.innerWidth,
-            h: window.innerHeight,
-        })),
-    };
+    return updatedFileList;
 };
 
-export const getFiles = async (
+export const updateFileList = async (
     collection: Collection,
     sinceTime: number,
-    files: File[],
+    existingFiles: File[],
     setFiles: (files: File[]) => void
 ): Promise<File[]> => {
     try {
-        const decryptedFiles: File[] = [];
+        let updatedFileList = [...existingFiles];
         let time = sinceTime;
-        let resp;
+        let fetchedFiles: File[];
         do {
-            const token = getToken();
-            if (!token) {
-                break;
-            }
-            resp = await HTTPService.get(
-                `${ENDPOINT}/collections/diff`,
-                {
-                    collectionID: collection.id,
-                    sinceTime: time,
-                    limit: DIFF_LIMIT,
-                },
-                {
-                    'X-Auth-Token': token,
-                }
-            );
-
+            fetchedFiles = await getFiles(collection.id, time);
+            const decryptedFetchedFiles: File[] = [];
             await Promise.all(
-                resp.data.diff.map(async (file: File) => {
+                fetchedFiles.map(async (file: File) => {
                     if (!file.isDeleted) {
                         file = await decryptFile(file, collection);
-                        decryptedFiles.push(file);
+                        decryptedFetchedFiles.push(file);
                     }
-                }) as Promise<File>[]
+                })
             );
-
-            if (resp.data.diff.length) {
-                time = resp.data.diff.slice(-1)[0].updationTime;
+            if (fetchedFiles.length) {
+                time = fetchedFiles.slice(-1)[0].updationTime;
             }
-            setFiles(
-                [...(files || []), ...decryptedFiles]
-                    .filter((item) => !item.isDeleted)
-                    .sort(
-                        (a, b) =>
-                            b.metadata.creationTime - a.metadata.creationTime
-                    )
+            updatedFileList = sortFiles(
+                dedupeFiles([
+                    ...updatedFileList,
+                    ...decryptedFetchedFiles,
+                ]).filter((item) => !item.isDeleted)
             );
-        } while (resp.data.diff.length === DIFF_LIMIT);
-        return decryptedFiles;
+            setFiles(appendPhotoSwipeProps(updatedFileList));
+            await updateLocalFiles(collection, updatedFileList, time);
+        } while (fetchedFiles.length === DIFF_LIMIT);
+        await updateLocalFiles(
+            collection,
+            updatedFileList,
+            collection.updationTime
+        );
+        return updatedFileList;
     } catch (e) {
-        logError(e, 'Get files failed');
+        logError(e, 'update files failed');
+        throw e;
+    }
+};
+
+const getFiles = async (collectionID: number, time: number) => {
+    try {
+        const token = getToken();
+        if (!token) {
+            return;
+        }
+        const resp = await HTTPService.get(
+            `${ENDPOINT}/collections/diff`,
+            {
+                collectionID: collectionID,
+                sinceTime: time,
+                limit: DIFF_LIMIT,
+            },
+            {
+                'X-Auth-Token': token,
+            }
+        );
+        return resp.data.diff as File[];
+    } catch (e) {
+        logError(e, 'get file failed');
+        throw e;
     }
 };
 
@@ -261,4 +258,18 @@ export const updateMagicMetadata = async (files: File[]) => {
     await HTTPService.put(`${ENDPOINT}/files/magic-metadata`, reqBody, null, {
         'X-Auth-Token': token,
     });
+};
+
+const dedupeFiles = (files: File[]) => {
+    const latestVersionFiles = new Map<string, File>();
+    files.forEach((file) => {
+        const uid = `${file.collectionID}-${file.id}`;
+        if (
+            !latestVersionFiles.has(uid) ||
+            latestVersionFiles.get(uid).updationTime < file.updationTime
+        ) {
+            latestVersionFiles.set(uid, file);
+        }
+    });
+    return [...latestVersionFiles.values()];
 };

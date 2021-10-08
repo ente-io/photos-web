@@ -278,3 +278,13 @@ export function isSharedFile(file: File) {
     }
     return file.ownerID !== user.id;
 }
+
+export function appendPhotoSwipeProps(files: File[]) {
+    return files.map(
+        (file: File): File => ({
+            ...file,
+            w: window.innerWidth,
+            h: window.innerHeight,
+        })
+    );
+}

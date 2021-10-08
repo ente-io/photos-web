@@ -271,7 +271,7 @@ export default function Gallery() {
             await billingService.syncSubscription();
             const collections = await syncCollections();
             setCollections(collections);
-            const { files } = await syncFiles(collections, setFiles);
+            const files = await syncFiles(collections, setFiles);
             await setDerivativeState(collections, files);
         } catch (e) {
             switch (e.message) {
