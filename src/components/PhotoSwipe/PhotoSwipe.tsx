@@ -16,6 +16,7 @@ import styled from 'styled-components';
 import events from './events';
 import {
     changeFileCreationTime,
+    changeFileName,
     downloadFile,
     formatDateTime,
     mergeMetadata,
@@ -44,6 +45,10 @@ interface Iprops {
     isSharedCollection: boolean;
     isTrashCollection: boolean;
 }
+enum EditableMetadata {
+    CreationTime = 'creationTime',
+    Title = 'title',
+}
 
 const LegendContainer = styled.div`
     display: flex;
@@ -70,28 +75,85 @@ const renderInfoItem = (label: string, value: string | JSX.Element) => (
     </Row>
 );
 
-function RenderCreationTime({
+const EditCreationTime = ({ isInEditMode, creationTime, handleChange }) => {
+    const creationDate = new Date(creationTime / 1000);
+    const onChange = (pickedTime) => {
+        const pickedUnixTime = (pickedTime as Date).getTime() * 1000;
+        handleChange(pickedUnixTime);
+    };
+    return isInEditMode ? (
+        <DatePicker
+            open={isInEditMode}
+            selected={creationDate}
+            onChange={onChange}
+            timeInputLabel="Time:"
+            dateFormat="dd/MM/yyyy h:mm aa"
+            showTimeInput
+        />
+    ) : (
+        <>{formatDateTime(creationDate)}</>
+    );
+};
+
+const EditTitle = ({ isInEditMode, newName, handleChange }) =>
+    isInEditMode ? (
+        <textarea
+            value={newName}
+            onChange={(e) => handleChange(e.target.value)}
+            style={{ width: '100%' }}></textarea>
+    ) : (
+        <>{newName}</>
+    );
+
+function getLabel(propertyName) {
+    switch (propertyName) {
+        case EditableMetadata.CreationTime:
+            return constants.CREATION_TIME;
+        case EditableMetadata.Title:
+            return constants.FILE_NAME;
+        default:
+            return '';
+    }
+}
+function RenderEditableProp({
     file,
+    propertyName,
     scheduleUpdate,
 }: {
     file: File;
     scheduleUpdate: () => void;
+    propertyName: EditableMetadata;
 }) {
-    const originalCreationTime = new Date(file.metadata.creationTime / 1000);
+    const originalPropertyValue = file.metadata[propertyName];
     const [isInEditMode, setIsInEditMode] = useState(false);
-
-    const [pickedTime, setPickedTime] = useState(originalCreationTime);
+    const label = getLabel(propertyName);
+    const [editedProperty, setEditedProperty] = useState(originalPropertyValue);
 
     const openEditMode = () => setIsInEditMode(true);
 
     const saveEdits = async () => {
         try {
             if (isInEditMode && file) {
-                const unixTimeInMicroSec = pickedTime.getTime() * 1000;
-                const updatedFile = await changeFileCreationTime(
-                    file,
-                    unixTimeInMicroSec
-                );
+                let updatedFile = null;
+                switch (propertyName) {
+                    case EditableMetadata.CreationTime: {
+                        const editedCreationTime = editedProperty as number;
+                        updatedFile = await changeFileCreationTime(
+                            file,
+                            editedCreationTime
+                        );
+                        break;
+                    }
+                    case EditableMetadata.Title: {
+                        const editedFileName = editedProperty as string;
+
+                        updatedFile = await changeFileName(
+                            file,
+                            editedFileName
+                        );
+                        break;
+                    }
+                }
                 await updatePublicMagicMetadata([updatedFile]);
                 updatedFile.pubMagicMetadata.version += 1;
                 file.pubMagicMetadata = updatedFile.pubMagicMetadata;
@@ -99,35 +161,37 @@ function RenderCreationTime({
                 scheduleUpdate();
             }
         } catch (e) {
-            logError(e, 'failed to update creationTime');
+            logError(e, 'failed to update file property', { propertyName });
         }
         setIsInEditMode(false);
     };
     const discardEdits = () => {
-        setPickedTime(originalCreationTime);
+        setEditedProperty(originalPropertyValue);
         setIsInEditMode(false);
     };
-    const handleChange = (newDate) => {
-        if (newDate instanceof Date) {
-            setPickedTime(newDate);
-        }
+    const handleChange = (newValue) => {
+        setEditedProperty(newValue);
     };
     return (
         <>
             <Row>
-                <Label width="30%">{constants.CREATION_TIME}</Label>
-                <Value width={isInEditMode ? '50%' : '60%'}>
-                    {isInEditMode ? (
-                        <DatePicker
-                            open={isInEditMode}
-                            selected={pickedTime}
-                            onChange={handleChange}
-                            timeInputLabel="Time:"
-                            dateFormat="dd/MM/yyyy h:mm aa"
-                            showTimeInput
+                <Label width="30%">{label}</Label>
+                <Value
+                    width={isInEditMode ? '50%' : '60%'}
+                    style={{ textAlign: 'left' }}>
+                    {propertyName === EditableMetadata.CreationTime && (
+                        <EditCreationTime
+                            isInEditMode={isInEditMode}
+                            creationTime={editedProperty}
+                            handleChange={handleChange}
                         />
-                    ) : (
-                        formatDateTime(pickedTime)
+                    )}
+                    {propertyName === EditableMetadata.Title && (
+                        <EditTitle
+                            isInEditMode={isInEditMode}
+                            newName={editedProperty}
+                            handleChange={handleChange}
+                        />
                     )}
                 </Value>
                 <Value
@@ -149,7 +213,9 @@ function RenderCreationTime({
                     )}
                 </Value>
             </Row>
-            {isInEditMode && <div style={{ height: '205px' }} />}
+            {isInEditMode && propertyName === EditableMetadata.CreationTime && (
+                <div style={{ height: '205px' }} />
+            )}
         </>
     );
 }
@@ -228,10 +294,16 @@ function InfoModal({
                     constants.FILE_ID,
                     items[photoSwipe?.getCurrentIndex()]?.id
                 )}
-                {metadata?.title &&
-                    renderInfoItem(constants.FILE_NAME, metadata.title)}
+                {metadata?.title && (
+                    <RenderEditableProp
+                        propertyName={EditableMetadata.Title}
+                        file={items[photoSwipe?.getCurrentIndex()]}
+                        scheduleUpdate={scheduleUpdate}
+                    />
+                )}
                 {metadata?.creationTime && (
-                    <RenderCreationTime
+                    <RenderEditableProp
+                        propertyName={EditableMetadata.CreationTime}
                         file={items[photoSwipe?.getCurrentIndex()]}
                         scheduleUpdate={scheduleUpdate}
                     />
