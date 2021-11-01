@@ -379,6 +379,17 @@ export async function changeFileCreationTime(file: File, editedTime: number) {
     );
 }
 
+export async function changeFileName(file: File, editedName: string) {
+    const updatedPublicMagicMetadataProps: PublicMagicMetadataProps = {
+        editedName,
+    };
+
+    return await updatePublicMagicMetadata(
+        file,
+        updatedPublicMagicMetadataProps
+    );
+}
+
 export function isSharedFile(file: File) {
     const user: User = getData(LS_KEYS.USER);
 
@@ -397,6 +408,9 @@ export function mergeMetadata(files: File[]): File[] {
                 ? {
                       ...(file.pubMagicMetadata?.data.editedTime && {
                           creationTime: file.pubMagicMetadata.data.editedTime,
+                      }),
+                      ...(file.pubMagicMetadata?.data.editedName && {
+                          title: file.pubMagicMetadata.data.editedName,
                       }),
                   }
                 : {}),
