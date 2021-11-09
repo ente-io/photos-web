@@ -286,11 +286,10 @@ export const createCollection = async (
 ): Promise<Collection> => {
     try {
         if (!existingCollections) {
-            existingCollections = await syncCollections();
-        }
-        for (const collection of existingCollections) {
-            if (collection.name === collectionName) {
-                return collection;
+            for (const collection of existingCollections) {
+                if (collection.name === collectionName) {
+                    return collection;
+                }
             }
         }
         const worker = await new CryptoWorker();
