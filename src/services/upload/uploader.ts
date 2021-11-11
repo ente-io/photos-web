@@ -58,7 +58,6 @@ export default async function uploader(
             collection,
             fileTypeInfo
         );
-
         if (fileAlreadyInCollection(existingFilesInCollection, metadata)) {
             UIService.setFileProgress(rawFile.name, FileUploadResults.SKIPPED);
             // wait two second before removing the file from the progress in file section
