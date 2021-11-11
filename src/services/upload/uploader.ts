@@ -66,6 +66,9 @@ export default async function uploader(
         }
 
         file = await UploadService.readFile(worker, rawFile, fileTypeInfo);
+
+        UIService.setFileProgress(rawFile.name, FileUploadResults.SKIPPED);
+        return { fileUploadResult: FileUploadResults.SKIPPED };
         if (file.hasStaticThumbnail) {
             metadata.hasStaticThumbnail = true;
         }
