@@ -305,24 +305,24 @@ export default function Upload(props: Props) {
         analysisResult: AnalysisResult,
         isFirstUpload: boolean
     ) => {
-        if (!analysisResult.suggestedCollectionName) {
-            if (isFirstUpload) {
+        if (isFirstUpload) {
+            if (!analysisResult.suggestedCollectionName) {
                 uploadToSingleNewCollection(FIRST_ALBUM_NAME);
             } else {
+                uploadToSingleNewCollection(
+                    analysisResult.suggestedCollectionName
+                );
+            }
+        } else {
+            if (analysisResult.multipleFolders) {
+                setChoiceModalView(true);
+            } else if (analysisResult.suggestedCollectionName) {
                 props.setCollectionSelectorAttributes({
                     callback: uploadFilesToExistingCollection,
                     showNextModal: () =>
                         showCollectionCreateModal(analysisResult),
                     title: constants.UPLOAD_TO_COLLECTION,
                 });
-            }
-        } else {
-            if (analysisResult.multipleFolders) {
-                setChoiceModalView(true);
-            } else if (analysisResult.suggestedCollectionName) {
-                uploadToSingleNewCollection(
-                    analysisResult.suggestedCollectionName
-                );
             }
         }
     };
