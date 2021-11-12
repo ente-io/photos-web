@@ -29,6 +29,7 @@
     "eslint-plugin-jsx-a11y": "^6.4.1",
     "eslint-plugin-react-hooks": "^4.2.0",
     "exifr": "^7.1.3",
+    "ffmpeg.js": "^4.2.9003",
     "file-type": "^16.5.3",
     "formik": "^2.1.5",
     "heic-convert": "^1.2.4",
@@ -66,6 +67,7 @@
   "devDependencies": {
     "@next/bundle-analyzer": "^9.5.3",
     "@types/debounce-promise": "^3.1.3",
+    "@types/ffmpeg.js": "^3.1.2",
     "@types/libsodium-wrappers": "^0.7.8",
     "@types/node": "^14.6.4",
     "@types/photoswipe": "^4.1.1",

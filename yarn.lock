@@ -1400,6 +1400,11 @@
   resolved "https://registry.npmjs.org/@types/estree/-/estree-0.0.39.tgz"
   integrity sha512-EYNwp3bU+98cpU4lAWYYL7Zz+2gryWH1qbdDTidVd6hkiR6weksdbMadyXKXNPEkQFhXM+hVO9ZygomHXp+AIw==
 
+"@types/ffmpeg.js@^3.1.2":
+  version "3.1.2"
+  resolved "https://registry.yarnpkg.com/@types/ffmpeg.js/-/ffmpeg.js-3.1.2.tgz#d1e9af2545b00271a7d3030236ef8cb5d2df6047"
+  integrity sha512-scmwYIOjFrNrR7/NPXlQO+sIH+4fuoUo14lcc3oly+W7qMwVU+UI/L4ftGF94iuvWfsLh7/CoQxc+6KTEdW5pg==
+
 "@types/glob@^7.1.1":
   version "7.1.4"
   resolved "https://registry.npmjs.org/@types/glob/-/glob-7.1.4.tgz"
@@ -3327,6 +3332,11 @@ fastq@^1.6.0:
   integrity sha512-VNX0QkHK3RsXVKr9KrlUv/FoTa0NdbYoHHl7uXHv2rzyHSlxjdNAKug2twd9luJxpcyNeAgf5iPPMutJO67Dfg==
   dependencies:
     reusify "^1.0.4"
+
+ffmpeg.js@^4.2.9003:
+  version "4.2.9003"
+  resolved "https://registry.yarnpkg.com/ffmpeg.js/-/ffmpeg.js-4.2.9003.tgz#3a97d53c35eaee5c27cd7d0edf7c57ccec4a059d"
+  integrity sha512-l1JBr8HwnnJEaSwg5p8K3Ifbom8O2IDHsZp7UVyr6MzQ7gc32tt/2apoOuQAr/j76c+uDOjla799VSsBnRvSTg==
 
 file-entry-cache@^6.0.1:
   version "6.0.1"
