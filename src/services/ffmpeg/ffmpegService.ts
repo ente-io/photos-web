@@ -32,12 +32,15 @@ class FFmpegService {
             const response = this.generateThumbnailProcessor.queueUpRequest(
                 () => this.ffmpegWorker.generateThumbnail(file)
             );
-
-            const thumbnail = await response.promise;
-            if (!thumbnail) {
-                throw Error(CustomError.THUMBNAIL_GENERATION_FAILED);
+            try {
+                return await response.promise;
+            } catch (e) {
+                if (e.message === CustomError.REQUEST_CANCELLED) {
+                    // ignore
+                    return null;
+                }
+                throw e;
             }
-            return thumbnail;
         } catch (e) {
             logError(e, 'ffmpeg thumbnail generation failed');
             throw e;
