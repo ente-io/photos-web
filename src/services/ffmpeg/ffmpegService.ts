@@ -28,13 +28,11 @@ class FFmpegService {
         if (this.ffmpegWorker.isLoading()) {
             await this.ffmpegWorker.isLoading();
         }
-        // const response = this.generateThumbnailProcessor.queueUpRequest(
-        //     this.ffmpegWorker.generateThumbnail.bind(null, file)
-        // );
+        const response = this.generateThumbnailProcessor.queueUpRequest(() =>
+            this.ffmpegWorker.generateThumbnail(file)
+        );
 
-        // const thumbnail = await response.promise;
-        const thumbnail = await this.ffmpegWorker.generateThumbnail(file);
-        console.log(URL.createObjectURL(new Blob([thumbnail])));
+        const thumbnail = await response.promise;
         if (!thumbnail) {
             throw Error(CustomError.THUMBNAIL_GENERATION_FAILED);
         }
