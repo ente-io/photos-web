@@ -1,5 +1,5 @@
 import { createFFmpeg, FFmpeg } from 'ffmpeg';
-import { getUint8ArrayView } from 'utils/readFile';
+import { getUint8ArrayView, sanitizeName } from 'utils/ffmpeg';
 
 class FFmpegClient {
     private ffmpeg: FFmpeg = null;
@@ -23,7 +23,9 @@ class FFmpegClient {
         if (!this.ffmpeg) {
             throw Error('ffmpeg not loaded');
         }
-        const inputFileName = `${Date.now().toString()}-${file.name}`;
+        const inputFileName = `${Date.now().toString()}-${sanitizeName(
+            file.name
+        )}`;
         const thumbFileName = `${Date.now().toString()}-thumb.jpeg`;
 
         try {

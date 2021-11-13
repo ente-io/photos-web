@@ -16,3 +16,7 @@ export async function getUint8ArrayView(
         reader.readAsArrayBuffer(file);
     });
 }
+
+export async function sanitizeName(name) {
+    return name.replaceAll('/', '_').replaceAll(' ', '_');
+}
