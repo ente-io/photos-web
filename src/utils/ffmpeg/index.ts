@@ -17,6 +17,6 @@ export async function getUint8ArrayView(
     });
 }
 
-export async function sanitizeName(name) {
+export function sanitizeName(name) {
     return name.replaceAll('/', '_').replaceAll(' ', '_');
 }
