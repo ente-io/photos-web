@@ -7,18 +7,48 @@ import {
     addToFavorites,
     removeFromFavorites,
 } from 'services/collectionService';
-import { File, FILE_TYPE } from 'services/fileService';
+import {
+    ALL_TIME,
+    File,
+    MAX_EDITED_FILE_NAME_LENGTH,
+    MAX_EDITED_CREATION_TIME,
+    MIN_EDITED_CREATION_TIME,
+    updatePublicMagicMetadata,
+} from 'services/fileService';
 import constants from 'utils/strings/constants';
-import DownloadManger from 'services/downloadManager';
 import exifr from 'exifr';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
-import Form from 'react-bootstrap/Form';
 import styled from 'styled-components';
 import events from './events';
-import { fileNameWithoutExtension, formatDateTime } from 'utils/file';
-import { FormCheck } from 'react-bootstrap';
+import {
+    changeFileCreationTime,
+    changeFileName,
+    downloadFile,
+    formatDateTime,
+    splitFilenameAndExtension,
+    updateExistingFilePubMetadata,
+} from 'utils/file';
+import { Col, Form, FormCheck, FormControl } from 'react-bootstrap';
 import { prettyPrintExif } from 'utils/exif';
+import EditIcon from 'components/icons/EditIcon';
+import {
+    FlexWrapper,
+    IconButton,
+    Label,
+    Row,
+    Value,
+} from 'components/Container';
+import { logError } from 'utils/sentry';
+
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import CloseIcon from 'components/icons/CloseIcon';
+import TickIcon from 'components/icons/TickIcon';
+import { FreeFlowText } from 'components/RecoveryKeyModal';
+import { Formik } from 'formik';
+import * as Yup from 'yup';
+import EnteSpinner from 'components/EnteSpinner';
 
 interface Iprops {
     isOpen: boolean;
@@ -30,6 +60,8 @@ interface Iprops {
     className?: string;
     favItemIds: Set<number>;
     loadingBar: any;
+    isSharedCollection: boolean;
+    isTrashCollection: boolean;
 }
 
 const LegendContainer = styled.div`
@@ -49,16 +81,278 @@ const Pre = styled.pre`
 `;
 
 const renderInfoItem = (label: string, value: string | JSX.Element) => (
-    <>
-        <Form.Label column sm="4">
-            {label}
-        </Form.Label>
-        <Form.Label column sm="8">
-            {value}
-        </Form.Label>
-    </>
+    <Row>
+        <Label width="30%">{label}</Label>
+        <Value width="70%">{value}</Value>
+    </Row>
 );
 
+const isSameDay = (first, second) =>
+    first.getFullYear() === second.getFullYear() &&
+    first.getMonth() === second.getMonth() &&
+    first.getDate() === second.getDate();
+
+function RenderCreationTime({
+    file,
+    scheduleUpdate,
+}: {
+    file: File;
+    scheduleUpdate: () => void;
+}) {
+    const originalCreationTime = new Date(file?.metadata.creationTime / 1000);
+    const [isInEditMode, setIsInEditMode] = useState(false);
+
+    const [pickedTime, setPickedTime] = useState(originalCreationTime);
+
+    const openEditMode = () => setIsInEditMode(true);
+    const closeEditMode = () => setIsInEditMode(false);
+
+    const saveEdits = async () => {
+        try {
+            if (isInEditMode && file) {
+                const unixTimeInMicroSec = pickedTime.getTime() * 1000;
+                if (unixTimeInMicroSec === file?.metadata.creationTime) {
+                    closeEditMode();
+                    return;
+                }
+                let updatedFile = await changeFileCreationTime(
+                    file,
+                    unixTimeInMicroSec
+                );
+                updatedFile = (
+                    await updatePublicMagicMetadata([updatedFile])
+                )[0];
+                updateExistingFilePubMetadata(file, updatedFile);
+                scheduleUpdate();
+            }
+        } catch (e) {
+            logError(e, 'failed to update creationTime');
+        }
+        closeEditMode();
+    };
+    const discardEdits = () => {
+        setPickedTime(originalCreationTime);
+        closeEditMode();
+    };
+    const handleChange = (newDate) => {
+        if (newDate instanceof Date) {
+            setPickedTime(newDate);
+        }
+    };
+    return (
+        <>
+            <Row>
+                <Label width="30%">{constants.CREATION_TIME}</Label>
+                <Value width={isInEditMode ? '50%' : '60%'}>
+                    {isInEditMode ? (
+                        <DatePicker
+                            open={isInEditMode}
+                            selected={pickedTime}
+                            onChange={handleChange}
+                            timeInputLabel="Time:"
+                            dateFormat="dd/MM/yyyy h:mm aa"
+                            showTimeSelect
+                            autoFocus
+                            minDate={MIN_EDITED_CREATION_TIME}
+                            maxDate={MAX_EDITED_CREATION_TIME}
+                            maxTime={
+                                isSameDay(pickedTime, new Date())
+                                    ? MAX_EDITED_CREATION_TIME
+                                    : ALL_TIME
+                            }
+                            minTime={MIN_EDITED_CREATION_TIME}
+                            fixedHeight
+                            withPortal></DatePicker>
+                    ) : (
+                        formatDateTime(pickedTime)
+                    )}
+                </Value>
+                <Value
+                    width={isInEditMode ? '20%' : '10%'}
+                    style={{ cursor: 'pointer', marginLeft: '10px' }}>
+                    {!isInEditMode ? (
+                        <IconButton onClick={openEditMode}>
+                            <EditIcon />
+                        </IconButton>
+                    ) : (
+                        <>
+                            <IconButton onClick={saveEdits}>
+                                <TickIcon />
+                            </IconButton>
+                            <IconButton onClick={discardEdits}>
+                                <CloseIcon />
+                            </IconButton>
+                        </>
+                    )}
+                </Value>
+            </Row>
+        </>
+    );
+}
+const getFileTitle = (filename, extension) => {
+    if (extension) {
+        return filename + '.' + extension;
+    } else {
+        return filename;
+    }
+};
+interface formValues {
+    filename: string;
+}
+
+const FileNameEditForm = ({ filename, saveEdits, discardEdits, extension }) => {
+    const [loading, setLoading] = useState(false);
+
+    const onSubmit = async (values: formValues) => {
+        try {
+            setLoading(true);
+            await saveEdits(values.filename);
+        } finally {
+            setLoading(false);
+        }
+    };
+    return (
+        <Formik<formValues>
+            initialValues={{ filename }}
+            validationSchema={Yup.object().shape({
+                filename: Yup.string()
+                    .required(constants.REQUIRED)
+                    .max(
+                        MAX_EDITED_FILE_NAME_LENGTH,
+                        constants.FILE_NAME_CHARACTER_LIMIT
+                    ),
+            })}
+            validateOnBlur={false}
+            onSubmit={onSubmit}>
+            {({ values, errors, handleChange, handleSubmit }) => (
+                <Form noValidate onSubmit={handleSubmit}>
+                    <Form.Row>
+                        <Form.Group
+                            bsPrefix="ente-form-group"
+                            as={Col}
+                            xs={extension ? 7 : 8}>
+                            <Form.Control
+                                as="textarea"
+                                placeholder={constants.FILE_NAME}
+                                value={values.filename}
+                                onChange={handleChange('filename')}
+                                isInvalid={Boolean(errors.filename)}
+                                autoFocus
+                                disabled={loading}
+                            />
+                            <FormControl.Feedback
+                                type="invalid"
+                                style={{ textAlign: 'center' }}>
+                                {errors.filename}
+                            </FormControl.Feedback>
+                        </Form.Group>
+                        {extension && (
+                            <Form.Group
+                                bsPrefix="ente-form-group"
+                                as={Col}
+                                xs={1}
+                                controlId="formHorizontalFileName">
+                                <FlexWrapper style={{ padding: '5px' }}>
+                                    {`.${extension}`}
+                                </FlexWrapper>
+                            </Form.Group>
+                        )}
+                        <Form.Group bsPrefix="ente-form-group" as={Col} xs={2}>
+                            <Value width={'16.67%'}>
+                                <IconButton type="submit" disabled={loading}>
+                                    {loading ? (
+                                        <EnteSpinner
+                                            style={{
+                                                width: '20px',
+                                                height: '20px',
+                                            }}
+                                        />
+                                    ) : (
+                                        <TickIcon />
+                                    )}
+                                </IconButton>
+                                <IconButton
+                                    onClick={discardEdits}
+                                    disabled={loading}>
+                                    <CloseIcon />
+                                </IconButton>
+                            </Value>
+                        </Form.Group>
+                    </Form.Row>
+                </Form>
+            )}
+        </Formik>
+    );
+};
+
+function RenderFileName({
+    file,
+    scheduleUpdate,
+}: {
+    file: File;
+    scheduleUpdate: () => void;
+}) {
+    const originalTitle = file?.metadata.title;
+    const [isInEditMode, setIsInEditMode] = useState(false);
+    const [originalFileName, extension] =
+        splitFilenameAndExtension(originalTitle);
+    const [filename, setFilename] = useState(originalFileName);
+    const openEditMode = () => setIsInEditMode(true);
+    const closeEditMode = () => setIsInEditMode(false);
+
+    const saveEdits = async (newFilename: string) => {
+        try {
+            if (file) {
+                if (filename === newFilename) {
+                    closeEditMode();
+                    return;
+                }
+                setFilename(newFilename);
+                const newTitle = getFileTitle(newFilename, extension);
+                let updatedFile = await changeFileName(file, newTitle);
+                updatedFile = (
+                    await updatePublicMagicMetadata([updatedFile])
+                )[0];
+                updateExistingFilePubMetadata(file, updatedFile);
+                scheduleUpdate();
+            }
+        } catch (e) {
+            logError(e, 'failed to update file name');
+        } finally {
+            closeEditMode();
+        }
+    };
+    return (
+        <>
+            <Row>
+                <Label width="30%">{constants.FILE_NAME}</Label>
+                {!isInEditMode ? (
+                    <>
+                        <Value width="60%">
+                            <FreeFlowText>
+                                {getFileTitle(filename, extension)}
+                            </FreeFlowText>
+                        </Value>
+                        <Value
+                            width="10%"
+                            style={{ cursor: 'pointer', marginLeft: '10px' }}>
+                            <IconButton onClick={openEditMode}>
+                                <EditIcon />
+                            </IconButton>
+                        </Value>
+                    </>
+                ) : (
+                    <FileNameEditForm
+                        extension={extension}
+                        filename={filename}
+                        saveEdits={saveEdits}
+                        discardEdits={closeEditMode}
+                    />
+                )}
+            </Row>
+        </>
+    );
+}
 function ExifData(props: { exif: any }) {
     const { exif } = props;
     const [showAll, setShowAll] = useState(false);
@@ -112,6 +406,71 @@ function ExifData(props: { exif: any }) {
     );
 }
 
+function InfoModal({
+    showInfo,
+    handleCloseInfo,
+    items,
+    photoSwipe,
+    metadata,
+    exif,
+    scheduleUpdate,
+}) {
+    return (
+        <Modal show={showInfo} onHide={handleCloseInfo}>
+            <Modal.Header closeButton>
+                <Modal.Title>{constants.INFO}</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <div>
+                    <Legend>{constants.METADATA}</Legend>
+                </div>
+                {renderInfoItem(
+                    constants.FILE_ID,
+                    items[photoSwipe?.getCurrentIndex()]?.id
+                )}
+                {metadata?.title && (
+                    <RenderFileName
+                        file={items[photoSwipe?.getCurrentIndex()]}
+                        scheduleUpdate={scheduleUpdate}
+                    />
+                )}
+                {metadata?.creationTime && (
+                    <RenderCreationTime
+                        file={items[photoSwipe?.getCurrentIndex()]}
+                        scheduleUpdate={scheduleUpdate}
+                    />
+                )}
+                {metadata?.modificationTime &&
+                    renderInfoItem(
+                        constants.UPDATED_ON,
+                        formatDateTime(metadata.modificationTime / 1000)
+                    )}
+                {metadata?.longitude > 0 &&
+                    metadata?.longitude > 0 &&
+                    renderInfoItem(
+                        constants.LOCATION,
+                        <a
+                            href={`https://www.openstreetmap.org/?mlat=${metadata.latitude}&mlon=${metadata.longitude}#map=15/${metadata.latitude}/${metadata.longitude}`}
+                            target="_blank"
+                            rel="noopener noreferrer">
+                            {constants.SHOW_MAP}
+                        </a>
+                    )}
+                {exif && (
+                    <>
+                        <ExifData exif={exif} />
+                    </>
+                )}
+            </Modal.Body>
+            <Modal.Footer>
+                <Button variant="outline-secondary" onClick={handleCloseInfo}>
+                    {constants.CLOSE}
+                </Button>
+            </Modal.Footer>
+        </Modal>
+    );
+}
+
 function PhotoSwipe(props: Iprops) {
     const pswpElement = useRef<HTMLDivElement>();
     const [photoSwipe, setPhotoSwipe] = useState<Photoswipe<any>>();
@@ -139,6 +498,13 @@ function PhotoSwipe(props: Iprops) {
     useEffect(() => {
         updateItems(items);
     }, [items]);
+
+    useEffect(() => {
+        if (photoSwipe) {
+            photoSwipe.options.arrowKeys = !showInfo;
+            photoSwipe.options.escKey = !showInfo;
+        }
+    }, [showInfo]);
 
     function updateFavButton() {
         setIsFav(isInFav(this?.currItem));
@@ -295,22 +661,13 @@ function PhotoSwipe(props: Iprops) {
         setShowInfo(true);
     };
 
-    const downloadFile = async (file) => {
+    const downloadFileHelper = async (file) => {
         const { loadingBar } = props;
-        const a = document.createElement('a');
-        a.style.display = 'none';
         loadingBar.current.continuousStart();
-        a.href = await DownloadManger.getFile(file);
+        await downloadFile(file);
         loadingBar.current.complete();
-        if (file.metadata.fileType === FILE_TYPE.LIVE_PHOTO) {
-            a.download = fileNameWithoutExtension(file.metadata.title) + '.zip';
-        } else {
-            a.download = file.metadata.title;
-        }
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
     };
+    const scheduleUpdate = () => (needUpdate.current = true);
     const { id } = props;
     let { className } = props;
     className = classnames(['pswp', className]).trim();
@@ -343,7 +700,7 @@ function PhotoSwipe(props: Iprops) {
                                 className="pswp-custom download-btn"
                                 title={constants.DOWNLOAD}
                                 onClick={() =>
-                                    downloadFile(photoSwipe.currItem)
+                                    downloadFileHelper(photoSwipe.currItem)
                                 }
                             />
 
@@ -355,13 +712,16 @@ function PhotoSwipe(props: Iprops) {
                                 className="pswp__button pswp__button--zoom"
                                 title={constants.ZOOM_IN_OUT}
                             />
-                            <FavButton
-                                size={44}
-                                isClick={isFav}
-                                onClick={() => {
-                                    onFavClick(photoSwipe?.currItem);
-                                }}
-                            />
+                            {!props.isSharedCollection &&
+                                !props.isTrashCollection && (
+                                    <FavButton
+                                        size={44}
+                                        isClick={isFav}
+                                        onClick={() => {
+                                            onFavClick(photoSwipe?.currItem);
+                                        }}
+                                    />
+                                )}
                             <button
                                 className="pswp-custom info-btn"
                                 title={constants.INFO}
@@ -387,64 +747,20 @@ function PhotoSwipe(props: Iprops) {
                             title={constants.NEXT}
                         />
                         <div className="pswp__caption">
-                            <div className="pswp__caption__center" />
+                            <div />
                         </div>
                     </div>
                 </div>
             </div>
-            <Modal show={showInfo} onHide={handleCloseInfo}>
-                <Modal.Header closeButton>
-                    <Modal.Title>{constants.INFO}</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <Form.Group>
-                        <div>
-                            <Legend>{constants.METADATA}</Legend>
-                        </div>
-                        {renderInfoItem(
-                            constants.FILE_ID,
-                            items[photoSwipe?.getCurrentIndex()]?.id
-                        )}
-                        {metadata?.title &&
-                            renderInfoItem(constants.FILE_NAME, metadata.title)}
-                        {metadata?.creationTime &&
-                            renderInfoItem(
-                                constants.CREATION_TIME,
-                                formatDateTime(metadata.creationTime / 1000)
-                            )}
-                        {metadata?.modificationTime &&
-                            renderInfoItem(
-                                constants.UPDATED_ON,
-                                formatDateTime(metadata.modificationTime / 1000)
-                            )}
-                        {metadata?.longitude > 0 &&
-                            metadata?.longitude > 0 &&
-                            renderInfoItem(
-                                constants.LOCATION,
-                                <a
-                                    href={`https://www.openstreetmap.org/?mlat=${metadata.latitude}&mlon=${metadata.longitude}#map=15/${metadata.latitude}/${metadata.longitude}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer">
-                                    {constants.SHOW_MAP}
-                                </a>
-                            )}
-                        {exif && (
-                            <>
-                                <br />
-                                <br />
-                                <ExifData exif={exif} />
-                            </>
-                        )}
-                    </Form.Group>
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button
-                        variant="outline-secondary"
-                        onClick={handleCloseInfo}>
-                        {constants.CLOSE}
-                    </Button>
-                </Modal.Footer>
-            </Modal>
+            <InfoModal
+                showInfo={showInfo}
+                handleCloseInfo={handleCloseInfo}
+                items={items}
+                photoSwipe={photoSwipe}
+                metadata={metadata}
+                exif={exif}
+                scheduleUpdate={scheduleUpdate}
+            />
         </>
     );
 }

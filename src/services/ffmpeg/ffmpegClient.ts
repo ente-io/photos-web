@@ -17,18 +17,20 @@ class FFmpegClient {
     }
 
     async generateThumbnail(file: File) {
-        if (!file) {
-            throw Error('invalid input file');
-        }
-        if (!this.ffmpeg) {
-            throw Error('ffmpeg not loaded');
-        }
-        const inputFileName = `${Date.now().toString()}-${sanitizeName(
-            file.name
-        )}`;
-        const thumbFileName = `${Date.now().toString()}-thumb.jpeg`;
-
+        let inputFileName: string;
+        let thumbFileName: string;
         try {
+            if (!file) {
+                throw Error('invalid input file');
+            }
+            if (!this.ffmpeg) {
+                throw Error('ffmpeg not loaded');
+            }
+            inputFileName = `${Date.now().toString()}-${sanitizeName(
+                file.name
+            )}`;
+            thumbFileName = `${Date.now().toString()}-thumb.jpeg`;
+
             await this.writeFile(inputFileName, file);
 
             let seekTime = 1.0;
@@ -40,12 +42,10 @@ class FFmpegClient {
                         `00:00:0${seekTime.toFixed(3)}`,
                         '-i',
                         inputFileName,
-                        '-s',
-                        '960x540',
-                        '-f',
-                        'image2',
                         '-vframes',
                         '1',
+                        '-vf',
+                        'scale=-1:720',
                         thumbFileName
                     );
                     thumb = this.ffmpeg.FS('readFile', thumbFileName);
@@ -76,18 +76,6 @@ class FFmpegClient {
             saveName,
             await getUint8ArrayView(new FileReader(), file)
         );
-        //     const FS = this.ffmpeg.FS;
-        //     const rootDirs = FS('readdir', '/');
-        //     if (rootDirs.indexOf('input') === -1) {
-        //         FS('mkdir', '/input');
-        //     } else {
-        //         this.ffmpeg.FS('unmount', 'input');
-        //     }
-        //     if (rootDirs.indexOf('output') === -1) {
-        //         FS('mkdir', '/output');
-        //     }
-        //     const tmpfile = new File([file], 'file', { type: file.type });
-        //     FS('mount', 'WORKERFS', { files: [tmpfile] }, '/input');
     }
 }
 

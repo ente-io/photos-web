@@ -22,8 +22,6 @@ export const IconButton = styled.button`
     background: none;
     border: none;
     border-radius: 50%;
-    width: 40px;
-    height: 40px;
     padding: 5px;
     color: inherit;
     margin: 0 10px;
@@ -57,6 +55,7 @@ export const Value = styled.div<{ width?: string }>`
 `;
 
 export const FlexWrapper = styled.div`
+    width: 100%;
     display: flex;
     text-align: center;
     justify-content: center;

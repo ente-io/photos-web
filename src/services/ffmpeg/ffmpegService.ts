@@ -22,21 +22,26 @@ class FFmpegService {
     }
 
     async generateThumbnail(file: File) {
-        if (!this.ffmpegWorker) {
-            await this.init();
-        }
-        if (this.ffmpegWorker.isLoading()) {
-            await this.ffmpegWorker.isLoading();
-        }
-        const response = this.generateThumbnailProcessor.queueUpRequest(() =>
-            this.ffmpegWorker.generateThumbnail(file)
-        );
+        try {
+            if (!this.ffmpegWorker) {
+                await this.init();
+            }
+            if (this.ffmpegWorker.isLoading()) {
+                await this.ffmpegWorker.isLoading();
+            }
+            const response = this.generateThumbnailProcessor.queueUpRequest(
+                () => this.ffmpegWorker.generateThumbnail(file)
+            );
 
-        const thumbnail = await response.promise;
-        if (!thumbnail) {
-            throw Error(CustomError.THUMBNAIL_GENERATION_FAILED);
+            const thumbnail = await response.promise;
+            if (!thumbnail) {
+                throw Error(CustomError.THUMBNAIL_GENERATION_FAILED);
+            }
+            return thumbnail;
+        } catch (e) {
+            logError(e, 'ffmpeg thumbnail generation failed');
+            throw e;
         }
-        return thumbnail;
     }
 }
 

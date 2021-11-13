@@ -12,6 +12,7 @@ import HTTPService from './HTTPService';
 import { File } from './fileService';
 import { logError } from 'utils/sentry';
 import { CustomError } from 'utils/common/errorUtil';
+import { sortFiles } from 'utils/file';
 
 const ENDPOINT = getEndpoint();
 
@@ -22,7 +23,6 @@ export enum CollectionType {
 }
 
 const COLLECTION_UPDATION_TIME = 'collection-updation-time';
-const FAV_COLLECTION = 'fav-collection';
 const COLLECTIONS = 'collections';
 
 export interface Collection {
@@ -39,6 +39,24 @@ export interface Collection {
     encryptedKey: string;
     keyDecryptionNonce: string;
     isDeleted: boolean;
+    isSharedCollection?: boolean;
+}
+
+interface EncryptedFileKey {
+    id: number;
+    encryptedKey: string;
+    keyDecryptionNonce: string;
+}
+
+interface AddToCollectionRequest {
+    collectionID: number;
+    files: EncryptedFileKey[];
+}
+
+interface MoveToCollectionRequest {
+    fromCollectionID: number;
+    toCollectionID: number;
+    files: EncryptedFileKey[];
 }
 
 interface collectionAttributes {
@@ -49,6 +67,17 @@ interface collectionAttributes {
 export interface CollectionAndItsLatestFile {
     collection: Collection;
     file: File;
+}
+
+export enum COLLECTION_SORT_BY {
+    LATEST_FILE,
+    MODIFICATION_TIME,
+    NAME,
+}
+
+interface RemoveFromCollectionRequest {
+    collectionID: number;
+    fileIDs: number[];
 }
 
 const getCollectionWithSecrets = async (
@@ -167,7 +196,7 @@ export const syncCollections = async () => {
         }
     });
 
-    const collections: Collection[] = [];
+    let collections: Collection[] = [];
     let updationTime = await localForage.getItem<number>(
         COLLECTION_UPDATION_TIME
     );
@@ -178,15 +207,38 @@ export const syncCollections = async () => {
             updationTime = Math.max(updationTime, collection.updationTime);
         }
     }
-    collections.sort((a, b) => b.updationTime - a.updationTime);
-    collections.sort((a, b) => (b.type === CollectionType.favorites ? 1 : 0));
-    await localForage.setItem(COLLECTION_UPDATION_TIME, updationTime);
+    collections = sortCollections(
+        collections,
+        [],
+        COLLECTION_SORT_BY.MODIFICATION_TIME
+    );
     await localForage.setItem(COLLECTIONS, collections);
+    await localForage.setItem(COLLECTION_UPDATION_TIME, updationTime);
     return collections;
 };
 
-export const setLocalCollection = async (collections: Collection[]) => {
-    await localForage.setItem(COLLECTIONS, collections);
+export const getCollection = async (
+    collectionID: number
+): Promise<Collection> => {
+    try {
+        const token = getToken();
+        if (!token) {
+            return;
+        }
+        const resp = await HTTPService.get(
+            `${ENDPOINT}/collections/${collectionID}`,
+            null,
+            { 'X-Auth-Token': token }
+        );
+        const key = await getActualKey();
+        const collectionWithSecrets = await getCollectionWithSecrets(
+            resp.data?.collection,
+            key
+        );
+        return collectionWithSecrets;
+    } catch (e) {
+        logError(e, 'failed to get collection', { collectionID });
+    }
 };
 
 export const getCollectionsAndTheirLatestFile = (
@@ -201,15 +253,8 @@ export const getCollectionsAndTheirLatestFile = (
         }
     });
     const collectionsAndTheirLatestFile: CollectionAndItsLatestFile[] = [];
-    const userID = getData(LS_KEYS.USER)?.id;
 
     for (const collection of collections) {
-        if (
-            collection.owner.id !== userID ||
-            collection.type === CollectionType.favorites
-        ) {
-            continue;
-        }
         collectionsAndTheirLatestFile.push({
             collection,
             file: latestFile.get(collection.id),
@@ -319,7 +364,11 @@ export const addToFavorites = async (file: File) => {
                 'Favorites',
                 CollectionType.favorites
             );
-            await localForage.setItem(FAV_COLLECTION, favCollection);
+            const localCollections = await getLocalCollections();
+            await localForage.setItem(COLLECTIONS, [
+                ...localCollections,
+                favCollection,
+            ]);
         }
         await addToCollection(favCollection, [file]);
     } catch (e) {
@@ -344,55 +393,119 @@ export const addToCollection = async (
     files: File[]
 ) => {
     try {
-        const params = {};
-        const worker = await new CryptoWorker();
         const token = getToken();
-        params['collectionID'] = collection.id;
-        await Promise.all(
-            files.map(async (file) => {
-                file.collectionID = collection.id;
-                const newEncryptedKey: B64EncryptionResult =
-                    await worker.encryptToB64(file.key, collection.key);
-                file.encryptedKey = newEncryptedKey.encryptedData;
-                file.keyDecryptionNonce = newEncryptedKey.nonce;
-                if (params['files'] === undefined) {
-                    params['files'] = [];
-                }
-                params['files'].push({
-                    id: file.id,
-                    encryptedKey: file.encryptedKey,
-                    keyDecryptionNonce: file.keyDecryptionNonce,
-                });
-                return file;
-            })
-        );
+        const fileKeysEncryptedWithNewCollection =
+            await encryptWithNewCollectionKey(collection, files);
+
+        const requestBody: AddToCollectionRequest = {
+            collectionID: collection.id,
+            files: fileKeysEncryptedWithNewCollection,
+        };
         await HTTPService.post(
             `${ENDPOINT}/collections/add-files`,
-            params,
+            requestBody,
             null,
-            { 'X-Auth-Token': token }
+            {
+                'X-Auth-Token': token,
+            }
         );
     } catch (e) {
         logError(e, 'Add to collection Failed ');
         throw e;
     }
 };
-const removeFromCollection = async (collection: Collection, files: File[]) => {
+
+export const restoreToCollection = async (
+    collection: Collection,
+    files: File[]
+) => {
     try {
-        const params = {};
         const token = getToken();
-        params['collectionID'] = collection.id;
-        await Promise.all(
-            files.map(async (file) => {
-                if (params['fileIDs'] === undefined) {
-                    params['fileIDs'] = [];
-                }
-                params['fileIDs'].push(file.id);
-            })
-        );
+        const fileKeysEncryptedWithNewCollection =
+            await encryptWithNewCollectionKey(collection, files);
+
+        const requestBody: AddToCollectionRequest = {
+            collectionID: collection.id,
+            files: fileKeysEncryptedWithNewCollection,
+        };
         await HTTPService.post(
-            `${ENDPOINT}/collections/remove-files`,
-            params,
+            `${ENDPOINT}/collections/restore-files`,
+            requestBody,
+            null,
+            {
+                'X-Auth-Token': token,
+            }
+        );
+    } catch (e) {
+        logError(e, 'restore to collection Failed ');
+        throw e;
+    }
+};
+export const moveToCollection = async (
+    fromCollectionID: number,
+    toCollection: Collection,
+    files: File[]
+) => {
+    try {
+        const token = getToken();
+        const fileKeysEncryptedWithNewCollection =
+            await encryptWithNewCollectionKey(toCollection, files);
+
+        const requestBody: MoveToCollectionRequest = {
+            fromCollectionID: fromCollectionID,
+            toCollectionID: toCollection.id,
+            files: fileKeysEncryptedWithNewCollection,
+        };
+        await HTTPService.post(
+            `${ENDPOINT}/collections/move-files`,
+            requestBody,
+            null,
+            {
+                'X-Auth-Token': token,
+            }
+        );
+    } catch (e) {
+        logError(e, 'move to collection Failed ');
+        throw e;
+    }
+};
+
+const encryptWithNewCollectionKey = async (
+    newCollection: Collection,
+    files: File[]
+): Promise<EncryptedFileKey[]> => {
+    const fileKeysEncryptedWithNewCollection: EncryptedFileKey[] = [];
+    const worker = await new CryptoWorker();
+    for (const file of files) {
+        const newEncryptedKey: B64EncryptionResult = await worker.encryptToB64(
+            file.key,
+            newCollection.key
+        );
+        file.encryptedKey = newEncryptedKey.encryptedData;
+        file.keyDecryptionNonce = newEncryptedKey.nonce;
+
+        fileKeysEncryptedWithNewCollection.push({
+            id: file.id,
+            encryptedKey: file.encryptedKey,
+            keyDecryptionNonce: file.keyDecryptionNonce,
+        });
+    }
+    return fileKeysEncryptedWithNewCollection;
+};
+export const removeFromCollection = async (
+    collection: Collection,
+    files: File[]
+) => {
+    try {
+        const token = getToken();
+        const request: RemoveFromCollectionRequest = {
+            collectionID: collection.id,
+            fileIDs: files.map((file) => file.id),
+        };
+
+        await HTTPService.post(
+            `${ENDPOINT}/collections/v2/remove-files`,
+            request,
             null,
             { 'X-Auth-Token': token }
         );
@@ -412,7 +525,7 @@ export const deleteCollection = async (
         const token = getToken();
 
         await HTTPService.delete(
-            `${ENDPOINT}/collections/${collectionID}`,
+            `${ENDPOINT}/collections/v2/${collectionID}`,
             null,
             null,
             { 'X-Auth-Token': token }
@@ -534,3 +647,80 @@ export const getNonEmptyCollections = (
         nonEmptyCollectionsIds.has(collection.id)
     );
 };
+
+export function sortCollections(
+    collections: Collection[],
+    collectionAndTheirLatestFile: CollectionAndItsLatestFile[],
+    sortBy: COLLECTION_SORT_BY
+) {
+    return moveFavCollectionToFront(
+        collections.sort((collectionA, collectionB) => {
+            switch (sortBy) {
+                case COLLECTION_SORT_BY.LATEST_FILE:
+                    return compareCollectionsLatestFile(
+                        collectionAndTheirLatestFile,
+                        collectionA,
+                        collectionB
+                    );
+                case COLLECTION_SORT_BY.MODIFICATION_TIME:
+                    return collectionB.updationTime - collectionA.updationTime;
+                case COLLECTION_SORT_BY.NAME:
+                    return collectionA.name.localeCompare(collectionB.name);
+            }
+        })
+    );
+}
+
+function compareCollectionsLatestFile(
+    collectionAndTheirLatestFile: CollectionAndItsLatestFile[],
+    collectionA: Collection,
+    collectionB: Collection
+) {
+    if (!collectionAndTheirLatestFile?.length) {
+        return 0;
+    }
+    const CollectionALatestFile = getCollectionLatestFile(
+        collectionAndTheirLatestFile,
+        collectionA
+    );
+    const CollectionBLatestFile = getCollectionLatestFile(
+        collectionAndTheirLatestFile,
+        collectionB
+    );
+    if (!CollectionALatestFile || !CollectionBLatestFile) {
+        return 0;
+    } else {
+        const sortedFiles = sortFiles([
+            CollectionALatestFile,
+            CollectionBLatestFile,
+        ]);
+        if (sortedFiles[0].id !== CollectionALatestFile.id) {
+            return 1;
+        } else {
+            return -1;
+        }
+    }
+}
+
+function getCollectionLatestFile(
+    collectionAndTheirLatestFile: CollectionAndItsLatestFile[],
+    collection: Collection
+) {
+    const collectionAndItsLatestFile = collectionAndTheirLatestFile.filter(
+        (collectionAndItsLatestFile) =>
+            collectionAndItsLatestFile.collection.id === collection.id
+    );
+    if (collectionAndItsLatestFile.length === 1) {
+        return collectionAndItsLatestFile[0].file;
+    }
+}
+
+function moveFavCollectionToFront(collections: Collection[]) {
+    return collections.sort((collectionA, collectionB) =>
+        collectionA.type === CollectionType.favorites
+            ? -1
+            : collectionB.type === CollectionType.favorites
+            ? 1
+            : 0
+    );
+}
