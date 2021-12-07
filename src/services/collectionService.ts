@@ -285,10 +285,7 @@ export const createCollection = async (
     existingCollections?: Collection[]
 ): Promise<Collection> => {
     try {
-        if (!existingCollections) {
-            existingCollections = await syncCollections();
-        }
-        for (const collection of existingCollections) {
+        for (const collection of existingCollections ?? []) {
             if (collection.name === collectionName) {
                 return collection;
             }

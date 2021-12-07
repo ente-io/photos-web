@@ -433,8 +433,7 @@ export default function Gallery() {
             try {
                 const collection = await createCollection(
                     collectionName,
-                    CollectionType.album,
-                    collections
+                    CollectionType.album
                 );
 
                 await collectionOpsHelper(ops)(collection);
