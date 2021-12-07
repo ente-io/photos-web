@@ -66,7 +66,7 @@ interface IconWithMessageProps {
 export const IconWithMessage = (props: IconWithMessageProps) => (
     <OverlayTrigger
         placement="bottom"
-        overlay={<p style={{ zIndex: 1002 }}>{props.message}</p>}>
+        overlay={<div style={{ zIndex: 10002 }}>{props.message}</div>}>
         {props.children}
     </OverlayTrigger>
 );

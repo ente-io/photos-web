@@ -22,6 +22,7 @@ import ExportInProgress from './ExportInProgress';
 import FolderIcon from './icons/FolderIcon';
 import InProgressIcon from './icons/InProgressIcon';
 import MessageDialog from './MessageDialog';
+import { IconWithMessage } from './pages/gallery/SelectedFileOptions';
 
 const FolderIconWrapper = styled.div`
     width: 15%;
@@ -36,10 +37,16 @@ const FolderIconWrapper = styled.div`
 `;
 
 const ExportFolderPathContainer = styled.span`
+    cursor: pointer;
+
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     width: 200px;
+    &:hover {
+        color: #51cd7c;
+        text-decoration: underline;
+    }
 
     /* Beginning of string */
     direction: rtl;
@@ -340,9 +347,11 @@ export default function ExportModal(props: Props) {
                             </Button>
                         ) : (
                             <>
-                                <ExportFolderPathContainer>
-                                    {exportFolder}
-                                </ExportFolderPathContainer>
+                                <IconWithMessage message={exportFolder}>
+                                    <ExportFolderPathContainer>
+                                        {exportFolder}
+                                    </ExportFolderPathContainer>
+                                </IconWithMessage>
                                 {(exportStage === ExportStage.FINISHED ||
                                     exportStage === ExportStage.INIT) && (
                                     <FolderIconWrapper
