@@ -7,7 +7,7 @@ import { getFileOriginalName, getFileData } from './readFileService';
 import { encryptFiledata } from './encryptionService';
 import { uploadStreamUsingMultipart } from './multiPartUploadService';
 import UIService from './uiService';
-import { handleUploadError } from 'utils/error';
+import { CustomError, handleUploadError } from 'utils/error';
 import {
     B64EncryptionResult,
     BackupedFile,
@@ -23,15 +23,22 @@ import {
     ProcessedFile,
     UploadFile,
     UploadURL,
+    ParsedMetadataJSONMap,
 } from 'types/upload';
 
 class UploadService {
     private uploadURLs: UploadURL[] = [];
-    private metadataMap: Map<string, ParsedMetadataJSON>;
+    private metadataMap: Map<string, Metadata>;
+    private parsedMetadataJSONMap: Map<string, ParsedMetadataJSON>;
     private pendingUploadCount: number = 0;
 
-    async init(fileCount: number, metadataMap: MetadataMap) {
+    async init(
+        fileCount: number,
+        parsedMetadataJSONMap: ParsedMetadataJSONMap,
+        metadataMap: MetadataMap
+    ) {
         this.pendingUploadCount = fileCount;
+        this.parsedMetadataJSONMap = parsedMetadataJSONMap;
         this.metadataMap = metadataMap;
         await this.preFetchUploadURLs();
     }
@@ -58,14 +65,24 @@ class UploadService {
         };
     }
 
-    async getFileMetadata(
+    async getFileMetadata(file: File, collection: Collection) {
+        const metadata = this.metadataMap.get(
+            getMetadataMapKey(collection.id, getFileOriginalName(file))
+        );
+        if (!metadata) {
+            throw Error(CustomError.FILE_METADATA_MISSING);
+        }
+        return metadata;
+    }
+
+    async assembleFileMetadata(
         rawFile: File,
         collection: Collection,
         fileTypeInfo: FileTypeInfo
     ): Promise<Metadata> {
         const originalName = getFileOriginalName(rawFile);
         const googleMetadata =
-            this.metadataMap.get(
+            this.parsedMetadataJSONMap.get(
                 getMetadataMapKey(collection.id, originalName)
             ) ?? {};
         const extractedMetadata: Metadata = await extractMetadata(

@@ -18,17 +18,22 @@ import { Collection } from 'types/collection';
 import { EnteFile } from 'types/file';
 import {
     FileWithCollection,
+    Metadata,
     MetadataMap,
     ParsedMetadataJSON,
+    ParsedMetadataJSONMap,
     ProgressUpdater,
 } from 'types/upload';
 import { UPLOAD_STAGES, FileUploadResults } from 'constants/upload';
+import { getFileType } from './readFileService';
+import uploadService from './uploadService';
 
 const MAX_CONCURRENT_UPLOADS = 4;
 const FILE_UPLOAD_COMPLETED = 100;
 
 class UploadManager {
     private cryptoWorkers = new Array<ComlinkWorker>(MAX_CONCURRENT_UPLOADS);
+    private parsedMetadataJSONMap: ParsedMetadataJSONMap;
     private metadataMap: MetadataMap;
     private filesToBeUploaded: FileWithCollection[];
     private failedFiles: FileWithCollection[];
@@ -44,7 +49,8 @@ class UploadManager {
     private async init(newCollections?: Collection[]) {
         this.filesToBeUploaded = [];
         this.failedFiles = [];
-        this.metadataMap = new Map<string, ParsedMetadataJSON>();
+        this.parsedMetadataJSONMap = new Map<string, ParsedMetadataJSON>();
+        this.metadataMap = new Map<string, Metadata>();
         this.existingFiles = await getLocalFiles();
         this.existingFilesCollectionWise = sortFilesIntoCollections(
             this.existingFiles
@@ -71,9 +77,13 @@ class UploadManager {
                 UIService.setUploadStage(
                     UPLOAD_STAGES.READING_GOOGLE_METADATA_FILES
                 );
-                await this.seedMetadataMap(metadataFiles);
+                await this.readGoogleMetadataJSONFiles(metadataFiles);
             }
             if (mediaFiles.length) {
+                UIService.setUploadStage(
+                    UPLOAD_STAGES.READING_GOOGLE_METADATA_FILES
+                );
+                await this.readMetadataFromMediaFiles(mediaFiles);
                 UIService.setUploadStage(UPLOAD_STAGES.START);
                 await this.uploadMediaFiles(mediaFiles);
             }
@@ -89,7 +99,9 @@ class UploadManager {
         }
     }
 
-    private async seedMetadataMap(metadataFiles: FileWithCollection[]) {
+    private async readGoogleMetadataJSONFiles(
+        metadataFiles: FileWithCollection[]
+    ) {
         try {
             UIService.reset(metadataFiles.length);
             const reader = new FileReader();
@@ -99,7 +111,7 @@ class UploadManager {
                     fileWithCollection.file
                 );
                 if (parsedMetadataJSON) {
-                    this.metadataMap.set(
+                    this.parsedMetadataJSONMap.set(
                         getMetadataMapKey(
                             fileWithCollection.collectionID,
                             parsedMetadataJSON.title
@@ -115,11 +127,46 @@ class UploadManager {
         }
     }
 
+    private async readMetadataFromMediaFiles(mediaFiles: FileWithCollection[]) {
+        const cryptoWorker = getDedicatedCryptoWorker();
+        try {
+            UIService.reset(mediaFiles.length);
+            const worker = await new cryptoWorker.comlink();
+            for (const fileWithCollection of mediaFiles) {
+                const fileTypeInfo = await getFileType(
+                    worker,
+                    fileWithCollection.file
+                );
+                const metadata = await uploadService.assembleFileMetadata(
+                    fileWithCollection.file,
+                    fileWithCollection.collection,
+                    fileTypeInfo
+                );
+                this.metadataMap.set(
+                    getMetadataMapKey(
+                        fileWithCollection.collectionID,
+                        metadata.title
+                    ),
+                    { ...metadata }
+                );
+            }
+        } catch (e) {
+            logError(e, 'error reading metadata from media files');
+            // silently ignore the error
+        } finally {
+            cryptoWorker.worker.terminate();
+        }
+    }
+
     private async uploadMediaFiles(mediaFiles: FileWithCollection[]) {
         this.filesToBeUploaded.push(...mediaFiles);
         UIService.reset(mediaFiles.length);
 
-        await UploadService.init(mediaFiles.length, this.metadataMap);
+        await UploadService.init(
+            mediaFiles.length,
+            this.parsedMetadataJSONMap,
+            this.metadataMap
+        );
 
         UIService.setUploadStage(UPLOAD_STAGES.UPLOADING);
 
