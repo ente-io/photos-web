@@ -8,13 +8,10 @@ import {
     FileTypeInfo,
 } from 'types/upload';
 import { NULL_LOCATION } from 'constants/upload';
-
-interface ParsedMetadataJSONWithTitle {
-    title: string;
-    parsedMetadataJSON: ParsedMetadataJSON;
-}
+import { getFileOriginalName } from './readFileService';
 
 const NULL_PARSED_METADATA_JSON: ParsedMetadataJSON = {
+    title: null,
     creationTime: null,
     modificationTime: null,
     ...NULL_LOCATION,
@@ -30,7 +27,7 @@ export async function extractMetadata(
     }
 
     const extractedMetadata: Metadata = {
-        title: receivedFile.name,
+        title: getFileOriginalName(receivedFile),
         creationTime:
             exifData?.creationTime ?? receivedFile.lastModified * 1000,
         modificationTime: receivedFile.lastModified * 1000,
@@ -65,10 +62,12 @@ export async function parseMetadataJSON(
         const parsedMetadataJSON: ParsedMetadataJSON =
             NULL_PARSED_METADATA_JSON;
         if (!metadataJSON || !metadataJSON['title']) {
-            return;
+            return null;
         }
 
-        const title = metadataJSON['title'];
+        if (metadataJSON['title']) {
+            parsedMetadataJSON.title = metadataJSON['title'];
+        }
         if (
             metadataJSON['photoTakenTime'] &&
             metadataJSON['photoTakenTime']['timestamp']
@@ -107,7 +106,7 @@ export async function parseMetadataJSON(
             parsedMetadataJSON.latitude = locationData.latitude;
             parsedMetadataJSON.longitude = locationData.longitude;
         }
-        return { title, parsedMetadataJSON } as ParsedMetadataJSONWithTitle;
+        return parsedMetadataJSON;
     } catch (e) {
         logError(e, 'parseMetadataJSON failed');
         // ignore

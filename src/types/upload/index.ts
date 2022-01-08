@@ -33,6 +33,7 @@ export interface Location {
 }
 
 export interface ParsedMetadataJSON {
+    title: string;
     creationTime: number;
     modificationTime: number;
     latitude: number;

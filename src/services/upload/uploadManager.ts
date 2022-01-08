@@ -94,17 +94,15 @@ class UploadManager {
             UIService.reset(metadataFiles.length);
             const reader = new FileReader();
             for (const fileWithCollection of metadataFiles) {
-                const parsedMetadataJSONWithTitle = await parseMetadataJSON(
+                const parsedMetadataJSON = await parseMetadataJSON(
                     reader,
                     fileWithCollection.file
                 );
-                if (parsedMetadataJSONWithTitle) {
-                    const { title, parsedMetadataJSON } =
-                        parsedMetadataJSONWithTitle;
+                if (parsedMetadataJSON) {
                     this.metadataMap.set(
                         getMetadataMapKey(
                             fileWithCollection.collectionID,
-                            title
+                            parsedMetadataJSON.title
                         ),
                         { ...parsedMetadataJSON }
                     );
