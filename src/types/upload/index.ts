@@ -69,7 +69,8 @@ export interface FileWithCollection {
     collection?: Collection;
 }
 
-export type MetadataMap = Map<string, ParsedMetadataJSON>;
+export type ParsedMetadataJSONMap = Map<string, ParsedMetadataJSON>;
+export type MetadataMap = Map<string, Metadata>;
 
 export interface UploadURL {
     url: string;

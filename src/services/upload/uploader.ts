@@ -8,7 +8,6 @@ import UploadHttpClient from './uploadHttpClient';
 import UIService from './uiService';
 import UploadService from './uploadService';
 import uploadService from './uploadService';
-import { getFileType } from './readFileService';
 import {
     BackupedFile,
     EncryptedFile,
@@ -41,7 +40,7 @@ export default async function uploader(
     let file: FileInMemory = null;
     let encryptedFile: EncryptedFile = null;
     let metadata: Metadata = null;
-    let fileTypeInfo: FileTypeInfo = null;
+    const fileTypeInfo: FileTypeInfo = null;
     let fileWithMetadata: FileWithMetadata = null;
 
     try {
@@ -54,15 +53,11 @@ export default async function uploader(
             await sleep(TwoSecondInMillSeconds);
             return { fileUploadResult: FileUploadResults.TOO_LARGE };
         }
-        fileTypeInfo = await getFileType(reader, rawFile);
+        metadata = await uploadService.getFileMetadata(rawFile, collection);
+
         if (fileTypeInfo.fileType === FILE_TYPE.OTHERS) {
             throw Error(CustomError.UNSUPPORTED_FILE_FORMAT);
         }
-        metadata = await uploadService.getFileMetadata(
-            rawFile,
-            collection,
-            fileTypeInfo
-        );
 
         if (fileAlreadyInCollection(existingFilesInCollection, metadata)) {
             UIService.setFileProgress(rawFile.name, FileUploadResults.SKIPPED);
