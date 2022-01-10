@@ -21,7 +21,8 @@
         "**/*.ts",
         "**/*.tsx",
         "src/pages/index.tsx",
-        "configUtil.js"
+        "configUtil.js",
+        "serverConfigUtil.js"
     ],
     "exclude": ["node_modules"]
 }

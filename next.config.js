@@ -7,7 +7,6 @@ const { withSentryConfig } = require('@sentry/nextjs');
 const { PHASE_DEVELOPMENT_SERVER } = require('next/constants');
 
 const {
-    getGitSha,
     convertToNextHeaderFormat,
     buildCSPHeader,
     COOP_COEP_HEADERS,
@@ -17,6 +16,8 @@ const {
     ALL_ROUTES,
     getIsSentryEnabled,
 } = require('./configUtil');
+
+const { getGitSha } = require('./serverConfigUtil');
 
 const GIT_SHA = getGitSha();
 

@@ -1,6 +1,3 @@
-const cp = require('child_process');
-const { getIsSentryEnabled } = require('./sentryConfigUtil');
-
 module.exports = {
     COOP_COEP_HEADERS: {
         'Cross-Origin-Opener-Policy': 'same-origin',
@@ -46,10 +43,15 @@ module.exports = {
     convertToNextHeaderFormat: (headers) =>
         Object.entries(headers).map(([key, value]) => ({ key, value })),
 
-    getGitSha: () =>
-        cp.execSync('git rev-parse --short HEAD', {
-            cwd: __dirname,
-            encoding: 'utf8',
-        }),
-    getIsSentryEnabled: getIsSentryEnabled,
+    getIsSentryEnabled: () => {
+        if (process.env.NEXT_PUBLIC_IS_SENTRY_ENABLED) {
+            return process.env.NEXT_PUBLIC_IS_SENTRY_ENABLED === 'yes';
+        } else {
+            if (process.env.NEXT_PUBLIC_SENTRY_ENV) {
+                return process.env.NEXT_PUBLIC_SENTRY_ENV !== 'development';
+            }
+        }
+        return false;
+    },
+    getAppENV: () => process.env.NEXT_PUBLIC_APP_ENV ?? process.env.NODE_ENV,
 };
