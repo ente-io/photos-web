@@ -8,7 +8,7 @@ import styled from 'styled-components';
 import { DESKTOP_APP_DOWNLOAD_URL } from 'utils/common';
 import constants from 'utils/strings/constants';
 import { Collapse } from 'react-collapse';
-import { ButtonVariant, getVariantColor } from './LinkButton';
+import { VARIANT_COLOR } from './LinkButton';
 import { FileUploadResults, UPLOAD_STAGES } from 'constants/upload';
 
 interface Props {
@@ -66,8 +66,8 @@ const Content = styled.div`
 const NotUploadSectionHeader = styled.div`
     margin-top: 30px;
     text-align: center;
-    color: ${getVariantColor(ButtonVariant.warning)};
-    border-bottom: 1px solid ${getVariantColor(ButtonVariant.warning)};
+    color: ${VARIANT_COLOR.WARNING};
+    border-bottom: 1px solid ${VARIANT_COLOR.WARNING};
     margin: 0 20px;
 `;
 

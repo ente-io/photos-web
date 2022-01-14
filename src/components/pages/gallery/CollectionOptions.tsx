@@ -5,7 +5,7 @@ import { deleteCollection, renameCollection } from 'services/collectionService';
 import { downloadCollection, getSelectedCollection } from 'utils/collection';
 import constants from 'utils/strings/constants';
 import { SetCollectionNamerAttributes } from './CollectionNamer';
-import LinkButton, { ButtonVariant, LinkButtonProps } from './LinkButton';
+import LinkButton, { VARIANT_COLOR, LinkButtonProps } from './LinkButton';
 import { sleep } from 'utils/common';
 import { Collection } from 'types/collection';
 
@@ -143,7 +143,7 @@ const CollectionOptions = (props: CollectionOptionsProps) => {
                     </MenuItem>
                     <MenuItem>
                         <MenuLink
-                            variant={ButtonVariant.danger}
+                            variant={VARIANT_COLOR.DANGER}
                             onClick={confirmDeleteCollection}>
                             {constants.DELETE}
                         </MenuLink>
