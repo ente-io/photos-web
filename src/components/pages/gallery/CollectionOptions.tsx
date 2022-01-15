@@ -23,7 +23,11 @@ interface CollectionOptionsProps {
 
 export const MenuLink = ({ children, ...props }: LinkButtonProps) => (
     <LinkButton
-        style={{ fontSize: '14px', fontWeight: 700, padding: '8px 1em' }}
+        style={{
+            fontSize: '14px',
+            fontWeight: 700,
+            padding: '8px 1em',
+        }}
         {...props}>
         {children}
     </LinkButton>
@@ -143,7 +147,7 @@ const CollectionOptions = (props: CollectionOptionsProps) => {
                     </MenuItem>
                     <MenuItem>
                         <MenuLink
-                            variant={VARIANT_COLOR.DANGER}
+                            color={VARIANT_COLOR.DANGER}
                             onClick={confirmDeleteCollection}>
                             {constants.DELETE}
                         </MenuLink>

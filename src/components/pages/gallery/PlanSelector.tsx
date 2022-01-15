@@ -20,7 +20,7 @@ import {
 import { reverseString } from 'utils/common';
 import { SetDialogMessage } from 'components/MessageDialog';
 import ArrowEast from 'components/icons/ArrowEast';
-import LinkButton from './LinkButton';
+import LinkButton, { VARIANT_COLOR } from './LinkButton';
 import { DeadCenter, GalleryContext } from 'pages/gallery';
 import billingService from 'services/billingService';
 import { SetLoading } from 'types/gallery';
@@ -306,7 +306,7 @@ function PlanSelector(props: Props) {
                         <>
                             {isSubscriptionCancelled(subscription) ? (
                                 <LinkButton
-                                    variant="success"
+                                    color={VARIANT_COLOR.SUCCESS}
                                     onClick={() =>
                                         props.setDialogMessage({
                                             title: constants.CONFIRM_ACTIVATE_SUBSCRIPTION,
@@ -334,7 +334,7 @@ function PlanSelector(props: Props) {
                                 </LinkButton>
                             ) : (
                                 <LinkButton
-                                    variant="danger"
+                                    color={VARIANT_COLOR.DANGER}
                                     onClick={() =>
                                         props.setDialogMessage({
                                             title: constants.CONFIRM_CANCEL_SUBSCRIPTION,
@@ -360,7 +360,7 @@ function PlanSelector(props: Props) {
                                 </LinkButton>
                             )}
                             <LinkButton
-                                variant="primary"
+                                color={VARIANT_COLOR.PRIMARY}
                                 onClick={updatePaymentMethod.bind(
                                     null,
                                     props.setDialogMessage,
@@ -372,10 +372,9 @@ function PlanSelector(props: Props) {
                         </>
                     ) : (
                         <LinkButton
-                            variant="primary"
+                            color={VARIANT_COLOR.SECONDARY}
                             onClick={props.closeModal}
                             style={{
-                                color: 'rgb(121, 121, 121)',
                                 marginTop: '20px',
                             }}>
                             {isOnFreePlan(subscription)

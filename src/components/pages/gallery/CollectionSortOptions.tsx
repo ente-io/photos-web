@@ -6,6 +6,7 @@ import { COLLECTION_SORT_BY } from 'constants/collection';
 import styled from 'styled-components';
 import constants from 'utils/strings/constants';
 import { MenuItem, MenuLink } from './CollectionOptions';
+import { VARIANT_COLOR } from './LinkButton';
 
 interface OptionProps {
     activeSortBy: COLLECTION_SORT_BY;
@@ -33,8 +34,9 @@ const SortByOptionCreator =
                     <Value width="165px">
                         <MenuLink
                             onClick={() => setCollectionSortBy(props.sortBy)}
-                            variant={
-                                activeSortBy === props.sortBy && 'success'
+                            color={
+                                activeSortBy === props.sortBy &&
+                                VARIANT_COLOR.SUCCESS
                             }>
                             {props.children}
                         </MenuLink>

@@ -18,7 +18,7 @@ import {
 import isElectron from 'is-electron';
 import { Collection } from 'types/collection';
 import { useRouter } from 'next/router';
-import LinkButton from './pages/gallery/LinkButton';
+import LinkButton, { VARIANT_COLOR } from './pages/gallery/LinkButton';
 import { downloadApp } from 'utils/common';
 import { getUserDetails, logoutUser } from 'services/userService';
 import { LogoImage } from 'pages/_app';
@@ -320,7 +320,7 @@ export default function Sidebar(props: Props) {
                 </>
                 <Divider />
                 <LinkButton
-                    variant="danger"
+                    color={VARIANT_COLOR.DANGER}
                     style={{ marginTop: '30px' }}
                     onClick={() =>
                         props.setDialogMessage({
@@ -338,7 +338,7 @@ export default function Sidebar(props: Props) {
                     {constants.LOGOUT}
                 </LinkButton>
                 <LinkButton
-                    variant="danger"
+                    color={VARIANT_COLOR.DANGER}
                     style={{ marginTop: '30px' }}
                     onClick={() =>
                         props.setDialogMessage({
