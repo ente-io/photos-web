@@ -17,7 +17,7 @@ import {
     TRASH_SECTION,
 } from 'constants/collection';
 import { isSharedFile } from 'utils/file';
-import { isPlaybackPossible } from 'utils/photoFrame';
+import { getIsPlaybackPossible } from 'utils/photoFrame';
 import { PhotoList } from './PhotoList';
 import { SetFiles, SelectedState, Search, setSearchStats } from 'types/gallery';
 import { FILE_TYPE } from 'constants/file';
@@ -94,7 +94,7 @@ const PhotoFrame = ({
     const [rangeStart, setRangeStart] = useState(null);
     const [currentHover, setCurrentHover] = useState(null);
     const [isShiftKeyPressed, setIsShiftKeyPressed] = useState(false);
-    const filteredDataRef = useRef([]);
+    const filteredDataRef = useRef<EnteFile[]>([]);
     const filteredData = filteredDataRef?.current ?? [];
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -213,14 +213,10 @@ const PhotoFrame = ({
         files[index] = {
             ...files[index],
             msrc: url,
-            src: files[index].src ? files[index].src : url,
             w: window.innerWidth,
             h: window.innerHeight,
         };
-        if (
-            files[index].metadata.fileType === FILE_TYPE.VIDEO &&
-            !files[index].html
-        ) {
+        if (files[index].metadata.fileType === FILE_TYPE.VIDEO) {
             files[index].html = `
                 <div class="video-loading">
                     <img src="${url}" />
@@ -231,23 +227,22 @@ const PhotoFrame = ({
             `;
             delete files[index].src;
         }
-        if (
-            files[index].metadata.fileType === FILE_TYPE.IMAGE &&
-            !files[index].src
-        ) {
+        if (files[index].metadata.fileType === FILE_TYPE.IMAGE) {
             files[index].src = url;
         }
         setFiles(files);
+        return files[index];
     };
 
     const updateSrcUrl = async (index: number, url: string) => {
+        const isPlaybackPossible = await getIsPlaybackPossible(url);
         files[index] = {
             ...files[index],
             w: window.innerWidth,
             h: window.innerHeight,
         };
         if (files[index].metadata.fileType === FILE_TYPE.VIDEO) {
-            if (await isPlaybackPossible(url)) {
+            if (isPlaybackPossible) {
                 files[index].html = `
                 <video controls>
                     <source src="${url}" />
@@ -269,6 +264,7 @@ const PhotoFrame = ({
             files[index].src = url;
         }
         setFiles(files);
+        return files[index];
     };
 
     const handleClose = (needUpdate) => {
@@ -370,13 +366,11 @@ const PhotoFrame = ({
                     url = await DownloadManager.getThumbnail(item);
                     galleryContext.thumbs.set(item.id, url);
                 }
-                updateUrl(item.dataIndex)(url);
-                item.msrc = url;
-                if (!item.src) {
-                    item.src = url;
-                }
-                item.w = window.innerWidth;
-                item.h = window.innerHeight;
+                const updatedFile = updateUrl(item.dataIndex)(url);
+                item.msrc = updatedFile.msrc;
+                item.src = updatedFile.src;
+                item.w = updatedFile.w;
+                item.h = updatedFile.h;
                 try {
                     instance.invalidateCurrItems();
                     instance.updateSize(true);
@@ -397,11 +391,11 @@ const PhotoFrame = ({
                     url = await DownloadManager.getFile(item, true);
                     galleryContext.files.set(item.id, url);
                 }
-                await updateSrcUrl(item.dataIndex, url);
-                item.html = files[item.dataIndex].html;
-                item.src = files[item.dataIndex].src;
-                item.w = files[item.dataIndex].w;
-                item.h = files[item.dataIndex].h;
+                const updatedFile = await updateSrcUrl(item.dataIndex, url);
+                item.html = updatedFile.html;
+                item.src = updatedFile.src;
+                item.w = updatedFile.w;
+                item.h = updatedFile.h;
                 try {
                     instance.invalidateCurrItems();
                     instance.updateSize(true);

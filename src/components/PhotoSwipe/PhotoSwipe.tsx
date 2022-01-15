@@ -55,7 +55,7 @@ const SmallLoadingSpinner = () => (
 );
 interface Iprops {
     isOpen: boolean;
-    items: any[];
+    items: EnteFile[];
     currentIndex?: number;
     onClose?: (needUpdate: boolean) => void;
     gettingData: (instance: any, index: number, item: EnteFile) => void;
@@ -612,7 +612,7 @@ function PhotoSwipe(props: Iprops) {
                 photoSwipe.items.push(item);
             });
             photoSwipe.invalidateCurrItems();
-            // photoSwipe.updateSize(true);
+            photoSwipe.updateSize(true);
         }
     };
 
