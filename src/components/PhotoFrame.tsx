@@ -209,7 +209,7 @@ const PhotoFrame = ({
             });
     }, [files, deleted, search, activeCollection]);
 
-    const updateUrl = (index: number) => (url: string) => {
+    const updateUrl = (index: number) => (file: EnteFile, url: string) => {
         files[index] = {
             ...files[index],
             msrc: url,
@@ -231,26 +231,31 @@ const PhotoFrame = ({
             files[index].src = url;
         }
         setFiles(files);
-        return files[index];
+        file.msrc = files[index].msrc;
+        file.src = files[index].src;
+        file.html = files[index].html;
+        file.h = files[index].h;
+        file.w = files[index].w;
     };
 
-    const updateSrcUrl = async (index: number, url: string) => {
-        const isPlaybackPossible = await getIsPlaybackPossible(url);
-        files[index] = {
-            ...files[index],
-            w: window.innerWidth,
-            h: window.innerHeight,
-        };
-        if (files[index].metadata.fileType === FILE_TYPE.VIDEO) {
-            if (isPlaybackPossible) {
-                files[index].html = `
+    const updateSrcUrl =
+        (index: number) => async (file: EnteFile, url: string) => {
+            const isPlaybackPossible = await getIsPlaybackPossible(url);
+            files[index] = {
+                ...files[index],
+                w: window.innerWidth,
+                h: window.innerHeight,
+            };
+            if (files[index].metadata.fileType === FILE_TYPE.VIDEO) {
+                if (isPlaybackPossible) {
+                    files[index].html = `
                 <video controls>
                     <source src="${url}" />
                     Your browser does not support the video tag.
                 </video>
             `;
-            } else {
-                files[index].html = `
+                } else {
+                    files[index].html = `
                 <div class="video-loading">
                     <img src="${files[index].msrc}" />
                     <div class="download-message" >
@@ -259,13 +264,17 @@ const PhotoFrame = ({
                     </div>
                 </div>
                 `;
+                }
+            } else {
+                files[index].src = url;
             }
-        } else {
-            files[index].src = url;
-        }
-        setFiles(files);
-        return files[index];
-    };
+            setFiles(files);
+            file.msrc = files[index].msrc;
+            file.src = files[index].src;
+            file.html = files[index].html;
+            file.h = files[index].h;
+            file.w = files[index].w;
+        };
 
     const handleClose = (needUpdate) => {
         setOpen(false);
@@ -334,6 +343,7 @@ const PhotoFrame = ({
             }`}
             file={file[index]}
             updateUrl={updateUrl(file[index].dataIndex)}
+            updateSrc={updateUrl(file[index].dataIndex)}
             onClick={onThumbnailClick(index)}
             selectable={!isSharedCollection}
             onSelect={handleSelect(file[index].id, index)}
@@ -366,11 +376,7 @@ const PhotoFrame = ({
                     url = await DownloadManager.getThumbnail(item);
                     galleryContext.thumbs.set(item.id, url);
                 }
-                const updatedFile = updateUrl(item.dataIndex)(url);
-                item.msrc = updatedFile.msrc;
-                item.src = updatedFile.src;
-                item.w = updatedFile.w;
-                item.h = updatedFile.h;
+                updateUrl(item.dataIndex)(item, url);
                 try {
                     instance.invalidateCurrItems();
                     instance.updateSize(true);
@@ -391,11 +397,7 @@ const PhotoFrame = ({
                     url = await DownloadManager.getFile(item, true);
                     galleryContext.files.set(item.id, url);
                 }
-                const updatedFile = await updateSrcUrl(item.dataIndex, url);
-                item.html = updatedFile.html;
-                item.src = updatedFile.src;
-                item.w = updatedFile.w;
-                item.h = updatedFile.h;
+                await updateSrcUrl(item.dataIndex)(item, url);
                 try {
                     instance.invalidateCurrItems();
                     instance.updateSize(true);

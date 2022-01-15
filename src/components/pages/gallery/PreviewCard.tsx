@@ -9,7 +9,8 @@ import { GAP_BTW_TILES } from 'constants/gallery';
 
 interface IProps {
     file: EnteFile;
-    updateUrl: (url: string) => EnteFile;
+    updateUrl: (file: EnteFile, url: string) => void;
+    updateSrc: (file: EnteFile, url: string) => void;
     onClick?: () => void;
     forcedEnable?: boolean;
     selectable?: boolean;
@@ -162,6 +163,7 @@ export default function PreviewCard(props: IProps) {
         file,
         onClick,
         updateUrl,
+        updateSrc,
         forcedEnable,
         selectable,
         selected,
@@ -181,10 +183,7 @@ export default function PreviewCard(props: IProps) {
                     if (isMounted.current) {
                         setImgSrc(url);
                         thumbs.set(file.id, url);
-
-                        const updatedFile = updateUrl(url);
-                        file.msrc = updatedFile.msrc;
-                        file.src = updatedFile.src;
+                        updateUrl(file, url);
                     }
                 } catch (e) {
                     // no-op
@@ -194,13 +193,9 @@ export default function PreviewCard(props: IProps) {
             if (thumbs.has(file.id)) {
                 const thumbImgSrc = thumbs.get(file.id);
                 setImgSrc(thumbImgSrc);
-                file.msrc = thumbImgSrc;
-                if (!file.src) {
-                    if (files.has(file.id)) {
-                        file.src = files.get(file.id);
-                    } else {
-                        file.src = thumbImgSrc;
-                    }
+                updateUrl(file, thumbImgSrc);
+                if (files.has(file.id)) {
+                    updateSrc(file, files.get(file.id));
                 }
             } else {
                 main();
