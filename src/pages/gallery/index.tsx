@@ -8,30 +8,25 @@ import React, {
 import { useRouter } from 'next/router';
 import { clearKeys, getKey, SESSION_KEYS } from 'utils/storage/sessionStorage';
 import {
-    File,
     getLocalFiles,
     syncFiles,
     updateMagicMetadata,
-    VISIBILITY_STATE,
     trashFiles,
     deleteFromTrash,
 } from 'services/fileService';
 import styled from 'styled-components';
 import LoadingBar from 'react-top-loading-bar';
 import {
-    Collection,
     syncCollections,
-    CollectionAndItsLatestFile,
     getCollectionsAndTheirLatestFile,
     getFavItemIds,
     getLocalCollections,
     getNonEmptyCollections,
     createCollection,
-    CollectionType,
 } from 'services/collectionService';
 import constants from 'utils/strings/constants';
 import billingService from 'services/billingService';
-import { checkSubscriptionPurchase } from 'utils/billingUtil';
+import { checkSubscriptionPurchase } from 'utils/billing';
 
 import FullScreenDropZone from 'components/FullScreenDropZone';
 import Sidebar from 'components/Sidebar';
@@ -57,8 +52,7 @@ import {
     sortFiles,
     sortFilesIntoCollections,
 } from 'utils/file';
-import SearchBar, { DateValue } from 'components/SearchBar';
-import { Bbox } from 'services/searchService';
+import SearchBar from 'components/SearchBar';
 import SelectedFileOptions from 'components/pages/gallery/SelectedFileOptions';
 import CollectionSelector, {
     CollectionSelectorAttributes,
@@ -70,14 +64,15 @@ import AlertBanner from 'components/pages/gallery/AlertBanner';
 import UploadButton from 'components/pages/gallery/UploadButton';
 import PlanSelector from 'components/pages/gallery/PlanSelector';
 import Upload from 'components/pages/gallery/Upload';
-import Collections, {
+import {
     ALL_SECTION,
     ARCHIVE_SECTION,
+    CollectionType,
     TRASH_SECTION,
-} from 'components/pages/gallery/Collections';
+} from 'constants/collection';
 import { AppContext } from 'pages/_app';
-import { CustomError, ServerErrorCodes } from 'utils/common/errorUtil';
-import { PAGES } from 'types';
+import { CustomError, ServerErrorCodes } from 'utils/error';
+import { PAGES } from 'constants/pages';
 import {
     COLLECTION_OPS_TYPE,
     isSharedCollection,
@@ -92,12 +87,18 @@ import {
     getLocalTrash,
     getTrashedFiles,
     syncTrash,
-    Trash,
 } from 'services/trashService';
+import { Trash } from 'types/trash';
+
 import DeleteBtn from 'components/DeleteBtn';
 import FixCreationTime, {
     FixCreationTimeAttributes,
 } from 'components/FixCreationTime';
+import { Collection, CollectionAndItsLatestFile } from 'types/collection';
+import { EnteFile } from 'types/file';
+import { GalleryContextType, SelectedState, Search } from 'types/gallery';
+import Collections from 'components/pages/gallery/Collections';
+import { VISIBILITY_STATE } from 'constants/file';
 
 export const DeadCenter = styled.div`
     flex: 1;
@@ -114,38 +115,11 @@ const AlertContainer = styled.div`
     text-align: center;
 `;
 
-export type SelectedState = {
-    [k: number]: boolean;
-    count: number;
-    collectionID: number;
-};
-export type SetFiles = React.Dispatch<React.SetStateAction<File[]>>;
-export type SetCollections = React.Dispatch<React.SetStateAction<Collection[]>>;
-export type SetLoading = React.Dispatch<React.SetStateAction<Boolean>>;
-export type setSearchStats = React.Dispatch<React.SetStateAction<SearchStats>>;
-
-export type Search = {
-    date?: DateValue;
-    location?: Bbox;
-    fileIndex?: number;
-};
-export interface SearchStats {
-    resultCount: number;
-    timeTaken: number;
-}
-
-type GalleryContextType = {
-    thumbs: Map<number, string>;
-    files: Map<number, string>;
-    showPlanSelectorModal: () => void;
-    setActiveCollection: (collection: number) => void;
-    syncWithRemote: (force?: boolean, silent?: boolean) => Promise<void>;
-};
-
 const defaultGalleryContext: GalleryContextType = {
     thumbs: new Map(),
     files: new Map(),
     showPlanSelectorModal: () => null,
+    closeMessageDialog: () => null,
     setActiveCollection: () => null,
     syncWithRemote: () => null,
 };
@@ -159,7 +133,7 @@ export default function Gallery() {
     const [collections, setCollections] = useState<Collection[]>([]);
     const [collectionsAndTheirLatestFile, setCollectionsAndTheirLatestFile] =
         useState<CollectionAndItsLatestFile[]>([]);
-    const [files, setFiles] = useState<File[]>(null);
+    const [files, setFiles] = useState<EnteFile[]>(null);
     const [favItemIds, setFavItemIds] = useState<Set<number>>();
     const [bannerMessage, setBannerMessage] = useState<JSX.Element | string>(
         null
@@ -171,7 +145,7 @@ export default function Gallery() {
         collectionID: 0,
     });
     const [dialogMessage, setDialogMessage] = useState<MessageAttributes>();
-    const [dialogView, setDialogView] = useState(false);
+    const [messageDialogView, setMessageDialogView] = useState(false);
     const [planModalView, setPlanModalView] = useState(false);
     const [loading, setLoading] = useState(false);
     const [collectionSelectorAttributes, setCollectionSelectorAttributes] =
@@ -213,6 +187,9 @@ export default function Gallery() {
     const [fixCreationTimeAttributes, setFixCreationTimeAttributes] =
         useState<FixCreationTimeAttributes>(null);
 
+    const showPlanSelectorModal = () => setPlanModalView(true);
+    const closeMessageDialog = () => setMessageDialogView(false);
+
     useEffect(() => {
         const key = getKey(SESSION_KEYS.ENCRYPTION_KEY);
         if (!key) {
@@ -245,7 +222,7 @@ export default function Gallery() {
         appContext.showNavBar(true);
     }, []);
 
-    useEffect(() => setDialogView(true), [dialogMessage]);
+    useEffect(() => setMessageDialogView(true), [dialogMessage]);
 
     useEffect(
         () => collectionSelectorAttributes && setCollectionSelectorView(true),
@@ -339,7 +316,7 @@ export default function Gallery() {
 
     const setDerivativeState = async (
         collections: Collection[],
-        files: File[]
+        files: EnteFile[]
     ) => {
         const favItemIds = await getFavItemIds(files);
         setFavItemIds(favItemIds);
@@ -362,12 +339,17 @@ export default function Gallery() {
         setSelected({ count: 0, collectionID: 0 });
     };
 
+    const startLoading = () =>
+        !syncInProgress.current && loadingBar.current?.continuousStart();
+    const finishLoading = () =>
+        !syncInProgress.current && loadingBar.current.complete();
+
     if (!files) {
         return <div />;
     }
     const collectionOpsHelper =
         (ops: COLLECTION_OPS_TYPE) => async (collection: Collection) => {
-            loadingBar.current?.continuousStart();
+            startLoading();
             try {
                 await handleCollectionOps(
                     ops,
@@ -388,14 +370,14 @@ export default function Gallery() {
                 });
             } finally {
                 await syncWithRemote(false, true);
-                loadingBar.current.complete();
+                finishLoading();
             }
         };
 
     const changeFilesVisibilityHelper = async (
         visibility: VISIBILITY_STATE
     ) => {
-        loadingBar.current?.continuousStart();
+        startLoading();
         try {
             const updatedFiles = await changeFilesVisibility(
                 files,
@@ -424,7 +406,7 @@ export default function Gallery() {
             });
         } finally {
             await syncWithRemote(false, true);
-            loadingBar.current.complete();
+            finishLoading();
         }
     };
 
@@ -458,7 +440,7 @@ export default function Gallery() {
     };
 
     const deleteFileHelper = async (permanent?: boolean) => {
-        loadingBar.current?.continuousStart();
+        startLoading();
         try {
             const selectedFiles = getSelectedFiles(selected, files);
             if (permanent) {
@@ -489,7 +471,7 @@ export default function Gallery() {
             });
         } finally {
             await syncWithRemote(false, true);
-            loadingBar.current.complete();
+            finishLoading();
         }
     };
 
@@ -519,7 +501,7 @@ export default function Gallery() {
             close: { text: constants.CANCEL },
         });
     const emptyTrashHelper = async () => {
-        loadingBar.current?.continuousStart();
+        startLoading();
         try {
             await emptyTrash();
             if (selected.collectionID === TRASH_SECTION) {
@@ -536,7 +518,7 @@ export default function Gallery() {
             });
         } finally {
             await syncWithRemote(false, true);
-            loadingBar.current.complete();
+            finishLoading();
         }
     };
 
@@ -549,16 +531,17 @@ export default function Gallery() {
     const downloadHelper = async () => {
         const selectedFiles = getSelectedFiles(selected, files);
         clearSelection();
-        !syncInProgress.current && loadingBar.current?.continuousStart();
+        startLoading();
         await downloadFiles(selectedFiles);
-        !syncInProgress.current && loadingBar.current.complete();
+        finishLoading();
     };
 
     return (
         <GalleryContext.Provider
             value={{
                 ...defaultGalleryContext,
-                showPlanSelectorModal: () => setPlanModalView(true),
+                showPlanSelectorModal,
+                closeMessageDialog,
                 setActiveCollection,
                 syncWithRemote,
             }}>
@@ -585,8 +568,8 @@ export default function Gallery() {
                 <AlertBanner bannerMessage={bannerMessage} />
                 <MessageDialog
                     size="lg"
-                    show={dialogView}
-                    onHide={() => setDialogView(false)}
+                    show={messageDialogView}
+                    onHide={closeMessageDialog}
                     attributes={dialogMessage}
                 />
                 <SearchBar
@@ -609,7 +592,8 @@ export default function Gallery() {
                     syncWithRemote={syncWithRemote}
                     setDialogMessage={setDialogMessage}
                     setCollectionNamerAttributes={setCollectionNamerAttributes}
-                    startLoadingBar={loadingBar.current?.continuousStart}
+                    startLoading={startLoading}
+                    finishLoading={finishLoading}
                     collectionFilesCount={collectionFilesCount}
                 />
                 <CollectionNamer

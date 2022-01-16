@@ -1,8 +1,9 @@
+import { NULL_LOCATION } from 'constants/upload';
+import { Location } from 'types/upload';
 import exifr from 'exifr';
 import piexif from 'piexifjs';
+import { FileTypeInfo } from 'types/upload';
 import { logError } from 'utils/sentry';
-import { NULL_LOCATION, Location } from './metadataService';
-import { FileTypeInfo } from './readFileService';
 
 const EXIF_TAGS_NEEDED = [
     'DateTimeOriginal',
@@ -28,31 +29,41 @@ interface ParsedEXIFData {
 }
 
 export async function getExifData(
-    receivedFile: globalThis.File,
+    receivedFile: File,
     fileTypeInfo: FileTypeInfo
 ): Promise<ParsedEXIFData> {
-    const exifData = await getRawExif(receivedFile, fileTypeInfo);
-    if (!exifData) {
-        return { location: NULL_LOCATION, creationTime: null };
-    }
-    const parsedEXIFData = {
-        location: getEXIFLocation(exifData),
-        creationTime: getUNIXTime(
-            exifData.DateTimeOriginal ??
-                exifData.CreateDate ??
-                exifData.ModifyDate
-        ),
+    const nullExifData: ParsedEXIFData = {
+        location: NULL_LOCATION,
+        creationTime: null,
     };
-    return parsedEXIFData;
+    try {
+        const exifData = await getRawExif(receivedFile, fileTypeInfo);
+        if (!exifData) {
+            return nullExifData;
+        }
+        const parsedEXIFData = {
+            location: getEXIFLocation(exifData),
+            creationTime: getUNIXTime(
+                exifData.DateTimeOriginal ??
+                    exifData.CreateDate ??
+                    exifData.ModifyDate
+            ),
+        };
+        return parsedEXIFData;
+    } catch (e) {
+        logError(e, 'getExifData failed');
+        return nullExifData;
+    }
 }
 
 export async function updateFileCreationDateInEXIF(
+    reader: FileReader,
     fileBlob: Blob,
     updatedDate: Date
 ) {
     try {
         const fileURL = URL.createObjectURL(fileBlob);
-        let imageDataURL = await convertImageToDataURL(fileURL);
+        let imageDataURL = await convertImageToDataURL(reader, fileURL);
         imageDataURL =
             'data:image/jpeg;base64' +
             imageDataURL.slice(imageDataURL.indexOf(','));
@@ -72,10 +83,9 @@ export async function updateFileCreationDateInEXIF(
     }
 }
 
-export async function convertImageToDataURL(url: string) {
+export async function convertImageToDataURL(reader: FileReader, url: string) {
     const blob = await fetch(url).then((r) => r.blob());
     const dataUrl = await new Promise<string>((resolve) => {
-        const reader = new FileReader();
         reader.onload = () => resolve(reader.result as string);
         reader.readAsDataURL(blob);
     });
@@ -122,14 +132,18 @@ export async function getRawExif(
 }
 
 export function getUNIXTime(dateTime: Date) {
-    if (!dateTime) {
-        return null;
-    }
-    const unixTime = dateTime.getTime() * 1000;
-    if (unixTime <= 0) {
-        return null;
-    } else {
-        return unixTime;
+    try {
+        if (!dateTime) {
+            return null;
+        }
+        const unixTime = dateTime.getTime() * 1000;
+        if (unixTime <= 0) {
+            return null;
+        } else {
+            return unixTime;
+        }
+    } catch (e) {
+        logError(e, 'getUNIXTime failed', { dateTime });
     }
 }
 

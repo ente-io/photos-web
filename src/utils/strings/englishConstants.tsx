@@ -382,6 +382,14 @@ const englishConstants = {
         `oops, you're already sharing this with ${email}`,
     SHARING_BAD_REQUEST_ERROR: 'sharing album not allowed',
     SHARING_DISABLED_FOR_FREE_ACCOUNTS: 'sharing is disabled for free accounts',
+    CONFIRM_DOWNLOAD_COLLECTION: 'download album',
+    DOWNLOAD_COLLECTION_MESSAGE: () => (
+        <>
+            <p>are you sure you want to download the complete album?</p>
+            <p>all files will be queued for download sequentially</p>
+        </>
+    ),
+    DOWNLOAD_COLLECTION_FAILED: 'album downloading failed, please try again',
     CREATE_ALBUM_FAILED: 'failed to create album , please try again',
     SEARCH_HINT: () => (
         <span>try searching for New York, April 14, Christmas...</span>
@@ -613,6 +621,8 @@ const englishConstants = {
     DATE_TIME_ORIGINAL: 'EXIF:DateTimeOriginal',
     DATE_TIME_DIGITIZED: 'EXIF:DateTimeDigitized',
     CUSTOM_TIME: 'custom time',
+    REOPEN_PLAN_SELECTOR_MODAL: 're-open plans',
+    OPEN_PLAN_SELECTOR_MODAL_FAILED: 'failed to open plans',
 };
 
 export default englishConstants;

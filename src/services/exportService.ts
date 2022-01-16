@@ -15,80 +15,44 @@ import {
     getOldFileMetadataSavePath,
     getExportedFiles,
     getMetadataFolderPath,
+    getCollectionsCreatedAfterLastExport,
+    getCollectionsRenamedAfterLastExport,
+    getCollectionIDPathMapFromExportRecord,
 } from 'utils/export';
 import { retryAsyncFunction } from 'utils/network';
 import { logError } from 'utils/sentry';
 import { getData, LS_KEYS } from 'utils/storage/localStorage';
 import {
-    Collection,
     getLocalCollections,
     getNonEmptyCollections,
 } from './collectionService';
 import downloadManager from './downloadManager';
-import { File, FILE_TYPE, getLocalFiles } from './fileService';
+import { getLocalFiles } from './fileService';
+import { EnteFile } from 'types/file';
+
 import { decodeMotionPhoto } from './motionPhotoService';
 import {
     fileNameWithoutExtension,
     generateStreamFromArrayBuffer,
     getFileExtension,
     mergeMetadata,
-    TYPE_JPEG,
-    TYPE_JPG,
 } from 'utils/file';
-import { User } from './userService';
-import { updateFileCreationDateInEXIF } from './upload/exifService';
-import { MetadataObject } from './upload/uploadService';
-import QueueProcessor from './upload/queueProcessor';
 
-export interface ExportProgress {
-    current: number;
-    total: number;
-}
-export interface ExportStats {
-    failed: number;
-    success: number;
-}
+import { updateFileCreationDateInEXIF } from './upload/exifService';
+import { Metadata } from 'types/upload';
+import QueueProcessor from './queueProcessor';
+import { Collection } from 'types/collection';
+import {
+    ExportProgress,
+    CollectionIDPathMap,
+    ExportRecord,
+} from 'types/export';
+import { User } from 'types/user';
+import { FILE_TYPE, TYPE_JPEG, TYPE_JPG } from 'constants/file';
+import { ExportType, ExportNotification, RecordType } from 'constants/export';
 
 const LATEST_EXPORT_VERSION = 1;
-
-export interface ExportRecord {
-    version?: number;
-    stage?: ExportStage;
-    lastAttemptTimestamp?: number;
-    progress?: ExportProgress;
-    queuedFiles?: string[];
-    exportedFiles?: string[];
-    failedFiles?: string[];
-}
-export enum ExportStage {
-    INIT,
-    INPROGRESS,
-    PAUSED,
-    FINISHED,
-}
-
-enum ExportNotification {
-    START = 'export started',
-    IN_PROGRESS = 'export already in progress',
-    FINISH = 'export finished',
-    FAILED = 'export failed',
-    ABORT = 'export aborted',
-    PAUSE = 'export paused',
-    UP_TO_DATE = `no new files to export`,
-}
-
-enum RecordType {
-    SUCCESS = 'success',
-    FAILED = 'failed',
-}
-export enum ExportType {
-    NEW,
-    PENDING,
-    RETRY_FAILED,
-}
-
 const EXPORT_RECORD_FILE_NAME = 'export_status.json';
-export const METADATA_FOLDER_NAME = 'metadata';
 
 class ExportService {
     ElectronAPIs: any;
@@ -97,9 +61,12 @@ class ExportService {
     private exportRecordUpdater = new QueueProcessor<void>(1);
     private stopExport: boolean = false;
     private pauseExport: boolean = false;
+    private allElectronAPIsExist: boolean = false;
+    private fileReader: FileReader = null;
 
     constructor() {
         this.ElectronAPIs = runningInBrowser() && window['ElectronAPIs'];
+        this.allElectronAPIsExist = !!this.ElectronAPIs?.exists;
     }
     async selectExportDirectory() {
         return await this.ElectronAPIs.selectRootDirectory();
@@ -127,38 +94,66 @@ class ExportService {
                 // no-export folder set
                 return;
             }
-            let filesToExport: File[];
-            const allFiles = (await getLocalFiles()).sort(
-                (fileA, fileB) => fileA.id - fileB.id
-            );
+            const user: User = getData(LS_KEYS.USER);
+
+            let filesToExport: EnteFile[];
+            const localFiles = await getLocalFiles();
+            const userPersonalFiles = localFiles
+                .filter((file) => file.ownerID === user?.id)
+                .sort((fileA, fileB) => fileA.id - fileB.id);
+
             const collections = await getLocalCollections();
             const nonEmptyCollections = getNonEmptyCollections(
                 collections,
-                allFiles
+                userPersonalFiles
             );
-            const user: User = getData(LS_KEYS.USER);
             const userCollections = nonEmptyCollections
                 .filter((collection) => collection.owner.id === user?.id)
                 .sort(
                     (collectionA, collectionB) =>
                         collectionA.id - collectionB.id
                 );
+            if (this.checkAllElectronAPIsExists()) {
+                await this.migrateExport(
+                    exportDir,
+                    collections,
+                    userPersonalFiles
+                );
+            }
             const exportRecord = await this.getExportRecord(exportDir);
-            await this.migrateExport(exportDir, collections, allFiles);
 
             if (exportType === ExportType.NEW) {
                 filesToExport = getFilesUploadedAfterLastExport(
-                    allFiles,
+                    userPersonalFiles,
                     exportRecord
                 );
             } else if (exportType === ExportType.RETRY_FAILED) {
-                filesToExport = getExportFailedFiles(allFiles, exportRecord);
+                filesToExport = getExportFailedFiles(
+                    userPersonalFiles,
+                    exportRecord
+                );
             } else {
-                filesToExport = getExportQueuedFiles(allFiles, exportRecord);
+                filesToExport = getExportQueuedFiles(
+                    userPersonalFiles,
+                    exportRecord
+                );
             }
+            const collectionIDPathMap: CollectionIDPathMap =
+                getCollectionIDPathMapFromExportRecord(exportRecord);
+            const newCollections = getCollectionsCreatedAfterLastExport(
+                userCollections,
+                exportRecord
+            );
+
+            const renamedCollections = getCollectionsRenamedAfterLastExport(
+                userCollections,
+                exportRecord
+            );
             this.exportInProgress = this.fileExporter(
                 filesToExport,
-                userCollections,
+                newCollections,
+                renamedCollections,
+                collectionIDPathMap,
                 updateProgress,
                 exportDir
             );
@@ -172,12 +167,31 @@ class ExportService {
     }
 
     async fileExporter(
-        files: File[],
-        collections: Collection[],
+        files: EnteFile[],
+        newCollections: Collection[],
+        renamedCollections: Collection[],
+        collectionIDPathMap: CollectionIDPathMap,
         updateProgress: (progress: ExportProgress) => void,
-        dir: string
+        exportDir: string
     ): Promise<{ paused: boolean }> {
         try {
+            if (newCollections?.length) {
+                await this.createNewCollectionFolders(
+                    newCollections,
+                    exportDir,
+                    collectionIDPathMap
+                );
+            }
+            if (
+                renamedCollections?.length &&
+                this.checkAllElectronAPIsExists()
+            ) {
+                await this.renameCollectionFolders(
+                    renamedCollections,
+                    exportDir,
+                    collectionIDPathMap
+                );
+            }
             if (!files?.length) {
                 this.ElectronAPIs.sendNotification(
                     ExportNotification.UP_TO_DATE
@@ -186,7 +200,7 @@ class ExportService {
             }
             this.stopExport = false;
             this.pauseExport = false;
-            this.addFilesQueuedRecord(dir, files);
+            this.addFilesQueuedRecord(exportDir, files);
             const failedFileCount = 0;
 
             this.ElectronAPIs.showOnTray({
@@ -197,20 +211,7 @@ class ExportService {
                 total: files.length,
             });
             this.ElectronAPIs.sendNotification(ExportNotification.START);
-            const collectionIDPathMap = new Map<number, string>();
-            for (const collection of collections) {
-                const collectionFolderPath = getUniqueCollectionFolderPath(
-                    dir,
-                    collection.name
-                );
-                collectionIDPathMap.set(collection.id, collectionFolderPath);
-                await this.ElectronAPIs.checkExistsAndCreateCollectionDir(
-                    collectionFolderPath
-                );
-                await this.ElectronAPIs.checkExistsAndCreateCollectionDir(
-                    getMetadataFolderPath(collectionFolderPath)
-                );
-            }
+
             for (const [index, file] of files.entries()) {
                 if (this.stopExport || this.pauseExport) {
                     if (this.pauseExport) {
@@ -227,13 +228,13 @@ class ExportService {
                 try {
                     await this.downloadAndSave(file, collectionPath);
                     await this.addFileExportedRecord(
-                        dir,
+                        exportDir,
                         file,
                         RecordType.SUCCESS
                     );
                 } catch (e) {
                     await this.addFileExportedRecord(
-                        dir,
+                        exportDir,
                         file,
                         RecordType.FAILED
                     );
@@ -274,13 +275,17 @@ class ExportService {
             throw e;
         }
     }
-    async addFilesQueuedRecord(folder: string, files: File[]) {
+    async addFilesQueuedRecord(folder: string, files: EnteFile[]) {
         const exportRecord = await this.getExportRecord(folder);
         exportRecord.queuedFiles = files.map(getExportRecordFileUID);
         await this.updateExportRecord(exportRecord, folder);
     }
 
-    async addFileExportedRecord(folder: string, file: File, type: RecordType) {
+    async addFileExportedRecord(
+        folder: string,
+        file: EnteFile,
+        type: RecordType
+    ) {
         const fileUID = getExportRecordFileUID(file);
         const exportRecord = await this.getExportRecord(folder);
         exportRecord.queuedFiles = exportRecord.queuedFiles.filter(
@@ -309,11 +314,28 @@ class ExportService {
         await this.updateExportRecord(exportRecord, folder);
     }
 
+    async addCollectionExportedRecord(
+        folder: string,
+        collection: Collection,
+        collectionFolderPath: string
+    ) {
+        const exportRecord = await this.getExportRecord(folder);
+        if (!exportRecord?.exportedCollectionPaths) {
+            exportRecord.exportedCollectionPaths = {};
+        }
+        exportRecord.exportedCollectionPaths = {
+            ...exportRecord.exportedCollectionPaths,
+            [collection.id]: collectionFolderPath,
+        };
+
+        await this.updateExportRecord(exportRecord, folder);
+    }
+
     async updateExportRecord(newData: ExportRecord, folder?: string) {
         const response = this.exportRecordUpdater.queueUpRequest(() =>
             this.updateExportRecordHelper(folder, newData)
         );
-        response.promise;
+        await response.promise;
     }
     async updateExportRecordHelper(folder: string, newData: ExportRecord) {
         try {
@@ -349,9 +371,65 @@ class ExportService {
         }
     }
 
-    async downloadAndSave(file: File, collectionPath: string) {
+    async createNewCollectionFolders(
+        newCollections: Collection[],
+        exportFolder: string,
+        collectionIDPathMap: CollectionIDPathMap
+    ) {
+        for (const collection of newCollections) {
+            const collectionFolderPath = getUniqueCollectionFolderPath(
+                exportFolder,
+                collection
+            );
+            await this.ElectronAPIs.checkExistsAndCreateCollectionDir(
+                collectionFolderPath
+            );
+            await this.ElectronAPIs.checkExistsAndCreateCollectionDir(
+                getMetadataFolderPath(collectionFolderPath)
+            );
+            await this.addCollectionExportedRecord(
+                exportFolder,
+                collection,
+                collectionFolderPath
+            );
+            collectionIDPathMap.set(collection.id, collectionFolderPath);
+        }
+    }
+    async renameCollectionFolders(
+        renamedCollections: Collection[],
+        exportFolder: string,
+        collectionIDPathMap: CollectionIDPathMap
+    ) {
+        for (const collection of renamedCollections) {
+            const oldCollectionFolderPath = collectionIDPathMap.get(
+                collection.id
+            );
+
+            const newCollectionFolderPath = getUniqueCollectionFolderPath(
+                exportFolder,
+                collection
+            );
+            await this.ElectronAPIs.checkExistsAndRename(
+                oldCollectionFolderPath,
+                newCollectionFolderPath
+            );
+
+            await this.addCollectionExportedRecord(
+                exportFolder,
+                collection,
+                newCollectionFolderPath
+            );
+            collectionIDPathMap.set(collection.id, newCollectionFolderPath);
+        }
+    }
+
+    async downloadAndSave(file: EnteFile, collectionPath: string) {
         file.metadata = mergeMetadata([file])[0].metadata;
-        const fileSaveName = getUniqueFileSaveName(file.metadata.title);
+        const fileSaveName = getUniqueFileSaveName(
+            collectionPath,
+            file.metadata.title,
+            file.id
+        );
         let fileStream = await retryAsyncFunction(() =>
             downloadManager.downloadFile(file)
         );
@@ -361,37 +439,61 @@ class ExportService {
             (fileType === TYPE_JPEG || fileType === TYPE_JPG)
         ) {
             const fileBlob = await new Response(fileStream).blob();
+            if (!this.fileReader) {
+                this.fileReader = new FileReader();
+            }
             const updatedFileBlob = await updateFileCreationDateInEXIF(
+                this.fileReader,
                 fileBlob,
                 new Date(file.pubMagicMetadata.data.editedTime / 1000)
             );
             fileStream = updatedFileBlob.stream();
         }
         if (file.metadata.fileType === FILE_TYPE.LIVE_PHOTO) {
-            this.exportMotionPhoto(fileStream, file, collectionPath);
+            await this.exportMotionPhoto(fileStream, file, collectionPath);
         } else {
             this.saveMediaFile(collectionPath, fileSaveName, fileStream);
-            this.saveMetadataFile(collectionPath, fileSaveName, file.metadata);
+            await this.saveMetadataFile(
+                collectionPath,
+                fileSaveName,
+                file.metadata
+            );
         }
     }
 
     private async exportMotionPhoto(
         fileStream: ReadableStream<any>,
-        file: File,
+        file: EnteFile,
         collectionPath: string
     ) {
         const fileBlob = await new Response(fileStream).blob();
         const originalName = fileNameWithoutExtension(file.metadata.title);
         const motionPhoto = await decodeMotionPhoto(fileBlob, originalName);
         const imageStream = generateStreamFromArrayBuffer(motionPhoto.image);
-        const imageSaveName = getUniqueFileSaveName(motionPhoto.imageNameTitle);
+        const imageSaveName = getUniqueFileSaveName(
+            collectionPath,
+            motionPhoto.imageNameTitle,
+            file.id
+        );
         this.saveMediaFile(collectionPath, imageSaveName, imageStream);
-        this.saveMetadataFile(collectionPath, imageSaveName, file.metadata);
+        await this.saveMetadataFile(
+            collectionPath,
+            imageSaveName,
+            file.metadata
+        );
 
         const videoStream = generateStreamFromArrayBuffer(motionPhoto.video);
-        const videoSaveName = getUniqueFileSaveName(motionPhoto.videoNameTitle);
+        const videoSaveName = getUniqueFileSaveName(
+            collectionPath,
+            motionPhoto.videoNameTitle,
+            file.id
+        );
         this.saveMediaFile(collectionPath, videoSaveName, videoStream);
-        this.saveMetadataFile(collectionPath, videoSaveName, file.metadata);
+        await this.saveMetadataFile(
+            collectionPath,
+            videoSaveName,
+            file.metadata
+        );
     }
 
     private saveMediaFile(
@@ -407,7 +509,7 @@ class ExportService {
     private async saveMetadataFile(
         collectionFolderPath: string,
         fileSaveName: string,
-        metadata: MetadataObject
+        metadata: Metadata
     ) {
         await this.ElectronAPIs.saveFileToDisk(
             getFileMetadataSavePath(collectionFolderPath, fileSaveName),
@@ -423,6 +525,8 @@ class ExportService {
         return this.ElectronAPIs.exists(path);
     };
 
+    checkAllElectronAPIsExists = () => this.allElectronAPIsExist;
+
     /*
     this function migrates the exportRecord file to apply any schema changes.
     currently we apply only a single migration to update file and collection name to newer format
@@ -433,7 +537,7 @@ class ExportService {
     private async migrateExport(
         exportDir: string,
         collections: Collection[],
-        allFiles: File[]
+        allFiles: EnteFile[]
     ) {
         const exportRecord = await this.getExportRecord(exportDir);
         const currentVersion = exportRecord?.version ?? 0;
@@ -462,23 +566,30 @@ class ExportService {
     */
     private async migrateCollectionFolders(
         collections: Collection[],
-        dir: string,
-        collectionIDPathMap: Map<number, string>
+        exportDir: string,
+        collectionIDPathMap: CollectionIDPathMap
     ) {
         for (const collection of collections) {
             const oldCollectionFolderPath = getOldCollectionFolderPath(
-                dir,
+                exportDir,
                 collection
             );
             const newCollectionFolderPath = getUniqueCollectionFolderPath(
-                dir,
-                collection.name
+                exportDir,
+                collection
             );
             collectionIDPathMap.set(collection.id, newCollectionFolderPath);
-            await this.ElectronAPIs.checkExistsAndRename(
-                oldCollectionFolderPath,
-                newCollectionFolderPath
-            );
+            if (this.ElectronAPIs.exists(oldCollectionFolderPath)) {
+                await this.ElectronAPIs.checkExistsAndRename(
+                    oldCollectionFolderPath,
+                    newCollectionFolderPath
+                );
+                await this.addCollectionExportedRecord(
+                    exportDir,
+                    collection,
+                    newCollectionFolderPath
+                );
+            }
         }
     }
 
@@ -487,7 +598,7 @@ class ExportService {
     `fileID_fileName` to newer `fileName(numbered)` format
     */
     private async migrateFiles(
-        files: File[],
+        files: EnteFile[],
         collectionIDPathMap: Map<number, string>
     ) {
         for (let file of files) {
@@ -500,7 +611,11 @@ class ExportService {
                 file
             );
             file = mergeMetadata([file])[0];
-            const newFileSaveName = getUniqueFileSaveName(file.metadata.title);
+            const newFileSaveName = getUniqueFileSaveName(
+                collectionIDPathMap.get(file.collectionID),
+                file.metadata.title,
+                file.id
+            );
 
             const newFileSavePath = getFileSavePath(
                 collectionIDPathMap.get(file.collectionID),
