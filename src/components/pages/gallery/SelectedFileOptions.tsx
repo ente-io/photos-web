@@ -91,6 +91,7 @@ const SelectedFileOptions = ({
     activeCollection,
     isFavoriteCollection,
 }: Props) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [showFixCreationTime, setShowFixCreationTime] = useState(false);
     useEffect(() => {
         const user: User = getData(LS_KEYS.USER);
@@ -188,13 +189,11 @@ const SelectedFileOptions = ({
                 </>
             ) : (
                 <>
-                    {showFixCreationTime && (
-                        <IconWithMessage message={constants.FIX_CREATION_TIME}>
-                            <IconButton onClick={fixTimeHelper}>
-                                <ClockIcon />
-                            </IconButton>
-                        </IconWithMessage>
-                    )}
+                    <IconWithMessage message={constants.FIX_CREATION_TIME}>
+                        <IconButton onClick={fixTimeHelper}>
+                            <ClockIcon />
+                        </IconButton>
+                    </IconWithMessage>
                     <IconWithMessage message={constants.DOWNLOAD}>
                         <IconButton onClick={downloadHelper}>
                             <DownloadIcon />
@@ -219,7 +218,6 @@ const SelectedFileOptions = ({
                             </IconButton>
                         </IconWithMessage>
                     )}
-
                     {activeCollection !== ALL_SECTION &&
                         activeCollection !== ARCHIVE_SECTION &&
                         !isFavoriteCollection && (
