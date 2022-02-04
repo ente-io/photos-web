@@ -28,10 +28,12 @@ export function getVariantColor(variant: string) {
     }
 }
 
-const CustomH5 = styled.h5<{ color: string }>`
+const CustomButton = styled.button<{ color: string }>`
     color: ${(props) => props.color};
     cursor: pointer;
     margin-bottom: 0;
+    background: none;
+    border: none;
     &:hover {
         text-decoration: underline;
     }
@@ -39,13 +41,13 @@ const CustomH5 = styled.h5<{ color: string }>`
 
 export default function LinkButton(props: LinkButtonProps) {
     return (
-        <CustomH5
+        <CustomButton
             color={getVariantColor(props.variant)}
             style={{
                 ...props.style,
             }}
             onClick={props?.onClick ?? (() => null)}>
             {props.children}
-        </CustomH5>
+        </CustomButton>
     );
 }
