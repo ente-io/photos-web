@@ -1,24 +1,9 @@
 import { FILE_TYPE } from 'constants/file';
-import { logError } from 'utils/sentry';
 import { getExifData } from './exifService';
-import {
-    Metadata,
-    ParsedMetadataJSON,
-    Location,
-    FileTypeInfo,
-} from 'types/upload';
-import { NULL_LOCATION } from 'constants/upload';
-
-interface ParsedMetadataJSONWithTitle {
-    title: string;
-    parsedMetadataJSON: ParsedMetadataJSON;
-}
-
-const NULL_PARSED_METADATA_JSON: ParsedMetadataJSON = {
-    creationTime: null,
-    modificationTime: null,
-    ...NULL_LOCATION,
-};
+import { Metadata, FileTypeInfo, FileWithCollection } from 'types/upload';
+import { MAX_FILE_SIZE_SUPPORTED } from 'constants/upload';
+import { logError } from 'utils/sentry';
+import UploadService from './uploadService';
 
 export async function extractMetadata(
     receivedFile: File,
@@ -41,78 +26,41 @@ export async function extractMetadata(
     return extractedMetadata;
 }
 
-export const getMetadataJSONMapKey = (
-    collectionID: number,
-
-    title: string
-) => `${collectionID}-${title}`;
-
-export async function parseMetadataJSON(
-    reader: FileReader,
-    receivedFile: File
+export async function extractMetadataFromFiles(
+    mediaFiles: FileWithCollection[],
+    increaseFileUploaded: () => void
 ) {
     try {
-        const metadataJSON: object = await new Promise((resolve, reject) => {
-            reader.onabort = () => reject(Error('file reading was aborted'));
-            reader.onerror = () => reject(Error('file reading has failed'));
-            reader.onload = () => {
-                const result =
-                    typeof reader.result !== 'string'
-                        ? new TextDecoder().decode(reader.result)
-                        : reader.result;
-                resolve(JSON.parse(result));
-            };
-            reader.readAsText(receivedFile);
-        });
+        const reader = new FileReader();
+        for (const { file, localID, collectionID } of mediaFiles) {
+            const { fileTypeInfo, metadata } = await (async () => {
+                if (file.size >= MAX_FILE_SIZE_SUPPORTED) {
+                    return { fileTypeInfo: null, metadata: null };
+                }
+                const fileTypeInfo = await UploadService.getFileType(
+                    reader,
+                    file
+                );
+                if (fileTypeInfo.fileType === FILE_TYPE.OTHERS) {
+                    return { fileTypeInfo, metadata: null };
+                }
+                const metadata =
+                    (await UploadService.extractFileMetadata(
+                        file,
+                        collectionID,
+                        fileTypeInfo
+                    )) || null;
+                return { fileTypeInfo, metadata };
+            })();
 
-        const parsedMetadataJSON: ParsedMetadataJSON =
-            NULL_PARSED_METADATA_JSON;
-        if (!metadataJSON || !metadataJSON['title']) {
-            return;
+            this.metadataAndFileTypeInfoMap.set(localID, {
+                fileTypeInfo: fileTypeInfo && { ...fileTypeInfo },
+                metadata: metadata && { ...metadata },
+            });
+            increaseFileUploaded();
         }
-
-        const title = metadataJSON['title'];
-        if (
-            metadataJSON['photoTakenTime'] &&
-            metadataJSON['photoTakenTime']['timestamp']
-        ) {
-            parsedMetadataJSON.creationTime =
-                metadataJSON['photoTakenTime']['timestamp'] * 1000000;
-        } else if (
-            metadataJSON['creationTime'] &&
-            metadataJSON['creationTime']['timestamp']
-        ) {
-            parsedMetadataJSON.creationTime =
-                metadataJSON['creationTime']['timestamp'] * 1000000;
-        }
-        if (
-            metadataJSON['modificationTime'] &&
-            metadataJSON['modificationTime']['timestamp']
-        ) {
-            parsedMetadataJSON.modificationTime =
-                metadataJSON['modificationTime']['timestamp'] * 1000000;
-        }
-        let locationData: Location = NULL_LOCATION;
-        if (
-            metadataJSON['geoData'] &&
-            (metadataJSON['geoData']['latitude'] !== 0.0 ||
-                metadataJSON['geoData']['longitude'] !== 0.0)
-        ) {
-            locationData = metadataJSON['geoData'];
-        } else if (
-            metadataJSON['geoDataExif'] &&
-            (metadataJSON['geoDataExif']['latitude'] !== 0.0 ||
-                metadataJSON['geoDataExif']['longitude'] !== 0.0)
-        ) {
-            locationData = metadataJSON['geoDataExif'];
-        }
-        if (locationData !== null) {
-            parsedMetadataJSON.latitude = locationData.latitude;
-            parsedMetadataJSON.longitude = locationData.longitude;
-        }
-        return { title, parsedMetadataJSON } as ParsedMetadataJSONWithTitle;
     } catch (e) {
-        logError(e, 'parseMetadataJSON failed');
-        // ignore
+        logError(e, 'error extracting metadata');
+        // silently ignore the error
     }
 }

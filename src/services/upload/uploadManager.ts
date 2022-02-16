@@ -8,8 +8,7 @@ import {
     removeUnnecessaryFileProps,
 } from 'utils/file';
 import { logError } from 'utils/sentry';
-import { getMetadataJSONMapKey, parseMetadataJSON } from './metadataService';
-import { segregateMetadataAndMediaFiles } from 'utils/upload';
+import { extractMetadataFromFiles } from './metadataService';
 import uploader from './uploader';
 import UIService from './uiService';
 import UploadService from './uploadService';
@@ -24,14 +23,13 @@ import {
     ParsedMetadataJSONMap,
     ProgressUpdater,
 } from 'types/upload';
-import {
-    UPLOAD_STAGES,
-    FileUploadResults,
-    MAX_FILE_SIZE_SUPPORTED,
-} from 'constants/upload';
+import { UPLOAD_STAGES, FileUploadResults } from 'constants/upload';
 import { ComlinkWorker } from 'utils/comlink';
-import { FILE_TYPE } from 'constants/file';
 import uiService from './uiService';
+import {
+    parseMetadataJSONFiles,
+    segregateMetadataAndMediaFiles,
+} from './metadataJSONService';
 
 const MAX_CONCURRENT_UPLOADS = 4;
 const FILE_UPLOAD_COMPLETED = 100;
@@ -84,14 +82,22 @@ class UploadManager {
                 UIService.setUploadStage(
                     UPLOAD_STAGES.READING_GOOGLE_METADATA_FILES
                 );
-                await this.parseMetadataJSONFiles(metadataJSONFiles);
+                UIService.reset(metadataJSONFiles.length);
+                await parseMetadataJSONFiles(
+                    metadataJSONFiles,
+                    UIService.increaseFileUploaded
+                );
                 UploadService.setParsedMetadataJSONMap(
                     this.parsedMetadataJSONMap
                 );
             }
             if (mediaFiles.length) {
                 UIService.setUploadStage(UPLOAD_STAGES.EXTRACTING_METADATA);
-                await this.extractMetadataFromFiles(mediaFiles);
+                UIService.reset(mediaFiles.length);
+                await extractMetadataFromFiles(
+                    mediaFiles,
+                    UIService.increaseFileUploaded
+                );
                 UploadService.setMetadataAndFileTypeInfoMap(
                     this.metadataAndFileTypeInfoMap
                 );
@@ -119,68 +125,6 @@ class UploadManager {
             for (let i = 0; i < MAX_CONCURRENT_UPLOADS; i++) {
                 this.cryptoWorkers[i]?.worker.terminate();
             }
-        }
-    }
-
-    private async parseMetadataJSONFiles(metadataFiles: FileWithCollection[]) {
-        try {
-            UIService.reset(metadataFiles.length);
-            const reader = new FileReader();
-            for (const { file, collectionID } of metadataFiles) {
-                const parsedMetadataJSONWithTitle = await parseMetadataJSON(
-                    reader,
-                    file
-                );
-                if (parsedMetadataJSONWithTitle) {
-                    const { title, parsedMetadataJSON } =
-                        parsedMetadataJSONWithTitle;
-                    this.parsedMetadataJSONMap.set(
-                        getMetadataJSONMapKey(collectionID, title),
-                        parsedMetadataJSON && { ...parsedMetadataJSON }
-                    );
-                    UIService.increaseFileUploaded();
-                }
-            }
-        } catch (e) {
-            logError(e, 'error seeding MetadataMap');
-            // silently ignore the error
-        }
-    }
-
-    private async extractMetadataFromFiles(mediaFiles: FileWithCollection[]) {
-        try {
-            UIService.reset(mediaFiles.length);
-            const reader = new FileReader();
-            for (const { file, localID, collectionID } of mediaFiles) {
-                const { fileTypeInfo, metadata } = await (async () => {
-                    if (file.size >= MAX_FILE_SIZE_SUPPORTED) {
-                        return { fileTypeInfo: null, metadata: null };
-                    }
-                    const fileTypeInfo = await UploadService.getFileType(
-                        reader,
-                        file
-                    );
-                    if (fileTypeInfo.fileType === FILE_TYPE.OTHERS) {
-                        return { fileTypeInfo, metadata: null };
-                    }
-                    const metadata =
-                        (await UploadService.extractFileMetadata(
-                            file,
-                            collectionID,
-                            fileTypeInfo
-                        )) || null;
-                    return { fileTypeInfo, metadata };
-                })();
-
-                this.metadataAndFileTypeInfoMap.set(localID, {
-                    fileTypeInfo: fileTypeInfo && { ...fileTypeInfo },
-                    metadata: metadata && { ...metadata },
-                });
-                UIService.increaseFileUploaded();
-            }
-        } catch (e) {
-            logError(e, 'error extracting metadata');
-            // silently ignore the error
         }
     }
 

@@ -10,7 +10,8 @@ import {
 } from 'types/upload';
 import { logError } from 'utils/sentry';
 import { encryptFiledata } from './encryptionService';
-import { extractMetadata, getMetadataJSONMapKey } from './metadataService';
+import { getMetadataJSONMapKey } from './metadataJSONService';
+import { extractMetadata } from './metadataService';
 import { getFileData, getFileOriginalName } from './readFileService';
 import { generateThumbnail } from './thumbnailService';
 

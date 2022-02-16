@@ -1,7 +1,5 @@
-import { FileWithCollection, Metadata } from 'types/upload';
+import { Metadata } from 'types/upload';
 import { EnteFile } from 'types/file';
-
-const TYPE_JSON = 'json';
 
 export function fileAlreadyInCollection(
     existingFilesInCollection: EnteFile[],
@@ -28,24 +26,4 @@ export function areFilesSame(
     } else {
         return false;
     }
-}
-
-export function segregateMetadataAndMediaFiles(
-    filesWithCollectionToUpload: FileWithCollection[]
-) {
-    const metadataJSONFiles: FileWithCollection[] = [];
-    const mediaFiles: FileWithCollection[] = [];
-    filesWithCollectionToUpload.forEach((fileWithCollection) => {
-        const file = fileWithCollection.file;
-        if (file.name.startsWith('.')) {
-            // ignore files with name starting with . (hidden files)
-            return;
-        }
-        if (file.name.toLowerCase().endsWith(TYPE_JSON)) {
-            metadataJSONFiles.push(fileWithCollection);
-        } else {
-            mediaFiles.push(fileWithCollection);
-        }
-    });
-    return { mediaFiles, metadataJSONFiles };
 }
