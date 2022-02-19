@@ -2,7 +2,7 @@
 
 **ente** is a cloud storage provider that provides end-to-end encryption for your data.
 
-We have open-source apps across Android, iOS, web and desktop that automatically backup your photos and videos.
+We have open-source apps across [Android](https://github.com/ente-io/frame), [iOS](https://github.com/ente-io/frame), [web](https://github.com/ente-io/bada-frame) and [desktop](https://github.com/ente-io/bhari-frame) that automatically backup your photos and videos.
 
 This repository contains the code for our web app, built with a lot of ❤️, and a little bit of JavaScript.
 <br/><br/><br/>
@@ -11,21 +11,17 @@ This repository contains the code for our web app, built with a lot of ❤️, a
 ## ✨ Features
 
 - Client side encryption (only you can view your photos and videos)
-- Background sync
+- Bulk uploader (from hard disk, Google Photos, Apple Photos, ...)
 - Shareable links for albums
-- Highlights of memories from previous years
-- Ability to detect and delete duplicate files
-- Image editor
-- EXIF viewer
-- Ability to free up disk space by deleting backed up photos
-- Recycle bin
+- Ability to filter by places, days, album and file names
 - 2FA
-- Lockscreen
+- Recycle bin
+- EXIF viewer
 - Zero product analytics / third-party tracking
 
 ## 💻 Deployed Application
 
-The web application has been deployed @ [web.ente.io](https://web.ente.io).
+The deployed application is accessible @ [web.ente.io](https://web.ente.io).
 
 ## 🧑‍💻 Building from source
 
