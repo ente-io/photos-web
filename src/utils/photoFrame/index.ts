@@ -1,6 +1,6 @@
 const WAIT_FOR_VIDEO_PLAYBACK = 1 * 1000;
 
-export async function getIsPlaybackPossible(url: string): Promise<boolean> {
+export async function isPlaybackPossible(url: string): Promise<boolean> {
     return await new Promise((resolve) => {
         const t = setTimeout(() => {
             resolve(false);

@@ -16,7 +16,7 @@ import {
     TRASH_SECTION,
 } from 'constants/collection';
 import { isSharedFile } from 'utils/file';
-import { getIsPlaybackPossible } from 'utils/photoFrame';
+import { isPlaybackPossible } from 'utils/photoFrame';
 import { PhotoList } from './PhotoList';
 import { SetFiles, SelectedState, Search, setSearchStats } from 'types/gallery';
 import { FILE_TYPE } from 'constants/file';
@@ -274,14 +274,13 @@ const PhotoFrame = ({
 
     const updateSrcUrl =
         (index: number) => async (file: EnteFile, url: string) => {
-            const isPlaybackPossible = await getIsPlaybackPossible(url);
             files[index] = {
                 ...files[index],
                 w: window.innerWidth,
                 h: window.innerHeight,
             };
             if (files[index].metadata.fileType === FILE_TYPE.VIDEO) {
-                if (isPlaybackPossible) {
+                if (await isPlaybackPossible(url)) {
                     files[index].html = `
                 <video controls>
                     <source src="${url}" />
