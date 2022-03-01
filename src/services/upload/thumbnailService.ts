@@ -7,6 +7,7 @@ import { convertToHumanReadable } from 'utils/billing';
 import { isFileHEIC } from 'utils/file';
 import { FileTypeInfo } from 'types/upload';
 import { getUint8ArrayView } from './readFileService';
+import HEICConverter from 'services/HEICConverter';
 
 const MAX_THUMBNAIL_DIMENSION = 720;
 const MIN_COMPRESSION_PERCENTAGE_SIZE_DIFF = 10;
@@ -22,7 +23,6 @@ interface Dimension {
 }
 
 export async function generateThumbnail(
-    worker,
     reader: FileReader,
     file: File,
     fileTypeInfo: FileTypeInfo
@@ -34,13 +34,12 @@ export async function generateThumbnail(
         try {
             if (fileTypeInfo.fileType === FILE_TYPE.IMAGE) {
                 const isHEIC = isFileHEIC(fileTypeInfo.exactType);
-                canvas = await generateImageThumbnail(worker, file, isHEIC);
+                canvas = await generateImageThumbnail(file, isHEIC);
             } else {
                 try {
                     const thumb = await FFmpegService.generateThumbnail(file);
                     const dummyImageFile = new File([thumb], file.name);
                     canvas = await generateImageThumbnail(
-                        worker,
                         dummyImageFile,
                         false
                     );
@@ -72,11 +71,7 @@ export async function generateThumbnail(
     }
 }
 
-export async function generateImageThumbnail(
-    worker,
-    file: File,
-    isHEIC: boolean
-) {
+export async function generateImageThumbnail(file: File, isHEIC: boolean) {
     const canvas = document.createElement('canvas');
     const canvasCTX = canvas.getContext('2d');
 
@@ -84,7 +79,7 @@ export async function generateImageThumbnail(
     let timeout = null;
 
     if (isHEIC) {
-        file = new File([await worker.convertHEIC2JPEG(file)], null, null);
+        file = new File([await HEICConverter.convert(file)], null, null);
     }
     let image = new Image();
     imageURL = URL.createObjectURL(file);

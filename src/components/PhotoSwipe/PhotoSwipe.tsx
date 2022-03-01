@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import Photoswipe from 'photoswipe';
 import PhotoswipeUIDefault from 'photoswipe/dist/photoswipe-ui-default';
 import classnames from 'classnames';
@@ -20,6 +20,7 @@ import {
     changeFileName,
     downloadFile,
     formatDateTime,
+    isLivePhoto,
     splitFilenameAndExtension,
     updateExistingFilePubMetadata,
 } from 'utils/file';
@@ -28,6 +29,7 @@ import { prettyPrintExif } from 'utils/exif';
 import EditIcon from 'components/icons/EditIcon';
 import {
     FlexWrapper,
+    FreeFlowText,
     IconButton,
     Label,
     Row,
@@ -37,13 +39,18 @@ import { logError } from 'utils/sentry';
 
 import CloseIcon from 'components/icons/CloseIcon';
 import TickIcon from 'components/icons/TickIcon';
-import { FreeFlowText } from 'components/RecoveryKeyModal';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import EnteSpinner from 'components/EnteSpinner';
 import EnteDateTimePicker from 'components/EnteDateTimePicker';
 import { MAX_EDITED_FILE_NAME_LENGTH } from 'constants/file';
 import { sleep } from 'utils/common';
+import { PublicCollectionGalleryContext } from 'utils/publicCollectionGallery';
+import { GalleryContext } from 'pages/gallery';
+import {
+    getLivePhotoInfoShownCount,
+    setLivePhotoInfoShownCount,
+} from 'utils/storage';
 
 const SmallLoadingSpinner = () => (
     <EnteSpinner
@@ -62,9 +69,9 @@ interface Iprops {
     id?: string;
     className?: string;
     favItemIds: Set<number>;
-    loadingBar: any;
     isSharedCollection: boolean;
     isTrashCollection: boolean;
+    enableDownload: boolean;
 }
 
 const LegendContainer = styled.div`
@@ -91,9 +98,11 @@ const renderInfoItem = (label: string, value: string | JSX.Element) => (
 );
 
 function RenderCreationTime({
+    shouldDisableEdits,
     file,
     scheduleUpdate,
 }: {
+    shouldDisableEdits: boolean;
     file: EnteFile;
     scheduleUpdate: () => void;
 }) {
@@ -145,7 +154,14 @@ function RenderCreationTime({
         <>
             <Row>
                 <Label width="30%">{constants.CREATION_TIME}</Label>
-                <Value width={isInEditMode ? '50%' : '60%'}>
+                <Value
+                    width={
+                        !shouldDisableEdits
+                            ? isInEditMode
+                                ? '50%'
+                                : '60%'
+                            : '70%'
+                    }>
                     {isInEditMode ? (
                         <EnteDateTimePicker
                             loading={loading}
@@ -157,28 +173,30 @@ function RenderCreationTime({
                         formatDateTime(pickedTime)
                     )}
                 </Value>
-                <Value
-                    width={isInEditMode ? '20%' : '10%'}
-                    style={{ cursor: 'pointer', marginLeft: '10px' }}>
-                    {!isInEditMode ? (
-                        <IconButton onClick={openEditMode}>
-                            <EditIcon />
-                        </IconButton>
-                    ) : (
-                        <>
-                            <IconButton onClick={saveEdits}>
-                                {loading ? (
-                                    <SmallLoadingSpinner />
-                                ) : (
-                                    <TickIcon />
-                                )}
+                {!shouldDisableEdits && (
+                    <Value
+                        width={isInEditMode ? '20%' : '10%'}
+                        style={{ cursor: 'pointer', marginLeft: '10px' }}>
+                        {!isInEditMode ? (
+                            <IconButton onClick={openEditMode}>
+                                <EditIcon />
                             </IconButton>
-                            <IconButton onClick={discardEdits}>
-                                <CloseIcon />
-                            </IconButton>
-                        </>
-                    )}
-                </Value>
+                        ) : (
+                            <>
+                                <IconButton onClick={saveEdits}>
+                                    {loading ? (
+                                        <SmallLoadingSpinner />
+                                    ) : (
+                                        <TickIcon />
+                                    )}
+                                </IconButton>
+                                <IconButton onClick={discardEdits}>
+                                    <CloseIcon />
+                                </IconButton>
+                            </>
+                        )}
+                    </Value>
+                )}
             </Row>
         </>
     );
@@ -275,9 +293,11 @@ const FileNameEditForm = ({ filename, saveEdits, discardEdits, extension }) => {
 };
 
 function RenderFileName({
+    shouldDisableEdits,
     file,
     scheduleUpdate,
 }: {
+    shouldDisableEdits: boolean;
     file: EnteFile;
     scheduleUpdate: () => void;
 }) {
@@ -317,18 +337,23 @@ function RenderFileName({
                 <Label width="30%">{constants.FILE_NAME}</Label>
                 {!isInEditMode ? (
                     <>
-                        <Value width="60%">
+                        <Value width={!shouldDisableEdits ? '60%' : '70%'}>
                             <FreeFlowText>
                                 {getFileTitle(filename, extension)}
                             </FreeFlowText>
                         </Value>
-                        <Value
-                            width="10%"
-                            style={{ cursor: 'pointer', marginLeft: '10px' }}>
-                            <IconButton onClick={openEditMode}>
-                                <EditIcon />
-                            </IconButton>
-                        </Value>
+                        {!shouldDisableEdits && (
+                            <Value
+                                width="10%"
+                                style={{
+                                    cursor: 'pointer',
+                                    marginLeft: '10px',
+                                }}>
+                                <IconButton onClick={openEditMode}>
+                                    <EditIcon />
+                                </IconButton>
+                            </Value>
+                        )}
                     </>
                 ) : (
                     <FileNameEditForm
@@ -396,6 +421,7 @@ function ExifData(props: { exif: any }) {
 }
 
 function InfoModal({
+    shouldDisableEdits,
     showInfo,
     handleCloseInfo,
     items,
@@ -419,12 +445,14 @@ function InfoModal({
                 )}
                 {metadata?.title && (
                     <RenderFileName
+                        shouldDisableEdits={shouldDisableEdits}
                         file={items[photoSwipe?.getCurrentIndex()]}
                         scheduleUpdate={scheduleUpdate}
                     />
                 )}
                 {metadata?.creationTime && (
                     <RenderCreationTime
+                        shouldDisableEdits={shouldDisableEdits}
                         file={items[photoSwipe?.getCurrentIndex()]}
                         scheduleUpdate={scheduleUpdate}
                     />
@@ -470,6 +498,10 @@ function PhotoSwipe(props: Iprops) {
     const [metadata, setMetaData] = useState<EnteFile['metadata']>(null);
     const [exif, setExif] = useState<any>(null);
     const needUpdate = useRef(false);
+    const publicCollectionGalleryContext = useContext(
+        PublicCollectionGalleryContext
+    );
+    const galleryContext = useContext(GalleryContext);
 
     useEffect(() => {
         if (!pswpElement) return;
@@ -497,6 +529,19 @@ function PhotoSwipe(props: Iprops) {
 
     function updateFavButton() {
         setIsFav(isInFav(this?.currItem));
+    }
+
+    function handleLivePhotoNotification() {
+        if (isLivePhoto(this?.currItem)) {
+            const infoShownCount = getLivePhotoInfoShownCount();
+            if (infoShownCount < 3) {
+                galleryContext.setNotificationAttributes({
+                    message: constants.PLAYBACK_SUPPORT_COMING,
+                    title: constants.LIVE_PHOTO,
+                });
+                setLivePhotoInfoShownCount(infoShownCount + 1);
+            }
+        }
     }
 
     const openPhotoSwipe = () => {
@@ -561,6 +606,7 @@ function PhotoSwipe(props: Iprops) {
         photoSwipe.listen('beforeChange', function () {
             updateInfo.call(this);
             updateFavButton.call(this);
+            handleLivePhotoNotification.call(this);
         });
         photoSwipe.listen('resize', checkExifAvailable);
         photoSwipe.init();
@@ -582,6 +628,8 @@ function PhotoSwipe(props: Iprops) {
             videoTag.pause();
         }
         handleCloseInfo();
+        // BE_AWARE: this will clear any notification set, even if they were not set in/by the photoswipe component
+        galleryContext.setNotificationAttributes(null);
     };
     const isInFav = (file) => {
         const { favItemIds } = props;
@@ -653,10 +701,15 @@ function PhotoSwipe(props: Iprops) {
     };
 
     const downloadFileHelper = async (file) => {
-        const { loadingBar } = props;
-        loadingBar.current.continuousStart();
-        await downloadFile(file);
-        loadingBar.current.complete();
+        galleryContext.startLoading();
+        await downloadFile(
+            file,
+            publicCollectionGalleryContext.accessedThroughSharedURL,
+            publicCollectionGalleryContext.token,
+            publicCollectionGalleryContext.passwordToken
+        );
+
+        galleryContext.finishLoading();
     };
     const scheduleUpdate = () => (needUpdate.current = true);
     const { id } = props;
@@ -687,14 +740,15 @@ function PhotoSwipe(props: Iprops) {
                                 title={constants.CLOSE}
                             />
 
-                            <button
-                                className="pswp-custom download-btn"
-                                title={constants.DOWNLOAD}
-                                onClick={() =>
-                                    downloadFileHelper(photoSwipe.currItem)
-                                }
-                            />
-
+                            {props.enableDownload && (
+                                <button
+                                    className="pswp-custom download-btn"
+                                    title={constants.DOWNLOAD}
+                                    onClick={() =>
+                                        downloadFileHelper(photoSwipe.currItem)
+                                    }
+                                />
+                            )}
                             <button
                                 className="pswp__button pswp__button--fs"
                                 title={constants.TOGGLE_FULLSCREEN}
@@ -713,11 +767,13 @@ function PhotoSwipe(props: Iprops) {
                                         }}
                                     />
                                 )}
-                            <button
-                                className="pswp-custom info-btn"
-                                title={constants.INFO}
-                                onClick={handleOpenInfo}
-                            />
+                            {!props.isSharedCollection && (
+                                <button
+                                    className="pswp-custom info-btn"
+                                    title={constants.INFO}
+                                    onClick={handleOpenInfo}
+                                />
+                            )}
                             <div className="pswp__preloader">
                                 <div className="pswp__preloader__icn">
                                     <div className="pswp__preloader__cut">
@@ -743,15 +799,18 @@ function PhotoSwipe(props: Iprops) {
                     </div>
                 </div>
             </div>
-            <InfoModal
-                showInfo={showInfo}
-                handleCloseInfo={handleCloseInfo}
-                items={items}
-                photoSwipe={photoSwipe}
-                metadata={metadata}
-                exif={exif}
-                scheduleUpdate={scheduleUpdate}
-            />
+            {!props.isSharedCollection && (
+                <InfoModal
+                    shouldDisableEdits={props.isSharedCollection}
+                    showInfo={showInfo}
+                    handleCloseInfo={handleCloseInfo}
+                    items={items}
+                    photoSwipe={photoSwipe}
+                    metadata={metadata}
+                    exif={exif}
+                    scheduleUpdate={scheduleUpdate}
+                />
+            )}
         </>
     );
 }

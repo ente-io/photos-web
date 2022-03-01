@@ -1,5 +1,4 @@
 import { SelectedState } from 'types/gallery';
-import { Collection } from 'types/collection';
 import {
     EnteFile,
     fileAttribute,
@@ -8,7 +7,7 @@ import {
     PublicMagicMetadataProps,
 } from 'types/file';
 import { decodeMotionPhoto } from 'services/motionPhotoService';
-import { getMimeTypeFromBlob } from 'services/upload/readFileService';
+import { getFileTypeFromBlob } from 'services/upload/readFileService';
 import DownloadManager from 'services/downloadManager';
 import { logError } from 'utils/sentry';
 import { User } from 'types/user';
@@ -23,6 +22,8 @@ import {
     FILE_TYPE,
     VISIBILITY_STATE,
 } from 'constants/file';
+import PublicCollectionDownloadManager from 'services/publicCollectionDownloadManager';
+import HEICConverter from 'services/HEICConverter';
 
 export function downloadAsFile(filename: string, content: string) {
     const file = new Blob([content], {
@@ -40,19 +41,46 @@ export function downloadAsFile(filename: string, content: string) {
     a.remove();
 }
 
-export async function downloadFile(file: EnteFile) {
-    const a = document.createElement('a');
-    a.style.display = 'none';
-    let fileURL = await DownloadManager.getCachedOriginalFile(file);
-    let tempURL;
-    if (!fileURL) {
-        tempURL = URL.createObjectURL(
-            await new Response(await DownloadManager.downloadFile(file)).blob()
+export async function downloadFile(
+    file: EnteFile,
+    accessedThroughSharedURL: boolean,
+    token?: string,
+    passwordToken?: string
+) {
+    let fileURL: string;
+    let tempURL: string;
+    if (accessedThroughSharedURL) {
+        fileURL = await PublicCollectionDownloadManager.getCachedOriginalFile(
+            file
         );
-        fileURL = tempURL;
+        tempURL;
+        if (!fileURL) {
+            tempURL = URL.createObjectURL(
+                await new Response(
+                    await PublicCollectionDownloadManager.downloadFile(
+                        token,
+                        passwordToken,
+                        file
+                    )
+                ).blob()
+            );
+            console.log({ tempURL });
+            fileURL = tempURL;
+        }
+    } else {
+        fileURL = await DownloadManager.getCachedOriginalFile(file);
+        if (!fileURL) {
+            tempURL = URL.createObjectURL(
+                await new Response(
+                    await DownloadManager.downloadFile(file)
+                ).blob()
+            );
+            fileURL = tempURL;
+        }
     }
+
     const fileType = getFileExtension(file.metadata.title);
-    let tempEditedFileURL;
+    let tempEditedFileURL: string;
     if (
         file.pubMagicMetadata?.data.editedTime &&
         (fileType === TYPE_JPEG || fileType === TYPE_JPG)
@@ -67,19 +95,35 @@ export async function downloadFile(file: EnteFile) {
         tempEditedFileURL = URL.createObjectURL(fileBlob);
         fileURL = tempEditedFileURL;
     }
-
-    a.href = fileURL;
+    let tempImageURL: string;
+    let tempVideoURL: string;
 
     if (file.metadata.fileType === FILE_TYPE.LIVE_PHOTO) {
-        a.download = fileNameWithoutExtension(file.metadata.title) + '.zip';
+        const fileBlob = await (await fetch(fileURL)).blob();
+        const originalName = fileNameWithoutExtension(file.metadata.title);
+        const motionPhoto = await decodeMotionPhoto(fileBlob, originalName);
+        tempImageURL = URL.createObjectURL(new Blob([motionPhoto.image]));
+        tempVideoURL = URL.createObjectURL(new Blob([motionPhoto.video]));
+        downloadUsingAnchor(motionPhoto.imageNameTitle, tempImageURL);
+        downloadUsingAnchor(motionPhoto.videoNameTitle, tempVideoURL);
     } else {
-        a.download = file.metadata.title;
+        downloadUsingAnchor(file.metadata.title, fileURL);
     }
+
+    tempURL && URL.revokeObjectURL(tempURL);
+    tempEditedFileURL && URL.revokeObjectURL(tempEditedFileURL);
+    tempImageURL && URL.revokeObjectURL(tempImageURL);
+    tempVideoURL && URL.revokeObjectURL(tempVideoURL);
+}
+
+function downloadUsingAnchor(name: string, link: string) {
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = link;
+    a.download = name;
     document.body.appendChild(a);
     a.click();
     a.remove();
-    tempURL && URL.revokeObjectURL(tempURL);
-    tempEditedFileURL && URL.revokeObjectURL(tempEditedFileURL);
 }
 
 export function isFileHEIC(mimeType: string) {
@@ -202,13 +246,13 @@ export function sortFiles(files: EnteFile[]) {
     return files;
 }
 
-export async function decryptFile(file: EnteFile, collection: Collection) {
+export async function decryptFile(file: EnteFile, collectionKey: string) {
     try {
         const worker = await new CryptoWorker();
         file.key = await worker.decryptB64(
             file.encryptedKey,
             file.keyDecryptionNonce,
-            collection.key
+            collectionKey
         );
         const encryptedMetadata = file.metadata as unknown as fileAttribute;
         file.metadata = await worker.decryptMetadata(
@@ -295,13 +339,13 @@ export async function convertForPreview(file: EnteFile, fileBlob: Blob) {
     }
 
     const typeFromExtension = getFileExtension(file.metadata.title);
-    const worker = await new CryptoWorker();
     const reader = new FileReader();
 
     const mimeType =
-        (await getMimeTypeFromBlob(reader, fileBlob)) ?? typeFromExtension;
+        (await getFileTypeFromBlob(reader, fileBlob))?.mime ??
+        typeFromExtension;
     if (isFileHEIC(mimeType)) {
-        fileBlob = await worker.convertHEIC2JPEG(fileBlob);
+        fileBlob = await HEICConverter.convert(fileBlob);
     }
     return fileBlob;
 }
@@ -502,7 +546,7 @@ export function getNonTrashedUniqueUserFiles(files: EnteFile[]) {
 export async function downloadFiles(files: EnteFile[]) {
     for (const file of files) {
         try {
-            await downloadFile(file);
+            await downloadFile(file, false);
         } catch (e) {
             logError(e, 'download fail for file');
         }
@@ -521,3 +565,9 @@ export function needsConversionForPreview(file: EnteFile) {
         return false;
     }
 }
+
+export const isLivePhoto = (file: EnteFile) =>
+    file.metadata.fileType === FILE_TYPE.LIVE_PHOTO;
+
+export const isImageOrVideo = (fileType: FILE_TYPE) =>
+    fileType in [FILE_TYPE.IMAGE, FILE_TYPE.VIDEO];

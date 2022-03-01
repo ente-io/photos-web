@@ -1,4 +1,4 @@
-import { getEndpoint, getPaymentsUrl } from 'utils/common/apiUtil';
+import { getEndpoint, getPaymentsURL } from 'utils/common/apiUtil';
 import { getToken } from 'utils/common/key';
 import { setData, LS_KEYS } from 'utils/storage/localStorage';
 import { convertToHumanReadable } from 'utils/billing';
@@ -16,10 +16,22 @@ enum PaymentActionType {
 
 class billingService {
     public async getPlans(): Promise<Plan[]> {
+        const token = getToken();
         try {
-            const response = await HTTPService.get(
-                `${ENDPOINT}/billing/plans/v2`
-            );
+            let response;
+            if (!token) {
+                response = await HTTPService.get(
+                    `${ENDPOINT}/billing/plans/v2`
+                );
+            } else {
+                response = await HTTPService.get(
+                    `${ENDPOINT}/billing/user-plans`,
+                    null,
+                    {
+                        'X-Auth-Token': getToken(),
+                    }
+                );
+            }
             const { plans } = response.data;
             return plans;
         } catch (e) {
@@ -142,7 +154,7 @@ class billingService {
         action: string
     ) {
         try {
-            window.location.href = `${getPaymentsUrl()}?productID=${productID}&paymentToken=${paymentToken}&action=${action}&redirectURL=${
+            window.location.href = `${getPaymentsURL()}?productID=${productID}&paymentToken=${paymentToken}&action=${action}&redirectURL=${
                 window.location.origin
             }/gallery`;
         } catch (e) {

@@ -67,6 +67,7 @@ export default function Credentials() {
                     keyAttributes.keyDecryptionNonce,
                     kek
                 );
+
                 if (isFirstLogin()) {
                     await generateAndSaveIntermediateKeyAttributes(
                         passphrase,
@@ -76,9 +77,9 @@ export default function Credentials() {
                 }
                 await SaveKeyInSessionStore(SESSION_KEYS.ENCRYPTION_KEY, key);
                 await decryptAndStoreToken(key);
-                const redirectUrl = appContext.redirectUrl;
-                appContext.setRedirectUrl(null);
-                router.push(redirectUrl ?? PAGES.GALLERY);
+                const redirectURL = appContext.redirectURL;
+                appContext.setRedirectURL(null);
+                router.push(redirectURL ?? PAGES.GALLERY);
             } catch (e) {
                 logError(e, 'user entered a wrong password');
                 setFieldError('passphrase', constants.INCORRECT_PASSPHRASE);

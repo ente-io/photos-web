@@ -96,9 +96,15 @@ import FixCreationTime, {
 } from 'components/FixCreationTime';
 import { Collection, CollectionAndItsLatestFile } from 'types/collection';
 import { EnteFile } from 'types/file';
-import { GalleryContextType, SelectedState, Search } from 'types/gallery';
+import {
+    GalleryContextType,
+    SelectedState,
+    Search,
+    NotificationAttributes,
+} from 'types/gallery';
 import Collections from 'components/pages/gallery/Collections';
 import { VISIBILITY_STATE } from 'constants/file';
+import ToastNotification from 'components/ToastNotification';
 
 export const DeadCenter = styled.div`
     flex: 1;
@@ -119,8 +125,13 @@ const defaultGalleryContext: GalleryContextType = {
     thumbs: new Map(),
     files: new Map(),
     showPlanSelectorModal: () => null,
+    closeMessageDialog: () => null,
     setActiveCollection: () => null,
     syncWithRemote: () => null,
+    setDialogMessage: () => null,
+    startLoading: () => null,
+    finishLoading: () => null,
+    setNotificationAttributes: () => null,
 };
 
 export const GalleryContext = createContext<GalleryContextType>(
@@ -144,7 +155,7 @@ export default function Gallery() {
         collectionID: 0,
     });
     const [dialogMessage, setDialogMessage] = useState<MessageAttributes>();
-    const [dialogView, setDialogView] = useState(false);
+    const [messageDialogView, setMessageDialogView] = useState(false);
     const [planModalView, setPlanModalView] = useState(false);
     const [loading, setLoading] = useState(false);
     const [collectionSelectorAttributes, setCollectionSelectorAttributes] =
@@ -174,6 +185,7 @@ export default function Gallery() {
     const loadingBar = useRef(null);
     const [isInSearchMode, setIsInSearchMode] = useState(false);
     const [searchStats, setSearchStats] = useState(null);
+    const isLoadingBarRunning = useRef(false);
     const syncInProgress = useRef(true);
     const resync = useRef(false);
     const [deleted, setDeleted] = useState<number[]>([]);
@@ -186,10 +198,18 @@ export default function Gallery() {
     const [fixCreationTimeAttributes, setFixCreationTimeAttributes] =
         useState<FixCreationTimeAttributes>(null);
 
+    const [notificationAttributes, setNotificationAttributes] =
+        useState<NotificationAttributes>(null);
+
+    const showPlanSelectorModal = () => setPlanModalView(true);
+    const closeMessageDialog = () => setMessageDialogView(false);
+
+    const clearNotificationAttributes = () => setNotificationAttributes(null);
+
     useEffect(() => {
         const key = getKey(SESSION_KEYS.ENCRYPTION_KEY);
         if (!key) {
-            appContext.setRedirectUrl(router.asPath);
+            appContext.setRedirectURL(router.asPath);
             router.push(PAGES.ROOT);
             return;
         }
@@ -218,7 +238,7 @@ export default function Gallery() {
         appContext.showNavBar(true);
     }, []);
 
-    useEffect(() => setDialogView(true), [dialogMessage]);
+    useEffect(() => setMessageDialogView(true), [dialogMessage]);
 
     useEffect(
         () => collectionSelectorAttributes && setCollectionSelectorView(true),
@@ -271,7 +291,7 @@ export default function Gallery() {
             if (!(await isTokenValid())) {
                 throw new Error(ServerErrorCodes.SESSION_EXPIRED);
             }
-            !silent && loadingBar.current?.continuousStart();
+            !silent && startLoading();
             await billingService.syncSubscription();
             const collections = await syncCollections();
             setCollections(collections);
@@ -301,7 +321,7 @@ export default function Gallery() {
                     break;
             }
         } finally {
-            !silent && loadingBar.current?.complete();
+            !silent && finishLoading();
         }
         syncInProgress.current = false;
         if (resync.current) {
@@ -335,10 +355,14 @@ export default function Gallery() {
         setSelected({ count: 0, collectionID: 0 });
     };
 
-    const startLoading = () =>
-        !syncInProgress.current && loadingBar.current?.continuousStart();
-    const finishLoading = () =>
-        !syncInProgress.current && loadingBar.current.complete();
+    const startLoading = () => {
+        !isLoadingBarRunning.current && loadingBar.current?.continuousStart();
+        isLoadingBarRunning.current = true;
+    };
+    const finishLoading = () => {
+        isLoadingBarRunning.current && loadingBar.current?.complete();
+        isLoadingBarRunning.current = false;
+    };
 
     if (!files) {
         return <div />;
@@ -536,9 +560,14 @@ export default function Gallery() {
         <GalleryContext.Provider
             value={{
                 ...defaultGalleryContext,
-                showPlanSelectorModal: () => setPlanModalView(true),
+                showPlanSelectorModal,
+                closeMessageDialog,
                 setActiveCollection,
                 syncWithRemote,
+                setDialogMessage,
+                startLoading,
+                finishLoading,
+                setNotificationAttributes,
             }}>
             <FullScreenDropZone
                 getRootProps={getRootProps}
@@ -561,16 +590,19 @@ export default function Gallery() {
                     setLoading={setLoading}
                 />
                 <AlertBanner bannerMessage={bannerMessage} />
+                <ToastNotification
+                    attributes={notificationAttributes}
+                    clearAttributes={clearNotificationAttributes}
+                />
                 <MessageDialog
                     size="lg"
-                    show={dialogView}
-                    onHide={() => setDialogView(false)}
+                    show={messageDialogView}
+                    onHide={closeMessageDialog}
                     attributes={dialogMessage}
                 />
                 <SearchBar
                     isOpen={isInSearchMode}
                     setOpen={setIsInSearchMode}
-                    loadingBar={loadingBar}
                     isFirstFetch={isFirstFetch}
                     collections={collections}
                     files={getNonTrashedUniqueUserFiles(files)}
@@ -651,17 +683,16 @@ export default function Gallery() {
                     selected={selected}
                     isFirstLoad={isFirstLoad}
                     openFileUploader={openFileUploader}
-                    loadingBar={loadingBar}
                     isInSearchMode={isInSearchMode}
                     search={search}
                     setSearchStats={setSearchStats}
                     deleted={deleted}
-                    setDialogMessage={setDialogMessage}
                     activeCollection={activeCollection}
                     isSharedCollection={isSharedCollection(
                         activeCollection,
                         collections
                     )}
+                    enableDownload={true}
                 />
                 {selected.count > 0 &&
                     selected.collectionID === activeCollection && (

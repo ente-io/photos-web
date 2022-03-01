@@ -1,6 +1,6 @@
 import { ENCRYPTION_CHUNK_SIZE } from 'constants/crypto';
 import { FILE_TYPE } from 'constants/file';
-import { Location } from 'types/upload';
+import { Location, ParsedExtractedMetadata } from 'types/upload';
 
 // list of format that were missed by type-detection for some files.
 export const FORMAT_MISSED_BY_FILE_TYPE_LIB = [
@@ -25,15 +25,26 @@ export const NULL_LOCATION: Location = { latitude: null, longitude: null };
 export enum UPLOAD_STAGES {
     START,
     READING_GOOGLE_METADATA_FILES,
+    EXTRACTING_METADATA,
     UPLOADING,
     FINISH,
 }
 
 export enum FileUploadResults {
-    FAILED = -1,
-    SKIPPED = -2,
-    UNSUPPORTED = -3,
-    BLOCKED = -4,
-    TOO_LARGE = -5,
-    UPLOADED = 100,
+    FAILED,
+    ALREADY_UPLOADED,
+    UNSUPPORTED,
+    BLOCKED,
+    TOO_LARGE,
+    LARGER_THAN_AVAILABLE_STORAGE,
+    UPLOADED,
 }
+
+export const MAX_FILE_SIZE_SUPPORTED = 5 * 1024 * 1024 * 1024; // 5 GB
+
+export const LIVE_PHOTO_ASSET_SIZE_LIMIT = 20 * 1024 * 1024; // 20MB
+
+export const NULL_EXTRACTED_METADATA: ParsedExtractedMetadata = {
+    location: NULL_LOCATION,
+    creationTime: null,
+};

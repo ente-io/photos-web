@@ -1,5 +1,4 @@
 import { EnteFile } from 'types/file';
-import { sleep } from 'utils/common';
 import { handleUploadError, CustomError } from 'utils/error';
 import { decryptFile } from 'utils/file';
 import { logError } from 'utils/sentry';
@@ -7,23 +6,10 @@ import { fileAlreadyInCollection } from 'utils/upload';
 import UploadHttpClient from './uploadHttpClient';
 import UIService from './uiService';
 import UploadService from './uploadService';
-import uploadService from './uploadService';
-import { getFileType } from './readFileService';
-import {
-    BackupedFile,
-    EncryptedFile,
-    FileInMemory,
-    FileTypeInfo,
-    FileWithCollection,
-    FileWithMetadata,
-    Metadata,
-    UploadFile,
-} from 'types/upload';
 import { FILE_TYPE } from 'constants/file';
-import { FileUploadResults } from 'constants/upload';
+import { FileUploadResults, MAX_FILE_SIZE_SUPPORTED } from 'constants/upload';
+import { FileWithCollection, BackupedFile, UploadFile } from 'types/upload';
 
-const TwoSecondInMillSeconds = 2000;
-const FIVE_GB_IN_BYTES = 5 * 1024 * 1024 * 1024;
 interface UploadResponse {
     fileUploadResult: FileUploadResults;
     file?: EnteFile;
@@ -34,59 +20,44 @@ export default async function uploader(
     existingFilesInCollection: EnteFile[],
     fileWithCollection: FileWithCollection
 ): Promise<UploadResponse> {
-    const { file: rawFile, collection } = fileWithCollection;
+    const { collection, localID, ...uploadAsset } = fileWithCollection;
 
-    UIService.setFileProgress(rawFile.name, 0);
-
-    let file: FileInMemory = null;
-    let encryptedFile: EncryptedFile = null;
-    let metadata: Metadata = null;
-    let fileTypeInfo: FileTypeInfo = null;
-    let fileWithMetadata: FileWithMetadata = null;
-
+    UIService.setFileProgress(localID, 0);
+    const { fileTypeInfo, metadata } =
+        UploadService.getFileMetadataAndFileTypeInfo(localID);
     try {
-        if (rawFile.size >= FIVE_GB_IN_BYTES) {
-            UIService.setFileProgress(
-                rawFile.name,
-                FileUploadResults.TOO_LARGE
-            );
-            // wait two second before removing the file from the progress in file section
-            await sleep(TwoSecondInMillSeconds);
+        const fileSize = UploadService.getAssetSize(uploadAsset);
+        if (fileSize >= MAX_FILE_SIZE_SUPPORTED) {
             return { fileUploadResult: FileUploadResults.TOO_LARGE };
         }
-        fileTypeInfo = await getFileType(reader, rawFile);
         if (fileTypeInfo.fileType === FILE_TYPE.OTHERS) {
             throw Error(CustomError.UNSUPPORTED_FILE_FORMAT);
         }
-        metadata = await uploadService.getFileMetadata(
-            rawFile,
-            collection,
-            fileTypeInfo
-        );
-
-        if (fileAlreadyInCollection(existingFilesInCollection, metadata)) {
-            UIService.setFileProgress(rawFile.name, FileUploadResults.SKIPPED);
-            // wait two second before removing the file from the progress in file section
-            await sleep(TwoSecondInMillSeconds);
-            return { fileUploadResult: FileUploadResults.SKIPPED };
+        if (!metadata) {
+            throw Error(CustomError.NO_METADATA);
         }
 
-        file = await UploadService.readFile(
-            worker,
+        if (fileAlreadyInCollection(existingFilesInCollection, metadata)) {
+            return { fileUploadResult: FileUploadResults.ALREADY_UPLOADED };
+        }
+
+        const file = await UploadService.readAsset(
             reader,
-            rawFile,
-            fileTypeInfo
+            fileTypeInfo,
+            uploadAsset
         );
+
         if (file.hasStaticThumbnail) {
             metadata.hasStaticThumbnail = true;
         }
-        fileWithMetadata = {
+        const fileWithMetadata = {
+            localID,
             filedata: file.filedata,
             thumbnail: file.thumbnail,
             metadata,
         };
 
-        encryptedFile = await UploadService.encryptFile(
+        const encryptedFile = await UploadService.encryptAsset(
             worker,
             fileWithMetadata,
             collection.key
@@ -103,9 +74,8 @@ export default async function uploader(
         );
 
         const uploadedFile = await UploadHttpClient.uploadFile(uploadFile);
-        const decryptedFile = await decryptFile(uploadedFile, collection);
+        const decryptedFile = await decryptFile(uploadedFile, collection.key);
 
-        UIService.setFileProgress(rawFile.name, FileUploadResults.UPLOADED);
         UIService.increaseFileUploaded();
         return {
             fileUploadResult: FileUploadResults.UPLOADED,
@@ -118,34 +88,16 @@ export default async function uploader(
         const error = handleUploadError(e);
         switch (error.message) {
             case CustomError.ETAG_MISSING:
-                UIService.setFileProgress(
-                    rawFile.name,
-                    FileUploadResults.BLOCKED
-                );
                 return { fileUploadResult: FileUploadResults.BLOCKED };
             case CustomError.UNSUPPORTED_FILE_FORMAT:
-                UIService.setFileProgress(
-                    rawFile.name,
-                    FileUploadResults.UNSUPPORTED
-                );
                 return { fileUploadResult: FileUploadResults.UNSUPPORTED };
-
             case CustomError.FILE_TOO_LARGE:
-                UIService.setFileProgress(
-                    rawFile.name,
-                    FileUploadResults.TOO_LARGE
-                );
-                return { fileUploadResult: FileUploadResults.TOO_LARGE };
+                return {
+                    fileUploadResult:
+                        FileUploadResults.LARGER_THAN_AVAILABLE_STORAGE,
+                };
             default:
-                UIService.setFileProgress(
-                    rawFile.name,
-                    FileUploadResults.FAILED
-                );
                 return { fileUploadResult: FileUploadResults.FAILED };
         }
-    } finally {
-        file = null;
-        fileWithMetadata = null;
-        encryptedFile = null;
     }
 }

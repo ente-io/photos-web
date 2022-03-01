@@ -6,6 +6,13 @@ import DownloadManager from 'services/downloadManager';
 import useLongPress from 'utils/common/useLongPress';
 import { GalleryContext } from 'pages/gallery';
 import { GAP_BTW_TILES } from 'constants/gallery';
+import {
+    defaultPublicCollectionGalleryContext,
+    PublicCollectionGalleryContext,
+} from 'utils/publicCollectionGallery';
+import PublicCollectionDownloadManager from 'services/publicCollectionDownloadManager';
+import LivePhotoIndicatorOverlay from 'components/icons/LivePhotoIndicatorOverlay';
+import { isLivePhoto } from 'utils/file';
 
 interface IProps {
     file: EnteFile;
@@ -175,11 +182,26 @@ export default function PreviewCard(props: IProps) {
         isInsSelectRange,
     } = props;
     const isMounted = useRef(true);
+    const publicCollectionGalleryContext =
+        useContext(PublicCollectionGalleryContext) ??
+        defaultPublicCollectionGalleryContext;
     useLayoutEffect(() => {
         if (file && !file.msrc) {
             const main = async () => {
                 try {
-                    const url = await DownloadManager.getThumbnail(file);
+                    let url;
+                    if (
+                        publicCollectionGalleryContext.accessedThroughSharedURL
+                    ) {
+                        url =
+                            await PublicCollectionDownloadManager.getThumbnail(
+                                file,
+                                publicCollectionGalleryContext.token,
+                                publicCollectionGalleryContext.passwordToken
+                            );
+                    } else {
+                        url = await DownloadManager.getThumbnail(file);
+                    }
                     if (isMounted.current) {
                         setImgSrc(url);
                         thumbs.set(file.id, url);
@@ -258,6 +280,7 @@ export default function PreviewCard(props: IProps) {
             <InSelectRangeOverLay
                 active={isRangeSelectActive && isInsSelectRange}
             />
+            {isLivePhoto(file) && <LivePhotoIndicatorOverlay />}
         </Cont>
     );
 }

@@ -74,6 +74,7 @@ const englishConstants = {
     SENDING: 'sending...',
     SENT: 'sent!',
     PASSWORD: 'password',
+    LINK_PASSWORD: 'enter password to unlock the album',
     ENTER_PASSPHRASE: 'enter your password',
     RETURN_PASSPHRASE_HINT: 'password',
     SET_PASSPHRASE: 'set password',
@@ -99,36 +100,17 @@ const englishConstants = {
     ENTER_ALBUM_NAME: 'album name',
     CLOSE: 'close',
     NO: 'no',
-    NOTHING_HERE: 'nothing to see here, yet',
+    NOTHING_HERE: 'nothing to see here yet 👀',
     UPLOAD: {
         0: 'preparing to upload',
         1: 'reading google metadata files',
-        2: (fileCounter) =>
+        2: 'reading file metadata to organize file',
+        3: (fileCounter) =>
             `${fileCounter.finished} / ${fileCounter.total} files backed up`,
-        3: 'backup complete',
+        4: 'backup complete',
     },
     UPLOADING_FILES: 'file upload',
     FILE_NOT_UPLOADED_LIST: 'the following files were not uploaded',
-    FILE_UPLOAD_PROGRESS: (name: string, progress: number) => (
-        <div id={name}>
-            {name}
-            {' - '}
-            <span style={{ color: '#eee' }}>
-                {(() => {
-                    switch (progress) {
-                        case -1:
-                            return 'failed';
-                        case -2:
-                            return 'already uploaded, skipping...';
-                        case -3:
-                            return 'unsupported file format, skipping....';
-                        default:
-                            return `${progress}%`;
-                    }
-                })()}
-            </span>
-        </div>
-    ),
     SUBSCRIPTION_EXPIRED: (action) => (
         <>
             your subscription has expired, please a{' '}
@@ -350,6 +332,14 @@ const englishConstants = {
     SUBSCRIPTION_PURCHASE_SUCCESS_TITLE: 'thank you',
     CANCEL_SUBSCRIPTION_ON_MOBILE:
         'please cancel your subscription from the mobile app to activate a subscription here',
+    PAYPAL_MANAGE_NOT_SUPPORTED_MESSAGE: () => (
+        <>
+            please contact us at{' '}
+            <a href="mailto:paypal@ente.io">paypal@ente.io</a> to manage your
+            subscription
+        </>
+    ),
+    PAYPAL_MANAGE_NOT_SUPPORTED: 'manage paypal plan',
     RENAME: 'rename',
     RENAME_COLLECTION: 'rename album',
     CONFIRM_DELETE_COLLECTION: 'confirm album deletion',
@@ -377,6 +367,7 @@ const englishConstants = {
             </div>
         </>
     ),
+    PUBLIC_URL: 'public link',
     SHARE_WITH_SELF: 'oops, you cannot share with yourself',
     ALREADY_SHARED: (email) =>
         `oops, you're already sharing this with ${email}`,
@@ -535,6 +526,13 @@ const englishConstants = {
         </>
     ),
 
+    LIVE_PHOTOS_DETECTED: () => (
+        <p>
+            the photo and video files from your Live Photos have been merged
+            into a single ELP file
+        </p>
+    ),
+
     RETRY_FAILED: 'retry failed uploads',
     FAILED_UPLOADS: 'failed uploads ',
     SKIPPED_FILES: 'ignored uploads',
@@ -546,8 +544,11 @@ const englishConstants = {
     BLOCKED_UPLOADS: 'blocked uploads',
     INPROGRESS_UPLOADS: 'uploads in progress',
     TOO_LARGE_UPLOADS: 'large files',
-    TOO_LARGE_INFO:
+    LARGER_THAN_AVAILABLE_STORAGE_UPLOADS: 'insufficient storage',
+    LARGER_THAN_AVAILABLE_STORAGE_INFO:
         'these files were not uploaded as they exceed the maximum size limit for your storage plan',
+    TOO_LARGE_INFO:
+        'these files were not uploaded as they exceed our maximum file size limit',
     UPLOAD_TO_COLLECTION: 'upload to album',
     ARCHIVE: 'archive',
     ALL: 'all',
@@ -621,6 +622,57 @@ const englishConstants = {
     DATE_TIME_ORIGINAL: 'EXIF:DateTimeOriginal',
     DATE_TIME_DIGITIZED: 'EXIF:DateTimeDigitized',
     CUSTOM_TIME: 'custom time',
+    REOPEN_PLAN_SELECTOR_MODAL: 're-open plans',
+    OPEN_PLAN_SELECTOR_MODAL_FAILED: 'failed to open plans',
+    COMMENT: 'comment',
+    ABUSE_REPORT_DESCRIPTION:
+        'submitting this report will notify the album owner.',
+    OTHER_REASON_REQUIRES_COMMENTS:
+        'reason = other, require  a mandatory comment ',
+    REPORT_SUBMIT_SUCCESS_CONTENT: 'your report has been submitted',
+    REPORT_SUBMIT_SUCCESS_TITLE: 'report sent',
+    REPORT_SUBMIT_FAILED: 'failed to sent report, try again',
+    INSTALL: 'install',
+    ALBUM_URL: 'album url',
+    PUBLIC_SHARING: 'link sharing',
+    NOT_FOUND: '404 - not found',
+    LINK_EXPIRED: 'this link has either expired or been disabled!',
+    LINK_TOO_MANY_REQUESTS: 'this album is too popular for us to handle!',
+    DISABLE_PUBLIC_SHARING: "'disable public sharing",
+    DISABLE_PUBLIC_SHARING_MESSAGE:
+        'are you sure you want to disable public sharing?',
+    ABUSE_REPORT: 'abuse report',
+    ABUSE_REPORT_BUTTON_TEXT: 'report abuse?',
+    MALICIOUS_CONTENT: 'contains malicious content',
+    COPYRIGHT:
+        'infringes on the copyright of someone I am authorized to represent',
+    ENTER_EMAIL_ADDRESS: 'email*',
+    SELECT_REASON: 'select a reason*',
+    ENTER_FULL_NAME: 'full name*',
+    ENTER_DIGITAL_SIGNATURE:
+        'typing your full name in this box will act as your digital signature*',
+    ENTER_ON_BEHALF_OF: 'I am reporting on behalf of*',
+    ENTER_ADDRESS: 'address*',
+    ENTER_JOB_TITLE: 'job title*',
+    ENTER_CITY: 'city*',
+    ENTER_PHONE: 'phone number*',
+
+    ENTER_STATE: 'state*',
+    ENTER_POSTAL_CODE: 'zip/postal code*',
+    ENTER_COUNTRY: 'country*',
+    JUDICIAL_DESCRIPTION: () => (
+        <>
+            By checking the following boxes, I state{' '}
+            <strong>UNDER PENALTY OF PERJURY </strong>of law that:
+        </>
+    ),
+    TERM_1: 'I hereby state that I have a good faith belief that the sharing of copyrighted material at the location above is not authorized by the copyright owner, its agent, or the law (e.g., as a fair use). ',
+    TERM_2: 'I hereby state that the information in this Notice is accurate and, under penalty of perjury, that I am the owner, or authorized to act on behalf of, the owner, of the copyright or of an exclusive right under the copyright that is allegedly infringed. ',
+    TERM_3: 'I acknowledge that any person who knowingly materially misrepresents that material or activity is infringing may be subject to liability for damages. ',
+    PRESERVED_BY: 'preserved by',
+    ENTE_IO: 'ente.io',
+    PLAYBACK_SUPPORT_COMING: 'playback support coming soon...',
+    LIVE_PHOTO: 'this is a live photo',
 };
 
 export default englishConstants;

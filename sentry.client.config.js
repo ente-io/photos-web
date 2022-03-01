@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/nextjs';
-import { getSentryTunnelUrl } from 'utils/common/apiUtil';
+import { getSentryTunnelURL } from 'utils/common/apiUtil';
 import { getUserAnonymizedID } from 'utils/user';
 import {
     getSentryDSN,
@@ -21,7 +21,19 @@ Sentry.init({
     release: SENTRY_RELEASE,
     attachStacktrace: true,
     autoSessionTracking: false,
-    tunnel: getSentryTunnelUrl(),
+    tunnel: getSentryTunnelURL(),
+    beforeSend(event) {
+        event.request = event.request || {};
+        const currentURL = new URL(document.location.href);
+        currentURL.hash = '';
+        event.request.url = currentURL;
+        return event;
+    },
+    integrations: function (i) {
+        return i.filter(function (i) {
+            return i.name !== 'Breadcrumbs';
+        });
+    },
     // ...
     // Note: if you want to override the automatic release value, do not set a
     // `release` value here - use the environment variable `SENTRY_RELEASE`, so
