@@ -9,6 +9,7 @@ import UploadService from './uploadService';
 import { FILE_TYPE } from 'constants/file';
 import { FileUploadResults, MAX_FILE_SIZE_SUPPORTED } from 'constants/upload';
 import { FileWithCollection, BackupedFile, UploadFile } from 'types/upload';
+import { sleep } from 'utils/common';
 
 interface UploadResponse {
     fileUploadResult: FileUploadResults;
@@ -56,6 +57,11 @@ export default async function uploader(
             thumbnail: file.thumbnail,
             metadata,
         };
+
+        if (process.env.NEXT_PUBLIC_SKIP_PUT) {
+            await sleep(1000);
+            return { fileUploadResult: FileUploadResults.ALREADY_UPLOADED };
+        }
 
         const encryptedFile = await UploadService.encryptAsset(
             worker,
