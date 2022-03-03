@@ -105,6 +105,7 @@ import {
 import Collections from 'components/pages/gallery/Collections';
 import { VISIBILITY_STATE } from 'constants/file';
 import ToastNotification from 'components/ToastNotification';
+import ffmpegService from 'services/ffmpegService';
 
 export const DeadCenter = styled.div`
     flex: 1;
@@ -230,6 +231,11 @@ export default function Gallery() {
             setTrash(trash);
             await setDerivativeState(collections, files);
             await syncWithRemote(true);
+            try {
+                await ffmpegService.init();
+            } catch (e) {
+                logError(e, 'ffmpeg load failed');
+            }
             setIsFirstLoad(false);
             setJustSignedUp(false);
             setIsFirstFetch(false);
