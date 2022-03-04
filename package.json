@@ -48,7 +48,6 @@
     "react-top-loading-bar": "^2.0.1",
     "react-virtualized-auto-sizer": "^1.0.2",
     "react-window": "^1.8.6",
-    "react-window-infinite-loader": "^1.0.5",
     "styled-components": "^5.2.0",
     "workbox-precaching": "^6.1.5",
     "workbox-recipes": "^6.1.5",
