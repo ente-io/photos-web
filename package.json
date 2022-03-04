@@ -35,7 +35,6 @@
     "file-type": "^16.5.3",
     "formik": "^2.1.5",
     "heic-convert": "^1.2.4",
-    "http-proxy-middleware": "^1.0.5",
     "is-electron": "^2.2.0",
     "jszip": "3.7.1",
     "libsodium-wrappers": "^0.7.8",
