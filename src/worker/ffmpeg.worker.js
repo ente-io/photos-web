@@ -13,8 +13,8 @@ export class FFmpeg {
         return this.ffmpegClient.extractVideoMetadata(file);
     }
 
-    async convertToMP4(file, inputFileName) {
-        return this.ffmpegClient.convertToMP4(file, inputFileName);
+    async transcode(file, outputFormatExtension) {
+        return this.ffmpegClient.transcode(file, outputFormatExtension);
     }
 }
 

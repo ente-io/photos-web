@@ -27,7 +27,7 @@ class FFmpegClient {
     async generateThumbnail(file: File) {
         await this.ready;
         const inputFileName = `${Date.now().toString()}-${file.name}`;
-        const thumbFileName = `${Date.now().toString()}-thumb.jpeg`;
+        const thumbFileName = `${Date.now().toString()}-thumb.jpg`;
         this.ffmpeg.FS(
             'writeFile',
             inputFileName,
@@ -91,19 +91,25 @@ class FFmpegClient {
         return parseFFmpegExtractedMetadata(metadata);
     }
 
-    async convertToMP4(file: Uint8Array, inputFileName: string) {
+    async transcode(file: File, outputFormatExtension: string) {
         await this.ready;
-        this.ffmpeg.FS('writeFile', inputFileName, file);
+        const inputFileName = `${Date.now().toString()}-${file.name}`;
+        const outputFileName = `${Date.now().toString()}-converted.${outputFormatExtension}`;
+        this.ffmpeg.FS(
+            'writeFile',
+            inputFileName,
+            await getUint8ArrayView(this.fileReader, file)
+        );
         await this.ffmpeg.run(
             '-i',
             inputFileName,
             '-preset',
             'ultrafast',
-            'output.mp4'
+            outputFileName
         );
-        const convertedFile = this.ffmpeg.FS('readFile', 'output.mp4');
+        const convertedFile = this.ffmpeg.FS('readFile', outputFileName);
         this.ffmpeg.FS('unlink', inputFileName);
-        this.ffmpeg.FS('unlink', 'output.mp4');
+        this.ffmpeg.FS('unlink', outputFileName);
         return convertedFile;
     }
 }

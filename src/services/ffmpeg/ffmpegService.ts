@@ -55,16 +55,16 @@ class FFmpegService {
         }
     }
 
-    async convertToMP4(
-        file: Uint8Array,
-        fileName: string
+    async convertFile(
+        file: File,
+        outputFormatExtension: 'jpg' | 'mp4'
     ): Promise<Uint8Array> {
         if (!this.ffmpegWorker) {
             await this.init();
         }
-
         const response = this.ffmpegTaskQueue.queueUpRequest(
-            async () => await this.ffmpegWorker.convertToMP4(file, fileName)
+            async () =>
+                await this.ffmpegWorker.transcode(file, outputFormatExtension)
         );
 
         try {
