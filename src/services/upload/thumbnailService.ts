@@ -1,15 +1,13 @@
-import { FILE_TYPE, TYPE_JPEG, TYPE_JPG } from 'constants/file';
+import { FILE_TYPE } from 'constants/file';
 import { CustomError, errorWithContext } from 'utils/error';
 import { logError } from 'utils/sentry';
 import { BLACK_THUMBNAIL_BASE64 } from '../../../public/images/black-thumbnail-b64';
 import FFmpegService from 'services/ffmpeg/ffmpegService';
 import { convertToHumanReadable } from 'utils/billing';
-import { isFileHEIC } from 'utils/file';
+import { convertImage } from 'utils/file';
 import { FileTypeInfo } from 'types/upload';
 import { getUint8ArrayView } from '../readerService';
-import HEICConverter from 'services/HEICConverter';
 import { getFileNameSize, logUploadInfo } from 'utils/upload';
-import ffmpegService from 'services/ffmpeg/ffmpegService';
 
 const MAX_THUMBNAIL_DIMENSION = 720;
 const MIN_COMPRESSION_PERCENTAGE_SIZE_DIFF = 10;
@@ -37,35 +35,7 @@ export async function generateThumbnail(
         try {
             if (fileTypeInfo.fileType === FILE_TYPE.IMAGE) {
                 try {
-                    if (isFileHEIC(fileTypeInfo.exactType)) {
-                        logUploadInfo(
-                            `HEICConverter called for ${getFileNameSize(file)}`
-                        );
-
-                        file = new File(
-                            [await HEICConverter.convert(file)],
-                            file.name
-                        );
-                        logUploadInfo(
-                            `${getFileNameSize(file)} successfully converted`
-                        );
-                    } else if (
-                        fileTypeInfo.exactType !== TYPE_JPEG &&
-                        fileTypeInfo.exactType !== TYPE_JPG
-                    ) {
-                        logUploadInfo(
-                            `ffmpeg convert called for ${getFileNameSize(file)}`
-                        );
-                        file = new File(
-                            [await ffmpegService.convertFile(file, 'jpg')],
-                            file.name
-                        );
-                        logUploadInfo(
-                            `${getFileNameSize(
-                                file
-                            )} successfully converted by ffmpeg `
-                        );
-                    }
+                    file = await convertImage(file, fileTypeInfo);
                 } catch (e) {
                     logError(e, 'image file conversion failed', {
                         fileTypeInfo,

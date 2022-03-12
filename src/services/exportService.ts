@@ -35,6 +35,7 @@ import {
     fileNameWithoutExtension,
     generateStreamFromArrayBuffer,
     getFileExtension,
+    isFileJPEG,
     mergeMetadata,
 } from 'utils/file';
 
@@ -48,7 +49,7 @@ import {
     ExportRecord,
 } from 'types/export';
 import { User } from 'types/user';
-import { FILE_TYPE, TYPE_JPEG, TYPE_JPG } from 'constants/file';
+import { FILE_TYPE } from 'constants/file';
 import { ExportType, ExportNotification, RecordType } from 'constants/export';
 
 const LATEST_EXPORT_VERSION = 1;
@@ -434,10 +435,7 @@ class ExportService {
             downloadManager.downloadFile(file)
         );
         const fileType = getFileExtension(file.metadata.title);
-        if (
-            file.pubMagicMetadata?.data.editedTime &&
-            (fileType === TYPE_JPEG || fileType === TYPE_JPG)
-        ) {
+        if (file.pubMagicMetadata?.data.editedTime && isFileJPEG(fileType)) {
             const fileBlob = await new Response(fileStream).blob();
             if (!this.fileReader) {
                 this.fileReader = new FileReader();

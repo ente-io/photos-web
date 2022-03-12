@@ -14,17 +14,12 @@ import { User } from 'types/user';
 import CryptoWorker from 'utils/crypto';
 import { getData, LS_KEYS } from 'utils/storage/localStorage';
 import { updateFileCreationDateInEXIF } from 'services/upload/exifService';
-import {
-    TYPE_JPEG,
-    TYPE_JPG,
-    TYPE_HEIC,
-    TYPE_HEIF,
-    FILE_TYPE,
-    VISIBILITY_STATE,
-} from 'constants/file';
+import { FILE_TYPE, VISIBILITY_STATE } from 'constants/file';
 import PublicCollectionDownloadManager from 'services/publicCollectionDownloadManager';
 import HEICConverter from 'services/HEICConverter';
 import ffmpegService from 'services/ffmpeg/ffmpegService';
+import { FileTypeInfo } from 'types/upload';
+import { logUploadInfo, getFileNameSize } from 'utils/upload';
 
 export function downloadAsFile(filename: string, content: string) {
     const file = new Blob([content], {
@@ -82,10 +77,7 @@ export async function downloadFile(
 
     const fileType = getFileExtension(file.metadata.title);
     let tempEditedFileURL: string;
-    if (
-        file.pubMagicMetadata?.data.editedTime &&
-        (fileType === TYPE_JPEG || fileType === TYPE_JPG)
-    ) {
+    if (file.pubMagicMetadata?.data.editedTime && isFileJPEG(fileType)) {
         let fileBlob = await (await fetch(fileURL)).blob();
 
         fileBlob = await updateFileCreationDateInEXIF(
@@ -128,10 +120,17 @@ function downloadUsingAnchor(name: string, link: string) {
 }
 
 export function isFileHEIC(mimeType: string) {
+    return mimeType && ['heic', 'heif'].includes(mimeType.toLowerCase());
+}
+
+export function isFileJPEG(mimeType: string) {
+    return mimeType && ['jpeg', 'jpg'].includes(mimeType.toLowerCase());
+}
+
+export function isFileFormatSupportedInBrowser(mimeType: string) {
     return (
         mimeType &&
-        (mimeType.toLowerCase().endsWith(TYPE_HEIC) ||
-            mimeType.toLowerCase().endsWith(TYPE_HEIF))
+        ['jpeg', 'jpg', 'png', 'gif', 'webp'].includes(mimeType.toLowerCase())
     );
 }
 
@@ -330,10 +329,26 @@ export function generateStreamFromArrayBuffer(data: Uint8Array) {
     });
 }
 
-const convertImage = async (image: File) => {
-    const fileType = await getFileType(new FileReader(), image);
-    if (isFileHEIC(fileType.exactType)) {
-        return await HEICConverter.convert(image);
+export const convertImage = async (
+    image: File,
+    fileTypeInfo?: FileTypeInfo
+) => {
+    if (!fileTypeInfo) {
+        fileTypeInfo = await getFileType(new FileReader(), image);
+    }
+    if (isFileHEIC(fileTypeInfo.exactType)) {
+        logUploadInfo(`HEICConverter called for ${getFileNameSize(image)}`);
+        image = new File([await HEICConverter.convert(image)], image.name);
+        logUploadInfo(`${getFileNameSize(image)} successfully converted`);
+    } else if (!isFileFormatSupportedInBrowser(fileTypeInfo.exactType)) {
+        logUploadInfo(`ffmpeg convert called for ${getFileNameSize(image)}`);
+        image = new File(
+            [await ffmpegService.convertFile(image, 'jpg')],
+            image.name
+        );
+        logUploadInfo(
+            `${getFileNameSize(image)} successfully converted by ffmpeg `
+        );
     }
     return image;
 };
@@ -568,11 +583,12 @@ export async function downloadFiles(files: EnteFile[]) {
 }
 
 export function needsConversionForPreview(file: EnteFile) {
+    return false;
     const fileExtension = splitFilenameAndExtension(file.metadata.title)[1];
     if (
         file.metadata.fileType === FILE_TYPE.LIVE_PHOTO ||
         (file.metadata.fileType === FILE_TYPE.IMAGE &&
-            isFileHEIC(fileExtension))
+            !isFileFormatSupportedInBrowser(fileExtension))
     ) {
         return true;
     } else {
