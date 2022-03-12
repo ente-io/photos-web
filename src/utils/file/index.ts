@@ -7,7 +7,7 @@ import {
     PublicMagicMetadataProps,
 } from 'types/file';
 import { decodeMotionPhoto } from 'services/motionPhotoService';
-import { getFileTypeFromBlob } from 'services/typeDetectionService';
+import { getFileType } from 'services/typeDetectionService';
 import DownloadManager from 'services/downloadManager';
 import { logError } from 'utils/sentry';
 import { User } from 'types/user';
@@ -330,41 +330,37 @@ export function generateStreamFromArrayBuffer(data: Uint8Array) {
     });
 }
 
+const convertImage = async (image: File) => {
+    const fileType = await getFileType(new FileReader(), image);
+    if (isFileHEIC(fileType.exactType)) {
+        return await HEICConverter.convert(image);
+    }
+    return image;
+};
+
+const convertVideo = async (video: File) => {
+    return new Blob([await ffmpegService.convertFile(video, 'mp4')]);
+};
+
 export async function convertForPreview(
     file: EnteFile,
     fileBlob: Blob
 ): Promise<Blob[]> {
-    const convertIfHEIC = async (fileName: string, fileBlob: Blob) => {
-        const typeFromExtension = getFileExtension(fileName);
-        const reader = new FileReader();
-        const mimeType =
-            (await getFileTypeFromBlob(reader, fileBlob))?.mime ??
-            typeFromExtension;
-        if (isFileHEIC(mimeType)) {
-            fileBlob = await HEICConverter.convert(fileBlob);
-        }
-        return fileBlob;
-    };
-
     if (file.metadata.fileType === FILE_TYPE.LIVE_PHOTO) {
         const originalName = fileNameWithoutExtension(file.metadata.title);
         const motionPhoto = await decodeMotionPhoto(fileBlob, originalName);
-        let image = new Blob([motionPhoto.image]);
-
-        // can run conversion in parellel as video and image
-        // have different processes
-        const convertedVideo = ffmpegService.convertToMP4(
-            motionPhoto.video,
-            motionPhoto.videoNameTitle
-        );
-
-        image = await convertIfHEIC(motionPhoto.imageNameTitle, image);
-        const video = new Blob([await convertedVideo]);
-
-        return [image, video];
+        return Promise.all([
+            convertImage(
+                new File([motionPhoto.image], motionPhoto.imageNameTitle)
+            ),
+            convertVideo(
+                new File([motionPhoto.video], motionPhoto.videoNameTitle)
+            ),
+        ]);
     }
-
-    fileBlob = await convertIfHEIC(file.metadata.title, fileBlob);
+    if (file.metadata.fileType === FILE_TYPE.IMAGE) {
+        return [await convertImage(new File([fileBlob], file.metadata.title))];
+    }
     return [fileBlob];
 }
 
