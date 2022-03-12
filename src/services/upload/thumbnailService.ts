@@ -1,4 +1,4 @@
-import { FILE_TYPE } from 'constants/file';
+import { FILE_TYPE, TYPE_JPEG, TYPE_JPG } from 'constants/file';
 import { CustomError, errorWithContext } from 'utils/error';
 import { logError } from 'utils/sentry';
 import { BLACK_THUMBNAIL_BASE64 } from '../../../public/images/black-thumbnail-b64';
@@ -9,6 +9,7 @@ import { FileTypeInfo } from 'types/upload';
 import { getUint8ArrayView } from '../readerService';
 import HEICConverter from 'services/HEICConverter';
 import { getFileNameSize, logUploadInfo } from 'utils/upload';
+import ffmpegService from 'services/ffmpeg/ffmpegService';
 
 const MAX_THUMBNAIL_DIMENSION = 720;
 const MIN_COMPRESSION_PERCENTAGE_SIZE_DIFF = 10;
@@ -35,9 +36,43 @@ export async function generateThumbnail(
         let thumbnail: Uint8Array;
         try {
             if (fileTypeInfo.fileType === FILE_TYPE.IMAGE) {
-                const isHEIC = isFileHEIC(fileTypeInfo.exactType);
-                canvas = await generateImageThumbnail(file, isHEIC);
-            } else {
+                try {
+                    if (isFileHEIC(fileTypeInfo.exactType)) {
+                        logUploadInfo(
+                            `HEICConverter called for ${getFileNameSize(file)}`
+                        );
+
+                        file = new File(
+                            [await HEICConverter.convert(file)],
+                            file.name
+                        );
+                        logUploadInfo(
+                            `${getFileNameSize(file)} successfully converted`
+                        );
+                    } else if (
+                        fileTypeInfo.exactType !== TYPE_JPEG &&
+                        fileTypeInfo.exactType !== TYPE_JPG
+                    ) {
+                        logUploadInfo(
+                            `ffmpeg convert called for ${getFileNameSize(file)}`
+                        );
+                        file = new File(
+                            [await ffmpegService.convertFile(file, 'jpg')],
+                            file.name
+                        );
+                        logUploadInfo(
+                            `${getFileNameSize(
+                                file
+                            )} successfully converted by ffmpeg `
+                        );
+                    }
+                } catch (e) {
+                    logError(e, 'image file conversion failed', {
+                        fileTypeInfo,
+                    });
+                }
+                canvas = await generateImageThumbnail(file);
+            } else if (fileTypeInfo.fileType === FILE_TYPE.VIDEO) {
                 try {
                     logUploadInfo(
                         `ffmpeg generateThumbnail called for ${getFileNameSize(
@@ -45,17 +80,16 @@ export async function generateThumbnail(
                         )}`
                     );
 
-                    const thumb = await FFmpegService.generateThumbnail(file);
+                    const thumb = new File(
+                        [await FFmpegService.generateThumbnail(file)],
+                        file.name
+                    );
                     logUploadInfo(
                         `ffmpeg thumbnail successfully generated ${getFileNameSize(
                             file
                         )}`
                     );
-                    const dummyImageFile = new File([thumb], file.name);
-                    canvas = await generateImageThumbnail(
-                        dummyImageFile,
-                        false
-                    );
+                    canvas = await generateImageThumbnail(thumb);
                 } catch (e) {
                     logUploadInfo(
                         `ffmpeg thumbnail generated failed  ${getFileNameSize(
@@ -67,6 +101,14 @@ export async function generateThumbnail(
                     });
                     canvas = await generateVideoThumbnail(file);
                 }
+            } else {
+                const e = Error(CustomError.THUMBNAIL_GENERATION_FAILED);
+                logError(
+                    e,
+                    'thumbnail generation called for none video/image format',
+                    { fileTypeInfo }
+                );
+                throw e;
             }
             const thumbnailBlob = await thumbnailCanvasToBlob(canvas);
             thumbnail = await getUint8ArrayView(reader, thumbnailBlob);
@@ -97,18 +139,13 @@ export async function generateThumbnail(
     }
 }
 
-export async function generateImageThumbnail(file: File, isHEIC: boolean) {
+export async function generateImageThumbnail(file: File) {
     const canvas = document.createElement('canvas');
     const canvasCTX = canvas.getContext('2d');
 
     let imageURL = null;
     let timeout = null;
 
-    if (isHEIC) {
-        logUploadInfo(`HEICConverter called for ${getFileNameSize(file)}`);
-        file = new File([await HEICConverter.convert(file)], file.name);
-        logUploadInfo(`${getFileNameSize(file)} successfully converted`);
-    }
     let image = new Image();
     imageURL = URL.createObjectURL(file);
     image.setAttribute('src', imageURL);
