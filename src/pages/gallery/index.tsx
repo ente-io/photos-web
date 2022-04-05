@@ -211,6 +211,7 @@ export default function Gallery() {
     const [electronFiles, setElectronFiles] = useState<ElectronFile[]>(null);
     const [showUploadTypeChoiceModal, setShowUploadTypeChoiceModal] =
         useState(false);
+    const isPendingDesktopUpload = useRef(false);
 
     useEffect(() => {
         const key = getKey(SESSION_KEYS.ENCRYPTION_KEY);
@@ -678,12 +679,15 @@ export default function Gallery() {
                     electronFiles={electronFiles}
                     setElectronFiles={setElectronFiles}
                     showUploadTypeChoiceModal={showUploadTypeChoiceModal}
+                    isPendingDesktopUpload={isPendingDesktopUpload}
                     setShowUploadTypeChoiceModal={setShowUploadTypeChoiceModal}
                 />
                 <Sidebar
                     collections={collections}
                     setDialogMessage={setDialogMessage}
                     setLoading={setBlockingLoad}
+                    setElectronFiles={setElectronFiles}
+                    isPendingDesktopUpload={isPendingDesktopUpload}
                 />
                 <UploadButton
                     isFirstFetch={isFirstFetch}

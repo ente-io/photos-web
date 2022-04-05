@@ -38,10 +38,14 @@ import { SetLoading } from 'types/gallery';
 import { downloadAsFile } from 'utils/file';
 import { getUploadLogs } from 'utils/upload';
 import styled from 'styled-components';
+import { ElectronFile } from 'types/upload';
+import FailedUploadsModal from './FailedUploadsModal';
 interface Props {
     collections: Collection[];
     setDialogMessage: SetDialogMessage;
     setLoading: SetLoading;
+    setElectronFiles: (files: ElectronFile[]) => void;
+    isPendingDesktopUpload: React.MutableRefObject<boolean>;
 }
 export default function Sidebar(props: Props) {
     const [usage, SetUsage] = useState<string>(null);
@@ -56,6 +60,7 @@ export default function Sidebar(props: Props) {
     const [twoFactorModalView, setTwoFactorModalView] = useState(false);
     const [exportModalView, setExportModalView] = useState(false);
     const [fixLargeThumbsView, setFixLargeThumbsView] = useState(false);
+    const [failedUploadsView, setFailedUploadsView] = useState(false);
     const galleryContext = useContext(GalleryContext);
 
     useEffect(() => {
@@ -95,6 +100,26 @@ export default function Sidebar(props: Props) {
     function exportFiles() {
         if (isElectron()) {
             setExportModalView(true);
+        } else {
+            props.setDialogMessage({
+                title: constants.DOWNLOAD_APP,
+                content: constants.DOWNLOAD_APP_MESSAGE(),
+                staticBackdrop: true,
+                proceed: {
+                    text: constants.DOWNLOAD,
+                    action: downloadApp,
+                    variant: 'success',
+                },
+                close: {
+                    text: constants.CLOSE,
+                },
+            });
+        }
+    }
+
+    function retryFailedUploads() {
+        if (isElectron()) {
+            setFailedUploadsView(true);
         } else {
             props.setDialogMessage({
                 title: constants.DOWNLOAD_APP,
@@ -324,6 +349,19 @@ export default function Sidebar(props: Props) {
                                 <InProgressIcon />
                             )}
                         </div>
+                    </LinkButton>
+                </>
+                <>
+                    <FailedUploadsModal
+                        failedUploadsView={failedUploadsView}
+                        setFailedUploadsView={setFailedUploadsView}
+                        isPendingDesktopUpload={props.isPendingDesktopUpload}
+                        setElectronFiles={props.setElectronFiles}
+                    />
+                    <LinkButton
+                        style={{ marginTop: '30px' }}
+                        onClick={retryFailedUploads}>
+                        {constants.RETRY_FAILED}
                     </LinkButton>
                 </>
                 <Divider />

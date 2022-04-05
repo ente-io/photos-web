@@ -20,6 +20,7 @@ import { CustomError } from 'utils/error';
 import { Collection } from 'types/collection';
 import { EnteFile } from 'types/file';
 import {
+    ElectronFile,
     FileWithCollection,
     MetadataAndFileTypeInfo,
     MetadataAndFileTypeInfoMap,
@@ -52,6 +53,10 @@ class UploadManager {
     private filesToBeUploaded: FileWithCollection[];
     private remainingFiles: FileWithCollection[] = [];
     private failedFiles: FileWithCollection[];
+    private failedFilesWithResults: {
+        filePath: string;
+        fileUploadResult: number;
+    }[] = [];
     private existingFilesCollectionWise: Map<number, EnteFile[]>;
     private existingFiles: EnteFile[];
     private setFiles: SetFiles;
@@ -64,6 +69,7 @@ class UploadManager {
     private async init(collections: Collection[]) {
         this.filesToBeUploaded = [];
         this.failedFiles = [];
+        this.failedFilesWithResults = [];
         this.parsedMetadataJSONMap = new Map<string, ParsedMetadataJSON>();
         this.metadataAndFileTypeInfoMap = new Map<
             number,
@@ -83,7 +89,7 @@ class UploadManager {
         newCreatedCollections?: Collection[]
     ) {
         try {
-            await this.init(newCreatedCollections);
+            await this.init(newCreatedCollections || []);
             logUploadInfo(
                 `received ${fileWithCollectionToBeUploaded.length} files to upload`
             );
@@ -330,15 +336,30 @@ class UploadManager {
                         ),
                     ]),
                 });
+                if (isElectron()) {
+                    this.failedFilesWithResults.push({
+                        filePath: (fileWithCollection.file as ElectronFile)
+                            .path,
+                        fileUploadResult: FileUploadResults.FAILED,
+                    });
+                }
             } else if (fileUploadResult === FileUploadResults.BLOCKED) {
                 this.failedFiles.push(fileWithCollection);
+                if (isElectron()) {
+                    this.failedFilesWithResults.push({
+                        filePath: (fileWithCollection.file as ElectronFile)
+                            .path,
+                        fileUploadResult: FileUploadResults.BLOCKED,
+                    });
+                }
             }
 
-            if (fileUploadResult && isElectron()) {
+            if (fileUploadResult !== null && isElectron()) {
                 this.remainingFiles = this.remainingFiles.filter(
                     (file) => !areSameElectronFiles(file, fileWithCollection)
                 );
                 ImportService.updatePendingUploads(this.remainingFiles);
+                ImportService.updateFailedFiles(this.failedFilesWithResults);
             }
 
             UIService.moveFileToResultList(

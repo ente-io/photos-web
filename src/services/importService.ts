@@ -1,3 +1,4 @@
+import { FileUploadResults } from 'constants/upload';
 import { Collection } from 'types/collection';
 import { ElectronFile, FileWithCollection } from 'types/upload';
 import { runningInBrowser } from 'utils/common';
@@ -59,6 +60,28 @@ class ImportService {
                 (file) => (file.file as ElectronFile).path
             );
             this.ElectronAPIs.updatePendingUploadsFilePaths(filePaths);
+        }
+    }
+
+    async getFailedFiles(): Promise<
+        {
+            file: ElectronFile;
+            fileUploadResult: FileUploadResults;
+        }[]
+    > {
+        if (this.allElectronAPIsExist) {
+            return await this.ElectronAPIs.getFailedFiles();
+        }
+    }
+
+    updateFailedFiles(
+        files: {
+            filePath: string;
+            fileUploadResult: number;
+        }[]
+    ) {
+        if (this.allElectronAPIsExist) {
+            this.ElectronAPIs.updateFailedFiles(files);
         }
     }
 }

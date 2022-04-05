@@ -44,6 +44,7 @@ interface Props {
     setElectronFiles: (files: ElectronFile[]) => void;
     showUploadTypeChoiceModal: boolean;
     setShowUploadTypeChoiceModal: (open: boolean) => void;
+    isPendingDesktopUpload: React.MutableRefObject<boolean>;
 }
 
 enum UPLOAD_STRATEGY {
@@ -79,7 +80,6 @@ export default function Upload(props: Props) {
     const galleryContext = useContext(GalleryContext);
 
     const toUploadFiles = useRef<File[] | ElectronFile[]>(null);
-    const isPendingDesktopUpload = useRef(false);
     const pendingDesktopUploadCollectionName = useRef<string>('');
     const [isUploadDirs, setIsUploadDirs] = useState(false);
 
@@ -154,7 +154,7 @@ export default function Upload(props: Props) {
 
     function resumeUploadsIfAny(files: ElectronFile[], collectionName: string) {
         if (files && files?.length > 0) {
-            isPendingDesktopUpload.current = true;
+            props.isPendingDesktopUpload.current = true;
             resumeDesktopUpload(files, collectionName);
         }
     }
@@ -369,8 +369,8 @@ export default function Upload(props: Props) {
         analysisResult: AnalysisResult,
         isFirstUpload: boolean
     ) => {
-        if (isPendingDesktopUpload.current) {
-            isPendingDesktopUpload.current = false;
+        if (props.isPendingDesktopUpload.current) {
+            props.isPendingDesktopUpload.current = false;
             if (pendingDesktopUploadCollectionName.current) {
                 uploadToSingleNewCollection(
                     pendingDesktopUploadCollectionName.current

@@ -694,6 +694,10 @@ const englishConstants = {
     UPLOAD_FILES: 'File Upload',
     UPLOAD_DIRS: 'Folder Upload',
     CANCEL_UPLOADS: 'cancel uploads',
+    NO_FAILED_UPLOADS: 'no failed uploads found',
+    FAILED_UPLOADS_HEADING: 'failed uploads',
+    PREVIOUSLY_NOT_UPLOADED_FILES:
+        'the following files were not previously uploaded',
 };
 
 export default englishConstants;

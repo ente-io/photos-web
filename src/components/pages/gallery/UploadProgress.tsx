@@ -66,7 +66,7 @@ const Content = styled.div`
     padding-right: 30px;
 `;
 
-const NotUploadSectionHeader = styled.div`
+export const NotUploadSectionHeader = styled.div`
     margin-top: 30px;
     text-align: center;
     color: ${getVariantColor(ButtonVariant.warning)};
@@ -81,7 +81,7 @@ interface ResultSectionProps {
     sectionTitle: any;
     sectionInfo?: any;
 }
-const ResultSection = (props: ResultSectionProps) => {
+export const ResultSection = (props: ResultSectionProps) => {
     const [listView, setListView] = useState(false);
     const fileList = props.fileUploadResultMap?.get(props.fileUploadResult);
     if (!fileList?.length) {
