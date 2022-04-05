@@ -40,6 +40,7 @@ import { getUploadLogs } from 'utils/upload';
 import styled from 'styled-components';
 import { ElectronFile } from 'types/upload';
 import FailedUploadsModal from './FailedUploadsModal';
+import ImportService from 'services/importService';
 interface Props {
     collections: Collection[];
     setDialogMessage: SetDialogMessage;
@@ -61,6 +62,7 @@ export default function Sidebar(props: Props) {
     const [exportModalView, setExportModalView] = useState(false);
     const [fixLargeThumbsView, setFixLargeThumbsView] = useState(false);
     const [failedUploadsView, setFailedUploadsView] = useState(false);
+    const [failedFiles, setFailedFiles] = useState([]);
     const galleryContext = useContext(GalleryContext);
 
     useEffect(() => {
@@ -77,6 +79,11 @@ export default function Sidebar(props: Props) {
                 email: userDetails.email,
             });
             setData(LS_KEYS.SUBSCRIPTION, userDetails.subscription);
+
+            if (isElectron()) {
+                const files = await ImportService.getFailedFiles();
+                setFailedFiles(files);
+            }
         };
         main();
     }, [isOpen]);
@@ -100,26 +107,6 @@ export default function Sidebar(props: Props) {
     function exportFiles() {
         if (isElectron()) {
             setExportModalView(true);
-        } else {
-            props.setDialogMessage({
-                title: constants.DOWNLOAD_APP,
-                content: constants.DOWNLOAD_APP_MESSAGE(),
-                staticBackdrop: true,
-                proceed: {
-                    text: constants.DOWNLOAD,
-                    action: downloadApp,
-                    variant: 'success',
-                },
-                close: {
-                    text: constants.CLOSE,
-                },
-            });
-        }
-    }
-
-    function retryFailedUploads() {
-        if (isElectron()) {
-            setFailedUploadsView(true);
         } else {
             props.setDialogMessage({
                 title: constants.DOWNLOAD_APP,
@@ -357,12 +344,18 @@ export default function Sidebar(props: Props) {
                         setFailedUploadsView={setFailedUploadsView}
                         isPendingDesktopUpload={props.isPendingDesktopUpload}
                         setElectronFiles={props.setElectronFiles}
+                        files={failedFiles}
+                        setFiles={setFailedFiles}
                     />
-                    <LinkButton
-                        style={{ marginTop: '30px' }}
-                        onClick={retryFailedUploads}>
-                        {constants.RETRY_FAILED}
-                    </LinkButton>
+                    {failedFiles.length > 0 && (
+                        <LinkButton
+                            style={{ marginTop: '30px' }}
+                            onClick={() => {
+                                setFailedUploadsView(true);
+                            }}>
+                            {constants.RETRY_FAILED}
+                        </LinkButton>
+                    )}
                 </>
                 <Divider />
                 <LinkButton

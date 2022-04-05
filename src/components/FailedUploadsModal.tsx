@@ -13,8 +13,9 @@ export default function FailedUploadsModal({
     setFailedUploadsView,
     isPendingDesktopUpload,
     setElectronFiles,
+    files,
+    setFiles,
 }) {
-    const [files, setFiles] = useState([]);
     const [fileUploadResultMap, setFileUploadResultMap] = useState<
         Map<FileUploadResults, number[]>
     >(new Map());
@@ -84,61 +85,33 @@ export default function FailedUploadsModal({
                 </h4>
             </Modal.Header>
             <Modal.Body>
-                {files.length > 0 ? (
-                    <>
-                        <NotUploadSectionHeader>
-                            {constants.PREVIOUSLY_NOT_UPLOADED_FILES}
-                        </NotUploadSectionHeader>
-                        <ResultSection
-                            filenames={fileNames}
-                            fileUploadResultMap={fileUploadResultMap}
-                            fileUploadResult={FileUploadResults.FAILED}
-                            sectionTitle={
-                                constants.FAILED_UPLOADS +
-                                ' (' +
-                                (fileUploadResultMap.get(
-                                    FileUploadResults.FAILED
-                                )?.length ?? 0) +
-                                ')'
-                            }
-                        />
-                        <ResultSection
-                            filenames={fileNames}
-                            fileUploadResultMap={fileUploadResultMap}
-                            fileUploadResult={FileUploadResults.BLOCKED}
-                            sectionTitle={
-                                constants.BLOCKED_UPLOADS +
-                                ' (' +
-                                (fileUploadResultMap.get(
-                                    FileUploadResults.BLOCKED
-                                )?.length ?? 0) +
-                                ')'
-                            }
-                        />
-                        <Button
-                            variant="outline-success"
-                            style={{ width: '100%' }}
-                            onClick={() => {
-                                if (files.length > 0) {
-                                    isPendingDesktopUpload.current = true;
-                                    setElectronFiles(files);
-                                    setFailedUploadsView(false);
-                                }
-                            }}>
-                            {constants.RETRY_FAILED}
-                        </Button>
-                    </>
-                ) : (
-                    <div
-                        style={{
-                            width: '90%',
-                            textAlign: 'center',
-                            marginBottom: '1em',
-                            fontSize: '1.3em',
-                        }}>
-                        {constants.NO_FAILED_UPLOADS}
-                    </div>
-                )}
+                <NotUploadSectionHeader>
+                    {constants.PREVIOUSLY_NOT_UPLOADED_FILES}
+                </NotUploadSectionHeader>
+                <ResultSection
+                    filenames={fileNames}
+                    fileUploadResultMap={fileUploadResultMap}
+                    fileUploadResult={FileUploadResults.FAILED}
+                    sectionTitle={constants.FAILED_UPLOADS}
+                />
+                <ResultSection
+                    filenames={fileNames}
+                    fileUploadResultMap={fileUploadResultMap}
+                    fileUploadResult={FileUploadResults.BLOCKED}
+                    sectionTitle={constants.BLOCKED_UPLOADS}
+                />
+                <Button
+                    variant="outline-success"
+                    style={{ width: '100%' }}
+                    onClick={() => {
+                        if (files.length > 0) {
+                            isPendingDesktopUpload.current = true;
+                            setElectronFiles(files);
+                            setFailedUploadsView(false);
+                        }
+                    }}>
+                    {constants.RETRY_FAILED}
+                </Button>
             </Modal.Body>
         </Modal>
     );
