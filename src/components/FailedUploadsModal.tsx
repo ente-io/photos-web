@@ -23,11 +23,11 @@ export default function FailedUploadsModal({
     useEffect(() => {
         const main = async () => {
             const filesWithResults = await ImportService.getFailedFiles();
-            const electronFiles = filesWithResults.map(
+            const failedFiles = filesWithResults.map(
                 (fileWithResult) => fileWithResult.file
             );
-            if (electronFiles?.length > 0) {
-                setFiles(electronFiles);
+            if (failedFiles?.length > 0) {
+                setFiles(failedFiles);
                 const newFileNames = new Map<number, string>();
                 const newFileUploadResultMap = new Map<
                     FileUploadResults,
