@@ -448,7 +448,7 @@ class ExportService {
         if (file.metadata.fileType === FILE_TYPE.LIVE_PHOTO) {
             await this.exportMotionPhoto(fileStream, file, collectionPath);
         } else {
-            this.saveMediaFile(collectionPath, fileSaveName, fileStream);
+            await this.saveMediaFile(collectionPath, fileSaveName, fileStream);
             await this.saveMetadataFile(
                 collectionPath,
                 fileSaveName,
@@ -471,7 +471,7 @@ class ExportService {
             motionPhoto.imageNameTitle,
             file.id
         );
-        this.saveMediaFile(collectionPath, imageSaveName, imageStream);
+        await this.saveMediaFile(collectionPath, imageSaveName, imageStream);
         await this.saveMetadataFile(
             collectionPath,
             imageSaveName,
@@ -484,7 +484,7 @@ class ExportService {
             motionPhoto.videoNameTitle,
             file.id
         );
-        this.saveMediaFile(collectionPath, videoSaveName, videoStream);
+        await this.saveMediaFile(collectionPath, videoSaveName, videoStream);
         await this.saveMetadataFile(
             collectionPath,
             videoSaveName,
@@ -492,11 +492,14 @@ class ExportService {
         );
     }
 
-    private saveMediaFile(
+    private async saveMediaFile(
         collectionFolderPath: string,
         fileSaveName: string,
         fileStream: ReadableStream<any>
     ) {
+        await this.ElectronAPIs.checkExistsAndCreateCollectionDir(
+            collectionFolderPath
+        );
         this.ElectronAPIs.saveStreamToDisk(
             getFileSavePath(collectionFolderPath, fileSaveName),
             fileStream
@@ -507,6 +510,12 @@ class ExportService {
         fileSaveName: string,
         metadata: Metadata
     ) {
+        await this.ElectronAPIs.checkExistsAndCreateCollectionDir(
+            collectionFolderPath
+        );
+        await this.ElectronAPIs.checkExistsAndCreateCollectionDir(
+            getMetadataFolderPath(collectionFolderPath)
+        );
         await this.ElectronAPIs.saveFileToDisk(
             getFileMetadataSavePath(collectionFolderPath, fileSaveName),
             getGoogleLikeMetadataFile(fileSaveName, metadata)
