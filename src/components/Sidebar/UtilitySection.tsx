@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import SidebarButton from './Button';
 import constants from 'utils/strings/constants';
-import FixLargeThumbnails from 'components/FixLargeThumbnail';
+import CompressThumbnails from 'components/CompressThumbnails';
 import RecoveryKeyModal from 'components/RecoveryKeyModal';
 import TwoFactorModal from 'components/TwoFactor/Modal';
 import { PAGES } from 'constants/pages';
@@ -14,7 +14,7 @@ export default function UtilitySection({ closeSidebar }) {
 
     const [recoverModalView, setRecoveryModalView] = useState(false);
     const [twoFactorModalView, setTwoFactorModalView] = useState(false);
-    const [fixLargeThumbsView, setFixLargeThumbsView] = useState(false);
+    const [compressThumbnailView, setCompressThumbnailView] = useState(false);
 
     const openRecoveryKeyModal = () => setRecoveryModalView(true);
     const closeRecoveryKeyModal = () => setRecoveryModalView(false);
@@ -34,7 +34,8 @@ export default function UtilitySection({ closeSidebar }) {
 
     const redirectToDeduplicatePage = () => router.push(PAGES.DEDUPLICATE);
 
-    const openThumbnailCompressModal = () => setFixLargeThumbsView(true);
+    const openThumbnailCompressModal = () => setCompressThumbnailView(true);
+    const closeThumbnailCompressModal = () => setCompressThumbnailView(false);
 
     const somethingWentWrong = () =>
         setDialogMessage({
@@ -78,10 +79,10 @@ export default function UtilitySection({ closeSidebar }) {
                 setLoading={startLoading}
             />
 
-            <FixLargeThumbnails
-                isOpen={fixLargeThumbsView}
-                hide={() => setFixLargeThumbsView(false)}
-                show={() => setFixLargeThumbsView(true)}
+            <CompressThumbnails
+                isOpen={compressThumbnailView}
+                hide={closeThumbnailCompressModal}
+                show={openThumbnailCompressModal}
             />
         </>
     );

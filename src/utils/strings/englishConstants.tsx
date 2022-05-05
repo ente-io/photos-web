@@ -602,21 +602,23 @@ const englishConstants = {
     SORT_BY_NAME: 'Name',
     COMPRESS_THUMBNAILS: 'Compress thumbnails',
     THUMBNAIL_REPLACED: 'thumbnails compressed',
-    FIX_THUMBNAIL: 'compress',
-    FIX_THUMBNAIL_LATER: 'compress later',
-    REPLACE_THUMBNAIL_NOT_STARTED: () => (
+    COMPRESS_THUMBNAIL: 'compress',
+    COMPRESS_THUMBNAIL_LATER: 'compress later',
+    COMPRESS_THUMBNAIL_NOT_STARTED: () => (
         <>
-            some of your videos thumbnails can be compressed to save space.
-            would you like ente to compress them?
+            <div>
+                some of your videos thumbnails can be compressed to save space.
+            </div>
+            <div>would you like ente to compress them?</div>
         </>
     ),
-    REPLACE_THUMBNAIL_COMPLETED: () => (
+    COMPRESS_THUMBNAIL_COMPLETED: () => (
         <>successfully compressed all thumbnails</>
     ),
-    REPLACE_THUMBNAIL_NOOP: () => (
+    COMPRESS_THUMBNAIL_NOOP: () => (
         <>you have no thumbnails that can be compressed further</>
     ),
-    REPLACE_THUMBNAIL_COMPLETED_WITH_ERROR: () => (
+    COMPRESS_THUMBNAIL_COMPLETED_WITH_ERROR: () => (
         <>could not compress some of your thumbnails, please retry</>
     ),
     FIX_CREATION_TIME: 'fix time',

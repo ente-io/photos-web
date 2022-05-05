@@ -7,7 +7,7 @@ import { getEndpoint } from 'utils/common/apiUtil';
 import HTTPService from 'services/HTTPService';
 import CryptoWorker from 'utils/crypto';
 import uploadHttpClient from 'services/upload/uploadHttpClient';
-import { SetProgressTracker } from 'components/FixLargeThumbnail';
+import { SetProgressTracker } from 'components/CompressThumbnails';
 import { getFileType } from 'services/typeDetectionService';
 import { getLocalTrash, getTrashedFiles } from './trashService';
 import { EncryptionResult, UploadURL } from 'types/upload';

@@ -12,7 +12,7 @@ export enum LS_KEYS {
     SHOW_BACK_BUTTON = 'showBackButton',
     EXPORT = 'export',
     AnonymizeUserID = 'anonymizedUserID',
-    THUMBNAIL_FIX_STATE = 'thumbnailFixState',
+    THUMBNAIL_COMPRESS_STATE = 'thumbnailCompressState',
     LIVE_PHOTO_INFO_SHOWN_COUNT = 'livePhotoInfoShownCount',
     FAILED_UPLOADS = 'failedUploads',
     LOGS = 'logs',

@@ -1,5 +1,5 @@
 import { FIX_OPTIONS } from 'components/FixCreationTime';
-import { SetProgressTracker } from 'components/FixLargeThumbnail';
+import { SetProgressTracker } from 'components/CompressThumbnails';
 import {
     changeFileCreationTime,
     getFileFromURL,
