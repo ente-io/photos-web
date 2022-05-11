@@ -141,16 +141,12 @@ class UploadService {
                 const progressTracker = UIService.trackUploadProgress(
                     file.localID
                 );
-                const fileUploadURL = await this.getUploadURL();
                 fileObjectKey = await UploadHttpClient.putFile(
-                    fileUploadURL,
                     file.file.encryptedData,
                     progressTracker
                 );
             }
-            const thumbnailUploadURL = await this.getUploadURL();
             const thumbnailObjectKey = await UploadHttpClient.putFile(
-                thumbnailUploadURL,
                 file.thumbnail.encryptedData as Uint8Array,
                 null
             );

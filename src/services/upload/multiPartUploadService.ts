@@ -6,7 +6,7 @@ import UIService from './uiService';
 import UploadHttpClient from './uploadHttpClient';
 import * as convert from 'xml-js';
 import { CustomError } from 'utils/error';
-import { DataStream, MultipartUploadURLs } from 'types/upload';
+import { DataStream } from 'types/upload';
 
 interface PartEtag {
     PartNumber: number;
@@ -24,11 +24,11 @@ export async function uploadStreamUsingMultipart(
     dataStream: DataStream
 ) {
     const uploadPartCount = calculatePartCount(dataStream.chunkCount);
-    const multipartUploadURLs = await UploadHttpClient.fetchMultipartUploadURLs(
+    const fileObjectKey = await UploadHttpClient.fetchMultipartUploadsObjectKey(
         uploadPartCount
     );
-    const fileObjectKey = await uploadStreamInParts(
-        multipartUploadURLs,
+    await uploadStreamInParts(
+        fileObjectKey,
         dataStream.stream,
         fileLocalID,
         uploadPartCount
@@ -37,7 +37,7 @@ export async function uploadStreamUsingMultipart(
 }
 
 export async function uploadStreamInParts(
-    multipartUploadURLs: MultipartUploadURLs,
+    fileObjectKey: string,
     dataStream: ReadableStream<Uint8Array>,
     fileLocalID: number,
     uploadPartCount: number
@@ -46,10 +46,7 @@ export async function uploadStreamInParts(
     const percentPerPart = getRandomProgressPerPartUpload(uploadPartCount);
 
     const partEtags: PartEtag[] = [];
-    for (const [
-        index,
-        fileUploadURL,
-    ] of multipartUploadURLs.partURLs.entries()) {
+    for (let index = 0; index < uploadPartCount; index++) {
         const uploadChunk = await combineChunksToFormUploadPart(streamReader);
         const progressTracker = UIService.trackUploadProgress(
             fileLocalID,
@@ -58,9 +55,10 @@ export async function uploadStreamInParts(
         );
 
         const eTag = await UploadHttpClient.putFilePart(
-            fileUploadURL,
             uploadChunk,
-            progressTracker
+            progressTracker,
+            index,
+            fileObjectKey
         );
         partEtags.push({ PartNumber: index + 1, ETag: eTag });
     }
@@ -68,8 +66,7 @@ export async function uploadStreamInParts(
     if (!done) {
         throw Error(CustomError.CHUNK_MORE_THAN_EXPECTED);
     }
-    await completeMultipartUpload(partEtags, multipartUploadURLs.completeURL);
-    return multipartUploadURLs.objectKey;
+    await completeMultipartUpload(partEtags, fileObjectKey);
 }
 
 function getRandomProgressPerPartUpload(uploadPartCount: number) {
@@ -96,12 +93,12 @@ async function combineChunksToFormUploadPart(
 
 async function completeMultipartUpload(
     partEtags: PartEtag[],
-    completeURL: string
+    fileObjectKey: string
 ) {
     const options = { compact: true, ignoreComment: true, spaces: 4 };
     const body = convert.js2xml(
         { CompleteMultipartUpload: { Part: partEtags } },
         options
     );
-    await UploadHttpClient.completeMultipartUpload(completeURL, body);
+    await UploadHttpClient.completeMultipartUpload(body, fileObjectKey);
 }

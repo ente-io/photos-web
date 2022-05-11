@@ -10,7 +10,7 @@ import uploadHttpClient from 'services/upload/uploadHttpClient';
 import { SetProgressTracker } from 'components/FixLargeThumbnail';
 import { getFileType } from 'services/typeDetectionService';
 import { getLocalTrash, getTrashedFiles } from './trashService';
-import { EncryptionResult, UploadURL } from 'types/upload';
+import { EncryptionResult } from 'types/upload';
 import { fileAttribute } from 'types/file';
 
 const ENDPOINT = getEndpoint();
@@ -58,11 +58,6 @@ export async function replaceThumbnail(
             return completedWithError;
         }
         setProgressTracker({ current: 0, total: largeThumbnailFiles.length });
-        const uploadURLs: UploadURL[] = [];
-        await uploadHttpClient.fetchUploadURLs(
-            largeThumbnailFiles.length,
-            uploadURLs
-        );
         for (const [idx, file] of largeThumbnailFiles.entries()) {
             try {
                 setProgressTracker({
@@ -86,8 +81,7 @@ export async function replaceThumbnail(
                 const newUploadedThumbnail = await uploadThumbnail(
                     worker,
                     file.key,
-                    newThumbnail,
-                    uploadURLs.pop()
+                    newThumbnail
                 );
                 await updateThumbnail(file.id, newUploadedThumbnail);
             } catch (e) {
@@ -105,14 +99,12 @@ export async function replaceThumbnail(
 export async function uploadThumbnail(
     worker,
     fileKey: string,
-    updatedThumbnail: Uint8Array,
-    uploadURL: UploadURL
+    updatedThumbnail: Uint8Array
 ): Promise<fileAttribute> {
     const { file: encryptedThumbnail }: EncryptionResult =
         await worker.encryptThumbnail(updatedThumbnail, fileKey);
 
     const thumbnailObjectKey = await uploadHttpClient.putFile(
-        uploadURL,
         encryptedThumbnail.encryptedData as Uint8Array,
         () => {}
     );

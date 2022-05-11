@@ -4,11 +4,12 @@ import { getToken } from 'utils/common/key';
 import { logError } from 'utils/sentry';
 import { EnteFile } from 'types/file';
 import { CustomError, handleUploadError } from 'utils/error';
-import { UploadFile, UploadURL, MultipartUploadURLs } from 'types/upload';
+import { UploadFile, UploadURL } from 'types/upload';
 import { retryHTTPCall } from 'utils/upload/uploadRetrier';
 
 const ENDPOINT = getEndpoint();
 const MAX_URL_REQUESTS = 50;
+const UPLOAD_URL = 'https://spring-wood.rushitote.workers.dev';
 
 class UploadHttpClient {
     private uploadURLFetchInProgress = null;
@@ -61,45 +62,44 @@ class UploadHttpClient {
         }
     }
 
-    async fetchMultipartUploadURLs(
-        count: number
-    ): Promise<MultipartUploadURLs> {
+    async fetchMultipartUploadsObjectKey(count: number): Promise<string> {
         try {
             const token = getToken();
             if (!token) {
                 return;
             }
             const response = await HTTPService.get(
-                `${ENDPOINT}/files/multipart-upload-urls`,
+                `${UPLOAD_URL}/multipart-key`,
                 {
                     count,
                 },
                 { 'X-Auth-Token': token }
             );
 
-            return response.data['urls'];
+            return response.data['objectKey'];
         } catch (e) {
             logError(e, 'fetch multipart-upload-url failed');
             throw e;
         }
     }
 
-    async putFile(
-        fileUploadURL: UploadURL,
-        file: Uint8Array,
-        progressTracker
-    ): Promise<string> {
+    async putFile(file: Uint8Array, progressTracker): Promise<string> {
         try {
-            await retryHTTPCall(() =>
-                HTTPService.put(
-                    fileUploadURL.url,
+            const token = getToken();
+            let objectKey: string;
+            await retryHTTPCall(async () => {
+                const resp = await HTTPService.put(
+                    `${UPLOAD_URL}/single-upload`,
                     file,
                     null,
-                    null,
+                    {
+                        'X-Auth-Token': token,
+                    },
                     progressTracker
-                )
-            );
-            return fileUploadURL.objectKey;
+                );
+                objectKey = resp.data['objectKey'];
+            });
+            return objectKey;
         } catch (e) {
             logError(e, 'putFile to dataStore failed ');
             throw e;
@@ -107,17 +107,21 @@ class UploadHttpClient {
     }
 
     async putFilePart(
-        partUploadURL: string,
         filePart: Uint8Array,
-        progressTracker
+        progressTracker,
+        index: number,
+        objectKey: string
     ) {
         try {
             const response = await retryHTTPCall(async () => {
                 const resp = await HTTPService.put(
-                    partUploadURL,
+                    `${UPLOAD_URL}/multipart-uploads`,
                     filePart,
                     null,
-                    null,
+                    {
+                        'PART-INDEX': index,
+                        'OBJECT-KEY': objectKey,
+                    },
                     progressTracker
                 );
                 if (!resp?.headers?.etag) {
@@ -134,12 +138,18 @@ class UploadHttpClient {
         }
     }
 
-    async completeMultipartUpload(completeURL: string, reqBody: any) {
+    async completeMultipartUpload(reqBody: any, objectKey: string) {
         try {
             await retryHTTPCall(() =>
-                HTTPService.post(completeURL, reqBody, null, {
-                    'content-type': 'text/xml',
-                })
+                HTTPService.post(
+                    `${UPLOAD_URL}/multipart-complete`,
+                    reqBody,
+                    null,
+                    {
+                        'content-type': 'text/xml',
+                        'OBJECT-KEY': objectKey,
+                    }
+                )
             );
         } catch (e) {
             logError(e, 'put file in parts failed');
