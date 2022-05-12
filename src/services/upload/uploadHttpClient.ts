@@ -9,7 +9,7 @@ import { retryHTTPCall } from 'utils/upload/uploadRetrier';
 
 const ENDPOINT = getEndpoint();
 const MAX_URL_REQUESTS = 50;
-const UPLOAD_URL = 'https://spring-wood.rushitote.workers.dev';
+const UPLOAD_URL = 'https://uploads.ente.workers.dev';
 
 class UploadHttpClient {
     private uploadURLFetchInProgress = null;
