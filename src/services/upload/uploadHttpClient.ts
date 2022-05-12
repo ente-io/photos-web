@@ -1,5 +1,5 @@
 import HTTPService from 'services/HTTPService';
-import { getEndpoint } from 'utils/common/apiUtil';
+import { getEndpoint, getUploadURL } from 'utils/common/apiUtil';
 import { getToken } from 'utils/common/key';
 import { logError } from 'utils/sentry';
 import { EnteFile } from 'types/file';
@@ -9,7 +9,7 @@ import { retryHTTPCall } from 'utils/upload/uploadRetrier';
 
 const ENDPOINT = getEndpoint();
 const MAX_URL_REQUESTS = 50;
-const UPLOAD_URL = 'https://uploads.ente.workers.dev';
+const UPLOAD_URL = getUploadURL();
 
 class UploadHttpClient {
     private uploadURLFetchInProgress = null;

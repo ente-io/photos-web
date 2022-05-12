@@ -51,3 +51,10 @@ export const getFamilyPortalURL = () => {
     }
     return `https://family.ente.io`;
 };
+
+export const getUploadURL = () => {
+    if (process.env.NEXT_PUBLIC_ENTE_UPLOAD_ENDPOINT !== undefined) {
+        return process.env.NEXT_PUBLIC_ENTE_UPLOAD_ENDPOINT;
+    }
+    return `https://uploads.ente.workers.dev`;
+};
