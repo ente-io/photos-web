@@ -9,7 +9,6 @@ import 'photoswipe/dist/photoswipe.css';
 import EnteSpinner from 'components/EnteSpinner';
 import { logError } from '../utils/sentry';
 // import { Workbox } from 'workbox-window';
-import { getEndpoint } from 'utils/common/apiUtil';
 import { getData, LS_KEYS } from 'utils/storage/localStorage';
 import HTTPService from 'services/HTTPService';
 import FlashMessageBar from 'components/FlashMessageBar';
@@ -22,7 +21,10 @@ import MessageDialog, {
     MessageAttributes,
     SetDialogMessage,
 } from 'components/MessageDialog';
-import { getFamilyPortalRedirectURL } from 'services/userService';
+import {
+    getFamilyPortalRedirectURL,
+    getRoadmapRedirectURL,
+} from 'services/userService';
 
 const GlobalStyles = createGlobalStyle`
 /* ubuntu-regular - latin */
@@ -566,9 +568,8 @@ export interface FlashMessage {
 export const AppContext = createContext<AppContextType>(null);
 
 const redirectMap = {
-    roadmap: async (token: string) =>
-        `${getEndpoint()}/users/roadmap?token=${encodeURIComponent(token)}`,
-    families: async () => getFamilyPortalRedirectURL(),
+    roadmap: () => getRoadmapRedirectURL(),
+    families: () => getFamilyPortalRedirectURL(),
 };
 
 export default function App({ Component, err }) {
@@ -646,13 +647,13 @@ export default function App({ Component, err }) {
         };
 
         const query = new URLSearchParams(window.location.search);
-        const redirect = query.get('redirect');
-        if (redirect && redirectMap[redirect]) {
+        const redirectName = query.get('redirect');
+        if (redirectName && redirectMap[redirectName]) {
             const user = getData(LS_KEYS.USER);
             if (user?.token) {
-                redirectTo(redirect, user.token);
+                redirectTo(redirectName, user.token);
             } else {
-                setRedirectName(redirect);
+                setRedirectName(redirectName);
             }
         }
 
@@ -661,10 +662,14 @@ export default function App({ Component, err }) {
                 setLoading(true);
             }
 
-            if (redirectName) {
+            if (redirectName && redirectMap[redirectName]) {
                 const user = getData(LS_KEYS.USER);
                 if (user?.token) {
                     redirectTo(redirectName, user.token);
+
+                    // https://github.com/vercel/next.js/issues/2476#issuecomment-573460710
+                    // eslint-disable-next-line no-throw-literal
+                    throw 'Aborting route change, redirection in process....';
                 }
             }
         });
