@@ -1,5 +1,5 @@
 import HTTPService from 'services/HTTPService';
-import { getEndpoint, getUploadURL } from 'utils/common/apiUtil';
+import { getEndpoint, getUploadEndpoint } from 'utils/common/apiUtil';
 import { getToken } from 'utils/common/key';
 import { logError } from 'utils/sentry';
 import { EnteFile } from 'types/file';
@@ -9,7 +9,7 @@ import { retryHTTPCall } from 'utils/upload/uploadRetrier';
 
 const ENDPOINT = getEndpoint();
 const MAX_URL_REQUESTS = 50;
-const UPLOAD_URL = getUploadURL();
+const UPLOAD_URL = getUploadEndpoint();
 
 class UploadHttpClient {
     private uploadURLFetchInProgress = null;
@@ -107,10 +107,10 @@ class UploadHttpClient {
     }
 
     async putFilePart(
-        filePart: Uint8Array,
-        progressTracker,
+        objectKey: string,
         index: number,
-        objectKey: string
+        filePart: Uint8Array,
+        progressTracker
     ) {
         try {
             const response = await retryHTTPCall(async () => {
@@ -138,7 +138,7 @@ class UploadHttpClient {
         }
     }
 
-    async completeMultipartUpload(reqBody: any, objectKey: string) {
+    async completeMultipartUpload(objectKey: string, reqBody: any) {
         try {
             await retryHTTPCall(() =>
                 HTTPService.post(
