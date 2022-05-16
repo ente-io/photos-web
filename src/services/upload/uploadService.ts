@@ -47,7 +47,6 @@ class UploadService {
 
     async setFileCount(fileCount: number) {
         this.pendingUploadCount = fileCount;
-        await this.preFetchUploadURLs();
     }
 
     setParsedMetadataJSONMap(parsedMetadataJSONMap: ParsedMetadataJSONMap) {
