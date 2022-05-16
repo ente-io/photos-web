@@ -124,14 +124,14 @@ class UploadHttpClient {
                     },
                     progressTracker
                 );
-                if (!resp?.headers?.etag) {
+                if (!resp?.data?.eTag) {
                     const err = Error(CustomError.ETAG_MISSING);
                     logError(err, 'putFile in parts failed');
                     throw err;
                 }
                 return resp;
             });
-            return response.headers.etag as string;
+            return response.data.eTag as string;
         } catch (e) {
             logError(e, 'put filePart failed');
             throw e;
