@@ -30,7 +30,10 @@ import {
     readLivePhoto,
 } from './livePhotoService';
 import { encryptFile, getFileSize, readFile } from './fileService';
-import { uploadStreamUsingMultipart } from './multiPartUploadService';
+import {
+    uploadStreamUsingMultipart,
+    uploadStreamUsingMultipartV2,
+} from './multiPartUploadService';
 import UIService from './uiService';
 
 class UploadService {
@@ -48,6 +51,10 @@ class UploadService {
     async setFileCount(fileCount: number) {
         this.pendingUploadCount = fileCount;
         await this.preFetchUploadURLs();
+    }
+
+    async setFileCountV2(fileCount: number) {
+        this.pendingUploadCount = fileCount;
     }
 
     setParsedMetadataJSONMap(parsedMetadataJSONMap: ParsedMetadataJSONMap) {
@@ -151,6 +158,46 @@ class UploadService {
             const thumbnailUploadURL = await this.getUploadURL();
             const thumbnailObjectKey = await UploadHttpClient.putFile(
                 thumbnailUploadURL,
+                file.thumbnail.encryptedData as Uint8Array,
+                null
+            );
+
+            const backupedFile: BackupedFile = {
+                file: {
+                    decryptionHeader: file.file.decryptionHeader,
+                    objectKey: fileObjectKey,
+                },
+                thumbnail: {
+                    decryptionHeader: file.thumbnail.decryptionHeader,
+                    objectKey: thumbnailObjectKey,
+                },
+                metadata: file.metadata,
+            };
+            return backupedFile;
+        } catch (e) {
+            logError(e, 'error uploading to bucket');
+            throw e;
+        }
+    }
+
+    async uploadToBucketV2(file: ProcessedFile): Promise<BackupedFile> {
+        try {
+            let fileObjectKey: string = null;
+            if (isDataStream(file.file.encryptedData)) {
+                fileObjectKey = await uploadStreamUsingMultipartV2(
+                    file.localID,
+                    file.file.encryptedData
+                );
+            } else {
+                const progressTracker = UIService.trackUploadProgress(
+                    file.localID
+                );
+                fileObjectKey = await UploadHttpClient.putFileV2(
+                    file.file.encryptedData,
+                    progressTracker
+                );
+            }
+            const thumbnailObjectKey = await UploadHttpClient.putFileV2(
                 file.thumbnail.encryptedData as Uint8Array,
                 null
             );

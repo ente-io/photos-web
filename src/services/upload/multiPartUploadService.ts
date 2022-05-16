@@ -36,6 +36,23 @@ export async function uploadStreamUsingMultipart(
     return fileObjectKey;
 }
 
+export async function uploadStreamUsingMultipartV2(
+    fileLocalID: number,
+    dataStream: DataStream
+) {
+    const uploadPartCount = calculatePartCount(dataStream.chunkCount);
+    const fileObjectKey = await UploadHttpClient.fetchMultipartUploadsObjectKey(
+        uploadPartCount
+    );
+    await uploadStreamInPartsV2(
+        fileObjectKey,
+        dataStream.stream,
+        fileLocalID,
+        uploadPartCount
+    );
+    return fileObjectKey;
+}
+
 export async function uploadStreamInParts(
     multipartUploadURLs: MultipartUploadURLs,
     dataStream: ReadableStream<Uint8Array>,
@@ -72,6 +89,39 @@ export async function uploadStreamInParts(
     return multipartUploadURLs.objectKey;
 }
 
+export async function uploadStreamInPartsV2(
+    fileObjectKey: string,
+    dataStream: ReadableStream<Uint8Array>,
+    fileLocalID: number,
+    uploadPartCount: number
+) {
+    const streamReader = dataStream.getReader();
+    const percentPerPart = getRandomProgressPerPartUpload(uploadPartCount);
+
+    const partEtags: PartEtag[] = [];
+    for (let index = 0; index < uploadPartCount; index++) {
+        const uploadChunk = await combineChunksToFormUploadPart(streamReader);
+        const progressTracker = UIService.trackUploadProgress(
+            fileLocalID,
+            percentPerPart,
+            index
+        );
+
+        const eTag = await UploadHttpClient.putFilePartV2(
+            fileObjectKey,
+            index,
+            uploadChunk,
+            progressTracker
+        );
+        partEtags.push({ PartNumber: index + 1, ETag: eTag });
+    }
+    const { done } = await streamReader.read();
+    if (!done) {
+        throw Error(CustomError.CHUNK_MORE_THAN_EXPECTED);
+    }
+    await completeMultipartUploadV2(fileObjectKey, partEtags);
+}
+
 function getRandomProgressPerPartUpload(uploadPartCount: number) {
     const percentPerPart =
         RANDOM_PERCENTAGE_PROGRESS_FOR_PUT() / uploadPartCount;
@@ -104,4 +154,16 @@ async function completeMultipartUpload(
         options
     );
     await UploadHttpClient.completeMultipartUpload(completeURL, body);
+}
+
+async function completeMultipartUploadV2(
+    fileObjectKey: string,
+    partEtags: PartEtag[]
+) {
+    const options = { compact: true, ignoreComment: true, spaces: 4 };
+    const body = convert.js2xml(
+        { CompleteMultipartUpload: { Part: partEtags } },
+        options
+    );
+    await UploadHttpClient.completeMultipartUploadV2(fileObjectKey, body);
 }

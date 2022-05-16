@@ -272,7 +272,7 @@ class UploadManager {
 
         UIService.reset(mediaFiles.length);
 
-        await UploadService.setFileCount(mediaFiles.length);
+        await UploadService.setFileCountV2(mediaFiles.length);
 
         UIService.setUploadStage(UPLOAD_STAGES.UPLOADING);
 

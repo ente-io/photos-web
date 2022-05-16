@@ -91,7 +91,7 @@ export default async function uploader(
 
         logUploadInfo(`uploadToBucket ${fileNameSize}`);
 
-        const backupedFile: BackupedFile = await UploadService.uploadToBucket(
+        const backupedFile: BackupedFile = await UploadService.uploadToBucketV2(
             encryptedFile.file
         );
 

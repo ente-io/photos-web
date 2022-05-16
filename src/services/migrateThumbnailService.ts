@@ -102,6 +102,66 @@ export async function replaceThumbnail(
     return completedWithError;
 }
 
+export async function replaceThumbnailV2(
+    setProgressTracker: SetProgressTracker,
+    largeThumbnailFileIDs: Set<number>
+) {
+    let completedWithError = false;
+    try {
+        const token = getToken();
+        const worker = await new CryptoWorker();
+        const reader = new FileReader();
+        const files = await getLocalFiles();
+        const trash = await getLocalTrash();
+        const trashFiles = getTrashedFiles(trash);
+        const largeThumbnailFiles = [...files, ...trashFiles].filter((file) =>
+            largeThumbnailFileIDs.has(file.id)
+        );
+        if (largeThumbnailFileIDs.size !== largeThumbnailFiles.length) {
+            logError(Error(), 'all large thumbnail files not found locally');
+        }
+        if (largeThumbnailFiles.length === 0) {
+            return completedWithError;
+        }
+        setProgressTracker({ current: 0, total: largeThumbnailFiles.length });
+        for (const [idx, file] of largeThumbnailFiles.entries()) {
+            try {
+                setProgressTracker({
+                    current: idx,
+                    total: largeThumbnailFiles.length,
+                });
+                const originalThumbnail = await downloadManager.downloadThumb(
+                    token,
+                    file
+                );
+                const dummyImageFile = new File(
+                    [originalThumbnail],
+                    file.metadata.title
+                );
+                const fileTypeInfo = await getFileType(reader, dummyImageFile);
+                const { thumbnail: newThumbnail } = await generateThumbnail(
+                    reader,
+                    dummyImageFile,
+                    fileTypeInfo
+                );
+                const newUploadedThumbnail = await uploadThumbnailV2(
+                    worker,
+                    file.key,
+                    newThumbnail
+                );
+                await updateThumbnail(file.id, newUploadedThumbnail);
+            } catch (e) {
+                logError(e, 'failed to replace a thumbnail');
+                completedWithError = true;
+            }
+        }
+    } catch (e) {
+        logError(e, 'replace Thumbnail function failed');
+        completedWithError = true;
+    }
+    return completedWithError;
+}
+
 export async function uploadThumbnail(
     worker,
     fileKey: string,
@@ -113,6 +173,24 @@ export async function uploadThumbnail(
 
     const thumbnailObjectKey = await uploadHttpClient.putFile(
         uploadURL,
+        encryptedThumbnail.encryptedData as Uint8Array,
+        () => {}
+    );
+    return {
+        objectKey: thumbnailObjectKey,
+        decryptionHeader: encryptedThumbnail.decryptionHeader,
+    };
+}
+
+export async function uploadThumbnailV2(
+    worker,
+    fileKey: string,
+    updatedThumbnail: Uint8Array
+): Promise<fileAttribute> {
+    const { file: encryptedThumbnail }: EncryptionResult =
+        await worker.encryptThumbnail(updatedThumbnail, fileKey);
+
+    const thumbnailObjectKey = await uploadHttpClient.putFileV2(
         encryptedThumbnail.encryptedData as Uint8Array,
         () => {}
     );

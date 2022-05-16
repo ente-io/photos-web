@@ -5,7 +5,7 @@ import { ProgressBar, Button } from 'react-bootstrap';
 import { ComfySpan } from './ExportInProgress';
 import {
     getLargeThumbnailFiles,
-    replaceThumbnail,
+    replaceThumbnailV2,
 } from 'services/migrateThumbnailService';
 import { getData, LS_KEYS, setData } from 'utils/storage/localStorage';
 import { logError } from 'utils/sentry';
@@ -115,7 +115,7 @@ export default function FixLargeThumbnails(props: Props) {
     }, []);
     const startFix = async (newlyFetchedLargeThumbnailFiles?: number[]) => {
         updateFixState(FIX_STATE.RUNNING);
-        const completedWithError = await replaceThumbnail(
+        const completedWithError = await replaceThumbnailV2(
             setProgressTracker,
             new Set(
                 newlyFetchedLargeThumbnailFiles ?? largeThumbnailFiles ?? []
