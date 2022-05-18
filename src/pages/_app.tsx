@@ -7,10 +7,8 @@ import Container from 'components/Container';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'photoswipe/dist/photoswipe.css';
 import EnteSpinner from 'components/EnteSpinner';
-import { logError } from '../utils/sentry';
 // import { Workbox } from 'workbox-window';
 import { getData, LS_KEYS } from 'utils/storage/localStorage';
-import HTTPService from 'services/HTTPService';
 import FlashMessageBar from 'components/FlashMessageBar';
 import Head from 'next/head';
 import { getAlbumSiteHost } from 'constants/pages';
@@ -25,6 +23,9 @@ import {
     getFamilyPortalRedirectURL,
     getRoadmapRedirectURL,
 } from 'services/userService';
+import { logError } from 'utils/sentry';
+import HTTPService from 'services/HTTPService';
+import { CustomError } from 'utils/error';
 
 const GlobalStyles = createGlobalStyle`
 /* ubuntu-regular - latin */
@@ -619,7 +620,9 @@ export default function App({ Component, err }) {
         HTTPService.getInterceptors().response.use(
             (resp) => resp,
             (error) => {
-                logError(error, 'Network Error');
+                logError(err, CustomError.HTTP_ERROR, {
+                    url: err?.config?.url,
+                });
                 return Promise.reject(error);
             }
         );

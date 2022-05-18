@@ -15,6 +15,7 @@ export const ServerErrorCodes = {
 
 export enum CustomError {
     UNKNOWN_ERROR = 'unknown error',
+    HTTP_ERROR = 'http error',
     SUBSCRIPTION_VERIFICATION_ERROR = 'Subscription verification failed',
     THUMBNAIL_GENERATION_FAILED = 'thumbnail generation failed',
     VIDEO_PLAYBACK_FAILED = 'video playback failed',
