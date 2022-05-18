@@ -5,6 +5,7 @@ import {
     sortFilesIntoCollections,
     sortFiles,
     preservePhotoswipeProps,
+    decryptFile,
 } from 'utils/file';
 import { logError } from 'utils/sentry';
 import { getMetadataJSONMapKey, parseMetadataJSON } from './metadataService';
@@ -31,6 +32,7 @@ import {
     UPLOAD_STAGES,
     FileUploadResults,
     MAX_FILE_SIZE_SUPPORTED,
+    MAX_NODE_SUPPORTED_FILE_SIZE,
 } from 'constants/upload';
 import { ComlinkWorker } from 'utils/comlink';
 import { FILE_TYPE } from 'constants/file';
@@ -204,7 +206,11 @@ class UploadManager {
             for (const { file, localID, collectionID } of mediaFiles) {
                 try {
                     const { fileTypeInfo, metadata } = await (async () => {
-                        if (file.size >= MAX_FILE_SIZE_SUPPORTED) {
+                        if (
+                            file.size >= MAX_FILE_SIZE_SUPPORTED ||
+                            (isElectron() &&
+                                file.size >= MAX_NODE_SUPPORTED_FILE_SIZE)
+                        ) {
                             logUploadInfo(
                                 `${getFileNameSize(
                                     file
@@ -299,18 +305,18 @@ class UploadManager {
 
     private async uploadNextFileInQueue(worker: any, reader: FileReader) {
         while (this.filesToBeUploaded.length > 0) {
-            const fileWithCollection = this.filesToBeUploaded.pop();
+            let fileWithCollection = this.filesToBeUploaded.pop();
             const { collectionID } = fileWithCollection;
             const existingFilesInCollection =
                 this.existingFilesCollectionWise.get(collectionID) ?? [];
             const collection = this.collections.get(collectionID);
-
-            const { fileUploadResult, file } = await uploader(
+            fileWithCollection = { ...fileWithCollection, collection };
+            const { fileUploadResult, uploadedFile } = await uploader(
                 worker,
                 reader,
                 existingFilesInCollection,
                 this.existingFiles,
-                { ...fileWithCollection, collection }
+                fileWithCollection
             );
             UIService.moveFileToResultList(
                 fileWithCollection.localID,
@@ -319,7 +325,7 @@ class UploadManager {
             UploadService.reducePendingUploadCount();
             await this.postUploadTask(
                 fileUploadResult,
-                file,
+                uploadedFile,
                 fileWithCollection
             );
         }
@@ -327,21 +333,34 @@ class UploadManager {
 
     async postUploadTask(
         fileUploadResult: FileUploadResults,
-        file: EnteFile,
+        uploadedFile: EnteFile,
         fileWithCollection: FileWithCollection
     ) {
         try {
+            logUploadInfo(`uploadedFile ${JSON.stringify(uploadedFile)}`);
+
             if (fileUploadResult === FileUploadResults.UPLOADED) {
-                this.existingFiles.push(file);
+                const decryptedFile = await decryptFile(
+                    uploadedFile,
+                    fileWithCollection.collection.key
+                );
+                this.existingFiles.push(decryptedFile);
                 this.existingFiles = sortFiles(this.existingFiles);
                 await setLocalFiles(this.existingFiles);
                 this.setFiles(preservePhotoswipeProps(this.existingFiles));
-                if (!this.existingFilesCollectionWise.has(file.collectionID)) {
-                    this.existingFilesCollectionWise.set(file.collectionID, []);
+                if (
+                    !this.existingFilesCollectionWise.has(
+                        decryptedFile.collectionID
+                    )
+                ) {
+                    this.existingFilesCollectionWise.set(
+                        decryptedFile.collectionID,
+                        []
+                    );
                 }
                 this.existingFilesCollectionWise
-                    .get(file.collectionID)
-                    .push(file);
+                    .get(decryptedFile.collectionID)
+                    .push(decryptedFile);
             }
             if (
                 fileUploadResult === FileUploadResults.FAILED ||

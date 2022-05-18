@@ -1,6 +1,5 @@
 import { EnteFile } from 'types/file';
 import { handleUploadError, CustomError } from 'utils/error';
-import { decryptFile } from 'utils/file';
 import { logError } from 'utils/sentry';
 import {
     fileAlreadyInCollection,
@@ -10,15 +9,20 @@ import UploadHttpClient from './uploadHttpClient';
 import UIService from './uiService';
 import UploadService from './uploadService';
 import { FILE_TYPE } from 'constants/file';
-import { FileUploadResults, MAX_FILE_SIZE_SUPPORTED } from 'constants/upload';
+import {
+    FileUploadResults,
+    MAX_FILE_SIZE_SUPPORTED,
+    MAX_NODE_SUPPORTED_FILE_SIZE,
+} from 'constants/upload';
 import { FileWithCollection, BackupedFile, UploadFile } from 'types/upload';
 import { logUploadInfo } from 'utils/upload';
 import { convertBytesToHumanReadable } from 'utils/billing';
 import { sleep } from 'utils/common';
+import isElectron from 'is-electron';
 
 interface UploadResponse {
     fileUploadResult: FileUploadResults;
-    file?: EnteFile;
+    uploadedFile?: EnteFile;
 }
 export default async function uploader(
     worker: any,
@@ -39,7 +43,10 @@ export default async function uploader(
         UploadService.getFileMetadataAndFileTypeInfo(localID);
     try {
         const fileSize = UploadService.getAssetSize(uploadAsset);
-        if (fileSize >= MAX_FILE_SIZE_SUPPORTED) {
+        if (
+            fileSize >= MAX_FILE_SIZE_SUPPORTED ||
+            (isElectron() && fileSize >= MAX_NODE_SUPPORTED_FILE_SIZE)
+        ) {
             return { fileUploadResult: FileUploadResults.TOO_LARGE };
         }
         if (fileTypeInfo.fileType === FILE_TYPE.OTHERS) {
@@ -103,14 +110,13 @@ export default async function uploader(
         logUploadInfo(`uploadFile ${fileNameSize}`);
 
         const uploadedFile = await UploadHttpClient.uploadFile(uploadFile);
-        const decryptedFile = await decryptFile(uploadedFile, collection.key);
 
         UIService.increaseFileUploaded();
         logUploadInfo(`${fileNameSize} successfully uploaded`);
 
         return {
             fileUploadResult: FileUploadResults.UPLOADED,
-            file: decryptedFile,
+            uploadedFile: uploadedFile,
         };
     } catch (e) {
         logUploadInfo(
