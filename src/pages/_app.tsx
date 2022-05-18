@@ -619,11 +619,15 @@ export default function App({ Component, err }) {
 
         HTTPService.getInterceptors().response.use(
             (resp) => resp,
-            (error) => {
+            (err) => {
                 logError(err, CustomError.HTTP_ERROR, {
                     url: err?.config?.url,
                 });
-                return Promise.reject(error);
+                if (!err.response) {
+                    return Promise.reject(err);
+                }
+                const { response } = err;
+                return Promise.reject(response);
             }
         );
     }, []);
