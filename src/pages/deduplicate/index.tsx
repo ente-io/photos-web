@@ -44,7 +44,7 @@ export default function Deduplicate() {
     } = useContext(AppContext);
     const [duplicateFiles, setDuplicateFiles] = useState<EnteFile[]>(null);
     const [clubSameTimeFilesOnly, setClubSameTimeFilesOnly] = useState(false);
-    const [clubSameFileHashesOnly, setClubSameFileHashesOnly] = useState(false);
+    const [clubBySameSize, setClubBySameSize] = useState(false);
     const [fileSizeMap, setFileSizeMap] = useState(new Map<number, number>());
     const [collectionNameMap, setCollectionNameMap] = useState(
         new Map<number, string>()
@@ -69,7 +69,7 @@ export default function Deduplicate() {
 
     useEffect(() => {
         syncWithRemote();
-    }, [clubSameTimeFilesOnly, clubSameFileHashesOnly]);
+    }, [clubSameTimeFilesOnly, clubBySameSize]);
 
     const syncWithRemote = async () => {
         startLoading();
@@ -86,7 +86,7 @@ export default function Deduplicate() {
             duplicates = clubDuplicatesByTime(duplicates);
         }
 
-        if (clubSameFileHashesOnly) {
+        if (!clubBySameSize) {
             duplicates = clubDuplicatesBySameFileHashes(duplicates);
         }
 
@@ -161,8 +161,8 @@ export default function Deduplicate() {
                 collectionNameMap,
                 clubSameTimeFilesOnly,
                 setClubSameTimeFilesOnly,
-                clubSameFileHashesOnly,
-                setClubSameFileHashesOnly,
+                clubBySameSize,
+                setClubBySameSize,
                 fileSizeMap,
                 isOnDeduplicatePage: true,
             }}>
@@ -170,7 +170,7 @@ export default function Deduplicate() {
                 <Info>
                     {constants.DEDUPLICATION_LOGIC_MESSAGE(
                         clubSameTimeFilesOnly,
-                        clubSameFileHashesOnly
+                        clubBySameSize
                     )}
                 </Info>
             )}

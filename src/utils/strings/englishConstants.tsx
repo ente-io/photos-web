@@ -721,7 +721,7 @@ const englishConstants = {
     DEDUPLICATE_FILES: 'deduplicate files',
     NO_DUPLICATES_FOUND: "you've no duplicate files that can be cleared",
     CLUB_BY_CAPTURE_TIME: 'club by capture time',
-    CLUB_BY_FILE_HASH: 'club by file hashes',
+    CLUB_BY_SAME_SIZE: 'club by same size',
     FILES: 'files',
     EACH: 'each',
     DEDUPLICATION_LOGIC_MESSAGE: (

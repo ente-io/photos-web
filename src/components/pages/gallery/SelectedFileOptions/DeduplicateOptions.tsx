@@ -76,15 +76,13 @@ export default function DeduplicateOptions({
                     width: '1em',
                     height: '1em',
                 }}
-                value={
-                    deduplicateContext.clubSameFileHashesOnly ? 'true' : 'false'
-                }
+                value={deduplicateContext.clubBySameSize ? 'true' : 'false'}
                 onChange={() => {
-                    deduplicateContext.setClubSameFileHashesOnly(
-                        !deduplicateContext.clubSameFileHashesOnly
+                    deduplicateContext.setClubBySameSize(
+                        !deduplicateContext.clubBySameSize
                     );
                 }}></input>
-            <CheckboxText>{constants.CLUB_BY_FILE_HASH}</CheckboxText>
+            <CheckboxText>{constants.CLUB_BY_SAME_SIZE}</CheckboxText>
             <div
                 style={{
                     marginRight: '14px',
