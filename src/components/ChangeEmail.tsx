@@ -8,10 +8,9 @@ import { changeEmail, getOTTForEmailChange } from 'services/userService';
 import { AppContext, FLASH_MESSAGE_TYPE } from 'pages/_app';
 import { getData, LS_KEYS, setData } from 'utils/storage/localStorage';
 import { PAGES } from 'constants/pages';
-import { TextField } from '@mui/material';
+import { Alert, TextField } from '@mui/material';
 import Container from './Container';
 import LinkButton from './pages/gallery/LinkButton';
-import { Alert } from 'react-bootstrap';
 import FormPaperFooter from './Form/FormPaper/Footer';
 
 interface formValues {
@@ -67,6 +66,7 @@ function ChangeEmailForm() {
 
     const goToGallery = () => router.push(PAGES.GALLERY);
 
+    const closeMessage = () => setShowMessage(false);
     return (
         <Formik<formValues>
             initialValues={{ email: '' }}
@@ -83,15 +83,11 @@ function ChangeEmailForm() {
             onSubmit={!ottInputVisible ? requestOTT : requestEmailChange}>
             {({ values, errors, handleChange, handleSubmit }) => (
                 <>
-                    <Alert
-                        variant="success"
-                        show={showMessage}
-                        style={{ paddingBottom: 0 }}
-                        transition
-                        dismissible
-                        onClose={() => setShowMessage(false)}>
-                        {constants.EMAIL_SENT({ email })}
-                    </Alert>
+                    {showMessage && (
+                        <Alert severity="success" onClose={closeMessage}>
+                            {constants.EMAIL_SENT({ email })}
+                        </Alert>
+                    )}
                     <form noValidate onSubmit={handleSubmit}>
                         <Container>
                             <TextField
