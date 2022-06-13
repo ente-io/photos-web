@@ -1,3 +1,4 @@
+import { EnteCheckbox } from './EnteCheckbox';
 import React, { useState } from 'react';
 import constants from 'utils/strings/constants';
 import { Formik, FormikHelpers } from 'formik';
@@ -15,12 +16,7 @@ import { setJustSignedUp } from 'utils/storage';
 import { logError } from 'utils/sentry';
 import { SESSION_KEYS } from 'utils/storage/sessionStorage';
 import { PAGES } from 'constants/pages';
-import {
-    Checkbox,
-    FormControlLabel,
-    FormGroup,
-    TextField,
-} from '@mui/material';
+import { FormGroup, TextField } from '@mui/material';
 import FormPaperTitle from './Form/FormPaper/Title';
 import LinkButton from './pages/gallery/LinkButton';
 import FormPaperFooter from './Form/FormPaper/Footer';
@@ -151,24 +147,11 @@ export default function SignUp(props: SignUpProps) {
                                 disabled={loading}
                             />
                             <FormGroup sx={{ width: '100%' }}>
-                                <FormControlLabel
-                                    sx={{
-                                        color: 'text.secondary',
-                                        ml: -1,
-                                        mt: 2,
-                                    }}
-                                    control={
-                                        <Checkbox
-                                            size="small"
-                                            disabled={loading}
-                                            checked={acceptTerms}
-                                            onChange={(e) =>
-                                                setAcceptTerms(e.target.checked)
-                                            }
-                                            color="accent"
-                                        />
-                                    }
+                                <EnteCheckbox
                                     label={constants.TERMS_AND_CONDITIONS()}
+                                    loading={loading}
+                                    checked={acceptTerms}
+                                    onChange={setAcceptTerms}
                                 />
                             </FormGroup>
                         </VerticallyCentered>
