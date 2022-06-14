@@ -1,6 +1,6 @@
+import { Button } from '@mui/material';
 import { DeadCenter } from 'pages/gallery';
 import React from 'react';
-import { Button } from 'react-bootstrap';
 import constants from 'utils/strings/constants';
 
 interface Props {
@@ -17,8 +17,8 @@ export default function ExportInit(props: Props) {
         <>
             <DeadCenter>
                 <Button
-                    variant="outline-success"
-                    size="lg"
+                    color="accent"
+                    size="large"
                     style={{
                         padding: '6px 3em',
                         margin: '0 20px',

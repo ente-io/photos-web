@@ -1,5 +1,5 @@
+import { Button } from '@mui/material';
 import React from 'react';
-import { Button } from 'react-bootstrap';
 import { ExportStats } from 'types/export';
 import { formatDateTime } from 'utils/file';
 import constants from 'utils/strings/constants';
@@ -63,24 +63,21 @@ export default function ExportFinished(props: Props) {
                     display: 'flex',
                     justifyContent: 'space-around',
                 }}>
-                <Button
-                    block
-                    variant={'outline-secondary'}
-                    onClick={props.onHide}>
+                <Button size="large" color={'secondary'} onClick={props.onHide}>
                     {constants.CLOSE}
                 </Button>
                 <div style={{ width: '30px' }} />
                 {props.exportStats.failed !== 0 ? (
                     <Button
-                        block
-                        variant={'outline-danger'}
+                        size="large"
+                        color={'danger'}
                         onClick={props.retryFailed}>
                         {constants.RETRY_EXPORT_}
                     </Button>
                 ) : (
                     <Button
-                        block
-                        variant={'outline-success'}
+                        size="large"
+                        color="accent"
                         onClick={props.exportFiles}>
                         {constants.EXPORT_AGAIN}
                     </Button>

@@ -150,7 +150,7 @@ export default function SignUp(props: SignUpProps) {
                                 <EnteCheckbox
                                     label={constants.TERMS_AND_CONDITIONS()}
                                     loading={loading}
-                                    checked={acceptTerms}
+                                    value={acceptTerms}
                                     onChange={setAcceptTerms}
                                 />
                             </FormGroup>

@@ -1,8 +1,8 @@
 import React, { useContext } from 'react';
-import { Button } from 'react-bootstrap';
 import styled from 'styled-components';
 import constants from 'utils/strings/constants';
 import { DeduplicateContext } from 'pages/deduplicate';
+import { Button } from '@mui/material';
 
 const Wrapper = styled.div`
     display: flex;
@@ -36,7 +36,7 @@ export default function EmptyScreen({ openUploader }) {
                         {constants.UPLOAD_FIRST_PHOTO_DESCRIPTION}
                     </div>
                     <Button
-                        variant="outline-success"
+                        color="accent"
                         onClick={openUploader}
                         style={{
                             marginTop: '32px',

@@ -1,9 +1,9 @@
 import React from 'react';
-import { Button, ProgressBar } from 'react-bootstrap';
 import { ExportProgress } from 'types/export';
 import styled from 'styled-components';
 import constants from 'utils/strings/constants';
 import { ExportStage } from 'constants/export';
+import { Button, LinearProgress } from '@mui/material';
 
 export const ComfySpan = styled.span`
     word-spacing: 1rem;
@@ -46,13 +46,11 @@ export default function ExportInProgress(props: Props) {
                     </span>
                 </div>
                 <div style={{ width: '100%', marginBottom: '30px' }}>
-                    <ProgressBar
-                        now={Math.round(
+                    <LinearProgress
+                        value={Math.round(
                             (props.exportProgress.current * 100) /
                                 props.exportProgress.total
                         )}
-                        animated={!(props.exportStage === ExportStage.PAUSED)}
-                        variant="upload-progress-bar"
                     />
                 </div>
                 <div
@@ -63,23 +61,23 @@ export default function ExportInProgress(props: Props) {
                     }}>
                     {props.exportStage === ExportStage.PAUSED ? (
                         <Button
-                            block
-                            variant={'outline-secondary'}
+                            size={'large'}
+                            color={'secondary'}
                             onClick={props.resumeExport}>
                             {constants.RESUME}
                         </Button>
                     ) : (
                         <Button
-                            block
-                            variant={'outline-secondary'}
+                            size={'large'}
+                            color={'secondary'}
                             onClick={props.pauseExport}>
                             {constants.PAUSE}
                         </Button>
                     )}
                     <div style={{ width: '30px' }} />
                     <Button
-                        block
-                        variant={'outline-danger'}
+                        size={'large'}
+                        color={'danger'}
                         onClick={props.cancelExport}>
                         {constants.CANCEL}
                     </Button>

@@ -4,7 +4,6 @@ import AppNavbar from 'components/Navbar/app';
 import constants from 'utils/strings/constants';
 import { useRouter } from 'next/router';
 import VerticallyCentered from 'components/Container';
-import 'bootstrap/dist/css/bootstrap.min.css';
 import 'photoswipe/dist/photoswipe.css';
 import 'styles/global.css';
 import EnteSpinner from 'components/EnteSpinner';
@@ -12,7 +11,7 @@ import { logError } from '../utils/sentry';
 // import { Workbox } from 'workbox-window';
 import { getData, LS_KEYS } from 'utils/storage/localStorage';
 import HTTPService from 'services/HTTPService';
-import FlashMessageBar from 'components/FlashMessageBar';
+import FlashMessageBar, { FlashMessage } from 'components/FlashMessageBar';
 import Head from 'next/head';
 import { logUploadInfo } from 'utils/upload';
 import LoadingBar from 'react-top-loading-bar';
@@ -55,16 +54,6 @@ type AppContextType = {
     setDialogMessage: SetDialogBoxAttributes;
 };
 
-export enum FLASH_MESSAGE_TYPE {
-    DANGER = 'danger',
-    INFO = 'info',
-    SUCCESS = 'success',
-    WARNING = 'warning',
-}
-export interface FlashMessage {
-    message: string;
-    type: FLASH_MESSAGE_TYPE;
-}
 export const AppContext = createContext<AppContextType>(null);
 
 const redirectMap = new Map([

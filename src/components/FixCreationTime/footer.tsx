@@ -1,7 +1,7 @@
 import React from 'react';
-import { Button } from 'react-bootstrap';
 import { FIX_STATE } from '.';
 import constants from 'utils/strings/constants';
+import { Button } from '@mui/material';
 
 export default function FixCreationTimeFooter({
     fixState,
@@ -20,8 +20,8 @@ export default function FixCreationTimeFooter({
                 {(fixState === FIX_STATE.NOT_STARTED ||
                     fixState === FIX_STATE.COMPLETED_WITH_ERRORS) && (
                     <Button
-                        block
-                        variant={'outline-secondary'}
+                        size={'large'}
+                        color={'secondary'}
                         onClick={() => {
                             props.hide();
                         }}>
@@ -30,8 +30,8 @@ export default function FixCreationTimeFooter({
                 )}
                 {fixState === FIX_STATE.COMPLETED && (
                     <Button
-                        block
-                        variant={'outline-secondary'}
+                        size={'large'}
+                        color={'secondary'}
                         onClick={props.hide}>
                         {constants.CLOSE}
                     </Button>
@@ -42,8 +42,8 @@ export default function FixCreationTimeFooter({
                         <div style={{ width: '30px' }} />
 
                         <Button
-                            block
-                            variant={'outline-success'}
+                            size={'large'}
+                            color="accent"
                             onClick={startFix}>
                             {constants.FIX_CREATION_TIME}
                         </Button>

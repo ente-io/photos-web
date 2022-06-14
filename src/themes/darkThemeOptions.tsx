@@ -120,6 +120,11 @@ const darkThemeOptions = createTheme({
                 margin: 'dense',
             },
         },
+        MuiLinearProgress: {
+            defaultProps: {
+                variant: 'determinate',
+            },
+        },
     },
 
     palette: {

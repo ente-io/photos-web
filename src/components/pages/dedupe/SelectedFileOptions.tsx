@@ -5,10 +5,10 @@ import DeleteIcon from 'components/icons/DeleteIcon';
 import React, { useContext } from 'react';
 import styled from 'styled-components';
 import { DeduplicateContext } from 'pages/deduplicate';
-import { IconWithMessage } from 'components/IconWithMessage';
 import { AppContext } from 'pages/_app';
 import CloseIcon from '@mui/icons-material/Close';
 import BackButton from '@mui/icons-material/ArrowBackOutlined';
+import { Tooltip } from '@mui/material';
 
 const VerticalLine = styled.div`
     position: absolute;
@@ -86,11 +86,11 @@ export default function DeduplicateOptions({
             <div>
                 <VerticalLine />
             </div>
-            <IconWithMessage message={constants.DELETE}>
+            <Tooltip title={constants.DELETE}>
                 <IconButton onClick={trashHandler}>
                     <DeleteIcon />
                 </IconButton>
-            </IconWithMessage>
+            </Tooltip>
         </SelectionBar>
     );
 }

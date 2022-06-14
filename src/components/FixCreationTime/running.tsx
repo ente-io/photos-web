@@ -1,7 +1,7 @@
 import constants from 'utils/strings/constants';
 import { ComfySpan } from 'components/ExportInProgress';
 import React from 'react';
-import { ProgressBar } from 'react-bootstrap';
+import { LinearProgress } from '@mui/material';
 
 export default function FixCreationTimeRunning({ progressTracker }) {
     return (
@@ -22,12 +22,10 @@ export default function FixCreationTimeRunning({ progressTracker }) {
                     marginTop: '10px',
                     marginBottom: '20px',
                 }}>
-                <ProgressBar
-                    now={Math.round(
+                <LinearProgress
+                    value={Math.round(
                         (progressTracker.current * 100) / progressTracker.total
                     )}
-                    animated={true}
-                    variant="upload-progress-bar"
                 />
             </div>
         </>

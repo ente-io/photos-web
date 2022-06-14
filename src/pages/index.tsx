@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import Carousel from 'react-bootstrap/Carousel';
-import Button from 'react-bootstrap/Button';
+import { Button } from '@mui/material';
 import styled from 'styled-components';
 import { AppContext } from './_app';
 import Login from 'components/Login';
@@ -12,6 +12,7 @@ import constants from 'utils/strings/constants';
 import localForage from 'utils/storage/localForage';
 import { logError } from 'utils/sentry';
 import { getAlbumSiteHost, PAGES } from 'constants/pages';
+import LinkButton from 'components/pages/gallery/LinkButton';
 
 const Container = styled.div`
     display: flex;
@@ -196,20 +197,17 @@ export default function LandingPage() {
                     </SlideContainer>
                     <MobileBox>
                         <Button
-                            variant="outline-success"
-                            size="lg"
+                            color="accent"
                             style={{ padding: '10px 50px' }}
                             onClick={() => router.push(PAGES.SIGNUP)}>
                             {constants.SIGN_UP}
                         </Button>
                         <br />
-                        <Button
-                            variant="link"
-                            size="lg"
+                        <LinkButton
                             style={{ color: '#fff', padding: '10px 50px' }}
                             onClick={() => router.push(PAGES.LOGIN)}>
                             {constants.LOGIN}
-                        </Button>
+                        </LinkButton>
                     </MobileBox>
                     <DesktopBox>
                         <SideBox style={{ maxWidth: '320px' }}>

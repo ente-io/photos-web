@@ -1,6 +1,5 @@
 import isElectron from 'is-electron';
 import React, { useEffect, useState } from 'react';
-import { Button } from 'react-bootstrap';
 import exportService from 'services/exportService';
 import { ExportProgress, ExportStats } from 'types/export';
 import { getLocalFiles } from 'services/fileService';
@@ -19,6 +18,7 @@ import FolderIcon from './icons/FolderIcon';
 import InProgressIcon from './icons/InProgressIcon';
 import DialogBox from './DialogBox';
 import { ExportStage, ExportType } from 'constants/export';
+import { Button } from '@mui/material';
 
 const FolderIconWrapper = styled.div`
     width: 15%;
@@ -330,8 +330,7 @@ export default function ExportModal(props: Props) {
                     <Value width="60%">
                         {!exportFolder ? (
                             <Button
-                                variant={'outline-success'}
-                                size={'sm'}
+                                color="accent"
                                 onClick={selectExportDirectory}>
                                 {constants.SELECT_FOLDER}
                             </Button>

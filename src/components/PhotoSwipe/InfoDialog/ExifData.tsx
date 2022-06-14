@@ -1,19 +1,15 @@
 import React, { useState } from 'react';
 import constants from 'utils/strings/constants';
-import { FormCheck } from 'react-bootstrap';
 
 import { RenderInfoItem } from './RenderInfoItem';
 import { LegendContainer } from '../styledComponents/LegendContainer';
 import { Pre } from '../styledComponents/Pre';
 import { Typography } from '@mui/material';
+import { EnteCheckbox } from 'components/EnteCheckbox';
 
 export function ExifData(props: { exif: any }) {
     const { exif } = props;
     const [showAll, setShowAll] = useState(false);
-
-    const changeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setShowAll(e.target.checked);
-    };
 
     const renderAllValues = () => <Pre>{exif.raw}</Pre>;
 
@@ -50,12 +46,11 @@ export function ExifData(props: { exif: any }) {
                 <Typography variant="subtitle" mb={1}>
                     {constants.EXIF}
                 </Typography>
-                <FormCheck>
-                    <FormCheck.Label>
-                        <FormCheck.Input onChange={changeHandler} />
-                        {constants.SHOW_ALL}
-                    </FormCheck.Label>
-                </FormCheck>
+                <EnteCheckbox
+                    value={showAll}
+                    label={constants.SHOW_ALL}
+                    onChange={setShowAll}
+                />
             </LegendContainer>
             {showAll ? renderAllValues() : renderSelectedValues()}
         </>
