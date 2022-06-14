@@ -1,8 +1,15 @@
 import { Checkbox, FormControlLabel } from '@mui/material';
 import React from 'react';
 
-export function EnteCheckbox({ loading, checked, onChange, label }) {
-    const handleChange: any = (e) => onChange(e.target.checked);
+interface Iprops {
+    loading?: boolean;
+    value: boolean;
+    onChange: (v: boolean) => void;
+    label: any;
+}
+export function EnteCheckbox({ loading, value, onChange, label }: Iprops) {
+    const handleChange: any = (e: React.ChangeEvent<HTMLInputElement>) =>
+        onChange(e.target.checked);
     return (
         <FormControlLabel
             sx={{
@@ -14,7 +21,7 @@ export function EnteCheckbox({ loading, checked, onChange, label }) {
                 <Checkbox
                     size="small"
                     disabled={loading}
-                    checked={checked}
+                    checked={value}
                     onChange={handleChange}
                     color="accent"
                 />
