@@ -600,38 +600,42 @@ class MachineLearningService {
         toUpdateFiles: EnteFile[],
         token: string
     ) {
-        const algorithm: [string, string] = [
-            syncContext.config.objectDetection.method,
-            syncContext.config.sceneDetection.method,
-        ];
+        try {
+            const algorithm: [string, string] = [
+                syncContext.config.objectDetection.method,
+                syncContext.config.sceneDetection.method,
+            ];
 
-        const tagsDataWithIdAndKey = await this.getTagsDataWithIdAndKey(
-            toUpdateFiles,
-            algorithm
-        );
-        const encryptedTagsList = await this.getEncryptedTagsDataList(
-            tagsDataWithIdAndKey
-        );
+            const tagsDataWithIdAndKey = await this.getTagsDataWithIdAndKey(
+                toUpdateFiles,
+                algorithm
+            );
+            const encryptedTagsList = await this.getEncryptedTagsDataList(
+                tagsDataWithIdAndKey
+            );
 
-        const updateTagsList: UpdateTags[] = [];
-        for (const encryptedTagsData of encryptedTagsList) {
-            updateTagsList.push({
-                id: encryptedTagsData.id,
-                tags: {
-                    version: encryptedTagsData.version,
-                    data: encryptedTagsData.data,
-                    header: encryptedTagsData.header,
-                },
+            const updateTagsList: UpdateTags[] = [];
+            for (const encryptedTagsData of encryptedTagsList) {
+                updateTagsList.push({
+                    id: encryptedTagsData.id,
+                    tags: {
+                        version: encryptedTagsData.version,
+                        data: encryptedTagsData.data,
+                        header: encryptedTagsData.header,
+                    },
+                });
+            }
+
+            const reqBody: UpdateMultipleTagsRequest = {
+                tagsList: updateTagsList,
+            };
+
+            await HTTPService.put(`${ENDPOINT}/files/tags`, reqBody, null, {
+                'X-Auth-Token': token,
             });
+        } catch (e) {
+            console.error('error while updating tags on server', e);
         }
-
-        const reqBody: UpdateMultipleTagsRequest = {
-            tagsList: updateTagsList,
-        };
-
-        await HTTPService.put(`${ENDPOINT}/files/tags`, reqBody, null, {
-            'X-Auth-Token': token,
-        });
     }
 
     private async getEncryptedTagsDataList(
