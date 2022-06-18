@@ -23,6 +23,8 @@ import {
     VISIBILITY_STATE,
 } from 'constants/file';
 import PublicCollectionDownloadManager from 'services/publicCollectionDownloadManager';
+import { syncCollections } from 'services/collectionService';
+import { syncFiles } from 'services/fileService';
 
 export function downloadAsFile(filename: string, content: string) {
     const file = new Blob([content], {
@@ -559,3 +561,8 @@ export function needsConversionForPreview(file: EnteFile) {
         return false;
     }
 }
+
+export const syncWithRemote = async () => {
+    const collections = await syncCollections();
+    await syncFiles(collections, () => {});
+};

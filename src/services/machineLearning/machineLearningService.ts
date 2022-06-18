@@ -37,6 +37,7 @@ import TextService from './textService';
 import CryptoWorker from 'utils/crypto';
 import HTTPService from 'services/HTTPService';
 import { getEndpoint } from 'utils/common/apiUtil';
+import { WorkerMessage } from 'utils/machineLearning/worker';
 
 const ENDPOINT = getEndpoint();
 
@@ -106,6 +107,7 @@ class MachineLearningService {
         const toUpdateFiles = await this.getToUpdateFiles(syncContext);
         if (toUpdateFiles.length > 0) {
             await this.updateTagsOnServer(syncContext, toUpdateFiles, token);
+            postMessage(WorkerMessage.SYNC_WITH_REMOTE);
         }
 
         const mlSyncResult: MLSyncResult = {
