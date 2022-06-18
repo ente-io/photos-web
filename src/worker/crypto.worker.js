@@ -37,6 +37,28 @@ export class Crypto {
         };
     }
 
+    async encryptTagsData(data, key) {
+        const encodedTagsData = new TextEncoder().encode(JSON.stringify(data));
+        const { file: encryptedTagsData } =
+            await libsodium.encryptChaChaOneShot(encodedTagsData, key);
+        const { encryptedData, ...other } = encryptedTagsData;
+        return {
+            file: {
+                encryptedData: await libsodium.toB64(encryptedData),
+                ...other,
+            },
+        };
+    }
+
+    async decryptTagsData(data, header, key) {
+        const encodedTagsData = await libsodium.decryptChaChaOneShot(
+            await libsodium.fromB64(data),
+            await libsodium.fromB64(header),
+            key
+        );
+        return JSON.parse(new TextDecoder().decode(encodedTagsData));
+    }
+
     async encryptThumbnail(fileData, key) {
         return libsodium.encryptChaChaOneShot(fileData, key);
     }

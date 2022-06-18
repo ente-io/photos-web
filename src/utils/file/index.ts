@@ -257,6 +257,13 @@ export async function decryptFile(file: EnteFile, collectionKey: string) {
                 file.key
             );
         }
+        if (file.tags?.data) {
+            file.tags.data = await worker.decryptTagsData(
+                file.tags.data,
+                file.tags.header,
+                file.key
+            );
+        }
         return file;
     } catch (e) {
         logError(e, 'file decryption failed');

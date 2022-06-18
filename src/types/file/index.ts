@@ -1,5 +1,6 @@
 import { VISIBILITY_STATE } from 'constants/file';
 import { DataStream, Metadata } from 'types/upload';
+import { TagsDataWithIdAndKey } from '../machineLearning';
 
 export interface fileAttribute {
     encryptedData?: DataStream | Uint8Array;
@@ -36,6 +37,9 @@ export interface PublicMagicMetadata extends Omit<MagicMetadataCore, 'data'> {
     data: PublicMagicMetadataProps;
 }
 
+export interface TagsData
+    extends Omit<TagsDataWithIdAndKey, 'id' | 'fileKey'> {}
+
 export interface EnteFile {
     id: number;
     collectionID: number;
@@ -58,6 +62,7 @@ export interface EnteFile {
     deleteBy?: number;
     dataIndex: number;
     updationTime: number;
+    tags: TagsData;
 }
 
 export interface UpdateMagicMetadataRequest {

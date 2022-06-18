@@ -472,6 +472,35 @@ export interface MachineLearningWorker {
     close(): void;
 }
 
+export interface ObjectTags {
+    [key: string]: number;
+}
+
+export interface TagsDataWithIdAndKey {
+    id: number;
+    version: number;
+    data: {
+        alg: [string, string];
+        tags: ObjectTags;
+    };
+    fileKey: string;
+    header: string;
+}
+
+export interface EncryptedTagsDataWithId
+    extends Omit<TagsDataWithIdAndKey, 'data' | 'fileKey'> {
+    data: string;
+}
+
+export interface UpdateTags {
+    id: number;
+    tags: Omit<EncryptedTagsDataWithId, 'id'>;
+}
+
+export interface UpdateMultipleTagsRequest {
+    tagsList: UpdateTags[];
+}
+
 // export class TFImageBitmap {
 //     imageBitmap: ImageBitmap;
 //     tfImage: tf.Tensor3D;

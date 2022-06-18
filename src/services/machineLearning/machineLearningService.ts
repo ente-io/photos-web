@@ -7,12 +7,16 @@ import '@tensorflow/tfjs-backend-cpu';
 // import '@tensorflow/tfjs-backend-wasm';
 // import { setWasmPaths } from '@tensorflow/tfjs-backend-wasm';
 // import '@tensorflow/tfjs-backend-cpu';
-
 import {
+    EncryptedTagsDataWithId,
     MlFileData,
     MLSyncContext,
     MLSyncFileContext,
     MLSyncResult,
+    ObjectTags,
+    TagsDataWithIdAndKey,
+    UpdateMultipleTagsRequest,
+    UpdateTags,
 } from 'types/machineLearning';
 
 import { toTSNE } from 'utils/machineLearning/visualization';
@@ -30,6 +34,12 @@ import FaceService from './faceService';
 import PeopleService from './peopleService';
 import ObjectService from './objectService';
 import TextService from './textService';
+import CryptoWorker from 'utils/crypto';
+import HTTPService from 'services/HTTPService';
+import { getEndpoint } from 'utils/common/apiUtil';
+
+const ENDPOINT = getEndpoint();
+
 class MachineLearningService {
     private initialized = false;
     // private faceDetectionService: FaceDetectionService;
@@ -91,6 +101,11 @@ class MachineLearningService {
 
         if (syncContext.config.tsne) {
             await this.runTSNE(syncContext);
+        }
+
+        const toUpdateFiles = await this.getToUpdateFiles(syncContext);
+        if (toUpdateFiles.length > 0) {
+            await this.updateTagsOnServer(syncContext, toUpdateFiles, token);
         }
 
         const mlSyncResult: MLSyncResult = {
@@ -544,6 +559,124 @@ class MachineLearningService {
             .map((f) => Array.from(f.embedding));
         syncContext.tsne = toTSNE(input, syncContext.config.tsne);
         console.log('tsne: ', syncContext.tsne);
+    }
+
+    private async getToUpdateFiles(syncContext: MLSyncContext) {
+        const filesMap = await this.getLocalFilesMap(syncContext);
+        const toUpdateFiles = [];
+        const mlFiles = await mlIDbStorage.getAllFiles();
+        for (const mlFile of mlFiles) {
+            const file = filesMap.get(mlFile.fileId);
+            if (file) {
+                if (
+                    !file.tags ||
+                    !MachineLearningService.checkIfAlgorithmIsUpToDate(
+                        syncContext,
+                        file.tags.data.alg
+                    )
+                ) {
+                    toUpdateFiles.push(file);
+                }
+            }
+        }
+        return toUpdateFiles;
+    }
+
+    private static checkIfAlgorithmIsUpToDate(
+        syncContext: MLSyncContext,
+        alg: string[]
+    ) {
+        return (
+            alg?.length === 2 &&
+            alg[0] === syncContext.config.objectDetection.method &&
+            alg[1] === syncContext.config.sceneDetection.method
+        );
+    }
+
+    private async updateTagsOnServer(
+        syncContext: MLSyncContext,
+        toUpdateFiles: EnteFile[],
+        token: string
+    ) {
+        const algorithm: [string, string] = [
+            syncContext.config.objectDetection.method,
+            syncContext.config.sceneDetection.method,
+        ];
+
+        const tagsDataWithIdAndKey = await this.getTagsDataWithIdAndKey(
+            toUpdateFiles,
+            algorithm
+        );
+        const encryptedTagsList = await this.getEncryptedTagsDataList(
+            tagsDataWithIdAndKey
+        );
+
+        const updateTagsList: UpdateTags[] = [];
+        for (const encryptedTagsData of encryptedTagsList) {
+            updateTagsList.push({
+                id: encryptedTagsData.id,
+                tags: {
+                    version: encryptedTagsData.version,
+                    data: encryptedTagsData.data,
+                    header: encryptedTagsData.header,
+                },
+            });
+        }
+
+        const reqBody: UpdateMultipleTagsRequest = {
+            tagsList: updateTagsList,
+        };
+
+        await HTTPService.put(`${ENDPOINT}/files/tags`, reqBody, null, {
+            'X-Auth-Token': token,
+        });
+    }
+
+    private async getEncryptedTagsDataList(
+        tagsDataWithIdAndKey: TagsDataWithIdAndKey[]
+    ) {
+        const worker = await new CryptoWorker();
+        return await Promise.all(
+            tagsDataWithIdAndKey.map(
+                async (tags): Promise<EncryptedTagsDataWithId> => {
+                    const { file: encryptedTagsData } =
+                        await worker.encryptTagsData(tags.data, tags.fileKey);
+                    return {
+                        id: tags.id,
+                        version: tags.version,
+                        data: encryptedTagsData.encryptedData as unknown as string,
+                        header: encryptedTagsData.decryptionHeader as unknown as string,
+                    };
+                }
+            )
+        );
+    }
+
+    private async getTagsDataWithIdAndKey(
+        toUpdateFiles: EnteFile[],
+        algorithm: [string, string]
+    ) {
+        const tagsDataWithIdAndKeys: TagsDataWithIdAndKey[] = [];
+        for (const file of toUpdateFiles) {
+            const mlFileData = await this.getMLFileData(file.id);
+            if (mlFileData) {
+                const tags: ObjectTags = {};
+                for (const thing of mlFileData.things) {
+                    tags[thing.className] = thing.detection.score;
+                }
+                tagsDataWithIdAndKeys.push({
+                    id: file.id,
+                    fileKey: file.key,
+                    version: file.tags?.version || 0,
+                    data: {
+                        alg: algorithm,
+                        tags,
+                    },
+                    header: null,
+                });
+            }
+        }
+        return tagsDataWithIdAndKeys;
     }
 }
 
