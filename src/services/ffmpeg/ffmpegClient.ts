@@ -102,6 +102,37 @@ class FFmpegClient {
         this.ffmpeg.FS('unlink', 'output.mp4');
         return convertedFile;
     }
+
+    async convertToStreamableVideo(file: Uint8Array, inputFileName: string) {
+        await this.ready;
+        this.ffmpeg.FS('writeFile', inputFileName, file);
+        // -movflags and -g are for generating fragmented MP4
+        // -filter converts the res of video to 720p
+        // -crf (constant rate factor) is for compression (https://slhck.info/video/2017/02/24/crf-guide.html)
+        await this.ffmpeg.run(
+            '-i',
+            'video.mp4',
+            '-preset',
+            'ultrafast',
+            '-movflags',
+            'frag_keyframe+empty_moov+default_base_moof',
+            '-g',
+            '52',
+            '-acodec',
+            'aac',
+            '-vcodec',
+            'h264',
+            '-filter:v',
+            'scale=720:-2',
+            '-crf',
+            '28',
+            'output.mp4'
+        );
+        const convertedFile = this.ffmpeg.FS('readFile', 'output.mp4');
+        this.ffmpeg.FS('unlink', inputFileName);
+        this.ffmpeg.FS('unlink', 'output.mp4');
+        return convertedFile;
+    }
 }
 
 export default FFmpegClient;

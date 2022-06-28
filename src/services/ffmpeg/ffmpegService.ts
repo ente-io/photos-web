@@ -87,6 +87,35 @@ class FFmpegService {
             }
         }
     }
+
+    async convertToStreamableVideo(
+        file: Uint8Array,
+        inputFileName: string
+    ): Promise<Uint8Array> {
+        if (!this.ffmpegWorker) {
+            await this.init();
+        }
+
+        const response = this.ffmpegTaskQueue.queueUpRequest(
+            async () =>
+                await this.ffmpegWorker.convertToStreamableVideo(
+                    file,
+                    inputFileName
+                )
+        );
+
+        try {
+            return await response.promise;
+        } catch (e) {
+            if (e.message === CustomError.REQUEST_CANCELLED) {
+                // ignore
+                return null;
+            } else {
+                logError(e, 'ffmpeg streamable video conversion failed');
+                throw e;
+            }
+        }
+    }
 }
 
 export default new FFmpegService();
