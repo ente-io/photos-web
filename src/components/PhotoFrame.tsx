@@ -538,6 +538,8 @@ const PhotoFrame = ({
                                     true
                                 );
                             }
+                        } else {
+                            urls = await DownloadManager.getFile(item, true);
                         }
                     }
                     appContext.finishLoading();

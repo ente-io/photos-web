@@ -16,6 +16,10 @@ export class FFmpeg {
     async convertToMP4(file, inputFileName) {
         return this.ffmpegClient.convertToMP4(file, inputFileName);
     }
+
+    async convertToStreamableVideo(file, inputFileName) {
+        return this.ffmpegClient.convertToStreamableVideo(file, inputFileName);
+    }
 }
 
 Comlink.expose(FFmpeg);

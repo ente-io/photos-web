@@ -134,8 +134,7 @@ class DownloadManager {
                 source.addEventListener('sourceopen', async () => {
                     if (!source.sourceBuffers.length) {
                         const sourceBuffer = source.addSourceBuffer(
-                            'video/mp4; codecs="avc1.64001F"'
-                            // 'video/mp4; codecs="avc1.64001E,mp4a.40.2"'
+                            'video/mp4; codecs="avc1.64001E,mp4a.40.2"'
                         );
                         console.log('sourceBuffer', sourceBuffer);
                         const fileStream = await this.downloadFile(file);

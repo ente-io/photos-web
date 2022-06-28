@@ -131,7 +131,7 @@ class UploadManager {
                     )
                 );
                 const rejectedFiles = [];
-                const filesWithMetadata = [];
+                const filesWithMetadata: FileWithCollection[] = [];
                 mediaFiles.forEach((m) => {
                     if (rejectedFileLocalIDs.has(m.localID)) {
                         rejectedFiles.push(m);
@@ -139,6 +139,20 @@ class UploadManager {
                         filesWithMetadata.push(m);
                     }
                 });
+
+                for (const fileWithCollection of filesWithMetadata) {
+                    if (
+                        this.metadataAndFileTypeInfoMap.get(
+                            fileWithCollection.localID
+                        ).fileTypeInfo.fileType === FILE_TYPE.VIDEO
+                    ) {
+                        fileWithCollection.file =
+                            await UploadService.getStreamableVideoFile(
+                                fileWithCollection
+                            );
+                        console.log(fileWithCollection.file);
+                    }
+                }
 
                 const analysedMediaFiles =
                     UploadService.clusterLivePhotoFiles(filesWithMetadata);

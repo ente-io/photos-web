@@ -33,6 +33,7 @@ import { encryptFile, getFileSize, readFile } from './fileService';
 import { uploadStreamUsingMultipart } from './multiPartUploadService';
 import UIService from './uiService';
 import { USE_CF_PROXY } from 'constants/upload';
+import ffmpegService from 'services/ffmpeg/ffmpegService';
 
 class UploadService {
     private uploadURLs: UploadURL[] = [];
@@ -119,6 +120,24 @@ class UploadService {
 
     clusterLivePhotoFiles(mediaFiles: FileWithCollection[]) {
         return clusterLivePhotoFiles(mediaFiles);
+    }
+
+    async getStreamableVideoFile(fileWithCollection: FileWithCollection) {
+        try {
+            const streamableVideoFile =
+                await ffmpegService.convertToStreamableVideo(
+                    new Uint8Array(await fileWithCollection.file.arrayBuffer()),
+                    fileWithCollection.file.name
+                );
+
+            return new File(
+                [streamableVideoFile],
+                fileWithCollection.file.name
+            );
+        } catch (e) {
+            logError(e, 'get streamable video file failed');
+            return null;
+        }
     }
 
     async encryptAsset(

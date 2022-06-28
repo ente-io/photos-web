@@ -111,7 +111,7 @@ class FFmpegClient {
         // -crf (constant rate factor) is for compression (https://slhck.info/video/2017/02/24/crf-guide.html)
         await this.ffmpeg.run(
             '-i',
-            'video.mp4',
+            inputFileName,
             '-preset',
             'ultrafast',
             '-movflags',
