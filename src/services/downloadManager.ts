@@ -126,6 +126,47 @@ class DownloadManager {
         }
     };
 
+    getStreamingVideoFile = async (file: EnteFile) => {
+        try {
+            const getFilePromise = async () => {
+                const source = new MediaSource();
+                console.log('source', source);
+                source.addEventListener('sourceopen', async () => {
+                    if (!source.sourceBuffers.length) {
+                        const sourceBuffer = source.addSourceBuffer(
+                            'video/mp4; codecs="avc1.64001F"'
+                            // 'video/mp4; codecs="avc1.64001E,mp4a.40.2"'
+                        );
+                        console.log('sourceBuffer', sourceBuffer);
+                        const fileStream = await this.downloadFile(file);
+
+                        const reader = fileStream.getReader();
+
+                        let chunk = await reader.read();
+                        while (!chunk.done) {
+                            console.log(chunk);
+                            sourceBuffer.appendBuffer(chunk.value);
+                            chunk = await reader.read();
+                        }
+                        sourceBuffer.addEventListener('updateend', function () {
+                            if (
+                                !sourceBuffer.updating &&
+                                source.readyState === 'open'
+                            ) {
+                                source.endOfStream();
+                            }
+                        });
+                    }
+                });
+                return [URL.createObjectURL(source)];
+            };
+            return await getFilePromise();
+        } catch (e) {
+            logError(e, 'Failed to get streaming file');
+            throw e;
+        }
+    };
+
     public async getCachedOriginalFile(file: EnteFile) {
         return await this.fileObjectURLPromise.get(file.id.toString());
     }

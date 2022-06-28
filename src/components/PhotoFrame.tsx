@@ -298,9 +298,14 @@ const PhotoFrame = ({
         return updateFile(files[index]);
     };
 
-    const updateSrcURL = async (id: number, srcURL: SourceURL) => {
+    const updateSrcURL = async (
+        id: number,
+        srcURL: SourceURL,
+        isStreaming: boolean = false
+    ) => {
         const { videoURL, imageURL } = srcURL;
-        const isPlayable = videoURL && (await isPlaybackPossible(videoURL));
+        const isPlayable =
+            videoURL && (isStreaming || (await isPlaybackPossible(videoURL)));
         const updateFile = (file: EnteFile) => {
             file = {
                 ...file,
@@ -504,6 +509,7 @@ const PhotoFrame = ({
             try {
                 fetching[item.id] = true;
                 let urls: string[];
+                let isStreamingFile = false;
                 if (galleryContext.files.has(item.id)) {
                     const mergedURL = galleryContext.files.get(item.id);
                     urls = mergedURL.split(',');
@@ -519,11 +525,26 @@ const PhotoFrame = ({
                             true
                         );
                     } else {
-                        urls = await DownloadManager.getFile(item, true);
+                        if (item.metadata.fileType === FILE_TYPE.VIDEO) {
+                            try {
+                                urls =
+                                    await DownloadManager.getStreamingVideoFile(
+                                        item
+                                    );
+                                isStreamingFile = true;
+                            } catch (e) {
+                                urls = await DownloadManager.getFile(
+                                    item,
+                                    true
+                                );
+                            }
+                        }
                     }
                     appContext.finishLoading();
-                    const mergedURL = urls.join(',');
-                    galleryContext.files.set(item.id, mergedURL);
+                    if (!isStreamingFile) {
+                        const mergedURL = urls.join(',');
+                        galleryContext.files.set(item.id, mergedURL);
+                    }
                 }
                 let imageURL;
                 let videoURL;
@@ -535,10 +556,14 @@ const PhotoFrame = ({
                     [imageURL] = urls;
                 }
                 setIsSourceLoaded(false);
-                const newFile = await updateSrcURL(item.id, {
-                    imageURL,
-                    videoURL,
-                });
+                const newFile = await updateSrcURL(
+                    item.id,
+                    {
+                        imageURL,
+                        videoURL,
+                    },
+                    isStreamingFile
+                );
                 item.msrc = newFile.msrc;
                 item.html = newFile.html;
                 item.src = newFile.src;
