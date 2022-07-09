@@ -140,20 +140,6 @@ class UploadManager {
                     }
                 });
 
-                for (const fileWithCollection of filesWithMetadata) {
-                    if (
-                        this.metadataAndFileTypeInfoMap.get(
-                            fileWithCollection.localID
-                        ).fileTypeInfo.fileType === FILE_TYPE.VIDEO
-                    ) {
-                        fileWithCollection.file =
-                            await UploadService.getStreamableVideoFile(
-                                fileWithCollection
-                            );
-                        console.log(fileWithCollection.file);
-                    }
-                }
-
                 const analysedMediaFiles =
                     UploadService.clusterLivePhotoFiles(filesWithMetadata);
 

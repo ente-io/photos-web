@@ -48,6 +48,10 @@ export class Crypto {
         return libsodium.encryptFileChunk(data, pushState, finalChunk);
     }
 
+    async encryptFileVariant(fileData, key) {
+        return libsodium.encryptChaChaOneShot(fileData, key);
+    }
+
     async initChunkEncryption() {
         return libsodium.initChunkEncryption();
     }

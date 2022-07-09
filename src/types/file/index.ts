@@ -31,6 +31,10 @@ export interface EnteFile {
     ownerID: number;
     file: fileAttribute;
     thumbnail: fileAttribute;
+    fileVariants?: {
+        imgVariantFile?: fileAttribute;
+        vidVariantFile?: fileAttribute;
+    };
     metadata: Metadata;
     magicMetadata: FileMagicMetadata;
     pubMagicMetadata: FilePublicMagicMetadata;
@@ -56,4 +60,9 @@ export interface TrashRequest {
 export interface TrashRequestItems {
     fileID: number;
     collectionID: number;
+}
+
+export enum VariantFileType {
+    IMG = 'img',
+    VID = 'vid',
 }

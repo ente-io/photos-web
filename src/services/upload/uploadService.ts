@@ -33,7 +33,6 @@ import { encryptFile, getFileSize, readFile } from './fileService';
 import { uploadStreamUsingMultipart } from './multiPartUploadService';
 import UIService from './uiService';
 import { USE_CF_PROXY } from 'constants/upload';
-import ffmpegService from 'services/ffmpeg/ffmpegService';
 
 class UploadService {
     private uploadURLs: UploadURL[] = [];
@@ -122,24 +121,6 @@ class UploadService {
         return clusterLivePhotoFiles(mediaFiles);
     }
 
-    async getStreamableVideoFile(fileWithCollection: FileWithCollection) {
-        try {
-            const streamableVideoFile =
-                await ffmpegService.convertToStreamableVideo(
-                    new Uint8Array(await fileWithCollection.file.arrayBuffer()),
-                    fileWithCollection.file.name
-                );
-
-            return new File(
-                [streamableVideoFile],
-                fileWithCollection.file.name
-            );
-        } catch (e) {
-            logError(e, 'get streamable video file failed');
-            return null;
-        }
-    }
-
     async encryptAsset(
         worker: any,
         file: FileWithMetadata,
@@ -190,7 +171,33 @@ class UploadService {
                     null
                 );
             }
-
+            const backupedFileVariants: BackupedFile['fileVariants'] = {};
+            if (file.fileVariants) {
+                if (file.fileVariants.vidVariantFile) {
+                    const variantFileUploadURL = await this.getUploadURL();
+                    let variantFileObjectKey: string = null;
+                    if (USE_CF_PROXY) {
+                        variantFileObjectKey = await UploadHttpClient.putFileV2(
+                            variantFileUploadURL,
+                            file.fileVariants.vidVariantFile
+                                .encryptedData as Uint8Array,
+                            null
+                        );
+                    } else {
+                        variantFileObjectKey = await UploadHttpClient.putFile(
+                            variantFileUploadURL,
+                            file.fileVariants.vidVariantFile
+                                .encryptedData as Uint8Array,
+                            null
+                        );
+                    }
+                    backupedFileVariants.vidVariantFile = {
+                        objectKey: variantFileObjectKey,
+                        decryptionHeader:
+                            file.fileVariants.vidVariantFile.decryptionHeader,
+                    };
+                }
+            }
             const backupedFile: BackupedFile = {
                 file: {
                     decryptionHeader: file.file.decryptionHeader,
@@ -200,6 +207,7 @@ class UploadService {
                     decryptionHeader: file.thumbnail.decryptionHeader,
                     objectKey: thumbnailObjectKey,
                 },
+                fileVariants: backupedFileVariants,
                 metadata: file.metadata,
             };
             return backupedFile;

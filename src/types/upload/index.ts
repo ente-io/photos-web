@@ -118,6 +118,10 @@ export interface FileWithMetadata
     extends Omit<FileInMemory, 'hasStaticThumbnail'> {
     metadata: Metadata;
     localID: number;
+    fileVariants?: {
+        imgVariantFile?: Uint8Array;
+        vidVariantFile?: Uint8Array;
+    };
 }
 
 export interface EncryptedFile {
@@ -127,6 +131,10 @@ export interface EncryptedFile {
 export interface ProcessedFile {
     file: fileAttribute;
     thumbnail: fileAttribute;
+    fileVariants?: {
+        imgVariantFile?: fileAttribute;
+        vidVariantFile?: fileAttribute;
+    };
     metadata: fileAttribute;
     localID: number;
 }

@@ -11,11 +11,17 @@ import UIService from './uiService';
 import UploadService from './uploadService';
 import { FILE_TYPE } from 'constants/file';
 import { UPLOAD_RESULT, MAX_FILE_SIZE_SUPPORTED } from 'constants/upload';
-import { FileWithCollection, BackupedFile, UploadFile } from 'types/upload';
+import {
+    FileWithCollection,
+    BackupedFile,
+    UploadFile,
+    FileWithMetadata,
+} from 'types/upload';
 import { logUploadInfo } from 'utils/upload';
 import { convertBytesToHumanReadable } from 'utils/billing';
 import { sleep } from 'utils/common';
 import { addToCollection } from 'services/collectionService';
+import { transcodeFile } from 'services/transcodingService';
 
 interface UploadResponse {
     fileUploadResult: UPLOAD_RESULT;
@@ -91,12 +97,14 @@ export default async function uploader(
         if (file.hasStaticThumbnail) {
             metadata.hasStaticThumbnail = true;
         }
-        const fileWithMetadata = {
+        const fileWithMetadata: FileWithMetadata = {
             localID,
             filedata: file.filedata,
             thumbnail: file.thumbnail,
             metadata,
         };
+
+        await transcodeFile(fileWithCollection, fileWithMetadata);
 
         logUploadInfo(`encryptAsset ${fileNameSize}`);
         const encryptedFile = await UploadService.encryptAsset(

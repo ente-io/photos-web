@@ -1,14 +1,19 @@
 import { getToken } from 'utils/common/key';
-import { getFileURL, getThumbnailURL } from 'utils/common/apiUtil';
+import {
+    getFileURL,
+    getThumbnailURL,
+    getVariantFileURL,
+} from 'utils/common/apiUtil';
 import CryptoWorker from 'utils/crypto';
 import {
     generateStreamFromArrayBuffer,
     convertForPreview,
     needsConversionForPreview,
     createTypedObjectURL,
+    getFileDecryptionHeader as getObjectDecryptionHeader,
 } from 'utils/file';
 import HTTPService from './HTTPService';
-import { EnteFile } from 'types/file';
+import { EnteFile, VariantFileType } from 'types/file';
 
 import { logError } from 'utils/sentry';
 import { FILE_TYPE } from 'constants/file';
@@ -137,7 +142,10 @@ class DownloadManager {
                             'video/mp4; codecs="avc1.64001E,mp4a.40.2"'
                         );
                         console.log('sourceBuffer', sourceBuffer);
-                        const fileStream = await this.downloadFile(file);
+                        const fileStream = await this.downloadFile(
+                            file,
+                            VariantFileType.VID
+                        );
 
                         const reader = fileStream.getReader();
 
@@ -170,7 +178,7 @@ class DownloadManager {
         return await this.fileObjectURLPromise.get(file.id.toString());
     }
 
-    async downloadFile(file: EnteFile) {
+    async downloadFile(file: EnteFile, variantFileType?: VariantFileType) {
         const worker = await new CryptoWorker();
         const token = getToken();
         if (!token) {
@@ -196,16 +204,23 @@ class DownloadManager {
             );
             return generateStreamFromArrayBuffer(decrypted);
         }
-        const resp = await fetch(getFileURL(file.id), {
+        const url = variantFileType
+            ? getVariantFileURL(file.id, variantFileType)
+            : getFileURL(file.id);
+        const resp = await fetch(url, {
             headers: {
                 'X-Auth-Token': token,
             },
         });
+        const objectDecryptionHeader = getObjectDecryptionHeader(
+            file,
+            variantFileType
+        );
         const reader = resp.body.getReader();
         const stream = new ReadableStream({
             async start(controller) {
                 const decryptionHeader = await worker.fromB64(
-                    file.file.decryptionHeader
+                    objectDecryptionHeader
                 );
                 const fileKey = await worker.fromB64(file.key);
                 const { pullState, decryptionChunkSize } =

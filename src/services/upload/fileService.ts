@@ -108,6 +108,18 @@ export async function encryptFile(
         const { file: encryptedMetadata }: EncryptionResult =
             await worker.encryptMetadata(file.metadata, fileKey);
 
+        const encryptedFileVariants: EncryptedFile['file']['fileVariants'] = {};
+        if (file.fileVariants) {
+            if (file.fileVariants.vidVariantFile) {
+                const { file: encryptedFileVariant }: EncryptionResult =
+                    await worker.encryptFileVariant(
+                        file.fileVariants.vidVariantFile,
+                        fileKey
+                    );
+                encryptedFileVariants.vidVariantFile = encryptedFileVariant;
+            }
+        }
+
         const encryptedKey: B64EncryptionResult = await worker.encryptToB64(
             fileKey,
             encryptionKey
@@ -117,6 +129,7 @@ export async function encryptFile(
             file: {
                 file: encryptedFiledata,
                 thumbnail: encryptedThumbnail,
+                fileVariants: encryptedFileVariants,
                 metadata: encryptedMetadata,
                 localID: file.localID,
             },

@@ -1,3 +1,5 @@
+import { VariantFileType } from 'types/file';
+
 export const getEndpoint = () => {
     const endPoint =
         process.env.NEXT_PUBLIC_ENTE_ENDPOINT ?? 'https://api.ente.io';
@@ -9,6 +11,16 @@ export const getFileURL = (id: number) => {
         return `${process.env.NEXT_PUBLIC_ENTE_ENDPOINT}/files/download/${id}`;
     }
     return `https://files.ente.io/?fileID=${id}`;
+};
+
+export const getVariantFileURL = (
+    id: number,
+    variantFileType: VariantFileType
+) => {
+    if (process.env.NEXT_PUBLIC_ENTE_ENDPOINT !== undefined) {
+        return `${process.env.NEXT_PUBLIC_ENTE_ENDPOINT}/files/variant/${variantFileType}/${id}`;
+    }
+    return `https://api.ente.io/files/variant/${variantFileType}/${id}`;
 };
 
 export const getPublicCollectionFileURL = (id: number) => {
