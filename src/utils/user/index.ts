@@ -28,5 +28,5 @@ export function getLocalUserDetails(): UserDetails {
 }
 
 export function getLocalUserPreferences(): UserPreferences {
-    return getData(LS_KEYS.USER_PREFERENCES)?.userPreferences;
+    return getData(LS_KEYS.USER_PREFERENCES);
 }

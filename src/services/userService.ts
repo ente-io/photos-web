@@ -331,7 +331,7 @@ export const getUserPreferences = async (): Promise<UserPreferences> => {
                 'X-Auth-Token': token,
             }
         );
-        return resp.data;
+        return resp.data.userPreferences;
     } catch (e) {
         logError(e, 'failed to get user preferences');
         throw e;
@@ -344,7 +344,7 @@ export const updateUserPreferences = async (
     try {
         const token = getToken();
 
-        await HTTPService.post(
+        await HTTPService.put(
             `${ENDPOINT}/users/preferences`,
             {
                 userPreferences: preferences,
