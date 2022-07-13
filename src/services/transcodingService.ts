@@ -8,6 +8,7 @@ import {
 import { runningInBrowser } from 'utils/common';
 import { ConvertToStreamableVideoCmds, MP4 } from 'utils/ffmpeg/cmds';
 import { logError } from 'utils/sentry';
+import { getLocalUserPreferences } from 'utils/user';
 import ffmpegService from './ffmpeg/ffmpegService';
 
 class TranscodingService {
@@ -46,16 +47,16 @@ class TranscodingService {
         fileWithCollection: FileWithCollection,
         fileWithMetadata: FileWithMetadata
     ) {
-        // TODO: replace with user pref config
-        // eslint-disable-next-line no-constant-condition
-        if (true) {
-            if (fileWithMetadata.metadata.fileType === FILE_TYPE.VIDEO) {
-                fileWithMetadata.fileVariants = {
-                    vidVariantFile: await this.getStreamableVideo(
-                        fileWithCollection
-                    ),
-                };
-            }
+        const userPreferences = getLocalUserPreferences();
+        if (
+            fileWithMetadata.metadata.fileType === FILE_TYPE.VIDEO &&
+            userPreferences?.isVidTranscodingEnabled
+        ) {
+            fileWithMetadata.fileVariants = {
+                vidVariantFile: await this.getStreamableVideo(
+                    fileWithCollection
+                ),
+            };
         }
     }
 }

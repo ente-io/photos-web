@@ -1,4 +1,4 @@
-import { UserDetails } from 'types/user';
+import { UserDetails, UserPreferences } from 'types/user';
 import { getData, LS_KEYS, setData } from 'utils/storage/localStorage';
 
 export function makeID(length) {
@@ -25,4 +25,8 @@ export function getUserAnonymizedID() {
 
 export function getLocalUserDetails(): UserDetails {
     return getData(LS_KEYS.USER_DETAILS)?.value;
+}
+
+export function getLocalUserPreferences(): UserPreferences {
+    return getData(LS_KEYS.USER_PREFERENCES)?.userPreferences;
 }

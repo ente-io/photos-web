@@ -91,3 +91,8 @@ export interface UserDetails {
     subscription: Subscription;
     familyData?: FamilyData;
 }
+
+export interface UserPreferences {
+    isImgTranscodingEnabled: boolean;
+    isVidTranscodingEnabled: boolean;
+}

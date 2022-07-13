@@ -19,6 +19,7 @@ export enum LS_KEYS {
     USER_DETAILS = 'userDetails',
     COLLECTION_SORT_BY = 'collectionSortBy',
     THEME = 'theme',
+    USER_PREFERENCES = 'userPreferences',
 }
 
 export const setData = (key: LS_KEYS, value: object) => {

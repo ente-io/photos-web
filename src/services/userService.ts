@@ -16,6 +16,7 @@ import {
     TwoFactorVerificationResponse,
     TwoFactorRecoveryResponse,
     UserDetails,
+    UserPreferences,
 } from 'types/user';
 import { getLocalFamilyData, isPartOfFamily } from 'utils/billing';
 import { ServerErrorCodes } from 'utils/error';
@@ -315,6 +316,46 @@ export const getFamilyPortalRedirectURL = async () => {
         }/gallery`;
     } catch (e) {
         logError(e, 'unable to generate to family portal URL');
+        throw e;
+    }
+};
+
+export const getUserPreferences = async (): Promise<UserPreferences> => {
+    try {
+        const token = getToken();
+
+        const resp = await HTTPService.get(
+            `${ENDPOINT}/users/preferences`,
+            null,
+            {
+                'X-Auth-Token': token,
+            }
+        );
+        return resp.data;
+    } catch (e) {
+        logError(e, 'failed to get user preferences');
+        throw e;
+    }
+};
+
+export const updateUserPreferences = async (
+    preferences: UserPreferences
+): Promise<void> => {
+    try {
+        const token = getToken();
+
+        await HTTPService.post(
+            `${ENDPOINT}/users/preferences`,
+            {
+                userPreferences: preferences,
+            },
+            null,
+            {
+                'X-Auth-Token': token,
+            }
+        );
+    } catch (e) {
+        logError(e, 'failed to update user preferences');
         throw e;
     }
 };

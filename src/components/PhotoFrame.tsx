@@ -13,7 +13,7 @@ import {
     TRASH_SECTION,
 } from 'constants/collection';
 import { isSharedFile } from 'utils/file';
-import { isPlaybackPossible } from 'utils/photoFrame';
+import { canFileBeStreamed, isPlaybackPossible } from 'utils/photoFrame';
 import { PhotoList } from './PhotoList';
 import { SetFiles, SelectedState } from 'types/gallery';
 import { FILE_TYPE } from 'constants/file';
@@ -525,7 +525,7 @@ const PhotoFrame = ({
                             true
                         );
                     } else {
-                        if (item.metadata.fileType === FILE_TYPE.VIDEO) {
+                        if (canFileBeStreamed(item)) {
                             try {
                                 urls =
                                     await DownloadManager.getStreamingVideoFile(

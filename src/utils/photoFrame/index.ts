@@ -1,3 +1,6 @@
+import { FILE_TYPE } from 'constants/file';
+import { EnteFile } from 'types/file';
+
 const WAIT_FOR_VIDEO_PLAYBACK = 1 * 1000;
 
 export async function isPlaybackPossible(url: string): Promise<boolean> {
@@ -31,4 +34,11 @@ export async function pauseVideo(livePhotoVideo, livePhotoImage) {
     livePhotoVideo.pause();
     livePhotoVideo.style.opacity = 0;
     livePhotoImage.style.opacity = 1;
+}
+
+export function canFileBeStreamed(file: EnteFile) {
+    return (
+        file.metadata.fileType === FILE_TYPE.VIDEO &&
+        file.fileVariants?.vidVariantFile !== undefined
+    );
 }
