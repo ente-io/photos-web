@@ -39,7 +39,7 @@ class TranscodingService {
             }
         } catch (e) {
             logError(e, 'get streamable video file failed');
-            throw e;
+            return;
         }
     }
 
