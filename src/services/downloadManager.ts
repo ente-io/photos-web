@@ -152,6 +152,12 @@ class DownloadManager {
                         let chunk = await reader.read();
                         while (!chunk.done) {
                             if (chunk.value) {
+                                while (sourceBuffer.updating) {
+                                    // wait for previous update to finish
+                                    await new Promise((resolve) =>
+                                        setTimeout(resolve, 100)
+                                    );
+                                }
                                 sourceBuffer.appendBuffer(chunk.value);
                             }
                             chunk = await reader.read();
