@@ -112,7 +112,7 @@ export async function encryptFile(
         if (file.fileVariants) {
             if (file.fileVariants.vidVariantFile) {
                 const { file: encryptedFileVariant }: EncryptionResult =
-                    await worker.encryptFileVariant(
+                    await worker.encryptFile(
                         file.fileVariants.vidVariantFile,
                         fileKey
                     );

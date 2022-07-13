@@ -151,8 +151,9 @@ class DownloadManager {
 
                         let chunk = await reader.read();
                         while (!chunk.done) {
-                            console.log(chunk);
-                            sourceBuffer.appendBuffer(chunk.value);
+                            if (chunk.value) {
+                                sourceBuffer.appendBuffer(chunk.value);
+                            }
                             chunk = await reader.read();
                         }
                         sourceBuffer.addEventListener('updateend', function () {

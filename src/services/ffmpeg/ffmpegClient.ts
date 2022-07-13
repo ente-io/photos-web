@@ -122,7 +122,7 @@ class FFmpegClient {
             '-acodec',
             'aac',
             '-vcodec',
-            'h264',
+            'libx264',
             '-filter:v',
             'scale=720:-2',
             '-crf',

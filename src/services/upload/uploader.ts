@@ -21,7 +21,7 @@ import { logUploadInfo } from 'utils/upload';
 import { convertBytesToHumanReadable } from 'utils/billing';
 import { sleep } from 'utils/common';
 import { addToCollection } from 'services/collectionService';
-import { transcodeFile } from 'services/transcodingService';
+import transcodingService from 'services/transcodingService';
 
 interface UploadResponse {
     fileUploadResult: UPLOAD_RESULT;
@@ -104,7 +104,10 @@ export default async function uploader(
             metadata,
         };
 
-        await transcodeFile(fileWithCollection, fileWithMetadata);
+        await transcodingService.transcodeFile(
+            fileWithCollection,
+            fileWithMetadata
+        );
 
         logUploadInfo(`encryptAsset ${fileNameSize}`);
         const encryptedFile = await UploadService.encryptAsset(
