@@ -107,9 +107,10 @@ class FFmpegClient {
     async convertToStreamableVideo(file: Uint8Array, inputFileName: string) {
         await this.ready;
         this.ffmpeg.FS('writeFile', inputFileName, file);
+        // -preset is for speed and compression, ultrafast => fastest encoding, lowest compression efficiency
         // -movflags and -g are for generating fragmented MP4
-        // -filter converts the res of video to 720p
-        // -crf (constant rate factor) is for compression (https://slhck.info/video/2017/02/24/crf-guide.html)
+        // -filter:v scale=720:-2 converts the video to width:720 and aspect ratio remains the same
+        // -crf (constant rate factor) is for quality and compression (https://slhck.info/video/2017/02/24/crf-guide.html)
         await this.ffmpeg.run(
             '-i',
             inputFileName,
