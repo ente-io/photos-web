@@ -4,7 +4,7 @@ import {
     fileAttribute,
     FileMagicMetadataProps,
     FilePublicMagicMetadataProps,
-    VariantFileType,
+    FileVariantType,
 } from 'types/file';
 import { decodeMotionPhoto } from 'services/motionPhotoService';
 import { getFileType } from 'services/typeDetectionService';
@@ -537,13 +537,13 @@ export const createTypedObjectURL = async (blob: Blob, fileName: string) => {
 
 export const getFileDecryptionHeader = (
     file: EnteFile,
-    variantFileType?: VariantFileType
+    fileVariantType?: FileVariantType
 ): string => {
-    if (variantFileType) {
-        if (variantFileType === VariantFileType.IMG) {
-            return file.fileVariants.imgVariantFile.decryptionHeader;
-        } else if (variantFileType === VariantFileType.VID) {
-            return file.fileVariants.vidVariantFile.decryptionHeader;
+    if (fileVariantType) {
+        if (fileVariantType === FileVariantType.IMG) {
+            return file.fileVariants.imgFileVariant.decryptionHeader;
+        } else if (fileVariantType === FileVariantType.VID) {
+            return file.fileVariants.vidFileVariant.decryptionHeader;
         } else {
             return;
         }

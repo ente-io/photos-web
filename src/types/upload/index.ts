@@ -119,8 +119,8 @@ export interface FileWithMetadata
     metadata: Metadata;
     localID: number;
     fileVariants?: {
-        imgVariantFile?: Uint8Array;
-        vidVariantFile?: Uint8Array;
+        imgFileVariant?: Uint8Array;
+        vidFileVariant?: Uint8Array;
     };
 }
 
@@ -132,8 +132,8 @@ export interface ProcessedFile {
     file: fileAttribute;
     thumbnail: fileAttribute;
     fileVariants?: {
-        imgVariantFile?: fileAttribute;
-        vidVariantFile?: fileAttribute;
+        imgFileVariant?: fileAttribute;
+        vidFileVariant?: fileAttribute;
     };
     metadata: fileAttribute;
     localID: number;

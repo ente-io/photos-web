@@ -173,52 +173,52 @@ class UploadService {
             }
             const backupedFileVariants: BackupedFile['fileVariants'] = {};
             if (file.fileVariants) {
-                if (file.fileVariants.vidVariantFile) {
-                    const variantFileUploadURL = await this.getUploadURL();
-                    let variantFileObjectKey: string = null;
+                if (file.fileVariants.vidFileVariant) {
+                    const fileVariantUploadURL = await this.getUploadURL();
+                    let fileVariantObjectKey: string = null;
                     if (USE_CF_PROXY) {
-                        variantFileObjectKey = await UploadHttpClient.putFileV2(
-                            variantFileUploadURL,
-                            file.fileVariants.vidVariantFile
+                        fileVariantObjectKey = await UploadHttpClient.putFileV2(
+                            fileVariantUploadURL,
+                            file.fileVariants.vidFileVariant
                                 .encryptedData as Uint8Array,
                             null
                         );
                     } else {
-                        variantFileObjectKey = await UploadHttpClient.putFile(
-                            variantFileUploadURL,
-                            file.fileVariants.vidVariantFile
+                        fileVariantObjectKey = await UploadHttpClient.putFile(
+                            fileVariantUploadURL,
+                            file.fileVariants.vidFileVariant
                                 .encryptedData as Uint8Array,
                             null
                         );
                     }
-                    backupedFileVariants.vidVariantFile = {
-                        objectKey: variantFileObjectKey,
+                    backupedFileVariants.vidFileVariant = {
+                        objectKey: fileVariantObjectKey,
                         decryptionHeader:
-                            file.fileVariants.vidVariantFile.decryptionHeader,
+                            file.fileVariants.vidFileVariant.decryptionHeader,
                     };
                 }
-                if (file.fileVariants.imgVariantFile) {
-                    const variantFileUploadURL = await this.getUploadURL();
-                    let variantFileObjectKey: string = null;
+                if (file.fileVariants.imgFileVariant) {
+                    const fileVariantUploadURL = await this.getUploadURL();
+                    let fileVariantObjectKey: string = null;
                     if (USE_CF_PROXY) {
-                        variantFileObjectKey = await UploadHttpClient.putFileV2(
-                            variantFileUploadURL,
-                            file.fileVariants.imgVariantFile
+                        fileVariantObjectKey = await UploadHttpClient.putFileV2(
+                            fileVariantUploadURL,
+                            file.fileVariants.imgFileVariant
                                 .encryptedData as Uint8Array,
                             null
                         );
                     } else {
-                        variantFileObjectKey = await UploadHttpClient.putFile(
-                            variantFileUploadURL,
-                            file.fileVariants.imgVariantFile
+                        fileVariantObjectKey = await UploadHttpClient.putFile(
+                            fileVariantUploadURL,
+                            file.fileVariants.imgFileVariant
                                 .encryptedData as Uint8Array,
                             null
                         );
                     }
-                    backupedFileVariants.imgVariantFile = {
-                        objectKey: variantFileObjectKey,
+                    backupedFileVariants.imgFileVariant = {
+                        objectKey: fileVariantObjectKey,
                         decryptionHeader:
-                            file.fileVariants.imgVariantFile.decryptionHeader,
+                            file.fileVariants.imgFileVariant.decryptionHeader,
                     };
                 }
             }

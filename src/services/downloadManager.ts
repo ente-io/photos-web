@@ -2,7 +2,7 @@ import { getToken } from 'utils/common/key';
 import {
     getFileURL,
     getThumbnailURL,
-    getVariantFileURL,
+    getFileVariantURL,
 } from 'utils/common/apiUtil';
 import CryptoWorker from 'utils/crypto';
 import {
@@ -13,7 +13,7 @@ import {
     getFileDecryptionHeader as getObjectDecryptionHeader,
 } from 'utils/file';
 import HTTPService from './HTTPService';
-import { EnteFile, VariantFileType } from 'types/file';
+import { EnteFile, FileVariantType } from 'types/file';
 
 import { logError } from 'utils/sentry';
 import { FILE_TYPE } from 'constants/file';
@@ -144,7 +144,7 @@ class DownloadManager {
                         console.log('sourceBuffer', sourceBuffer);
                         const fileStream = await this.downloadFile(
                             file,
-                            VariantFileType.VID
+                            FileVariantType.VID
                         );
 
                         const reader = fileStream.getReader();
@@ -185,7 +185,7 @@ class DownloadManager {
         return await this.fileObjectURLPromise.get(file.id.toString());
     }
 
-    async downloadFile(file: EnteFile, variantFileType?: VariantFileType) {
+    async downloadFile(file: EnteFile, fileVariantType?: FileVariantType) {
         const worker = await new CryptoWorker();
         const token = getToken();
         if (!token) {
@@ -211,8 +211,8 @@ class DownloadManager {
             );
             return generateStreamFromArrayBuffer(decrypted);
         }
-        const url = variantFileType
-            ? getVariantFileURL(file.id, variantFileType)
+        const url = fileVariantType
+            ? getFileVariantURL(file.id, fileVariantType)
             : getFileURL(file.id);
         const resp = await fetch(url, {
             headers: {
@@ -221,7 +221,7 @@ class DownloadManager {
         });
         const objectDecryptionHeader = getObjectDecryptionHeader(
             file,
-            variantFileType
+            fileVariantType
         );
         const reader = resp.body.getReader();
         const stream = new ReadableStream({

@@ -53,7 +53,7 @@ class TranscodingService {
             userPreferences?.isVidTranscodingEnabled
         ) {
             fileWithMetadata.fileVariants = {
-                vidVariantFile: await this.getStreamableVideo(
+                vidFileVariant: await this.getStreamableVideo(
                     fileWithCollection
                 ),
             };
