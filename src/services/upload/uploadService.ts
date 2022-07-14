@@ -44,6 +44,8 @@ class UploadService {
         number,
         MetadataAndFileTypeInfo
     >();
+    private fileVariantsMap: Map<number, FileWithMetadata['fileVariants']> =
+        new Map();
     private pendingUploadCount: number = 0;
 
     async setFileCount(fileCount: number) {
@@ -63,6 +65,21 @@ class UploadService {
 
     reducePendingUploadCount() {
         this.pendingUploadCount--;
+    }
+
+    getFileVariants(localID: number) {
+        return this.fileVariantsMap.get(localID);
+    }
+
+    setFileVariants(
+        localID: number,
+        fileVariants: FileWithMetadata['fileVariants']
+    ) {
+        return this.fileVariantsMap.set(localID, fileVariants);
+    }
+
+    deleteFileVariants(localID: number) {
+        this.fileVariantsMap.delete(localID);
     }
 
     getAssetSize({ isLivePhoto, file, livePhotoAssets }: UploadAsset) {

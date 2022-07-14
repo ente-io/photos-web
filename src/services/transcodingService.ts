@@ -1,10 +1,6 @@
 import { FILE_TYPE } from 'constants/file';
 import isElectron from 'is-electron';
-import {
-    ElectronFile,
-    FileWithCollection,
-    FileWithMetadata,
-} from 'types/upload';
+import { ElectronFile, FileWithMetadata, Metadata } from 'types/upload';
 import { runningInBrowser } from 'utils/common';
 import { ConvertToStreamableVideoCmds, MP4 } from 'utils/ffmpeg/cmds';
 import { logError } from 'utils/sentry';
@@ -20,21 +16,21 @@ class TranscodingService {
         this.allElectronAPIsExist = !!this.ElectronAPIs?.getTranscodedFile;
     }
 
-    async getStreamableVideo(fileWithCollection: FileWithCollection) {
+    async getStreamableVideo(file: ElectronFile | File) {
         try {
             if (isElectron() && this.allElectronAPIsExist) {
-                const file: ElectronFile =
+                const outputFile: ElectronFile =
                     await this.ElectronAPIs.getTranscodedFile(
                         ConvertToStreamableVideoCmds,
-                        fileWithCollection.file,
+                        file,
                         MP4
                     );
-                console.log({ file });
-                return await file.arrayBuffer();
+                console.log({ outputFile });
+                return await outputFile.arrayBuffer();
             } else {
                 return await ffmpegService.convertToStreamableVideo(
-                    new Uint8Array(await fileWithCollection.file.arrayBuffer()),
-                    fileWithCollection.file.name
+                    new Uint8Array(await file.arrayBuffer()),
+                    file.name
                 );
             }
         } catch (e) {
@@ -43,20 +39,16 @@ class TranscodingService {
         }
     }
 
-    async transcodeFile(
-        fileWithCollection: FileWithCollection,
-        fileWithMetadata: FileWithMetadata
-    ) {
+    async transcodeFile(file: ElectronFile | File, metadata: Metadata) {
         const userPreferences = getLocalUserPreferences();
         if (
-            fileWithMetadata.metadata.fileType === FILE_TYPE.VIDEO &&
+            metadata.fileType === FILE_TYPE.VIDEO &&
             userPreferences?.isVidTranscodingEnabled
         ) {
-            fileWithMetadata.fileVariants = {
-                vidFileVariant: await this.getStreamableVideo(
-                    fileWithCollection
-                ),
+            const fileVariants: FileWithMetadata['fileVariants'] = {
+                vidFileVariant: await this.getStreamableVideo(file),
             };
+            return fileVariants;
         }
     }
 }

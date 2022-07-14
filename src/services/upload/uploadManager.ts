@@ -23,6 +23,7 @@ import { EnteFile } from 'types/file';
 import {
     ElectronFile,
     FileWithCollection,
+    Metadata,
     MetadataAndFileTypeInfo,
     MetadataAndFileTypeInfoMap,
     ParsedMetadataJSON,
@@ -40,6 +41,8 @@ import { logUploadInfo } from 'utils/upload';
 import isElectron from 'is-electron';
 import ImportService from 'services/importService';
 import { ProgressUpdater } from 'types/upload/ui';
+import transcodingService from 'services/transcodingService';
+import uploadService from './uploadService';
 
 const MAX_CONCURRENT_UPLOADS = 4;
 const FILE_UPLOAD_COMPLETED = 100;
@@ -229,7 +232,7 @@ class UploadManager {
             UIService.reset(mediaFiles.length);
             for (const { file, localID, collectionID } of mediaFiles) {
                 let fileTypeInfo = null;
-                let metadata = null;
+                let metadata: Metadata = null;
                 try {
                     logUploadInfo(
                         `metadata extraction started ${getFileNameSize(file)} `
@@ -252,6 +255,13 @@ class UploadManager {
                             file
                         )} error: ${e.message}`
                     );
+                }
+                if (metadata) {
+                    const fileVariants = await transcodingService.transcodeFile(
+                        file,
+                        metadata
+                    );
+                    uploadService.setFileVariants(localID, fileVariants);
                 }
                 this.metadataAndFileTypeInfoMap.set(localID, {
                     fileTypeInfo: fileTypeInfo && { ...fileTypeInfo },
