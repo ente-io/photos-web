@@ -197,6 +197,30 @@ class UploadService {
                             file.fileVariants.vidVariantFile.decryptionHeader,
                     };
                 }
+                if (file.fileVariants.imgVariantFile) {
+                    const variantFileUploadURL = await this.getUploadURL();
+                    let variantFileObjectKey: string = null;
+                    if (USE_CF_PROXY) {
+                        variantFileObjectKey = await UploadHttpClient.putFileV2(
+                            variantFileUploadURL,
+                            file.fileVariants.imgVariantFile
+                                .encryptedData as Uint8Array,
+                            null
+                        );
+                    } else {
+                        variantFileObjectKey = await UploadHttpClient.putFile(
+                            variantFileUploadURL,
+                            file.fileVariants.imgVariantFile
+                                .encryptedData as Uint8Array,
+                            null
+                        );
+                    }
+                    backupedFileVariants.imgVariantFile = {
+                        objectKey: variantFileObjectKey,
+                        decryptionHeader:
+                            file.fileVariants.imgVariantFile.decryptionHeader,
+                    };
+                }
             }
             const backupedFile: BackupedFile = {
                 file: {

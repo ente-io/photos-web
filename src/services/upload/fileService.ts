@@ -118,6 +118,14 @@ export async function encryptFile(
                     );
                 encryptedFileVariants.vidVariantFile = encryptedFileVariant;
             }
+            if (file.fileVariants.imgVariantFile) {
+                const { file: encryptedFileVariant }: EncryptionResult =
+                    await worker.encryptFile(
+                        file.fileVariants.imgVariantFile,
+                        fileKey
+                    );
+                encryptedFileVariants.imgVariantFile = encryptedFileVariant;
+            }
         }
 
         const encryptedKey: B64EncryptionResult = await worker.encryptToB64(
