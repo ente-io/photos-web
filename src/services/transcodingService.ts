@@ -21,7 +21,7 @@ class TranscodingService {
             if (isElectron() && this.allElectronAPIsExist) {
                 const outputFile: ElectronFile =
                     await this.ElectronAPIs.getTranscodedFile(
-                        ConvertToStreamableVideoCmds,
+                        [...ConvertToStreamableVideoCmds],
                         file,
                         MP4
                     );
