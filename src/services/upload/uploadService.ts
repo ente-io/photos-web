@@ -190,52 +190,28 @@ class UploadService {
             }
             const backupedFileVariants: BackupedFile['fileVariants'] = {};
             if (file.fileVariants) {
-                if (file.fileVariants.vidFileVariant) {
+                if (file.fileVariants.tcFileVariant) {
                     const fileVariantUploadURL = await this.getUploadURL();
                     let fileVariantObjectKey: string = null;
                     if (USE_CF_PROXY) {
                         fileVariantObjectKey = await UploadHttpClient.putFileV2(
                             fileVariantUploadURL,
-                            file.fileVariants.vidFileVariant
+                            file.fileVariants.tcFileVariant
                                 .encryptedData as Uint8Array,
                             null
                         );
                     } else {
                         fileVariantObjectKey = await UploadHttpClient.putFile(
                             fileVariantUploadURL,
-                            file.fileVariants.vidFileVariant
+                            file.fileVariants.tcFileVariant
                                 .encryptedData as Uint8Array,
                             null
                         );
                     }
-                    backupedFileVariants.vidFileVariant = {
+                    backupedFileVariants.tcFileVariant = {
                         objectKey: fileVariantObjectKey,
                         decryptionHeader:
-                            file.fileVariants.vidFileVariant.decryptionHeader,
-                    };
-                }
-                if (file.fileVariants.imgFileVariant) {
-                    const fileVariantUploadURL = await this.getUploadURL();
-                    let fileVariantObjectKey: string = null;
-                    if (USE_CF_PROXY) {
-                        fileVariantObjectKey = await UploadHttpClient.putFileV2(
-                            fileVariantUploadURL,
-                            file.fileVariants.imgFileVariant
-                                .encryptedData as Uint8Array,
-                            null
-                        );
-                    } else {
-                        fileVariantObjectKey = await UploadHttpClient.putFile(
-                            fileVariantUploadURL,
-                            file.fileVariants.imgFileVariant
-                                .encryptedData as Uint8Array,
-                            null
-                        );
-                    }
-                    backupedFileVariants.imgFileVariant = {
-                        objectKey: fileVariantObjectKey,
-                        decryptionHeader:
-                            file.fileVariants.imgFileVariant.decryptionHeader,
+                            file.fileVariants.tcFileVariant.decryptionHeader,
                     };
                 }
             }

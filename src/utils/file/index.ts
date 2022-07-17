@@ -540,10 +540,8 @@ export const getFileDecryptionHeader = (
     fileVariantType?: FileVariantType
 ): string => {
     if (fileVariantType) {
-        if (fileVariantType === FileVariantType.IMG) {
-            return file.fileVariants.imgFileVariant.decryptionHeader;
-        } else if (fileVariantType === FileVariantType.VID) {
-            return file.fileVariants.vidFileVariant.decryptionHeader;
+        if (fileVariantType === FileVariantType.TC_TYPE) {
+            return file.fileVariants.tcFileVariant.decryptionHeader;
         } else {
             return;
         }

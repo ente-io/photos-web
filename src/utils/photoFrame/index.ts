@@ -39,6 +39,6 @@ export async function pauseVideo(livePhotoVideo, livePhotoImage) {
 export function canFileBeStreamed(file: EnteFile) {
     return (
         file.metadata.fileType === FILE_TYPE.VIDEO &&
-        file.fileVariants?.vidFileVariant !== undefined
+        file.fileVariants?.tcFileVariant !== undefined
     );
 }

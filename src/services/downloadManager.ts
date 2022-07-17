@@ -144,7 +144,7 @@ class DownloadManager {
                         console.log('sourceBuffer', sourceBuffer);
                         const fileStream = await this.downloadFile(
                             file,
-                            FileVariantType.VID
+                            FileVariantType.TC_TYPE
                         );
 
                         const reader = fileStream.getReader();
