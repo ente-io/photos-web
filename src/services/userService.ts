@@ -2,7 +2,12 @@ import { PAGES } from 'constants/pages';
 import { getEndpoint, getFamilyPortalURL } from 'utils/common/apiUtil';
 import { clearKeys } from 'utils/storage/sessionStorage';
 import router from 'next/router';
-import { clearData, getData, LS_KEYS } from 'utils/storage/localStorage';
+import {
+    clearData,
+    getData,
+    LS_KEYS,
+    setData,
+} from 'utils/storage/localStorage';
 import localForage from 'utils/storage/localForage';
 import { getToken } from 'utils/common/key';
 import HTTPService from './HTTPService';
@@ -17,9 +22,11 @@ import {
     TwoFactorRecoveryResponse,
     UserDetails,
     UserPreferences,
+    EncryptedUserPreferences,
 } from 'types/user';
 import { getLocalFamilyData, isPartOfFamily } from 'utils/billing';
 import { ServerErrorCodes } from 'utils/error';
+import { decryptUserPreferences, encryptUserPreferences } from 'utils/user';
 
 const ENDPOINT = getEndpoint();
 
@@ -331,7 +338,13 @@ export const getUserPreferences = async (): Promise<UserPreferences> => {
                 'X-Auth-Token': token,
             }
         );
-        return resp.data.userPreferences;
+        const encryptedUserPreferences = resp.data
+            .userPreferences as EncryptedUserPreferences;
+        const decryptedUserPreferences = await decryptUserPreferences(
+            encryptedUserPreferences
+        );
+        setData(LS_KEYS.USER_PREFERENCES, decryptedUserPreferences);
+        return decryptedUserPreferences;
     } catch (e) {
         logError(e, 'failed to get user preferences');
         throw e;
@@ -342,18 +355,24 @@ export const updateUserPreferences = async (
     preferences: UserPreferences
 ): Promise<void> => {
     try {
+        const encryptedUserPreferences = await encryptUserPreferences(
+            preferences
+        );
+
         const token = getToken();
 
         await HTTPService.put(
             `${ENDPOINT}/users/preferences`,
             {
-                userPreferences: preferences,
+                userPreferences: encryptedUserPreferences,
             },
             null,
             {
                 'X-Auth-Token': token,
             }
         );
+        preferences.version += 1;
+        setData(LS_KEYS.USER_PREFERENCES, preferences);
     } catch (e) {
         logError(e, 'failed to update user preferences');
         throw e;

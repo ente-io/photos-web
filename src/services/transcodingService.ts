@@ -43,7 +43,7 @@ class TranscodingService {
         const userPreferences = getLocalUserPreferences();
         if (
             metadata.fileType === FILE_TYPE.VIDEO &&
-            userPreferences?.isVidTranscodingEnabled
+            userPreferences?.data.isVidTranscodingEnabled
         ) {
             const fileVariants: FileWithMetadata['fileVariants'] = {
                 tcFileVariant: await this.getStreamableVideo(file),

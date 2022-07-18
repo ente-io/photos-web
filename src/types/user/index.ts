@@ -92,7 +92,18 @@ export interface UserDetails {
     familyData?: FamilyData;
 }
 
-export interface UserPreferences {
-    isImgTranscodingEnabled: boolean;
-    isVidTranscodingEnabled: boolean;
+export interface EncryptedUserPreferences {
+    version: number;
+    data: string;
+    header: string;
+}
+
+export interface UserPreferencesProps {
+    isImgTranscodingEnabled?: boolean;
+    isVidTranscodingEnabled?: boolean;
+}
+
+export interface UserPreferences
+    extends Omit<EncryptedUserPreferences, 'data'> {
+    data: UserPreferencesProps;
 }

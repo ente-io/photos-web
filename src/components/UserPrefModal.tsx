@@ -6,12 +6,9 @@ import {
     Switch,
 } from '@mui/material';
 import React, { useState, useEffect } from 'react';
-import {
-    getUserPreferences,
-    updateUserPreferences,
-} from 'services/userService';
+import { updateUserPreferences } from 'services/userService';
 import { logError } from 'utils/sentry';
-import { setData, LS_KEYS } from 'utils/storage/localStorage';
+import { getLocalUserPreferences } from 'utils/user';
 import { SpaceBetweenFlex } from './Container';
 import DialogBoxBase from './DialogBox/base';
 import DialogTitleWithCloseButton from './DialogBox/TitleWithCloseButton';
@@ -29,13 +26,13 @@ function UserPrefModal({ open, onClose }: Iprops) {
 
     useEffect(() => {
         const main = async () => {
-            const userPreferences = await getUserPreferences();
+            const userPreferences = getLocalUserPreferences();
             if (userPreferences) {
                 setIsImgTranscodingEnabled(
-                    userPreferences.isImgTranscodingEnabled
+                    userPreferences.data.isImgTranscodingEnabled
                 );
                 setIsVidTranscodingEnabled(
-                    userPreferences.isVidTranscodingEnabled
+                    userPreferences.data.isVidTranscodingEnabled
                 );
             }
         };
@@ -53,12 +50,8 @@ function UserPrefModal({ open, onClose }: Iprops) {
     const onSaveClick = async () => {
         try {
             await updateUserPreferences({
-                isImgTranscodingEnabled,
-                isVidTranscodingEnabled,
-            });
-            setData(LS_KEYS.USER_PREFERENCES, {
-                isImgTranscodingEnabled,
-                isVidTranscodingEnabled,
+                ...getLocalUserPreferences(),
+                data: { isImgTranscodingEnabled, isVidTranscodingEnabled },
             });
             onClose();
         } catch (e) {
