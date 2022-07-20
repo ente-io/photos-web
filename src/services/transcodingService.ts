@@ -5,7 +5,6 @@ import { runningInBrowser } from 'utils/common';
 import { ConvertToStreamableVideoCmds, MP4 } from 'utils/ffmpeg/cmds';
 import { logError } from 'utils/sentry';
 import { getLocalUserPreferences } from 'utils/user';
-import ffmpegService from './ffmpeg/ffmpegService';
 
 class TranscodingService {
     ElectronAPIs: any;
@@ -27,11 +26,6 @@ class TranscodingService {
                     );
                 console.log({ outputFile });
                 return await outputFile.arrayBuffer();
-            } else {
-                return await ffmpegService.convertToStreamableVideo(
-                    new Uint8Array(await file.arrayBuffer()),
-                    file.name
-                );
             }
         } catch (e) {
             logError(e, 'get streamable video file failed');
@@ -45,10 +39,13 @@ class TranscodingService {
             metadata.fileType === FILE_TYPE.VIDEO &&
             userPreferences?.data.isVidTranscodingEnabled
         ) {
-            const fileVariants: FileWithMetadata['fileVariants'] = {
-                tcFileVariant: await this.getStreamableVideo(file),
-            };
-            return fileVariants;
+            const vidFileVariant = await this.getStreamableVideo(file);
+            if (vidFileVariant) {
+                const fileVariants: FileWithMetadata['fileVariants'] = {
+                    tcFileVariant: vidFileVariant,
+                };
+                return fileVariants;
+            }
         }
     }
 }
