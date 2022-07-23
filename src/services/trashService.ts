@@ -91,7 +91,7 @@ export const updateTrash = async (
                 break;
             }
             resp = await HTTPService.get(
-                `${ENDPOINT}/trash/diff`,
+                `${ENDPOINT}/trash/v2/diff`,
                 {
                     sinceTime: time,
                 },
@@ -127,7 +127,10 @@ export const updateTrash = async (
             setFiles(
                 preservePhotoswipeProps(
                     sortFiles([
-                        ...(files ?? []),
+                        ...(files ?? []).map((file) => ({
+                            ...file,
+                            isTrashed: false,
+                        })),
                         ...getTrashedFiles(updatedTrash),
                     ])
                 )

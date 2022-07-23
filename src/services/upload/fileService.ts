@@ -1,3 +1,4 @@
+import { MULTIPART_PART_SIZE, FILE_READER_CHUNK_SIZE } from 'constants/upload';
 import {
     FileTypeInfo,
     FileInMemory,
@@ -7,33 +8,57 @@ import {
     EncryptionResult,
     FileWithMetadata,
     ParsedMetadataJSONMap,
+    DataStream,
+    ElectronFile,
 } from 'types/upload';
+import { splitFilenameAndExtension } from 'utils/file';
 import { logError } from 'utils/sentry';
+import { getFileNameSize, logUploadInfo } from 'utils/upload';
 import { encryptFiledata } from './encryptionService';
 import { extractMetadata, getMetadataJSONMapKey } from './metadataService';
-import { getFileData, getFileOriginalName } from './readFileService';
+import {
+    getFileStream,
+    getElectronFileStream,
+    getUint8ArrayView,
+} from '../readerService';
 import { generateThumbnail } from './thumbnailService';
 
-export function getFileSize(file: File) {
+const EDITED_FILE_SUFFIX = '-edited';
+
+export function getFileSize(file: File | ElectronFile) {
     return file.size;
 }
 
-export function getFilename(file: File) {
+export function getFilename(file: File | ElectronFile) {
     return file.name;
 }
 
 export async function readFile(
-    reader: FileReader,
     fileTypeInfo: FileTypeInfo,
-    rawFile: File
+    rawFile: File | ElectronFile
 ): Promise<FileInMemory> {
     const { thumbnail, hasStaticThumbnail } = await generateThumbnail(
-        reader,
         rawFile,
         fileTypeInfo
     );
+    logUploadInfo(`reading file data ${getFileNameSize(rawFile)} `);
+    let filedata: Uint8Array | DataStream;
+    if (!(rawFile instanceof File)) {
+        if (rawFile.size > MULTIPART_PART_SIZE) {
+            filedata = await getElectronFileStream(
+                rawFile,
+                FILE_READER_CHUNK_SIZE
+            );
+        } else {
+            filedata = await getUint8ArrayView(rawFile);
+        }
+    } else if (rawFile.size > MULTIPART_PART_SIZE) {
+        filedata = getFileStream(rawFile, FILE_READER_CHUNK_SIZE);
+    } else {
+        filedata = await getUint8ArrayView(rawFile);
+    }
 
-    const filedata = await getFileData(reader, rawFile);
+    logUploadInfo(`read file data successfully ${getFileNameSize(rawFile)} `);
 
     return {
         filedata,
@@ -44,7 +69,7 @@ export async function readFile(
 
 export async function extractFileMetadata(
     parsedMetadataJSONMap: ParsedMetadataJSONMap,
-    rawFile: File,
+    rawFile: File | ElectronFile,
     collectionID: number,
     fileTypeInfo: FileTypeInfo
 ) {
@@ -102,4 +127,29 @@ export async function encryptFile(
         logError(e, 'Error encrypting files');
         throw e;
     }
+}
+
+/*
+    Get the original file name for edited file to associate it to original file's metadataJSON file 
+    as edited file doesn't have their own metadata file
+*/
+function getFileOriginalName(file: File | ElectronFile) {
+    let originalName: string = null;
+    const [nameWithoutExtension, extension] = splitFilenameAndExtension(
+        file.name
+    );
+
+    const isEditedFile = nameWithoutExtension.endsWith(EDITED_FILE_SUFFIX);
+    if (isEditedFile) {
+        originalName = nameWithoutExtension.slice(
+            0,
+            -1 * EDITED_FILE_SUFFIX.length
+        );
+    } else {
+        originalName = nameWithoutExtension;
+    }
+    if (extension) {
+        originalName += '.' + extension;
+    }
+    return originalName;
 }

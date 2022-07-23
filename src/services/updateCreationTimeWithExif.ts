@@ -7,11 +7,11 @@ import {
 } from 'utils/file';
 import { logError } from 'utils/sentry';
 import downloadManager from './downloadManager';
-import { updatePublicMagicMetadata } from './fileService';
+import { updateFilePublicMagicMetadata } from './fileService';
 import { EnteFile } from 'types/file';
 
 import { getRawExif } from './upload/exifService';
-import { getFileType } from './upload/readFileService';
+import { getFileType } from 'services/typeDetectionService';
 import { FILE_TYPE } from 'constants/file';
 import { getUnixTimeInMicroSeconds } from 'utils/time';
 
@@ -38,8 +38,7 @@ export async function updateCreationTimeWithExif(
                 } else {
                     const fileURL = await downloadManager.getFile(file)[0];
                     const fileObject = await getFileFromURL(fileURL);
-                    const reader = new FileReader();
-                    const fileTypeInfo = await getFileType(reader, fileObject);
+                    const fileTypeInfo = await getFileType(fileObject);
                     const exifData = await getRawExif(fileObject, fileTypeInfo);
                     if (fixOption === FIX_OPTIONS.DATE_TIME_ORIGINAL) {
                         correctCreationTime = getUnixTimeInMicroSeconds(
@@ -60,7 +59,7 @@ export async function updateCreationTimeWithExif(
                         correctCreationTime
                     );
                     updatedFile = (
-                        await updatePublicMagicMetadata([updatedFile])
+                        await updateFilePublicMagicMetadata([updatedFile])
                     )[0];
                     updateExistingFilePubMetadata(file, updatedFile);
                 }

@@ -1,4 +1,4 @@
-import { SetDialogMessage } from 'components/MessageDialog';
+import { TimeStampListItem } from 'components/PhotoList';
 import { REPORT_REASON } from 'constants/publicCollection';
 import { EnteFile } from 'types/file';
 
@@ -6,8 +6,8 @@ export interface PublicCollectionGalleryContextType {
     token: string;
     passwordToken: string;
     accessedThroughSharedURL: boolean;
-    setDialogMessage: SetDialogMessage;
     openReportForm: () => void;
+    photoListHeader: TimeStampListItem;
 }
 
 export interface LocalSavedPublicCollectionFiles {

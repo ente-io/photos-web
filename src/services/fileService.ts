@@ -13,8 +13,11 @@ import {
     sortFiles,
 } from 'utils/file';
 import CryptoWorker from 'utils/crypto';
-import { EnteFile, TrashRequest, UpdateMagicMetadataRequest } from 'types/file';
+import { EnteFile, TrashRequest } from 'types/file';
 import { SetFiles } from 'types/gallery';
+import { MAX_TRASH_BATCH_SIZE } from 'constants/file';
+import { BulkUpdateMagicMetadataRequest } from 'types/magicMetadata';
+import { logUploadInfo } from 'utils/upload';
 
 const ENDPOINT = getEndpoint();
 const FILES_TABLE = 'files';
@@ -26,7 +29,23 @@ export const getLocalFiles = async () => {
 };
 
 export const setLocalFiles = async (files: EnteFile[]) => {
-    await localForage.setItem(FILES_TABLE, files);
+    try {
+        await localForage.setItem(FILES_TABLE, files);
+    } catch (e1) {
+        try {
+            const storageEstimate = await navigator.storage.estimate();
+            logError(e1, 'failed to save files to indexedDB', {
+                storageEstimate,
+            });
+            logUploadInfo(
+                `storage estimate ${JSON.stringify(storageEstimate)}`
+            );
+        } catch (e2) {
+            logError(e1, 'failed to save files to indexedDB');
+            logError(e2, 'failed to get storage stats');
+        }
+        throw e1;
+    }
 };
 
 const getCollectionLastSyncTime = async (collection: Collection) =>
@@ -157,15 +176,25 @@ export const trashFiles = async (filesToTrash: EnteFile[]) => {
         if (!token) {
             return;
         }
-        const trashRequest: TrashRequest = {
-            items: filesToTrash.map((file) => ({
-                fileID: file.id,
-                collectionID: file.collectionID,
-            })),
+
+        const trashBatch: TrashRequest = {
+            items: [],
         };
-        await HTTPService.post(`${ENDPOINT}/files/trash`, trashRequest, null, {
-            'X-Auth-Token': token,
-        });
+
+        for (const file of filesToTrash) {
+            trashBatch.items.push({
+                collectionID: file.collectionID,
+                fileID: file.id,
+            });
+            if (trashBatch.items.length >= MAX_TRASH_BATCH_SIZE) {
+                await trashFilesFromServer(trashBatch, token);
+                trashBatch.items = [];
+            }
+        }
+
+        if (trashBatch.items.length > 0) {
+            await trashFilesFromServer(trashBatch, token);
+        }
     } catch (e) {
         logError(e, 'trash file failed');
         throw e;
@@ -192,12 +221,12 @@ export const deleteFromTrash = async (filesToDelete: number[]) => {
     }
 };
 
-export const updateMagicMetadata = async (files: EnteFile[]) => {
+export const updateFileMagicMetadata = async (files: EnteFile[]) => {
     const token = getToken();
     if (!token) {
         return;
     }
-    const reqBody: UpdateMagicMetadataRequest = { metadataList: [] };
+    const reqBody: BulkUpdateMagicMetadataRequest = { metadataList: [] };
     const worker = await new CryptoWorker();
     for (const file of files) {
         const { file: encryptedMagicMetadata }: EncryptionResult =
@@ -226,12 +255,12 @@ export const updateMagicMetadata = async (files: EnteFile[]) => {
     );
 };
 
-export const updatePublicMagicMetadata = async (files: EnteFile[]) => {
+export const updateFilePublicMagicMetadata = async (files: EnteFile[]) => {
     const token = getToken();
     if (!token) {
         return;
     }
-    const reqBody: UpdateMagicMetadataRequest = { metadataList: [] };
+    const reqBody: BulkUpdateMagicMetadataRequest = { metadataList: [] };
     const worker = await new CryptoWorker();
     for (const file of files) {
         const { file: encryptedPubMagicMetadata }: EncryptionResult =
@@ -264,3 +293,14 @@ export const updatePublicMagicMetadata = async (files: EnteFile[]) => {
         })
     );
 };
+
+async function trashFilesFromServer(trashBatch: TrashRequest, token: any) {
+    try {
+        await HTTPService.post(`${ENDPOINT}/files/trash`, trashBatch, null, {
+            'X-Auth-Token': token,
+        });
+    } catch (e) {
+        logError(e, 'trash files from server failed');
+        throw e;
+    }
+}

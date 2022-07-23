@@ -17,31 +17,34 @@ import { Collection } from 'types/collection';
 import { EnteFile } from 'types/file';
 import { mergeMetadata, sortFiles } from 'utils/file';
 import { AppContext } from 'pages/_app';
-import { CollectionInfo } from 'components/pages/sharedAlbum/CollectionInfo';
 import { AbuseReportForm } from 'components/pages/sharedAlbum/AbuseReportForm';
-import MessageDialog, { MessageAttributes } from 'components/MessageDialog';
 import {
     defaultPublicCollectionGalleryContext,
     PublicCollectionGalleryContext,
 } from 'utils/publicCollectionGallery';
 import { CustomError, parseSharingErrorCodes } from 'utils/error';
-import Container from 'components/Container';
+import VerticallyCentered from 'components/Container';
 import constants from 'utils/strings/constants';
 import EnteSpinner from 'components/EnteSpinner';
-import LoadingBar from 'react-top-loading-bar';
 import CryptoWorker from 'utils/crypto';
 import { PAGES } from 'constants/pages';
 import { useRouter } from 'next/router';
-import SingleInputForm from 'components/SingleInputForm';
+import SingleInputForm, {
+    SingleInputFormProps,
+} from 'components/SingleInputForm';
 import { Card } from 'react-bootstrap';
 import { logError } from 'utils/sentry';
+import SharedAlbumNavbar from 'components/pages/sharedAlbum/Navbar';
+import { CollectionInfo } from 'components/Collections/CollectionInfo';
+import { CollectionInfoBarWrapper } from 'components/Collections/styledComponents';
+import { ITEM_TYPE, TimeStampListItem } from 'components/PhotoList';
 
 const Loader = () => (
-    <Container>
+    <VerticallyCentered>
         <EnteSpinner>
             <span className="sr-only">Loading...</span>
         </EnteSpinner>
-    </Container>
+    </VerticallyCentered>
 );
 const bs58 = require('bs58');
 export default function PublicCollectionGallery() {
@@ -55,31 +58,16 @@ export default function PublicCollectionGallery() {
     const [errorMessage, setErrorMessage] = useState<String>(null);
     const appContext = useContext(AppContext);
     const [abuseReportFormView, setAbuseReportFormView] = useState(false);
-    const [dialogMessage, setDialogMessage] = useState<MessageAttributes>();
-    const [messageDialogView, setMessageDialogView] = useState(false);
     const [loading, setLoading] = useState(true);
     const openReportForm = () => setAbuseReportFormView(true);
     const closeReportForm = () => setAbuseReportFormView(false);
-    const loadingBar = useRef(null);
-    const isLoadingBarRunning = useRef(false);
     const router = useRouter();
     const [isPasswordProtected, setIsPasswordProtected] =
         useState<boolean>(false);
-
-    const openMessageDialog = () => setMessageDialogView(true);
-    const closeMessageDialog = () => setMessageDialogView(false);
-
-    const startLoadingBar = () => {
-        !isLoadingBarRunning.current && loadingBar.current?.continuousStart();
-        isLoadingBarRunning.current = true;
-    };
-    const finishLoadingBar = () => {
-        isLoadingBarRunning.current && loadingBar.current?.complete();
-        isLoadingBarRunning.current = false;
-    };
+    const [photoListHeader, setPhotoListHeader] =
+        useState<TimeStampListItem>(null);
 
     useEffect(() => {
-        appContext.showNavBar(true);
         const currentURL = new URL(window.location.href);
         if (currentURL.pathname !== PAGES.ROOT) {
             router.replace(
@@ -137,12 +125,29 @@ export default function PublicCollectionGallery() {
         main();
     }, []);
 
-    useEffect(openMessageDialog, [dialogMessage]);
+    useEffect(
+        () =>
+            publicCollection &&
+            publicFiles &&
+            setPhotoListHeader({
+                item: (
+                    <CollectionInfoBarWrapper>
+                        <CollectionInfo
+                            name={publicCollection.name}
+                            fileCount={publicFiles.length}
+                        />
+                    </CollectionInfoBarWrapper>
+                ),
+                itemType: ITEM_TYPE.OTHER,
+                height: 68,
+            }),
+        [publicCollection, publicFiles]
+    );
 
     const syncWithRemote = async () => {
         const collectionUID = getPublicCollectionUID(token.current);
         try {
-            startLoadingBar();
+            appContext.startLoading();
             const collection = await getPublicCollection(
                 token.current,
                 collectionKey.current
@@ -200,13 +205,18 @@ export default function PublicCollectionGallery() {
                 );
                 setPublicCollection(null);
                 setPublicFiles(null);
+            } else {
+                logError(e, 'failed to sync public album with remote');
             }
         } finally {
-            finishLoadingBar();
+            appContext.finishLoading();
         }
     };
 
-    const verifyLinkPassword = async (password, setFieldError) => {
+    const verifyLinkPassword: SingleInputFormProps['callback'] = async (
+        password,
+        setFieldError
+    ) => {
         try {
             const cryptoWorker = await new CryptoWorker();
             let hashedPassword: string = null;
@@ -220,10 +230,7 @@ export default function PublicCollectionGallery() {
                 );
             } catch (e) {
                 logError(e, 'failed to derive key for verifyLinkPassword');
-                setFieldError(
-                    'passphrase',
-                    `${constants.UNKNOWN_ERROR} ${e.message}`
-                );
+                setFieldError(`${constants.UNKNOWN_ERROR} ${e.message}`);
                 return;
             }
             const collectionUID = getPublicCollectionUID(token.current);
@@ -237,19 +244,16 @@ export default function PublicCollectionGallery() {
             } catch (e) {
                 const parsedError = parseSharingErrorCodes(e);
                 if (parsedError.message === CustomError.TOKEN_EXPIRED) {
-                    setFieldError('passphrase', constants.INCORRECT_PASSPHRASE);
+                    setFieldError(constants.INCORRECT_PASSPHRASE);
                     return;
                 }
                 throw e;
             }
             await syncWithRemote();
-            finishLoadingBar();
+            appContext.finishLoading();
         } catch (e) {
             logError(e, 'failed to verifyLinkPassword');
-            setFieldError(
-                'passphrase',
-                `${constants.UNKNOWN_ERROR} ${e.message}`
-            );
+            setFieldError(`${constants.UNKNOWN_ERROR} ${e.message}`);
         }
     };
 
@@ -259,15 +263,14 @@ export default function PublicCollectionGallery() {
         }
     } else {
         if (errorMessage) {
-            return <Container>{errorMessage}</Container>;
+            return <VerticallyCentered>{errorMessage}</VerticallyCentered>;
         }
         if (isPasswordProtected && !passwordJWTToken.current) {
             return (
-                <Container>
+                <VerticallyCentered>
                     <Card style={{ maxWidth: '332px' }} className="text-center">
                         <Card.Body style={{ padding: '40px 30px' }}>
                             <Card.Subtitle style={{ marginBottom: '2rem' }}>
-                                {/* <LogoImg src="/icon.svg" /> */}
                                 {constants.LINK_PASSWORD}
                             </Card.Subtitle>
                             <SingleInputForm
@@ -278,11 +281,13 @@ export default function PublicCollectionGallery() {
                             />
                         </Card.Body>
                     </Card>
-                </Container>
+                </VerticallyCentered>
             );
         }
         if (!publicFiles) {
-            return <Container>{constants.NOT_FOUND}</Container>;
+            return (
+                <VerticallyCentered>{constants.NOT_FOUND}</VerticallyCentered>
+            );
         }
     }
 
@@ -293,11 +298,10 @@ export default function PublicCollectionGallery() {
                 token: token.current,
                 passwordToken: passwordJWTToken.current,
                 accessedThroughSharedURL: true,
-                setDialogMessage,
                 openReportForm,
+                photoListHeader,
             }}>
-            <LoadingBar color="#51cd7c" ref={loadingBar} />
-            <CollectionInfo collection={publicCollection} />
+            <SharedAlbumNavbar />
             <PhotoFrame
                 files={publicFiles}
                 setFiles={setPublicFiles}
@@ -306,10 +310,9 @@ export default function PublicCollectionGallery() {
                 setSelected={() => null}
                 selected={{ count: 0, collectionID: null }}
                 isFirstLoad={true}
-                openFileUploader={() => null}
+                openUploader={() => null}
                 isInSearchMode={false}
                 search={{}}
-                setSearchStats={() => null}
                 deleted={[]}
                 activeCollection={ALL_SECTION}
                 isSharedCollection
@@ -321,12 +324,6 @@ export default function PublicCollectionGallery() {
                 show={abuseReportFormView}
                 close={closeReportForm}
                 url={url.current}
-            />
-            <MessageDialog
-                size="lg"
-                show={messageDialogView}
-                onHide={closeMessageDialog}
-                attributes={dialogMessage}
             />
         </PublicCollectionGalleryContext.Provider>
     );

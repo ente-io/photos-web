@@ -2,11 +2,14 @@ import constants from 'utils/strings/constants';
 import billingService from 'services/billingService';
 import { Plan, Subscription } from 'types/billing';
 import { NextRouter } from 'next/router';
-import { SetDialogMessage } from 'components/MessageDialog';
 import { SetLoading } from 'types/gallery';
 import { getData, LS_KEYS } from '../storage/localStorage';
 import { CustomError } from '../error';
 import { logError } from '../sentry';
+import { SetDialogBoxAttributes } from 'types/dialogBox';
+import { getFamilyPortalRedirectURL } from 'services/userService';
+import { FamilyData, FamilyMember, User, UserDetails } from 'types/user';
+import { openLink } from 'utils/common';
 
 const PAYMENT_PROVIDER_STRIPE = 'stripe';
 const PAYMENT_PROVIDER_APPSTORE = 'appstore';
@@ -27,11 +30,18 @@ enum RESPONSE_STATUS {
     fail = 'fail',
 }
 
-export function convertBytesToGBs(bytes, precision?): string {
-    return (bytes / (1024 * 1024 * 1024)).toFixed(precision ?? 2);
+const StorageUnits = ['B', 'KB', 'MB', 'GB', 'TB'];
+
+const ONE_GB = 1024 * 1024 * 1024;
+
+export function convertBytesToGBs(bytes: number, precision = 0): string {
+    return (bytes / (1024 * 1024 * 1024)).toFixed(precision);
 }
 
-export function convertToHumanReadable(bytes: number, precision = 2): string {
+export function convertBytesToHumanReadable(
+    bytes: number,
+    precision = 2
+): string {
     if (bytes === 0) {
         return '0 MB';
     }
@@ -41,8 +51,37 @@ export function convertToHumanReadable(bytes: number, precision = 2): string {
     return (bytes / Math.pow(1024, i)).toFixed(precision) + ' ' + sizes[i];
 }
 
-export function hasPaidSubscription(subscription?: Subscription) {
-    subscription = subscription ?? getUserSubscription();
+export function makeHumanReadableStorage(
+    bytes: number,
+    round: 'round-up' | 'round-down' = 'round-down'
+): string {
+    if (bytes === 0) {
+        return '0 MB';
+    }
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+
+    let quantity = bytes / Math.pow(1024, i);
+    let unit = StorageUnits[i];
+
+    if (quantity > 100 && unit !== 'GB') {
+        quantity /= 1024;
+        unit = StorageUnits[i + 1];
+    }
+
+    quantity = Number(quantity.toFixed(1));
+
+    if (bytes >= 10 * ONE_GB) {
+        if (round === 'round-up') {
+            quantity = Math.round(quantity + 1);
+        } else {
+            quantity = Math.round(quantity);
+        }
+    }
+
+    return `${quantity} ${unit}`;
+}
+
+export function hasPaidSubscription(subscription: Subscription) {
     return (
         subscription &&
         isSubscriptionActive(subscription) &&
@@ -50,20 +89,17 @@ export function hasPaidSubscription(subscription?: Subscription) {
     );
 }
 
-export function isSubscribed(subscription?: Subscription) {
-    subscription = subscription ?? getUserSubscription();
+export function isSubscribed(subscription: Subscription) {
     return (
         hasPaidSubscription(subscription) &&
         !isSubscriptionCancelled(subscription)
     );
 }
-export function isSubscriptionActive(subscription?: Subscription): boolean {
-    subscription = subscription ?? getUserSubscription();
+export function isSubscriptionActive(subscription: Subscription): boolean {
     return subscription && subscription.expiryTime > Date.now() * 1000;
 }
 
-export function isOnFreePlan(subscription?: Subscription) {
-    subscription = subscription ?? getUserSubscription();
+export function isOnFreePlan(subscription: Subscription) {
     return (
         subscription &&
         isSubscriptionActive(subscription) &&
@@ -71,18 +107,56 @@ export function isOnFreePlan(subscription?: Subscription) {
     );
 }
 
-export function isSubscriptionCancelled(subscription?: Subscription) {
-    subscription = subscription ?? getUserSubscription();
+export function isSubscriptionCancelled(subscription: Subscription) {
     return subscription && subscription.attributes.isCancelled;
 }
 
-export function getUserSubscription(): Subscription {
+// isPartOfFamily return true if the current user is part of some family plan
+export function isPartOfFamily(familyData: FamilyData): boolean {
+    return Boolean(
+        familyData && familyData.members && familyData.members.length > 0
+    );
+}
+
+// hasNonAdminFamilyMembers return true if the admin user has members in his family
+export function hasNonAdminFamilyMembers(familyData: FamilyData): boolean {
+    return Boolean(isPartOfFamily(familyData) && familyData.members.length > 1);
+}
+
+export function isFamilyAdmin(familyData: FamilyData): boolean {
+    const familyAdmin: FamilyMember = getFamilyPlanAdmin(familyData);
+    const user: User = getData(LS_KEYS.USER);
+    return familyAdmin.email === user.email;
+}
+
+export function getFamilyPlanAdmin(familyData: FamilyData): FamilyMember {
+    if (isPartOfFamily(familyData)) {
+        return familyData.members.find((x) => x.isAdmin);
+    } else {
+        logError(
+            Error(
+                'verify user is part of family plan before calling this method'
+            ),
+            'invalid getFamilyPlanAdmin call'
+        );
+    }
+}
+
+export function getTotalFamilyUsage(familyData: FamilyData): number {
+    return familyData.members.reduce(
+        (sum, currentMember) => sum + currentMember.usage,
+        0
+    );
+}
+
+export function getLocalUserSubscription(): Subscription {
     return getData(LS_KEYS.SUBSCRIPTION);
 }
 
-export function getPlans(): Plan[] {
-    return getData(LS_KEYS.PLANS);
+export function getLocalFamilyData(): FamilyData {
+    return getData(LS_KEYS.FAMILY_DATA);
 }
+
 export function isUserSubscribedPlan(plan: Plan, subscription: Subscription) {
     return (
         isSubscriptionActive(subscription) &&
@@ -116,9 +190,22 @@ export function hasPaypalSubscription(subscription: Subscription) {
     );
 }
 
+export function hasExceededStorageQuota(userDetails: UserDetails) {
+    if (isPartOfFamily(userDetails.familyData)) {
+        const usage = getTotalFamilyUsage(userDetails.familyData);
+        return usage > userDetails.familyData.storage;
+    } else {
+        return userDetails.usage > userDetails.subscription.storage;
+    }
+}
+
+export function isPopularPlan(plan: Plan) {
+    return plan.storage === 100 * ONE_GB;
+}
+
 export async function updateSubscription(
     plan: Plan,
-    setDialogMessage: SetDialogMessage,
+    setDialogMessage: SetDialogBoxAttributes,
     setLoading: SetLoading,
     closePlanSelectorModal: () => null
 ) {
@@ -138,7 +225,7 @@ export async function updateSubscription(
 }
 
 export async function cancelSubscription(
-    setDialogMessage: SetDialogMessage,
+    setDialogMessage: SetDialogBoxAttributes,
     closePlanSelectorModal: () => null,
     setLoading: SetLoading
 ) {
@@ -148,7 +235,7 @@ export async function cancelSubscription(
         setDialogMessage({
             title: constants.SUCCESS,
             content: constants.SUBSCRIPTION_CANCEL_SUCCESS,
-            close: { variant: 'success' },
+            close: { variant: 'accent' },
         });
     } catch (e) {
         setDialogMessage({
@@ -163,7 +250,7 @@ export async function cancelSubscription(
 }
 
 export async function activateSubscription(
-    setDialogMessage: SetDialogMessage,
+    setDialogMessage: SetDialogBoxAttributes,
     closePlanSelectorModal: () => null,
     setLoading: SetLoading
 ) {
@@ -173,7 +260,7 @@ export async function activateSubscription(
         setDialogMessage({
             title: constants.SUCCESS,
             content: constants.SUBSCRIPTION_ACTIVATE_SUCCESS,
-            close: { variant: 'success' },
+            close: { variant: 'accent' },
         });
     } catch (e) {
         setDialogMessage({
@@ -188,7 +275,7 @@ export async function activateSubscription(
 }
 
 export async function updatePaymentMethod(
-    setDialogMessage: SetDialogMessage,
+    setDialogMessage: SetDialogBoxAttributes,
     setLoading: SetLoading
 ) {
     try {
@@ -204,8 +291,28 @@ export async function updatePaymentMethod(
     }
 }
 
+export async function manageFamilyMethod(
+    setDialogMessage: SetDialogBoxAttributes,
+    setLoading: SetLoading
+) {
+    try {
+        setLoading(true);
+        const url = await getFamilyPortalRedirectURL();
+        openLink(url, true);
+    } catch (error) {
+        logError(error, 'failed to redirect to family portal');
+        setDialogMessage({
+            title: constants.ERROR,
+            content: constants.UNKNOWN_ERROR,
+            close: { variant: 'danger' },
+        });
+    } finally {
+        setLoading(false);
+    }
+}
+
 export async function checkSubscriptionPurchase(
-    setDialogMessage: SetDialogMessage,
+    setDialogMessage: SetDialogBoxAttributes,
     router: NextRouter,
     setLoading: SetLoading
 ) {
@@ -220,7 +327,7 @@ export async function checkSubscriptionPurchase(
                 );
                 setDialogMessage({
                     title: constants.SUBSCRIPTION_PURCHASE_SUCCESS_TITLE,
-                    close: { variant: 'success' },
+                    close: { variant: 'accent' },
                     content: constants.SUBSCRIPTION_PURCHASE_SUCCESS(
                         subscription?.expiryTime
                     ),
@@ -240,7 +347,7 @@ export async function checkSubscriptionPurchase(
 
 function handleFailureReason(
     reason: string,
-    setDialogMessage: SetDialogMessage,
+    setDialogMessage: SetDialogBoxAttributes,
     setLoading: SetLoading
 ): void {
     logError(Error(reason), 'subscription purchase failed');
@@ -256,10 +363,10 @@ function handleFailureReason(
             setDialogMessage({
                 title: constants.UPDATE_PAYMENT_METHOD,
                 content: constants.UPDATE_PAYMENT_METHOD_MESSAGE,
-                staticBackdrop: true,
+
                 proceed: {
                     text: constants.UPDATE_PAYMENT_METHOD,
-                    variant: 'success',
+                    variant: 'accent',
                     action: updatePaymentMethod.bind(
                         null,
 
@@ -275,10 +382,10 @@ function handleFailureReason(
             setDialogMessage({
                 title: constants.UPDATE_PAYMENT_METHOD,
                 content: constants.STRIPE_AUTHENTICATION_FAILED,
-                staticBackdrop: true,
+
                 proceed: {
                     text: constants.UPDATE_PAYMENT_METHOD,
-                    variant: 'success',
+                    variant: 'accent',
                     action: updatePaymentMethod.bind(
                         null,
 
@@ -299,10 +406,7 @@ function handleFailureReason(
     }
 }
 
-export function planForSubscription(subscription: Subscription) {
-    if (!subscription) {
-        return null;
-    }
+export function planForSubscription(subscription: Subscription): Plan {
     return {
         id: subscription.productID,
         storage: subscription.storage,

@@ -1,5 +1,4 @@
 import { FILE_TYPE } from 'constants/file';
-import { UPLOAD_STAGES } from 'constants/upload';
 import { Collection } from 'types/collection';
 import { fileAttribute } from 'types/file';
 
@@ -25,6 +24,9 @@ export interface Metadata {
     longitude: number;
     fileType: FILE_TYPE;
     hasStaticThumbnail?: boolean;
+    hash?: string;
+    imageHash?: string;
+    videoHash?: string;
 }
 
 export interface Location {
@@ -48,33 +50,38 @@ export interface MultipartUploadURLs {
 export interface FileTypeInfo {
     fileType: FILE_TYPE;
     exactType: string;
+    mimeType?: string;
     imageType?: string;
     videoType?: string;
 }
 
-export interface ProgressUpdater {
-    setPercentComplete: React.Dispatch<React.SetStateAction<number>>;
-    setFileCounter: React.Dispatch<
-        React.SetStateAction<{
-            finished: number;
-            total: number;
-        }>
-    >;
-    setUploadStage: React.Dispatch<React.SetStateAction<UPLOAD_STAGES>>;
-    setFileProgress: React.Dispatch<React.SetStateAction<Map<number, number>>>;
-    setUploadResult: React.Dispatch<React.SetStateAction<Map<number, number>>>;
-    setFilenames: React.Dispatch<React.SetStateAction<Map<number, string>>>;
-    setHasLivePhotos: React.Dispatch<React.SetStateAction<boolean>>;
+/*
+ * ElectronFile is a custom interface that is used to represent
+ * any file on disk as a File-like object in the Electron desktop app.
+ *
+ * This was added to support the auto-resuming of failed uploads
+ * which needed absolute paths to the files which the
+ * normal File interface does not provide.
+ */
+export interface ElectronFile {
+    name: string;
+    path: string;
+    size: number;
+    lastModified: number;
+    stream: () => Promise<ReadableStream<Uint8Array>>;
+    blob: () => Promise<Blob>;
+    arrayBuffer: () => Promise<Uint8Array>;
 }
 
 export interface UploadAsset {
     isLivePhoto?: boolean;
-    file?: File;
+    file?: File | ElectronFile;
     livePhotoAssets?: LivePhotoAssets;
+    isElectron?: boolean;
 }
 export interface LivePhotoAssets {
-    image: globalThis.File;
-    video: globalThis.File;
+    image: globalThis.File | ElectronFile;
+    video: globalThis.File | ElectronFile;
 }
 
 export interface FileWithCollection extends UploadAsset {
