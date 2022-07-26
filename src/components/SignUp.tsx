@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import constants from 'utils/strings/constants';
 import { Formik, FormikHelpers } from 'formik';
 import * as Yup from 'yup';
-import { getOtt } from 'services/userService';
+import { sendOtt } from 'services/userService';
 import { setData, LS_KEYS } from 'utils/storage/localStorage';
 import { useRouter } from 'next/router';
 import SubmitButton from 'components/SubmitButton';
 import {
     generateAndSaveIntermediateKeyAttributes,
     generateKeyAttributes,
-    SaveKeyInSessionStore,
+    saveKeyInSessionStore,
 } from 'utils/crypto';
 import { setJustSignedUp } from 'utils/storage';
 import { logError } from 'utils/sentry';
@@ -51,7 +51,7 @@ export default function SignUp(props: SignUpProps) {
         try {
             try {
                 setData(LS_KEYS.USER, { email });
-                await getOtt(email);
+                await sendOtt(email);
             } catch (e) {
                 setFieldError(
                     'confirm',
@@ -70,7 +70,7 @@ export default function SignUp(props: SignUpProps) {
                         masterKey
                     );
 
-                    await SaveKeyInSessionStore(
+                    await saveKeyInSessionStore(
                         SESSION_KEYS.ENCRYPTION_KEY,
                         masterKey
                     );
@@ -121,6 +121,9 @@ export default function SignUp(props: SignUpProps) {
                         <VerticallyCentered sx={{ mb: 1 }}>
                             <TextField
                                 fullWidth
+                                id="email"
+                                name="email"
+                                autoComplete="username"
                                 type="email"
                                 label={constants.ENTER_EMAIL}
                                 value={values.email}
@@ -133,6 +136,9 @@ export default function SignUp(props: SignUpProps) {
 
                             <TextField
                                 fullWidth
+                                id="password"
+                                name="password"
+                                autoComplete="new-password"
                                 type="password"
                                 label={constants.PASSPHRASE_HINT}
                                 value={values.passphrase}
@@ -144,6 +150,9 @@ export default function SignUp(props: SignUpProps) {
 
                             <TextField
                                 fullWidth
+                                id="confirm-password"
+                                name="confirm-password"
+                                autoComplete="new-password"
                                 type="password"
                                 label={constants.CONFIRM_PASSPHRASE}
                                 value={values.confirm}
