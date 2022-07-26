@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/nextjs';
-import { getUserAnonymizedID } from 'utils/user';
+import { getUserAnonymizedID } from './user';
 
 export const logError = (
     error: any,
