@@ -119,7 +119,7 @@ export interface FileWithMetadata
     metadata: Metadata;
     localID: number;
     fileVariants?: {
-        tcFileVariant?: Uint8Array;
+        tcFile?: Uint8Array;
     };
 }
 
@@ -131,7 +131,7 @@ export interface ProcessedFile {
     file: fileAttribute;
     thumbnail: fileAttribute;
     fileVariants?: {
-        tcFileVariant?: fileAttribute;
+        tcFile?: fileAttribute;
     };
     metadata: fileAttribute;
     localID: number;

@@ -144,7 +144,7 @@ class DownloadManager {
                         console.log('sourceBuffer', sourceBuffer);
                         const fileStream = await this.downloadFile(
                             file,
-                            FileVariantType.TC_TYPE
+                            FileVariantType.TC_FILE
                         );
 
                         const reader = fileStream.getReader();

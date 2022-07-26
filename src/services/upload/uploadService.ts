@@ -190,28 +190,28 @@ class UploadService {
             }
             const backupedFileVariants: BackupedFile['fileVariants'] = {};
             if (file.fileVariants) {
-                if (file.fileVariants.tcFileVariant) {
+                if (file.fileVariants.tcFile) {
                     const fileVariantUploadURL = await this.getUploadURL();
                     let fileVariantObjectKey: string = null;
                     if (USE_CF_PROXY) {
                         fileVariantObjectKey = await UploadHttpClient.putFileV2(
                             fileVariantUploadURL,
-                            file.fileVariants.tcFileVariant
+                            file.fileVariants.tcFile
                                 .encryptedData as Uint8Array,
                             null
                         );
                     } else {
                         fileVariantObjectKey = await UploadHttpClient.putFile(
                             fileVariantUploadURL,
-                            file.fileVariants.tcFileVariant
+                            file.fileVariants.tcFile
                                 .encryptedData as Uint8Array,
                             null
                         );
                     }
-                    backupedFileVariants.tcFileVariant = {
+                    backupedFileVariants.tcFile = {
                         objectKey: fileVariantObjectKey,
                         decryptionHeader:
-                            file.fileVariants.tcFileVariant.decryptionHeader,
+                            file.fileVariants.tcFile.decryptionHeader,
                     };
                 }
             }

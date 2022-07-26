@@ -32,7 +32,7 @@ export interface EnteFile {
     file: fileAttribute;
     thumbnail: fileAttribute;
     fileVariants?: {
-        tcFileVariant?: fileAttribute;
+        tcFile?: fileAttribute;
     };
     metadata: Metadata;
     magicMetadata: FileMagicMetadata;
@@ -62,5 +62,5 @@ export interface TrashRequestItems {
 }
 
 export enum FileVariantType {
-    TC_TYPE = 'tc', // Transcoded File Variant
+    TC_FILE = 'tc_file', // Transcoded File Variant
 }

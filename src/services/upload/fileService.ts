@@ -110,13 +110,10 @@ export async function encryptFile(
 
         const encryptedFileVariants: EncryptedFile['file']['fileVariants'] = {};
         if (file.fileVariants) {
-            if (file.fileVariants.tcFileVariant) {
+            if (file.fileVariants.tcFile) {
                 const { file: encryptedFileVariant }: EncryptionResult =
-                    await worker.encryptFile(
-                        file.fileVariants.tcFileVariant,
-                        fileKey
-                    );
-                encryptedFileVariants.tcFileVariant = encryptedFileVariant;
+                    await worker.encryptFile(file.fileVariants.tcFile, fileKey);
+                encryptedFileVariants.tcFile = encryptedFileVariant;
             }
         }
 

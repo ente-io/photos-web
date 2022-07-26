@@ -39,10 +39,12 @@ class TranscodingService {
             metadata.fileType === FILE_TYPE.VIDEO &&
             userPreferences?.data.isVidTranscodingEnabled
         ) {
+            console.log('transcoding video');
             const vidFileVariant = await this.getStreamableVideo(file);
+            console.log({ vidFileVariant });
             if (vidFileVariant) {
                 const fileVariants: FileWithMetadata['fileVariants'] = {
-                    tcFileVariant: vidFileVariant,
+                    tcFile: vidFileVariant,
                 };
                 return fileVariants;
             }
