@@ -18,9 +18,9 @@ export const getFileVariantURL = (
     fileVariantType: FileVariantType
 ) => {
     if (process.env.NEXT_PUBLIC_ENTE_ENDPOINT !== undefined) {
-        return `${process.env.NEXT_PUBLIC_ENTE_ENDPOINT}/files/variant/${fileVariantType}/${id}`;
+        return `${process.env.NEXT_PUBLIC_ENTE_ENDPOINT}/files/download/v3/${id}/${fileVariantType}`;
     }
-    return `https://api.ente.io/files/variant/${fileVariantType}/${id}`;
+    return `https://api.ente.io/files/download/v3/${id}/${fileVariantType}`;
 };
 
 export const getPublicCollectionFileURL = (id: number) => {
