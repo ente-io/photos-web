@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/nextjs';
 import { getSentryTunnelURL } from 'utils/common/apiUtil';
-import { getUserAnonymizedID } from 'utils/user';
+import { getUserAnonymizedID } from 'utils/sentry/user';
 import {
     getSentryDSN,
     getSentryENV,
