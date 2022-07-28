@@ -27,7 +27,7 @@ import {
     getRoadmapRedirectURL,
 } from 'services/userService';
 import { CustomError } from 'utils/error';
-import { getSentryUserID } from 'utils/user';
+import { getSentryUserID } from 'utils/sentry/user';
 
 export const MessageContainer = styled('div')`
     background-color: #111;
