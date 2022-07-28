@@ -14,7 +14,7 @@ import {
     trashFiles,
     deleteFromTrash,
 } from 'services/fileService';
-import { styled } from '@mui/material';
+import { styled, Typography } from '@mui/material';
 import {
     syncCollections,
     getFavItemIds,
@@ -99,6 +99,9 @@ import { NotificationAttributes } from 'types/Notification';
 import { ITEM_TYPE, TimeStampListItem } from 'components/PhotoList';
 import UploadInputs from 'components/UploadSelectorInputs';
 import useFileInput from 'hooks/useFileInput';
+import { User } from 'types/user';
+import { getData, LS_KEYS } from 'utils/storage/localStorage';
+import { CenteredFlex } from 'components/Container';
 
 export const DeadCenter = styled('div')`
     flex: 1;
@@ -107,12 +110,6 @@ export const DeadCenter = styled('div')`
     align-items: center;
     text-align: center;
     flex-direction: column;
-`;
-const AlertContainer = styled('div')`
-    background-color: #111;
-    padding: 5px 0;
-    font-size: 14px;
-    text-align: center;
 `;
 
 const defaultGalleryContext: GalleryContextType = {
@@ -132,6 +129,7 @@ export const GalleryContext = createContext<GalleryContextType>(
 
 export default function Gallery() {
     const router = useRouter();
+    const [user, setUser] = useState(null);
     const [collections, setCollections] = useState<Collection[]>(null);
 
     const [files, setFiles] = useState<EnteFile[]>(null);
@@ -244,10 +242,12 @@ export default function Gallery() {
                 setPlanModalView(true);
             }
             setIsFirstLogin(false);
+            const user = getData(LS_KEYS.USER);
             const files = mergeMetadata(await getLocalFiles());
             const collections = await getLocalCollections();
             const trash = await getLocalTrash();
             files.push(...getTrashedFiles(trash));
+            setUser(user);
             setFiles(sortFiles(files));
             setCollections(collections);
             await syncWithRemote(true);
@@ -260,7 +260,10 @@ export default function Gallery() {
     }, []);
 
     useEffect(() => {
-        setDerivativeState(collections, files);
+        if (!user || !files || !collections) {
+            return;
+        }
+        setDerivativeState(user, collections, files);
     }, [collections, files]);
 
     useEffect(
@@ -375,18 +378,17 @@ export default function Gallery() {
     };
 
     const setDerivativeState = async (
+        user: User,
         collections: Collection[],
         files: EnteFile[]
     ) => {
-        if (!collections || !files) {
-            return;
-        }
         const favItemIds = await getFavItemIds(files);
         setFavItemIds(favItemIds);
         const archivedCollections = getArchivedCollections(collections);
         setArchivedCollections(archivedCollections);
 
         const collectionSummaries = getCollectionSummaries(
+            user,
             collections,
             files,
             archivedCollections
@@ -599,9 +601,11 @@ export default function Gallery() {
                     </LoadingOverlay>
                 )}
                 {isFirstLoad && (
-                    <AlertContainer>
-                        {constants.INITIAL_LOAD_DELAY_WARNING}
-                    </AlertContainer>
+                    <CenteredFlex>
+                        <Typography color="text.secondary" variant="body2">
+                            {constants.INITIAL_LOAD_DELAY_WARNING}
+                        </Typography>
+                    </CenteredFlex>
                 )}
                 <PlanSelector
                     modalView={planModalView}
