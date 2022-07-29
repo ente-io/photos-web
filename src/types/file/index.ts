@@ -18,6 +18,8 @@ export interface FileMagicMetadata extends Omit<MagicMetadataCore, 'data'> {
 export interface FilePublicMagicMetadataProps {
     editedTime?: number;
     editedName?: string;
+    editedLatitude?: number;
+    editedLongitude?: number;
 }
 
 export interface FilePublicMagicMetadata

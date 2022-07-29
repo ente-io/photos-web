@@ -28,6 +28,7 @@ import { IsArchived, updateMagicMetadataProps } from 'utils/magicMetadata';
 import { ARCHIVE_SECTION, TRASH_SECTION } from 'constants/collection';
 import { addLogLine } from 'utils/logging';
 import { makeHumanReadableStorage } from 'utils/billing';
+import { Location } from 'types/upload';
 export function downloadAsFile(filename: string, content: string) {
     const file = new Blob([content], {
         type: 'text/plain',
@@ -401,6 +402,23 @@ export async function changeFileName(file: EnteFile, editedName: string) {
     return file;
 }
 
+export async function updateFileLocation(
+    file: EnteFile,
+    newLocation: Location
+) {
+    const updatedPublicMagicMetadataProps: FilePublicMagicMetadataProps = {
+        editedLatitude: newLocation.latitude,
+        editedLongitude: newLocation.longitude,
+    };
+
+    file.pubMagicMetadata = await updateMagicMetadataProps(
+        file.pubMagicMetadata ?? NEW_FILE_MAGIC_METADATA,
+        file.key,
+        updatedPublicMagicMetadataProps
+    );
+    return file;
+}
+
 export function isSharedFile(file: EnteFile) {
     const user: User = getData(LS_KEYS.USER);
 
@@ -422,6 +440,12 @@ export function mergeMetadata(files: EnteFile[]): EnteFile[] {
                       }),
                       ...(file.pubMagicMetadata?.data.editedName && {
                           title: file.pubMagicMetadata.data.editedName,
+                      }),
+                      ...(file.pubMagicMetadata?.data.editedLatitude && {
+                          latitude: file.pubMagicMetadata.data.editedLatitude,
+                      }),
+                      ...(file.pubMagicMetadata?.data.editedLatitude && {
+                          longitude: file.pubMagicMetadata.data.editedLongitude,
                       }),
                   }
                 : {}),
