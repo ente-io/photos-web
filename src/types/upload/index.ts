@@ -127,15 +127,19 @@ export interface EncryptedFile {
     file: ProcessedFile;
     fileKey: B64EncryptionResult;
 }
+
+export interface FileVariants {
+    tcFile?: fileAttribute;
+}
+
 export interface ProcessedFile {
     file: fileAttribute;
     thumbnail: fileAttribute;
-    fileVariants?: {
-        tcFile?: fileAttribute;
-    };
+    fileVariants?: FileVariants;
     metadata: fileAttribute;
     localID: number;
 }
+
 export interface BackupedFile extends Omit<ProcessedFile, 'localID'> {}
 
 export interface UploadFile extends BackupedFile {

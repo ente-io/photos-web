@@ -10,6 +10,7 @@ import {
     ParsedMetadataJSONMap,
     DataStream,
     ElectronFile,
+    FileVariants,
 } from 'types/upload';
 import { splitFilenameAndExtension } from 'utils/file';
 import { logError } from 'utils/sentry';
@@ -108,7 +109,7 @@ export async function encryptFile(
         const { file: encryptedMetadata }: EncryptionResult =
             await worker.encryptMetadata(file.metadata, fileKey);
 
-        const encryptedFileVariants: EncryptedFile['file']['fileVariants'] = {};
+        const encryptedFileVariants: FileVariants = {};
         if (file.fileVariants) {
             if (file.fileVariants.tcFile) {
                 const { file: encryptedFileVariant }: EncryptionResult =
