@@ -18,7 +18,7 @@ interface Iprops {
     onClose: () => void;
 }
 
-function UserPrefModal({ open, onClose }: Iprops) {
+function UserPreferenceModal({ open, onClose }: Iprops) {
     const [isImgTranscodingEnabled, setIsImgTranscodingEnabled] =
         useState(false);
     const [isVidTranscodingEnabled, setIsVidTranscodingEnabled] =
@@ -119,4 +119,4 @@ function UserPrefModal({ open, onClose }: Iprops) {
     );
 }
 
-export default UserPrefModal;
+export default UserPreferenceModal;
