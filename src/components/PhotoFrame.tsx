@@ -12,8 +12,8 @@ import {
     ARCHIVE_SECTION,
     TRASH_SECTION,
 } from 'constants/collection';
-import { isSharedFile } from 'utils/file';
-import { canFileBeStreamed, isPlaybackPossible } from 'utils/photoFrame';
+import { canFileBeStreamed, isSharedFile } from 'utils/file';
+import { isPlaybackPossible } from 'utils/photoFrame';
 import { PhotoList } from './PhotoList';
 import { SetFiles, SelectedState } from 'types/gallery';
 import { FILE_TYPE } from 'constants/file';

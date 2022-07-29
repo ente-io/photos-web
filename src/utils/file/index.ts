@@ -510,3 +510,10 @@ export const getFileDataDecryptionHeader = (
     }
     return file.file.decryptionHeader;
 };
+
+export function canFileBeStreamed(file: EnteFile) {
+    return (
+        file.metadata.fileType === FILE_TYPE.VIDEO &&
+        file.fileVariants?.tcFile !== undefined
+    );
+}
