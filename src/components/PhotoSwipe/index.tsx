@@ -433,8 +433,7 @@ function PhotoSwipe(props: Iprops) {
                 shouldDisableEdits={props.isSharedCollection}
                 showInfo={showInfo}
                 handleCloseInfo={handleCloseInfo}
-                items={items}
-                photoSwipe={photoSwipe}
+                currentItem={items?.[photoSwipe?.getCurrentIndex()]}
                 metadata={metadata}
                 exif={exif}
                 scheduleUpdate={scheduleUpdate}

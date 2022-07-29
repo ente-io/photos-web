@@ -9,8 +9,10 @@ import DialogTitleWithCloseButton from 'components/DialogBox/TitleWithCloseButto
 import { Dialog, DialogContent, Link, styled, Typography } from '@mui/material';
 import { AppContext } from 'pages/_app';
 import { Location, Metadata } from 'types/upload';
-import Photoswipe from 'photoswipe';
 import { getEXIFLocation } from 'services/upload/exifService';
+import { updateExistingFilePubMetadata, updateFileLocation } from 'utils/file';
+import { logError } from 'utils/sentry';
+import { updateFilePublicMagicMetadata } from 'services/fileService';
 
 const FileInfoDialog = styled(Dialog)(({ theme }) => ({
     zIndex: 1501,
@@ -26,8 +28,7 @@ interface Iprops {
     shouldDisableEdits: boolean;
     showInfo: boolean;
     handleCloseInfo: () => void;
-    items: any[];
-    photoSwipe: Photoswipe<Photoswipe.Options>;
+    currentItem: any;
     metadata: Metadata;
     exif: any;
     scheduleUpdate: () => void;
@@ -37,8 +38,7 @@ export function FileInfo({
     shouldDisableEdits,
     showInfo,
     handleCloseInfo,
-    items,
-    photoSwipe,
+    currentItem,
     metadata,
     exif,
     scheduleUpdate,
@@ -47,6 +47,7 @@ export function FileInfo({
     const [location, setLocation] = useState<Location>(null);
 
     useEffect(() => {
+        console.log(metadata);
         if (!location && metadata) {
             if (metadata.longitude || metadata.longitude === 0) {
                 setLocation({
@@ -58,12 +59,28 @@ export function FileInfo({
     }, [metadata]);
 
     useEffect(() => {
-        if (!location && exif) {
-            const exifLocation = getEXIFLocation(exif);
-            if (exifLocation.latitude || exifLocation.latitude === 0) {
-                setLocation(exifLocation);
+        const main = async () => {
+            if (!location && exif) {
+                const exifLocation = getEXIFLocation(exif);
+                if (exifLocation.latitude || exifLocation.latitude === 0) {
+                    setLocation(exifLocation);
+                    try {
+                        let updatedFile = await updateFileLocation(
+                            currentItem,
+                            exifLocation
+                        );
+                        updatedFile = (
+                            await updateFilePublicMagicMetadata([updatedFile])
+                        )[0];
+                        updateExistingFilePubMetadata(currentItem, updatedFile);
+                        scheduleUpdate();
+                    } catch (e) {
+                        logError(e, 'failed to update file location');
+                    }
+                }
             }
-        }
+        };
+        main();
     }, [exif]);
 
     return (
@@ -79,21 +96,18 @@ export function FileInfo({
                     {constants.METADATA}
                 </Typography>
 
-                {RenderInfoItem(
-                    constants.FILE_ID,
-                    items[photoSwipe?.getCurrentIndex()]?.id
-                )}
+                {RenderInfoItem(constants.FILE_ID, currentItem?.id)}
                 {metadata?.title && (
                     <RenderFileName
                         shouldDisableEdits={shouldDisableEdits}
-                        file={items[photoSwipe?.getCurrentIndex()]}
+                        file={currentItem}
                         scheduleUpdate={scheduleUpdate}
                     />
                 )}
                 {metadata?.creationTime && (
                     <RenderCreationTime
                         shouldDisableEdits={shouldDisableEdits}
-                        file={items[photoSwipe?.getCurrentIndex()]}
+                        file={currentItem}
                         scheduleUpdate={scheduleUpdate}
                     />
                 )}
