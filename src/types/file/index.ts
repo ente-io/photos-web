@@ -1,5 +1,5 @@
 import { MagicMetadataCore, VISIBILITY_STATE } from 'types/magicMetadata';
-import { DataStream, Metadata } from 'types/upload';
+import { DataStream, FileVariants, Metadata } from 'types/upload';
 
 export interface fileAttribute {
     encryptedData?: DataStream | Uint8Array;
@@ -31,9 +31,7 @@ export interface EnteFile {
     ownerID: number;
     file: fileAttribute;
     thumbnail: fileAttribute;
-    fileVariants?: {
-        tcFile?: fileAttribute;
-    };
+    fileVariants?: FileVariants;
     metadata: Metadata;
     magicMetadata: FileMagicMetadata;
     pubMagicMetadata: FilePublicMagicMetadata;
