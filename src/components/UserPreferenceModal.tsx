@@ -60,15 +60,7 @@ function UserPreferenceModal({ open, onClose }: Iprops) {
     };
 
     return (
-        <DialogBoxBase
-            maxWidth="md"
-            open={open}
-            onClose={onClose}
-            sx={{
-                '& .MuiDialog-paper': {
-                    maxWidth: '400px',
-                },
-            }}>
+        <DialogBoxBase maxWidth="xs" open={open} onClose={onClose}>
             <DialogTitleWithCloseButton onClose={onClose}>
                 Preferences
             </DialogTitleWithCloseButton>
