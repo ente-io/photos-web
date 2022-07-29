@@ -131,7 +131,7 @@ class DownloadManager {
         }
     };
 
-    getStreamingVideoFile = async (file: EnteFile) => {
+    getStreamableVideoFile = async (file: EnteFile) => {
         try {
             const getFilePromise = async () => {
                 const source = new MediaSource();

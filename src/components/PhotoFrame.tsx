@@ -301,11 +301,11 @@ const PhotoFrame = ({
     const updateSrcURL = async (
         id: number,
         srcURL: SourceURL,
-        isStreaming: boolean = false
+        isStreamable: boolean = false
     ) => {
         const { videoURL, imageURL } = srcURL;
         const isPlayable =
-            videoURL && (isStreaming || (await isPlaybackPossible(videoURL)));
+            videoURL && (isStreamable || (await isPlaybackPossible(videoURL)));
         const updateFile = (file: EnteFile) => {
             file = {
                 ...file,
@@ -509,7 +509,7 @@ const PhotoFrame = ({
             try {
                 fetching[item.id] = true;
                 let urls: string[];
-                let isStreamingFile = false;
+                let isStreamableFile = false;
                 if (galleryContext.files.has(item.id)) {
                     const mergedURL = galleryContext.files.get(item.id);
                     urls = mergedURL.split(',');
@@ -528,10 +528,10 @@ const PhotoFrame = ({
                         if (canFileBeStreamed(item)) {
                             try {
                                 urls =
-                                    await DownloadManager.getStreamingVideoFile(
+                                    await DownloadManager.getStreamableVideoFile(
                                         item
                                     );
-                                isStreamingFile = true;
+                                isStreamableFile = true;
                             } catch (e) {
                                 urls = await DownloadManager.getFile(
                                     item,
@@ -543,7 +543,7 @@ const PhotoFrame = ({
                         }
                     }
                     appContext.finishLoading();
-                    if (!isStreamingFile) {
+                    if (!isStreamableFile) {
                         const mergedURL = urls.join(',');
                         galleryContext.files.set(item.id, mergedURL);
                     }
@@ -564,7 +564,7 @@ const PhotoFrame = ({
                         imageURL,
                         videoURL,
                     },
-                    isStreamingFile
+                    isStreamableFile
                 );
                 item.msrc = newFile.msrc;
                 item.html = newFile.html;
