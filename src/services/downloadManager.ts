@@ -10,7 +10,7 @@ import {
     convertForPreview,
     needsConversionForPreview,
     createTypedObjectURL,
-    getFileDecryptionHeader as getObjectDecryptionHeader,
+    getFileDataDecryptionHeader,
 } from 'utils/file';
 import HTTPService from './HTTPService';
 import { EnteFile, FileVariantType } from 'types/file';
@@ -219,7 +219,7 @@ class DownloadManager {
                 'X-Auth-Token': token,
             },
         });
-        const objectDecryptionHeader = getObjectDecryptionHeader(
+        const fileDataDecryptionHeader = getFileDataDecryptionHeader(
             file,
             fileVariantType
         );
@@ -227,7 +227,7 @@ class DownloadManager {
         const stream = new ReadableStream({
             async start(controller) {
                 const decryptionHeader = await worker.fromB64(
-                    objectDecryptionHeader
+                    fileDataDecryptionHeader
                 );
                 const fileKey = await worker.fromB64(file.key);
                 const { pullState, decryptionChunkSize } =

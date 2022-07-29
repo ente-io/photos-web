@@ -497,7 +497,7 @@ export const createTypedObjectURL = async (blob: Blob, fileName: string) => {
     return URL.createObjectURL(new Blob([blob], { type: type.mimeType }));
 };
 
-export const getFileDecryptionHeader = (
+export const getFileDataDecryptionHeader = (
     file: EnteFile,
     fileVariantType?: FileVariantType
 ): string => {
