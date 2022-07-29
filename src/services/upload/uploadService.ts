@@ -10,6 +10,7 @@ import {
     ElectronFile,
     EncryptedFile,
     FileTypeInfo,
+    FileVariants,
     FileWithCollection,
     FileWithMetadata,
     isDataStream,
@@ -188,7 +189,7 @@ class UploadService {
                     null
                 );
             }
-            const backupedFileVariants: BackupedFile['fileVariants'] = {};
+            const backupedFileVariants: FileVariants = {};
             if (file.fileVariants) {
                 if (file.fileVariants.tcFile) {
                     const fileVariantUploadURL = await this.getUploadURL();
