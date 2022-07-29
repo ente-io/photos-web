@@ -28,7 +28,7 @@ import { IsArchived, updateMagicMetadataProps } from 'utils/magicMetadata';
 import { ARCHIVE_SECTION, TRASH_SECTION } from 'constants/collection';
 import { addLogLine } from 'utils/logging';
 import { makeHumanReadableStorage } from 'utils/billing';
-import { Location } from 'types/upload';
+import { GeoLocation } from 'types/upload';
 export function downloadAsFile(filename: string, content: string) {
     const file = new Blob([content], {
         type: 'text/plain',
@@ -404,7 +404,7 @@ export async function changeFileName(file: EnteFile, editedName: string) {
 
 export async function updateFileLocation(
     file: EnteFile,
-    newLocation: Location
+    newLocation: GeoLocation
 ) {
     const updatedPublicMagicMetadataProps: FilePublicMagicMetadataProps = {
         editedLatitude: newLocation.latitude,

@@ -1,7 +1,7 @@
 import { Bbox, DateValue } from 'types/search';
-import { Location } from 'types/upload';
+import { GeoLocation } from 'types/upload';
 
-export function isInsideBox({ latitude, longitude }: Location, bbox: Bbox) {
+export function isInsideBox({ latitude, longitude }: GeoLocation, bbox: Bbox) {
     if (latitude === null && longitude === null) {
         return false;
     }

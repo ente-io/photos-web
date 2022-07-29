@@ -4,7 +4,7 @@ import { getExifData } from './exifService';
 import {
     Metadata,
     ParsedMetadataJSON,
-    Location,
+    GeoLocation,
     FileTypeInfo,
     ParsedExtractedMetadata,
     ElectronFile,
@@ -99,7 +99,7 @@ export async function parseMetadataJSON(receivedFile: File | ElectronFile) {
             parsedMetadataJSON.modificationTime =
                 metadataJSON['modificationTime']['timestamp'] * 1000000;
         }
-        let locationData: Location = NULL_LOCATION;
+        let locationData: GeoLocation = NULL_LOCATION;
         if (
             metadataJSON['geoData'] &&
             (metadataJSON['geoData']['latitude'] !== 0.0 ||

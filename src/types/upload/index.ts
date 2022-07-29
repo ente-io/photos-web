@@ -29,7 +29,7 @@ export interface Metadata {
     videoHash?: string;
 }
 
-export interface Location {
+export interface GeoLocation {
     latitude: number;
     longitude: number;
 }
@@ -139,6 +139,6 @@ export interface UploadFile extends BackupedFile {
 }
 
 export interface ParsedExtractedMetadata {
-    location: Location;
+    location: GeoLocation;
     creationTime: number;
 }

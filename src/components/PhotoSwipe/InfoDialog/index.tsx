@@ -8,7 +8,7 @@ import { RenderInfoItem } from './RenderInfoItem';
 import DialogTitleWithCloseButton from 'components/DialogBox/TitleWithCloseButton';
 import { Dialog, DialogContent, Link, styled, Typography } from '@mui/material';
 import { AppContext } from 'pages/_app';
-import { Location, Metadata } from 'types/upload';
+import { GeoLocation, Metadata } from 'types/upload';
 import { getEXIFLocation } from 'services/upload/exifService';
 import { updateExistingFilePubMetadata, updateFileLocation } from 'utils/file';
 import { logError } from 'utils/sentry';
@@ -44,7 +44,7 @@ export function FileInfo({
     scheduleUpdate,
 }: Iprops) {
     const appContext = useContext(AppContext);
-    const [location, setLocation] = useState<Location>(null);
+    const [location, setLocation] = useState<GeoLocation>(null);
 
     useEffect(() => {
         if (!location && metadata) {

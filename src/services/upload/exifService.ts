@@ -1,5 +1,5 @@
 import { NULL_EXTRACTED_METADATA, NULL_LOCATION } from 'constants/upload';
-import { ElectronFile, Location } from 'types/upload';
+import { ElectronFile, GeoLocation } from 'types/upload';
 import exifr from 'exifr';
 import piexif from 'piexifjs';
 import { FileTypeInfo } from 'types/upload';
@@ -131,7 +131,7 @@ export async function getRawExif(
     return exifData;
 }
 
-export function getEXIFLocation(exifData): Location {
+export function getEXIFLocation(exifData): GeoLocation {
     if (!exifData.latitude || !exifData.longitude) {
         return NULL_LOCATION;
     }

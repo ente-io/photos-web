@@ -1,6 +1,6 @@
 import { ENCRYPTION_CHUNK_SIZE } from 'constants/crypto';
 import { FILE_TYPE } from 'constants/file';
-import { Location, ParsedExtractedMetadata } from 'types/upload';
+import { GeoLocation, ParsedExtractedMetadata } from 'types/upload';
 
 // list of format that were missed by type-detection for some files.
 export const FORMAT_MISSED_BY_FILE_TYPE_LIB = [
@@ -21,7 +21,7 @@ export const FILE_CHUNKS_COMBINED_FOR_A_UPLOAD_PART = Math.floor(
 
 export const RANDOM_PERCENTAGE_PROGRESS_FOR_PUT = () => 90 + 10 * Math.random();
 
-export const NULL_LOCATION: Location = { latitude: null, longitude: null };
+export const NULL_LOCATION: GeoLocation = { latitude: null, longitude: null };
 
 export enum UPLOAD_STAGES {
     START,
