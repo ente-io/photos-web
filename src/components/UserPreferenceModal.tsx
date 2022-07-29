@@ -69,7 +69,7 @@ function UserPreferenceModal({ open, onClose }: Iprops) {
                 <Stack
                     spacing={0.5}
                     sx={{
-                        marginTop: '16px',
+                        mt: 1,
                     }}>
                     <SpaceBetweenFlex>
                         <div>{constants.ENABLE_IMAGE_TRANSCODING}</div>
