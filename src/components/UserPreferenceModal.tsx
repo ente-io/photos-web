@@ -91,19 +91,10 @@ function UserPreferenceModal({ open, onClose }: Iprops) {
             </DialogContent>
             <DialogActions>
                 <SpaceBetweenFlex>
-                    <Button
-                        onClick={onClose}
-                        sx={{
-                            width: '80px',
-                        }}>
+                    <Button onClick={onClose} color="secondary">
                         {constants.CANCEL}
                     </Button>
-                    <Button
-                        onClick={onSaveClick}
-                        color="success"
-                        sx={{
-                            width: '80px',
-                        }}>
+                    <Button onClick={onSaveClick} color="accent">
                         {constants.SAVE}
                     </Button>
                 </SpaceBetweenFlex>
