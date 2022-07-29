@@ -76,7 +76,7 @@ function RecoveryKey({ somethingWentWrong, ...props }: Props) {
                     {constants.SAVE_LATER}
                 </Button>
                 <Button color="accent" size="large" onClick={onSaveClick}>
-                    {constants.SAVE}
+                    {constants.SAVE_KEY}
                 </Button>
             </DialogActions>
         </Dialog>

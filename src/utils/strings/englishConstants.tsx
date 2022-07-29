@@ -166,7 +166,8 @@ const englishConstants = {
     GO_BACK: 'Go back',
     RECOVERY_KEY: 'Recovery key',
     SAVE_LATER: 'Do this later',
-    SAVE: 'Save Key',
+    SAVE_KEY: 'Save Key',
+    SAVE: 'Save',
     RECOVERY_KEY_DESCRIPTION:
         'If you forget your password, the only way you can recover your data is with this key.',
     RECOVER_KEY_GENERATION_FAILED:
@@ -771,6 +772,9 @@ const englishConstants = {
     WEAK_DEVICE:
         "The web browser you're using is not powerful enough to encrypt your photos. Please try to log in to ente on your computer, or download the ente mobile/desktop app.",
     DRAG_AND_DROP_HINT: 'Or drag and drop into the ente window',
+    PREFERENCES: 'Preferences',
+    ENABLE_IMAGE_TRANSCODING: 'Enable Image Transcoding',
+    ENABLE_VIDEO_TRANSCODING: ' Enable Video Transcoding',
 };
 
 export default englishConstants;

@@ -8,6 +8,7 @@ import {
 import React, { useState, useEffect } from 'react';
 import { updateUserPreferences } from 'services/userService';
 import { logError } from 'utils/sentry';
+import constants from 'utils/strings/constants';
 import { getLocalUserPreferences } from 'utils/user';
 import { SpaceBetweenFlex } from './Container';
 import DialogBoxBase from './DialogBox/base';
@@ -62,7 +63,7 @@ function UserPreferenceModal({ open, onClose }: Iprops) {
     return (
         <DialogBoxBase maxWidth="xs" open={open} onClose={onClose}>
             <DialogTitleWithCloseButton onClose={onClose}>
-                Preferences
+                {constants.PREFERENCES}
             </DialogTitleWithCloseButton>
             <DialogContent>
                 <Stack
@@ -71,7 +72,7 @@ function UserPreferenceModal({ open, onClose }: Iprops) {
                         marginTop: '16px',
                     }}>
                     <SpaceBetweenFlex>
-                        <div>Enable Image Transcoding</div>
+                        <div>{constants.ENABLE_IMAGE_TRANSCODING}</div>
                         <Switch
                             checked={isImgTranscodingEnabled}
                             onChange={handleImgTranscodingChange}
@@ -79,7 +80,7 @@ function UserPreferenceModal({ open, onClose }: Iprops) {
                         />
                     </SpaceBetweenFlex>
                     <SpaceBetweenFlex>
-                        <div>Enable Video Transcoding</div>
+                        <div>{constants.ENABLE_VIDEO_TRANSCODING}</div>
                         <Switch
                             checked={isVidTranscodingEnabled}
                             onChange={handleVidTranscodingChange}
@@ -95,7 +96,7 @@ function UserPreferenceModal({ open, onClose }: Iprops) {
                         sx={{
                             width: '80px',
                         }}>
-                        Cancel
+                        {constants.CANCEL}
                     </Button>
                     <Button
                         onClick={onSaveClick}
@@ -103,7 +104,7 @@ function UserPreferenceModal({ open, onClose }: Iprops) {
                         sx={{
                             width: '80px',
                         }}>
-                        Save
+                        {constants.SAVE}
                     </Button>
                 </SpaceBetweenFlex>
             </DialogActions>
