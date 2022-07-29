@@ -47,7 +47,6 @@ export function FileInfo({
     const [location, setLocation] = useState<Location>(null);
 
     useEffect(() => {
-        console.log(metadata);
         if (!location && metadata) {
             if (metadata.longitude || metadata.longitude === 0) {
                 setLocation({
