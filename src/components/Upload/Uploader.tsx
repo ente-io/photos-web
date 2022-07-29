@@ -131,14 +131,14 @@ export default function Uploader(props: Props) {
             );
         }
 
-        const updateLocalUserPreferences = async () => {
+        const syncUserPreferences = async () => {
             try {
                 await getUserPreferences();
             } catch (e) {
                 logError(e, 'failed to update local user preferences');
             }
         };
-        updateLocalUserPreferences();
+        syncUserPreferences();
     }, []);
 
     useEffect(() => {
