@@ -430,7 +430,7 @@ function PhotoSwipe(props: Iprops) {
                 </div>
             </div>
             <FileInfo
-                shouldDisableEdits={props.isSharedCollection}
+                isSharedFile={props.isSharedCollection}
                 showInfo={showInfo}
                 handleCloseInfo={handleCloseInfo}
                 currentItem={items?.[photoSwipe?.getCurrentIndex()]}

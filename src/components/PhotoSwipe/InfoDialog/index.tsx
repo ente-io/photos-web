@@ -25,7 +25,7 @@ const FileInfoDialog = styled(Dialog)(({ theme }) => ({
 }));
 
 interface Iprops {
-    shouldDisableEdits: boolean;
+    isSharedFile: boolean;
     showInfo: boolean;
     handleCloseInfo: () => void;
     currentItem: any;
@@ -35,7 +35,7 @@ interface Iprops {
 }
 
 export function FileInfo({
-    shouldDisableEdits,
+    isSharedFile,
     showInfo,
     handleCloseInfo,
     currentItem,
@@ -62,7 +62,9 @@ export function FileInfo({
             const exifLocation = getEXIFLocation(exif);
             if (exifLocation.latitude || exifLocation.latitude === 0) {
                 setLocation(exifLocation);
-                updateFileMetadataWithExifLocationData(exif);
+                if (!isSharedFile) {
+                    updateFileMetadataWithExifLocationData(exif);
+                }
             }
         }
     }, [exif]);
@@ -101,14 +103,14 @@ export function FileInfo({
                 {RenderInfoItem(constants.FILE_ID, currentItem?.id)}
                 {metadata?.title && (
                     <RenderFileName
-                        shouldDisableEdits={shouldDisableEdits}
+                        shouldDisableEdits={isSharedFile}
                         file={currentItem}
                         scheduleUpdate={scheduleUpdate}
                     />
                 )}
                 {metadata?.creationTime && (
                     <RenderCreationTime
-                        shouldDisableEdits={shouldDisableEdits}
+                        shouldDisableEdits={isSharedFile}
                         file={currentItem}
                         scheduleUpdate={scheduleUpdate}
                     />
