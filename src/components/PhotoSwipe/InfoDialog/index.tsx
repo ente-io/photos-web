@@ -58,29 +58,32 @@ export function FileInfo({
     }, [metadata]);
 
     useEffect(() => {
-        const main = async () => {
-            if (!location && exif) {
-                const exifLocation = getEXIFLocation(exif);
-                if (exifLocation.latitude || exifLocation.latitude === 0) {
-                    setLocation(exifLocation);
-                    try {
-                        let updatedFile = await updateFileLocation(
-                            currentItem,
-                            exifLocation
-                        );
-                        updatedFile = (
-                            await updateFilePublicMagicMetadata([updatedFile])
-                        )[0];
-                        updateExistingFilePubMetadata(currentItem, updatedFile);
-                        scheduleUpdate();
-                    } catch (e) {
-                        logError(e, 'failed to update file location');
-                    }
-                }
+        if (!location && exif) {
+            const exifLocation = getEXIFLocation(exif);
+            if (exifLocation.latitude || exifLocation.latitude === 0) {
+                setLocation(exifLocation);
+                updateFileMetadataWithExifLocationData(exif);
             }
-        };
-        main();
+        }
     }, [exif]);
+
+    const updateFileMetadataWithExifLocationData = async (
+        exifLocation: GeoLocation
+    ) => {
+        try {
+            let updatedFile = await updateFileLocation(
+                currentItem,
+                exifLocation
+            );
+            updatedFile = (
+                await updateFilePublicMagicMetadata([updatedFile])
+            )[0];
+            updateExistingFilePubMetadata(currentItem, updatedFile);
+            scheduleUpdate();
+        } catch (e) {
+            logError(e, 'failed to update file location');
+        }
+    };
 
     return (
         <FileInfoDialog
