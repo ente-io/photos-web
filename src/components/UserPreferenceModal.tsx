@@ -5,8 +5,10 @@ import {
     Stack,
     Switch,
 } from '@mui/material';
-import React, { useState, useEffect } from 'react';
+import { AppContext } from 'pages/_app';
+import React, { useState, useEffect, useContext } from 'react';
 import { updateUserPreferences } from 'services/userService';
+import { UserPreferences } from 'types/user';
 import { logError } from 'utils/sentry';
 import constants from 'utils/strings/constants';
 import { getLocalUserPreferences } from 'utils/user';
@@ -20,43 +22,49 @@ interface Iprops {
 }
 
 function UserPreferenceModal({ open, onClose }: Iprops) {
-    const [isImgTranscodingEnabled, setIsImgTranscodingEnabled] =
-        useState(false);
-    const [isVidTranscodingEnabled, setIsVidTranscodingEnabled] =
-        useState(false);
+    const [userPreferences, setUserPreferences] =
+        useState<UserPreferences['data']>(null);
+    const appContext = useContext(AppContext);
 
     useEffect(() => {
         const main = async () => {
             const userPreferences = getLocalUserPreferences();
             if (userPreferences) {
-                setIsImgTranscodingEnabled(
-                    userPreferences.data.isImgTranscodingEnabled
-                );
-                setIsVidTranscodingEnabled(
-                    userPreferences.data.isVidTranscodingEnabled
-                );
+                setUserPreferences(userPreferences.data);
             }
         };
         main();
     }, []);
 
     const handleImgTranscodingChange = (e) => {
-        setIsImgTranscodingEnabled(e.target.checked);
+        setUserPreferences({
+            ...userPreferences,
+            isImgTranscodingEnabled: e.target.checked,
+        });
     };
 
     const handleVidTranscodingChange = (e) => {
-        setIsVidTranscodingEnabled(e.target.checked);
+        setUserPreferences({
+            ...userPreferences,
+            isVidTranscodingEnabled: e.target.checked,
+        });
     };
 
     const onSaveClick = async () => {
         try {
             await updateUserPreferences({
                 ...getLocalUserPreferences(),
-                data: { isImgTranscodingEnabled, isVidTranscodingEnabled },
+                data: userPreferences,
             });
             onClose();
         } catch (e) {
             logError(e, 'saving user preferences failed');
+            appContext.setDialogMessage({
+                title: "Couldn't save user preferences",
+                content:
+                    "Couldn't save user preferences, please try again later.",
+                close: { variant: 'primary' },
+            });
         }
     };
 
@@ -74,7 +82,7 @@ function UserPreferenceModal({ open, onClose }: Iprops) {
                     <SpaceBetweenFlex>
                         <div>{constants.ENABLE_IMAGE_TRANSCODING}</div>
                         <Switch
-                            checked={isImgTranscodingEnabled}
+                            checked={userPreferences?.isImgTranscodingEnabled}
                             onChange={handleImgTranscodingChange}
                             color="success"
                         />
@@ -82,7 +90,7 @@ function UserPreferenceModal({ open, onClose }: Iprops) {
                     <SpaceBetweenFlex>
                         <div>{constants.ENABLE_VIDEO_TRANSCODING}</div>
                         <Switch
-                            checked={isVidTranscodingEnabled}
+                            checked={userPreferences?.isVidTranscodingEnabled}
                             onChange={handleVidTranscodingChange}
                             color="success"
                         />

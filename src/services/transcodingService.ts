@@ -2,7 +2,7 @@ import { FILE_TYPE } from 'constants/file';
 import isElectron from 'is-electron';
 import { ElectronFile, FileWithMetadata, Metadata } from 'types/upload';
 import { runningInBrowser } from 'utils/common';
-import { ConvertToStreamableVideoCmds, MP4 } from 'utils/ffmpeg/cmds';
+import { TranscodeVideoCmd, MP4 } from 'utils/ffmpeg/cmd';
 import { logError } from 'utils/sentry';
 import { getLocalUserPreferences } from 'utils/user';
 
@@ -15,12 +15,12 @@ class TranscodingService {
         this.allElectronAPIsExist = !!this.ElectronAPIs?.getTranscodedFile;
     }
 
-    async getStreamableVideo(file: ElectronFile | File) {
+    async getTranscodedVideo(file: ElectronFile | File) {
         try {
             if (isElectron() && this.allElectronAPIsExist) {
                 const outputFile: ElectronFile =
                     await this.ElectronAPIs.getTranscodedFile(
-                        [...ConvertToStreamableVideoCmds],
+                        [...TranscodeVideoCmd],
                         file,
                         MP4
                     );
@@ -40,11 +40,11 @@ class TranscodingService {
             userPreferences?.data.isVidTranscodingEnabled
         ) {
             console.log('transcoding video');
-            const vidFileVariant = await this.getStreamableVideo(file);
-            console.log({ vidFileVariant });
-            if (vidFileVariant) {
+            const transcodedVideo = await this.getTranscodedVideo(file);
+            console.log({ vidFileVariant: transcodedVideo });
+            if (transcodedVideo) {
                 const fileVariants: FileWithMetadata['fileVariants'] = {
-                    tcFile: vidFileVariant,
+                    tcFile: transcodedVideo,
                 };
                 return fileVariants;
             }

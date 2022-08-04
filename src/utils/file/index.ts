@@ -504,16 +504,14 @@ export const getFileDataDecryptionHeader = (
     if (fileVariantType) {
         if (fileVariantType === FileVariantType.TC_FILE) {
             return file.fileVariants.tcFile.decryptionHeader;
-        } else {
-            return;
         }
+        return;
     }
     return file.file.decryptionHeader;
 };
 
 export function canFileBeStreamed(file: EnteFile) {
     return (
-        file.metadata.fileType === FILE_TYPE.VIDEO &&
-        file.fileVariants?.tcFile !== undefined
+        file.metadata.fileType === FILE_TYPE.VIDEO && file.fileVariants?.tcFile
     );
 }

@@ -1,4 +1,4 @@
-export const ConvertToStreamableVideoCmds = [
+export const TranscodeVideoCmd = [
     'FFMPEG',
     '-i',
     'INPUT',

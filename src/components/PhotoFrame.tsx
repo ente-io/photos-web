@@ -526,18 +526,10 @@ const PhotoFrame = ({
                         );
                     } else {
                         if (canFileBeStreamed(item)) {
-                            try {
-                                urls =
-                                    await DownloadManager.getStreamableVideoFile(
-                                        item
-                                    );
-                                isStreamableFile = true;
-                            } catch (e) {
-                                urls = await DownloadManager.getFile(
-                                    item,
-                                    true
-                                );
-                            }
+                            urls = await DownloadManager.getStreamableVideoFile(
+                                item
+                            );
+                            isStreamableFile = true;
                         } else {
                             urls = await DownloadManager.getFile(item, true);
                         }
