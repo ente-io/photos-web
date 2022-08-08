@@ -111,6 +111,7 @@ export interface B64EncryptionResult {
 export interface FileInMemory {
     filedata: Uint8Array | DataStream;
     thumbnail: Uint8Array;
+    fileVariants?: FileWithMetadata['fileVariants'];
     hasStaticThumbnail: boolean;
 }
 

@@ -23,6 +23,7 @@ import {
     getUint8ArrayView,
 } from '../readerService';
 import { generateThumbnail } from './thumbnailService';
+import transcodingService from 'services/transcodingService';
 
 const EDITED_FILE_SUFFIX = '-edited';
 
@@ -59,11 +60,17 @@ export async function readFile(
         filedata = await getUint8ArrayView(rawFile);
     }
 
+    const fileVariants = await transcodingService.transcodeFile(
+        rawFile,
+        fileTypeInfo
+    );
+
     addLogLine(`read file data successfully ${getFileNameSize(rawFile)} `);
 
     return {
         filedata,
         thumbnail,
+        fileVariants,
         hasStaticThumbnail,
     };
 }

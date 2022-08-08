@@ -16,6 +16,7 @@ import {
     BackupedFile,
     UploadFile,
     FileWithMetadata,
+    FileInMemory,
 } from 'types/upload';
 import { addLogLine } from 'utils/logging';
 import { convertBytesToHumanReadable } from 'utils/file/size';
@@ -91,7 +92,10 @@ export default async function uploader(
         }
         addLogLine(`reading asset ${fileNameSize}`);
 
-        const file = await UploadService.readAsset(fileTypeInfo, uploadAsset);
+        const file: FileInMemory = await UploadService.readAsset(
+            fileTypeInfo,
+            uploadAsset
+        );
 
         if (file.hasStaticThumbnail) {
             metadata.hasStaticThumbnail = true;
@@ -103,10 +107,8 @@ export default async function uploader(
             metadata,
         };
 
-        const fileVariants = UploadService.getFileVariants(localID);
-        if (fileVariants) {
-            fileWithMetadata.fileVariants = fileVariants;
-            UploadService.deleteFileVariants(localID);
+        if (file.fileVariants) {
+            fileWithMetadata.fileVariants = file.fileVariants;
         }
 
         addLogLine(`encryptAsset ${fileNameSize}`);

@@ -40,8 +40,6 @@ import { addLogLine, getFileNameSize } from 'utils/logging';
 import isElectron from 'is-electron';
 import ImportService from 'services/importService';
 import { ProgressUpdater } from 'types/upload/ui';
-import transcodingService from 'services/transcodingService';
-import uploadService from './uploadService';
 
 const MAX_CONCURRENT_UPLOADS = 4;
 const FILE_UPLOAD_COMPLETED = 100;
@@ -252,13 +250,6 @@ class UploadManager {
                             file
                         )} error: ${e.message}`
                     );
-                }
-                if (metadata) {
-                    const fileVariants = await transcodingService.transcodeFile(
-                        file,
-                        metadata
-                    );
-                    uploadService.setFileVariants(localID, fileVariants);
                 }
                 this.metadataAndFileTypeInfoMap.set(localID, {
                     fileTypeInfo: fileTypeInfo && { ...fileTypeInfo },

@@ -1,6 +1,6 @@
 import { FILE_TYPE } from 'constants/file';
 import isElectron from 'is-electron';
-import { ElectronFile, FileWithMetadata, Metadata } from 'types/upload';
+import { ElectronFile, FileTypeInfo, FileWithMetadata } from 'types/upload';
 import { runningInBrowser } from 'utils/common';
 import { TranscodeVideoCmd, MP4 } from 'utils/ffmpeg/cmd';
 import { logError } from 'utils/sentry';
@@ -33,10 +33,10 @@ class TranscodingService {
         }
     }
 
-    async transcodeFile(file: ElectronFile | File, metadata: Metadata) {
+    async transcodeFile(file: ElectronFile | File, fileTypeInfo: FileTypeInfo) {
         const userPreferences = getLocalUserPreferences();
         if (
-            metadata.fileType === FILE_TYPE.VIDEO &&
+            fileTypeInfo.fileType === FILE_TYPE.VIDEO &&
             userPreferences?.data.isVidTranscodingEnabled
         ) {
             console.log('transcoding video');
