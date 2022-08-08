@@ -7,8 +7,7 @@ import {
 import CryptoWorker from 'utils/crypto';
 import {
     generateStreamFromArrayBuffer,
-    convertForPreview,
-    needsConversionForPreview,
+    getRenderableFileURL,
     createTypedObjectURL,
     getFileDataDecryptionHeader,
 } from 'utils/file';
@@ -89,38 +88,24 @@ class DownloadManager {
     };
 
     getFile = async (file: EnteFile, forPreview = false) => {
-        const shouldBeConverted = forPreview && needsConversionForPreview(file);
-        const fileKey = shouldBeConverted
-            ? `${file.id}_converted`
-            : `${file.id}`;
+        const fileKey = forPreview ? `${file.id}_preview` : `${file.id}`;
         try {
-            const getFilePromise = async (convert: boolean) => {
+            const getFilePromise = async () => {
                 const fileStream = await this.downloadFile(file);
                 const fileBlob = await new Response(fileStream).blob();
-                if (convert) {
-                    const convertedBlobs = await convertForPreview(
-                        file,
-                        fileBlob
-                    );
-                    return await Promise.all(
-                        convertedBlobs.map(
-                            async (blob) =>
-                                await createTypedObjectURL(
-                                    blob,
-                                    file.metadata.title
-                                )
-                        )
-                    );
+                if (forPreview) {
+                    return await getRenderableFileURL(file, fileBlob);
+                } else {
+                    return [
+                        await createTypedObjectURL(
+                            fileBlob,
+                            file.metadata.title
+                        ),
+                    ];
                 }
-                return [
-                    await createTypedObjectURL(fileBlob, file.metadata.title),
-                ];
             };
             if (!this.fileObjectURLPromise.get(fileKey)) {
-                this.fileObjectURLPromise.set(
-                    fileKey,
-                    getFilePromise(shouldBeConverted)
-                );
+                this.fileObjectURLPromise.set(fileKey, getFilePromise());
             }
             const fileURLs = await this.fileObjectURLPromise.get(fileKey);
             return fileURLs;
