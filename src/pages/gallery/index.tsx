@@ -34,7 +34,11 @@ import {
     setIsFirstLogin,
     setJustSignedUp,
 } from 'utils/storage';
-import { isTokenValid, logoutUser } from 'services/userService';
+import {
+    getUserPreferences,
+    isTokenValid,
+    logoutUser,
+} from 'services/userService';
 import { useDropzone } from 'react-dropzone';
 import EnteSpinner from 'components/EnteSpinner';
 import { LoadingOverlay } from 'components/LoadingOverlay';
@@ -251,6 +255,7 @@ export default function Gallery() {
             setFiles(sortFiles(files));
             setCollections(collections);
             await syncWithRemote(true);
+            await syncUserPreferences();
             setIsFirstLoad(false);
             setJustSignedUp(false);
             setIsFirstFetch(false);
@@ -394,6 +399,14 @@ export default function Gallery() {
             archivedCollections
         );
         setCollectionSummaries(collectionSummaries);
+    };
+
+    const syncUserPreferences = async () => {
+        try {
+            await getUserPreferences();
+        } catch (e) {
+            logError(e, 'failed to update local user preferences');
+        }
     };
 
     const clearSelection = function () {

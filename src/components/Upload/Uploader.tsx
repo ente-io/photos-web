@@ -34,7 +34,6 @@ import { UPLOAD_STAGES } from 'constants/upload';
 import importService from 'services/importService';
 import { getDownloadAppMessage } from 'utils/ui';
 import UploadTypeSelector from './UploadTypeSelector';
-import { getUserPreferences } from 'services/userService';
 
 const FIRST_ALBUM_NAME = 'My First Album';
 
@@ -130,15 +129,6 @@ export default function Uploader(props: Props) {
                 }
             );
         }
-
-        const syncUserPreferences = async () => {
-            try {
-                await getUserPreferences();
-            } catch (e) {
-                logError(e, 'failed to update local user preferences');
-            }
-        };
-        syncUserPreferences();
     }, []);
 
     useEffect(() => {
