@@ -6,7 +6,7 @@ import { addLogLine, getDebugLogs } from 'utils/logging';
 import SidebarButton from './Button';
 import { getData, LS_KEYS } from 'utils/storage/localStorage';
 import { User } from 'types/user';
-import { getSentryUserID } from 'utils/user';
+import { getSentryUserID } from 'utils/sentry/user';
 
 export default function DebugLogs() {
     const appContext = useContext(AppContext);
