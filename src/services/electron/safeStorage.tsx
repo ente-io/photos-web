@@ -1,19 +1,19 @@
-import { ElectronAPIs } from 'types/electron';
+import { ElectronAPIs as electronAPIs } from 'types/electron';
 import { runningInBrowser } from 'utils/common';
 import { logError } from 'utils/sentry';
 
 class SafeStorageService {
-    private ElectronAPIs: ElectronAPIs;
+    private electronAPIs: electronAPIs;
     private allElectronAPIsExist: boolean = false;
     constructor() {
-        this.ElectronAPIs = runningInBrowser() && window['ElectronAPIs'];
-        this.allElectronAPIsExist = !!this.ElectronAPIs?.getEncryptionKey;
+        this.electronAPIs = runningInBrowser() && window['ElectronAPIs'];
+        this.allElectronAPIsExist = !!this.electronAPIs?.getEncryptionKey;
     }
 
     async getEncryptionKey() {
         try {
             if (this.allElectronAPIsExist) {
-                return (await this.ElectronAPIs.getEncryptionKey()) as string;
+                return (await this.electronAPIs.getEncryptionKey()) as string;
             }
         } catch (e) {
             logError(e, 'getEncryptionKey failed');
@@ -23,7 +23,7 @@ class SafeStorageService {
     async setEncryptionKey(encryptionKey: string) {
         try {
             if (this.allElectronAPIsExist) {
-                return await this.ElectronAPIs.setEncryptionKey(encryptionKey);
+                return await this.electronAPIs.setEncryptionKey(encryptionKey);
             }
         } catch (e) {
             logError(e, 'setEncryptionKey failed');
@@ -33,7 +33,7 @@ class SafeStorageService {
     async clearElectronStore() {
         try {
             if (this.allElectronAPIsExist) {
-                return this.ElectronAPIs.clearElectronStore();
+                return this.electronAPIs.clearElectronStore();
             }
         } catch (e) {
             logError(e, 'clearElectronStore failed');
