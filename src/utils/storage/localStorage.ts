@@ -1,3 +1,4 @@
+import { runningInBrowser } from 'utils/common';
 import { logError } from 'utils/sentry';
 
 export enum LS_KEYS {
@@ -39,6 +40,10 @@ export const getData = (key: LS_KEYS) => {
     try {
         if (!key) {
             throw Error('Key is undefined');
+        }
+        if (!runningInBrowser()) {
+            // not running in a browser
+            return null;
         }
         if (typeof localStorage === 'undefined') {
             throw Error('localStorage is undefined');
