@@ -37,17 +37,23 @@ export const removeData = (key: LS_KEYS) => {
 
 export const getData = (key: LS_KEYS) => {
     try {
-        if (
-            typeof localStorage === 'undefined' ||
-            typeof key === 'undefined' ||
-            typeof localStorage.getItem(key) === 'undefined'
-        ) {
-            return null;
+        if (!key) {
+            throw Error('Key is undefined');
+        }
+        if (typeof localStorage === 'undefined') {
+            throw Error('localStorage is undefined');
         }
         const data = localStorage.getItem(key);
-        return data && JSON.parse(data);
+        if (typeof data === 'undefined' || data === null) {
+            throw Error('Data is undefined or null');
+        }
+        try {
+            return data && JSON.parse(data);
+        } catch (e) {
+            logError(e, 'Failed to Parse JSON for key ' + key);
+        }
     } catch (e) {
-        logError(e, 'Failed to Parse JSON for key ' + key);
+        logError(e, 'Failed to get data for key ' + key);
     }
 };
 
