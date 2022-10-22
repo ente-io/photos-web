@@ -23,7 +23,7 @@ export default function Home() {
         }
         setLoading(false);
         appContext.showNavBar(true);
-    }, []);
+    }, [appContext, router]);
 
     const register = () => {
         router.push(PAGES.SIGNUP);

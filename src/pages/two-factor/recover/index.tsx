@@ -45,7 +45,7 @@ export default function Recover() {
             });
         };
         main();
-    }, []);
+    }, [router]);
 
     const recover: SingleInputFormProps['callback'] = async (
         recoveryKey: string,

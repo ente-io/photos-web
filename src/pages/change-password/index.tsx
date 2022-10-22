@@ -34,7 +34,7 @@ export default function ChangePassword() {
         } else {
             setToken(user.token);
         }
-    }, []);
+    }, [router]);
 
     const onSubmit: SetPasswordFormProps['callback'] = async (
         passphrase,

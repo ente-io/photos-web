@@ -22,7 +22,7 @@ export default function SignUpPage() {
         }
         setLoading(false);
         appContext.showNavBar(true);
-    }, []);
+    }, [appContext, router]);
 
     const login = () => {
         router.push(PAGES.LOGIN);

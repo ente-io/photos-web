@@ -1,4 +1,10 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react';
+import React, {
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
+    useCallback,
+} from 'react';
 import constants from 'utils/strings/constants';
 import { Plan } from 'types/billing';
 import {
@@ -61,10 +67,11 @@ function PlanSelectorCard(props: Props) {
                 : PLAN_PERIOD.MONTH
         );
     };
-    function onReopenClick() {
+    const onReopenClick = useCallback(() => {
         appContext.closeMessageDialog();
         galleryContext.showPlanSelectorModal();
-    }
+    }, [appContext, galleryContext]);
+
     useEffect(() => {
         const main = async () => {
             try {
@@ -102,7 +109,7 @@ function PlanSelectorCard(props: Props) {
             }
         };
         main();
-    }, []);
+    }, [appContext, onReopenClick, props, setPlans, subscription]);
 
     async function onPlanSelect(plan: Plan) {
         if (

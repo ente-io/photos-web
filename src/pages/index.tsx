@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import Carousel from 'react-bootstrap/Carousel';
 import { styled, Button, Typography, TypographyProps } from '@mui/material';
 import { AppContext } from './_app';
@@ -98,33 +98,37 @@ export default function LandingPage() {
     const [loading, setLoading] = useState(true);
     const [showLogin, setShowLogin] = useState(true);
 
-    useEffect(() => {
-        appContext.showNavBar(false);
-        const currentURL = new URL(window.location.href);
-        const ALBUM_SITE_HOST = getAlbumSiteHost();
-        currentURL.pathname = router.pathname;
-        if (
-            currentURL.host === ALBUM_SITE_HOST &&
-            currentURL.pathname !== PAGES.SHARED_ALBUMS
-        ) {
-            handleAlbumsRedirect(currentURL);
-        } else {
-            handleNormalRedirect();
+    const initLocalForage = useCallback(async () => {
+        try {
+            await localForage.ready();
+        } catch (e) {
+            logError(e, 'usage in incognito mode tried');
+            appContext.setDialogMessage({
+                title: constants.LOCAL_STORAGE_NOT_ACCESSIBLE,
+
+                nonClosable: true,
+                content: constants.LOCAL_STORAGE_NOT_ACCESSIBLE_MESSAGE,
+            });
+        } finally {
+            setLoading(false);
         }
-    }, []);
+    }, [appContext]);
 
-    const handleAlbumsRedirect = async (currentURL: URL) => {
-        const end = currentURL.hash.lastIndexOf('&');
-        const hash = currentURL.hash.slice(1, end !== -1 ? end : undefined);
-        await router.replace({
-            pathname: PAGES.SHARED_ALBUMS,
-            search: currentURL.search,
-            hash: hash,
-        });
-        await initLocalForage();
-    };
+    const handleAlbumsRedirect = useCallback(
+        async (currentURL: URL) => {
+            const end = currentURL.hash.lastIndexOf('&');
+            const hash = currentURL.hash.slice(1, end !== -1 ? end : undefined);
+            await router.replace({
+                pathname: PAGES.SHARED_ALBUMS,
+                search: currentURL.search,
+                hash: hash,
+            });
+            await initLocalForage();
+        },
+        [initLocalForage, router]
+    );
 
-    const handleNormalRedirect = async () => {
+    const handleNormalRedirect = useCallback(async () => {
         const user = getData(LS_KEYS.USER);
         let key = getKey(SESSION_KEYS.ENCRYPTION_KEY);
         if (!key && isElectron()) {
@@ -144,23 +148,27 @@ export default function LandingPage() {
         }
         await initLocalForage();
         setLoading(false);
-    };
+    }, [initLocalForage, router]);
 
-    const initLocalForage = async () => {
-        try {
-            await localForage.ready();
-        } catch (e) {
-            logError(e, 'usage in incognito mode tried');
-            appContext.setDialogMessage({
-                title: constants.LOCAL_STORAGE_NOT_ACCESSIBLE,
-
-                nonClosable: true,
-                content: constants.LOCAL_STORAGE_NOT_ACCESSIBLE_MESSAGE,
-            });
-        } finally {
-            setLoading(false);
+    useEffect(() => {
+        appContext.showNavBar(false);
+        const currentURL = new URL(window.location.href);
+        const ALBUM_SITE_HOST = getAlbumSiteHost();
+        currentURL.pathname = router.pathname;
+        if (
+            currentURL.host === ALBUM_SITE_HOST &&
+            currentURL.pathname !== PAGES.SHARED_ALBUMS
+        ) {
+            handleAlbumsRedirect(currentURL);
+        } else {
+            handleNormalRedirect();
         }
-    };
+    }, [
+        appContext,
+        handleAlbumsRedirect,
+        handleNormalRedirect,
+        router.pathname,
+    ]);
 
     const signUp = () => setShowLogin(false);
     const login = () => setShowLogin(true);

@@ -57,7 +57,7 @@ export default function Generate() {
         };
         main();
         appContext.showNavBar(true);
-    }, []);
+    }, [appContext, router]);
 
     const onSubmit = async (passphrase, setFieldError) => {
         try {

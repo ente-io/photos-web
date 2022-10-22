@@ -30,21 +30,20 @@ export default function useComponentScroll({
         if (!componentRef.current) {
             return;
         }
+        const refVariable = componentRef.current;
         // Add event listener
-        componentRef.current?.addEventListener('scroll', updateScrollObj);
+        refVariable?.addEventListener('scroll', updateScrollObj);
 
         // Call handler right away so state gets updated with initial window size
         updateScrollObj();
         // Remove event listener on cleanup
         return () =>
-            componentRef.current?.removeEventListener(
-                'resize',
-                updateScrollObj
-            );
-    }, [componentRef.current]);
+            refVariable?.removeEventListener('resize', updateScrollObj);
+    }, []);
 
     useEffect(() => {
         updateScrollObj();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [...dependencies]);
 
     const scrollComponent = (direction: SCROLL_DIRECTION) => () => {

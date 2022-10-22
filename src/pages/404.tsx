@@ -9,7 +9,7 @@ export default function NotFound() {
     useEffect(() => {
         appContext.showNavBar(true);
         setLoading(false);
-    }, []);
+    }, [appContext]);
     return (
         <VerticallyCentered>
             {loading ? (

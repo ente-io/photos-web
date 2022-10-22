@@ -10,13 +10,13 @@ export function useLocalState<T>(
     useEffect(() => {
         const { value } = getData(key) ?? {};
         setValue(value ?? initialValue);
-    }, []);
+    }, [initialValue, key]);
 
     useEffect(() => {
         if (typeof value !== 'undefined') {
             setData(key, { value });
         }
-    }, [value]);
+    }, [key, value]);
 
     return [value, setValue];
 }

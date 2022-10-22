@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 
 import constants from 'utils/strings/constants';
 import { getData, LS_KEYS } from 'utils/storage/localStorage';
@@ -25,12 +25,15 @@ export default function AuthenticateUserModal({
     const [user, setUser] = useState<User>();
     const [keyAttributes, setKeyAttributes] = useState<KeyAttributes>();
 
-    const somethingWentWrong = () =>
-        setDialogMessage({
-            title: constants.ERROR,
-            close: { variant: 'danger' },
-            content: constants.UNKNOWN_ERROR,
-        });
+    const somethingWentWrong = useCallback(
+        () =>
+            setDialogMessage({
+                title: constants.ERROR,
+                close: { variant: 'danger' },
+                content: constants.UNKNOWN_ERROR,
+            }),
+        [setDialogMessage]
+    );
 
     useEffect(() => {
         const main = async () => {
@@ -58,7 +61,7 @@ export default function AuthenticateUserModal({
             }
         };
         main();
-    }, []);
+    }, [onClose, somethingWentWrong]);
 
     const useMasterPassword: VerifyMasterPasswordFormProps['callback'] =
         async () => {

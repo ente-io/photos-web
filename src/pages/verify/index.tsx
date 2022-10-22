@@ -54,7 +54,7 @@ export default function Verify() {
         };
         main();
         appContext.showNavBar(true);
-    }, []);
+    }, [appContext, router]);
 
     const onSubmit: SingleInputFormProps['callback'] = async (
         ott,

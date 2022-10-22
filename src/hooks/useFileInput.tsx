@@ -35,7 +35,7 @@ export default function useFileInput({ directory }: { directory?: boolean }) {
             ref: inputRef,
             onChange: handleChange,
         }),
-        []
+        [directory]
     );
 
     return {

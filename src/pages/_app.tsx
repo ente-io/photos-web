@@ -207,7 +207,7 @@ export default function App({ Component, err }) {
             window.removeEventListener('online', setUserOnline);
             window.removeEventListener('offline', setUserOffline);
         };
-    }, [redirectName]);
+    }, [redirectName, router.events]);
 
     useEffect(() => setMessageDialogView(true), [dialogMessage]);
 

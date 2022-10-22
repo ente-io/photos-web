@@ -27,6 +27,7 @@
             "error",
             "after",
             { "overrides": { "?": "before", ":": "before" } }
-        ]
+        ],
+        "jsx-a11y/alt-text": "off"
     }
 }

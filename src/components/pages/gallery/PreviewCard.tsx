@@ -15,6 +15,7 @@ import { logError } from 'utils/sentry';
 import { Overlay } from 'components/Container';
 import { TRASH_SECTION } from 'constants/collection';
 import { formatDateRelative } from 'utils/time';
+import Image from 'next/image';
 
 interface IProps {
     file: EnteFile;
@@ -256,7 +257,15 @@ export default function PreviewCard(props: IProps) {
                 main();
             }
         }
-    }, [file, props.showPlaceholder]);
+    }, [
+        file,
+        props.showPlaceholder,
+        publicCollectionGalleryContext.accessedThroughSharedURL,
+        publicCollectionGalleryContext.passwordToken,
+        publicCollectionGalleryContext.token,
+        thumbs,
+        updateURL,
+    ]);
 
     const handleClick = () => {
         if (selectOnClick) {
@@ -304,7 +313,7 @@ export default function PreviewCard(props: IProps) {
                     onClick={(e) => e.stopPropagation()}
                 />
             )}
-            {(file?.msrc || imgSrc) && <img src={file?.msrc || imgSrc} />}
+            {(file?.msrc || imgSrc) && <Image src={file?.msrc || imgSrc} />}
             {file?.metadata.fileType === 1 && <PlayCircleOutlineOutlinedIcon />}
             <SelectedOverlay selected={selected} />
             <HoverOverlay checked={selected} />

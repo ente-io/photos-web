@@ -52,7 +52,7 @@ export default function Recover() {
             setKeyAttributes(keyAttributes);
         }
         appContext.showNavBar(true);
-    }, []);
+    }, [appContext, router]);
 
     const recover: SingleInputFormProps['callback'] = async (
         recoveryKey: string,

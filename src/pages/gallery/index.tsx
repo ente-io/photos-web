@@ -1,5 +1,6 @@
 import React, {
     createContext,
+    useCallback,
     useContext,
     useEffect,
     useRef,
@@ -213,18 +214,62 @@ export default function Gallery() {
     const [photoListHeader, setPhotoListHeader] =
         useState<TimeStampListItem>(null);
 
-    const showSessionExpiredMessage = () =>
-        setDialogMessage({
-            title: constants.SESSION_EXPIRED,
-            content: constants.SESSION_EXPIRED_MESSAGE,
+    const showSessionExpiredMessage = useCallback(
+        () =>
+            setDialogMessage({
+                title: constants.SESSION_EXPIRED,
+                content: constants.SESSION_EXPIRED_MESSAGE,
 
-            nonClosable: true,
-            proceed: {
-                text: constants.LOGIN,
-                action: logoutUser,
-                variant: 'accent',
-            },
-        });
+                nonClosable: true,
+                proceed: {
+                    text: constants.LOGIN,
+                    action: logoutUser,
+                    variant: 'accent',
+                },
+            }),
+        [setDialogMessage]
+    );
+
+    const syncWithRemote = useCallback(
+        async (force = false, silent = false) => {
+            if (syncInProgress.current && !force) {
+                resync.current = true;
+                return;
+            }
+            syncInProgress.current = true;
+            try {
+                checkConnectivity();
+                if (!(await isTokenValid())) {
+                    throw new Error(ServerErrorCodes.SESSION_EXPIRED);
+                }
+                !silent && startLoading();
+                const collections = await syncCollections();
+                setCollections(collections);
+                const files = await syncFiles(collections, setFiles);
+                const trash = await syncTrash(collections, setFiles, files);
+                files.push(...getTrashedFiles(trash));
+            } catch (e) {
+                logError(e, 'syncWithRemote failed');
+                switch (e.message) {
+                    case ServerErrorCodes.SESSION_EXPIRED:
+                        showSessionExpiredMessage();
+                        break;
+                    case CustomError.KEY_MISSING:
+                        clearKeys();
+                        router.push(PAGES.CREDENTIALS);
+                        break;
+                }
+            } finally {
+                !silent && finishLoading();
+            }
+            syncInProgress.current = false;
+            if (resync.current) {
+                resync.current = false;
+                syncWithRemote();
+            }
+        },
+        [finishLoading, router, showSessionExpiredMessage, startLoading]
+    );
 
     useEffect(() => {
         appContext.showNavBar(true);
@@ -257,14 +302,14 @@ export default function Gallery() {
             preloadImage('/images/subscription-card-background');
         };
         main();
-    }, []);
+    }, [appContext, router, syncWithRemote]);
 
     useEffect(() => {
         if (!user || !files || !collections) {
             return;
         }
         setDerivativeState(user, collections, files);
-    }, [collections, files]);
+    }, [collections, files, user]);
 
     useEffect(
         () => collectionSelectorAttributes && setCollectionSelectorView(true),
@@ -302,7 +347,7 @@ export default function Gallery() {
         }
         const href = `/gallery${collectionURL}`;
         router.push(href, undefined, { shallow: true });
-    }, [activeCollection]);
+    }, [activeCollection, router]);
 
     useEffect(() => {
         const key = getKey(SESSION_KEYS.ENCRYPTION_KEY);
@@ -313,7 +358,7 @@ export default function Gallery() {
                 setBlockingLoad
             );
         }
-    }, [router.isReady]);
+    }, [router, setDialogMessage]);
 
     useEffect(() => {
         if (isInSearchMode && searchResultSummary) {
@@ -328,44 +373,6 @@ export default function Gallery() {
             });
         }
     }, [isInSearchMode, searchResultSummary]);
-
-    const syncWithRemote = async (force = false, silent = false) => {
-        if (syncInProgress.current && !force) {
-            resync.current = true;
-            return;
-        }
-        syncInProgress.current = true;
-        try {
-            checkConnectivity();
-            if (!(await isTokenValid())) {
-                throw new Error(ServerErrorCodes.SESSION_EXPIRED);
-            }
-            !silent && startLoading();
-            const collections = await syncCollections();
-            setCollections(collections);
-            const files = await syncFiles(collections, setFiles);
-            const trash = await syncTrash(collections, setFiles, files);
-            files.push(...getTrashedFiles(trash));
-        } catch (e) {
-            logError(e, 'syncWithRemote failed');
-            switch (e.message) {
-                case ServerErrorCodes.SESSION_EXPIRED:
-                    showSessionExpiredMessage();
-                    break;
-                case CustomError.KEY_MISSING:
-                    clearKeys();
-                    router.push(PAGES.CREDENTIALS);
-                    break;
-            }
-        } finally {
-            !silent && finishLoading();
-        }
-        syncInProgress.current = false;
-        if (resync.current) {
-            resync.current = false;
-            syncWithRemote();
-        }
-    };
 
     const setDerivativeState = async (
         user: User,

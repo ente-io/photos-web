@@ -3,6 +3,7 @@ import { GalleryContext } from 'pages/gallery';
 import { useState, useContext, useEffect } from 'react';
 import downloadManager from 'services/downloadManager';
 import { EnteFile } from 'types/file';
+import Image from 'next/image';
 
 export default function CollectionCard(props: {
     children?: any;
@@ -31,11 +32,11 @@ export default function CollectionCard(props: {
             setCoverImageURL(galleryContext.thumbs.get(file.id));
         };
         main();
-    }, [file]);
+    }, [file, galleryContext.thumbs]);
 
     return (
         <CustomCollectionTile onClick={onClick}>
-            {coverImageURL && <img src={coverImageURL} />}
+            {coverImageURL && <Image src={coverImageURL} />}
             {children}
         </CustomCollectionTile>
     );

@@ -67,7 +67,7 @@ export default function Credentials() {
         };
         main();
         appContext.showNavBar(true);
-    }, []);
+    }, [appContext, router]);
 
     const useMasterPassword: VerifyMasterPasswordFormProps['callback'] = async (
         key,

@@ -1,6 +1,12 @@
 import { ALL_SECTION } from 'constants/collection';
 import PhotoFrame from 'components/PhotoFrame';
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, {
+    useContext,
+    useEffect,
+    useRef,
+    useState,
+    useCallback,
+} from 'react';
 import {
     getLocalPublicCollection,
     getLocalPublicCollectionPassword,
@@ -70,84 +76,7 @@ export default function PublicCollectionGallery() {
     const [photoListHeader, setPhotoListHeader] =
         useState<TimeStampListItem>(null);
 
-    useEffect(() => {
-        const currentURL = new URL(window.location.href);
-        if (currentURL.pathname !== PAGES.ROOT) {
-            router.replace(
-                {
-                    pathname: PAGES.SHARED_ALBUMS,
-                    search: currentURL.search,
-                    hash: currentURL.hash,
-                },
-                {
-                    pathname: PAGES.ROOT,
-                    search: currentURL.search,
-                    hash: currentURL.hash,
-                },
-                {
-                    shallow: true,
-                }
-            );
-        }
-        const main = async () => {
-            try {
-                const worker = await new CryptoWorker();
-                url.current = window.location.href;
-                const currentURL = new URL(url.current);
-                const t = currentURL.searchParams.get('t');
-                const ck = currentURL.hash.slice(1);
-                if (!t || !ck) {
-                    return;
-                }
-                const dck =
-                    ck.length < 50
-                        ? await worker.toB64(bs58.decode(ck))
-                        : await worker.fromHex(ck);
-                token.current = t;
-                collectionKey.current = dck;
-                url.current = window.location.href;
-                const localCollection = await getLocalPublicCollection(
-                    collectionKey.current
-                );
-                if (localCollection) {
-                    setPublicCollection(localCollection);
-                    const collectionUID = getPublicCollectionUID(token.current);
-                    const localFiles = await getLocalPublicFiles(collectionUID);
-                    const localPublicFiles = sortFiles(
-                        mergeMetadata(localFiles)
-                    );
-                    setPublicFiles(localPublicFiles);
-                    passwordJWTToken.current =
-                        await getLocalPublicCollectionPassword(collectionUID);
-                }
-                await syncWithRemote();
-            } finally {
-                setLoading(false);
-            }
-        };
-        main();
-    }, []);
-
-    useEffect(
-        () =>
-            publicCollection &&
-            publicFiles &&
-            setPhotoListHeader({
-                item: (
-                    <CollectionInfoBarWrapper>
-                        <CollectionInfo
-                            name={publicCollection.name}
-                            fileCount={publicFiles.length}
-                        />
-                    </CollectionInfoBarWrapper>
-                ),
-                itemType: ITEM_TYPE.OTHER,
-                height: 68,
-            }),
-        [publicCollection, publicFiles]
-    );
-
-    const syncWithRemote = async () => {
+    const syncWithRemote = useCallback(async () => {
         const collectionUID = getPublicCollectionUID(token.current);
         try {
             appContext.startLoading();
@@ -214,7 +143,85 @@ export default function PublicCollectionGallery() {
         } finally {
             appContext.finishLoading();
         }
-    };
+    }, [appContext, passwordJWTToken, token, collectionKey]);
+
+    useEffect(() => {
+        const currentURL = new URL(window.location.href);
+        if (currentURL.pathname !== PAGES.ROOT) {
+            router.replace(
+                {
+                    pathname: PAGES.SHARED_ALBUMS,
+                    search: currentURL.search,
+                    hash: currentURL.hash,
+                },
+                {
+                    pathname: PAGES.ROOT,
+                    search: currentURL.search,
+                    hash: currentURL.hash,
+                },
+                {
+                    shallow: true,
+                }
+            );
+        }
+
+        const main = async () => {
+            try {
+                const worker = await new CryptoWorker();
+                url.current = window.location.href;
+                const currentURL = new URL(url.current);
+                const t = currentURL.searchParams.get('t');
+                const ck = currentURL.hash.slice(1);
+                if (!t || !ck) {
+                    return;
+                }
+                const dck =
+                    ck.length < 50
+                        ? await worker.toB64(bs58.decode(ck))
+                        : await worker.fromHex(ck);
+                token.current = t;
+                collectionKey.current = dck;
+                url.current = window.location.href;
+                const localCollection = await getLocalPublicCollection(
+                    collectionKey.current
+                );
+                if (localCollection) {
+                    setPublicCollection(localCollection);
+                    const collectionUID = getPublicCollectionUID(token.current);
+                    const localFiles = await getLocalPublicFiles(collectionUID);
+                    const localPublicFiles = sortFiles(
+                        mergeMetadata(localFiles)
+                    );
+                    setPublicFiles(localPublicFiles);
+                    passwordJWTToken.current =
+                        await getLocalPublicCollectionPassword(collectionUID);
+                }
+                await syncWithRemote();
+            } finally {
+                setLoading(false);
+            }
+        };
+        main();
+    }, [router, syncWithRemote]);
+
+    useEffect(
+        () =>
+            publicCollection &&
+            publicFiles &&
+            setPhotoListHeader({
+                item: (
+                    <CollectionInfoBarWrapper>
+                        <CollectionInfo
+                            name={publicCollection.name}
+                            fileCount={publicFiles.length}
+                        />
+                    </CollectionInfoBarWrapper>
+                ),
+                itemType: ITEM_TYPE.OTHER,
+                height: 68,
+            }),
+        [publicCollection, publicFiles]
+    );
 
     const verifyLinkPassword: SingleInputFormProps['callback'] = async (
         password,

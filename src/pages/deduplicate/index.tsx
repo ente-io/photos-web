@@ -2,7 +2,13 @@ import constants from 'utils/strings/constants';
 import PhotoFrame from 'components/PhotoFrame';
 import { ALL_SECTION } from 'constants/collection';
 import { AppContext } from 'pages/_app';
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, {
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useState,
+} from 'react';
 import {
     getDuplicateFiles,
     clubDuplicatesByTime,
@@ -54,22 +60,8 @@ export default function Deduplicate() {
     const closeDeduplication = function () {
         Router.push(PAGES.GALLERY);
     };
-    useEffect(() => {
-        const key = getKey(SESSION_KEYS.ENCRYPTION_KEY);
-        if (!key) {
-            setRedirectURL(router.asPath);
-            router.push(PAGES.ROOT);
-            return;
-        }
-        showNavBar(true);
-        setDuplicateFiles([]);
-    }, []);
 
-    useEffect(() => {
-        syncWithRemote();
-    }, [clubSameTimeFilesOnly]);
-
-    const syncWithRemote = async () => {
+    const syncWithRemote = useCallback(async () => {
         startLoading();
         const collections = await syncCollections();
         const collectionNameMap = new Map<number, string>();
@@ -109,7 +101,22 @@ export default function Deduplicate() {
         }
         setSelected(selectedFiles);
         finishLoading();
-    };
+    }, [clubSameTimeFilesOnly, finishLoading, startLoading]);
+
+    useEffect(() => {
+        const key = getKey(SESSION_KEYS.ENCRYPTION_KEY);
+        if (!key) {
+            setRedirectURL(router.asPath);
+            router.push(PAGES.ROOT);
+            return;
+        }
+        showNavBar(true);
+        setDuplicateFiles([]);
+    }, [setRedirectURL, showNavBar]);
+
+    useEffect(() => {
+        syncWithRemote();
+    }, [clubSameTimeFilesOnly, syncWithRemote]);
 
     const deleteFileHelper = async () => {
         try {

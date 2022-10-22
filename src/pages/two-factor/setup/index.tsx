@@ -39,7 +39,7 @@ export default function SetupTwoFactor() {
             }
         };
         main();
-    }, []);
+    }, [twoFactorSecret]);
 
     const onSubmit: VerifyTwoFactorCallback = async (
         otp: string,
