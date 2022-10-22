@@ -293,6 +293,7 @@ export default function PreviewCard(props: IProps) {
             onClick={handleClick}
             onMouseEnter={handleHover}
             disabled={!file?.msrc && !imgSrc}
+            // eslint-disable-next-line react-hooks/rules-of-hooks
             {...(selectable ? useLongPress(longPressCallback, 500) : {})}>
             {selectable && (
                 <Check
