@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "albums": "next dev -p 3002",
-    "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
+    "lint": "next lint",
     "prebuild": "yarn lint",
     "build": "next build",
     "postbuild": "next export",
