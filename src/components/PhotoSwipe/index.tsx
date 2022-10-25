@@ -28,6 +28,9 @@ import InfoIcon from '@mui/icons-material/InfoOutlined';
 import FavoriteIcon from '@mui/icons-material/FavoriteRounded';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorderRounded';
 import ChevronRight from '@mui/icons-material/ChevronRight';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { trashFiles } from 'services/fileService';
+import { getTrashFileMessage } from 'utils/ui';
 
 interface Iprops {
     isOpen: boolean;
@@ -38,6 +41,8 @@ interface Iprops {
     id?: string;
     className?: string;
     favItemIds: Set<number>;
+    deletedFileIds: Set<number>;
+    setDeletedFileIds?: (value: Set<number>) => void;
     isSharedCollection: boolean;
     isTrashCollection: boolean;
     enableDownload: boolean;
@@ -262,14 +267,33 @@ function PhotoSwipe(props: Iprops) {
         needUpdate.current = true;
     };
 
+    const trashFile = async (file: EnteFile) => {
+        const { deletedFileIds, setDeletedFileIds } = props;
+        deletedFileIds.add(file.id);
+        setDeletedFileIds(new Set(deletedFileIds));
+        await trashFiles([file]);
+        needUpdate.current = true;
+    };
+
+    const confirmTrashFile = (file: EnteFile) =>
+        appContext.setDialogMessage(getTrashFileMessage(() => trashFile(file)));
+
     const updateItems = (items = []) => {
         if (photoSwipe) {
+            if (items.length === 0) {
+                photoSwipe.close();
+            }
             photoSwipe.items.length = 0;
             items.forEach((item) => {
                 photoSwipe.items.push(item);
             });
             photoSwipe.invalidateCurrItems();
-            // photoSwipe.updateSize(true);
+            if (isOpen) {
+                photoSwipe.updateSize(true);
+                if (photoSwipe.getCurrentIndex() >= photoSwipe.items.length) {
+                    photoSwipe.goTo(0);
+                }
+            }
         }
     };
 
@@ -357,6 +381,19 @@ function PhotoSwipe(props: Iprops) {
                                 className="pswp__button pswp__button--close"
                                 title={constants.CLOSE}
                             />
+                            {!props.isSharedCollection &&
+                                !props.isTrashCollection && (
+                                    <button
+                                        className="pswp__button pswp__button--custom"
+                                        title={constants.DELETE}
+                                        onClick={() => {
+                                            confirmTrashFile(
+                                                photoSwipe?.currItem as EnteFile
+                                            );
+                                        }}>
+                                        <DeleteIcon fontSize="small" />
+                                    </button>
+                                )}
 
                             {props.enableDownload && (
                                 <button
@@ -379,6 +416,11 @@ function PhotoSwipe(props: Iprops) {
                             {!props.isSharedCollection &&
                                 !props.isTrashCollection && (
                                     <button
+                                        title={
+                                            isFav
+                                                ? constants.UNFAVORITE
+                                                : constants.FAVORITE
+                                        }
                                         className="pswp__button pswp__button--custom"
                                         onClick={() => {
                                             onFavClick(photoSwipe?.currItem);
@@ -390,6 +432,7 @@ function PhotoSwipe(props: Iprops) {
                                         )}
                                     </button>
                                 )}
+
                             {!props.isSharedCollection && (
                                 <button
                                     className="pswp__button pswp__button--custom"

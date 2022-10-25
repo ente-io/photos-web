@@ -180,7 +180,9 @@ export default function Gallery() {
         useState<SearchResultSummary>(null);
     const syncInProgress = useRef(true);
     const resync = useRef(false);
-    const [deleted, setDeleted] = useState<number[]>([]);
+    const [deletedFileIds, setDeletedFileIds] = useState<Set<number>>(
+        new Set<number>()
+    );
     const { startLoading, finishLoading, setDialogMessage, ...appContext } =
         useContext(AppContext);
     const [collectionSummaries, setCollectionSummaries] =
@@ -241,10 +243,10 @@ export default function Gallery() {
             }
             setIsFirstLogin(false);
             const user = getData(LS_KEYS.USER);
-            const files = mergeMetadata(await getLocalFiles());
+            let files = mergeMetadata(await getLocalFiles());
             const collections = await getLocalCollections();
             const trash = await getLocalTrash();
-            files.push(...getTrashedFiles(trash));
+            files = [...files, ...getTrashedFiles(trash)];
             setUser(user);
             setFiles(sortFiles(files));
             setCollections(collections);
@@ -341,9 +343,9 @@ export default function Gallery() {
             !silent && startLoading();
             const collections = await syncCollections();
             setCollections(collections);
-            const files = await syncFiles(collections, setFiles);
+            let files = await syncFiles(collections, setFiles);
             const trash = await syncTrash(collections, setFiles, files);
-            files.push(...getTrashedFiles(trash));
+            files = [...files, ...getTrashedFiles(trash)];
         } catch (e) {
             logError(e, 'syncWithRemote failed');
             switch (e.message) {
@@ -490,12 +492,12 @@ export default function Gallery() {
         startLoading();
         try {
             const selectedFiles = getSelectedFiles(selected, files);
+            setDeletedFileIds((deletedFileIds) => {
+                selectedFiles.forEach((file) => deletedFileIds.add(file.id));
+                return new Set(deletedFileIds);
+            });
             if (permanent) {
                 await deleteFromTrash(selectedFiles.map((file) => file.id));
-                setDeleted([
-                    ...deleted,
-                    ...selectedFiles.map((file) => file.id),
-                ]);
             } else {
                 await trashFiles(selectedFiles);
             }
@@ -698,7 +700,8 @@ export default function Gallery() {
                     openUploader={openUploader}
                     isInSearchMode={isInSearchMode}
                     search={search}
-                    deleted={deleted}
+                    deletedFileIds={deletedFileIds}
+                    setDeletedFileIds={setDeletedFileIds}
                     activeCollection={activeCollection}
                     isSharedCollection={isSharedCollection(
                         activeCollection,

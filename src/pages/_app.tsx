@@ -13,7 +13,6 @@ import { getData, LS_KEYS } from 'utils/storage/localStorage';
 import HTTPService from 'services/HTTPService';
 import FlashMessageBar from 'components/FlashMessageBar';
 import Head from 'next/head';
-import { addLogLine } from 'utils/logging';
 import LoadingBar from 'react-top-loading-bar';
 import DialogBox from 'components/DialogBox';
 import { styled, ThemeProvider } from '@mui/material/styles';
@@ -27,6 +26,8 @@ import {
     getRoadmapRedirectURL,
 } from 'services/userService';
 import { CustomError } from 'utils/error';
+import { clearLogsIfLocalStorageLimitExceeded } from 'utils/logging';
+import isElectron from 'is-electron';
 
 export const MessageContainer = styled('div')`
     background-color: #111;
@@ -109,7 +110,7 @@ export default function App({ Component, err }) {
         // const wb = new Workbox('sw.js', { scope: '/' });
         // wb.register();
 
-        if ('serviceWorker' in navigator) {
+        if ('serviceWorker' in navigator && !isElectron()) {
             navigator.serviceWorker.onmessage = (event) => {
                 if (event.data.action === 'upload-files') {
                     const files = event.data.files;
@@ -124,7 +125,9 @@ export default function App({ Component, err }) {
                     }
                 });
         }
+    }, []);
 
+    useEffect(() => {
         HTTPService.getInterceptors().response.use(
             (resp) => resp,
             (error) => {
@@ -132,6 +135,7 @@ export default function App({ Component, err }) {
                 return Promise.reject(error);
             }
         );
+        clearLogsIfLocalStorageLimitExceeded();
     }, []);
 
     const setUserOnline = () => setOffline(false);
@@ -205,10 +209,6 @@ export default function App({ Component, err }) {
         };
     }, [redirectName]);
 
-    useEffect(() => {
-        addLogLine(`app started`);
-    }, []);
-
     useEffect(() => setMessageDialogView(true), [dialogMessage]);
 
     const showNavBar = (show: boolean) => setShowNavBar(show);
@@ -239,7 +239,7 @@ export default function App({ Component, err }) {
             </Head>
 
             <ThemeProvider theme={darkThemeOptions}>
-                <CssBaseline />
+                <CssBaseline enableColorScheme />
                 {showNavbar && <AppNavbar />}
                 <MessageContainer>
                     {offline && constants.OFFLINE_MSG}
@@ -265,6 +265,7 @@ export default function App({ Component, err }) {
                 <LoadingBar color="#51cd7c" ref={loadingBar} />
 
                 <DialogBox
+                    sx={{ zIndex: 1600 }}
                     size="xs"
                     open={messageDialogView}
                     onClose={closeMessageDialog}
