@@ -33,6 +33,9 @@ module.exports = (phase) =>
         withWorkbox(
             withBundleAnalyzer(
                 withTM({
+                    images: {
+                        unoptimized: true,
+                    },
                     compiler: {
                         styledComponents: {
                             ssr: true,
