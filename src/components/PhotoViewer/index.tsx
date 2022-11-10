@@ -9,7 +9,6 @@ import {
 import { EnteFile } from 'types/file';
 import constants from 'utils/strings/constants';
 import exifr from 'exifr';
-import events from './events';
 import { downloadFile } from 'utils/file';
 import { prettyPrintExif } from 'utils/exif';
 import { livePhotoBtnHTML } from 'components/LivePhotoBtn';
@@ -21,7 +20,10 @@ import { playVideo, pauseVideo } from 'utils/photoFrame';
 import { PublicCollectionGalleryContext } from 'utils/publicCollectionGallery';
 import { AppContext } from 'pages/_app';
 import { FileInfo } from './InfoDialog';
-import { defaultLivePhotoDefaultOptions } from 'constants/photoswipe';
+import {
+    defaultLivePhotoDefaultOptions,
+    photoSwipeV4Events,
+} from 'constants/photoViewer';
 import { LivePhotoBtn } from './styledComponents/LivePhotoBtn';
 import DownloadIcon from '@mui/icons-material/Download';
 import InfoIcon from '@mui/icons-material/InfoOutlined';
@@ -31,7 +33,19 @@ import ChevronRight from '@mui/icons-material/ChevronRight';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { trashFiles } from 'services/fileService';
 import { getTrashFileMessage } from 'utils/ui';
+import { ChevronLeft } from '@mui/icons-material';
+import { styled } from '@mui/material';
 
+const CaptionContainer = styled('div')(({ theme }) => ({
+    padding: theme.spacing(2),
+    wordBreak: 'break-word',
+    textAlign: 'right',
+    maxWidth: '375px',
+    fontSize: '14px',
+    lineHeight: '17px',
+    backgroundColor: theme.palette.backdrop.light,
+    backdropFilter: `blur(${theme.palette.blur.base})`,
+}));
 interface Iprops {
     isOpen: boolean;
     items: any[];
@@ -49,7 +63,7 @@ interface Iprops {
     isSourceLoaded: boolean;
 }
 
-function PhotoSwipe(props: Iprops) {
+function PhotoViewer(props: Iprops) {
     const pswpElement = useRef<HTMLDivElement>();
     const [photoSwipe, setPhotoSwipe] =
         useState<Photoswipe<Photoswipe.Options>>();
@@ -203,7 +217,7 @@ function PhotoSwipe(props: Iprops) {
             items,
             options
         );
-        events.forEach((event) => {
+        photoSwipeV4Events.forEach((event) => {
             const callback = props[event];
             if (callback || event === 'destroy') {
                 photoSwipe.listen(event, function (...args) {
@@ -294,6 +308,13 @@ function PhotoSwipe(props: Iprops) {
                     photoSwipe.goTo(0);
                 }
             }
+        }
+    };
+
+    const refreshPhotoswipe = () => {
+        photoSwipe.invalidateCurrItems();
+        if (isOpen) {
+            photoSwipe.updateSize(true);
         }
     };
 
@@ -454,20 +475,16 @@ function PhotoSwipe(props: Iprops) {
                         </div>
                         <button
                             className="pswp__button pswp__button--arrow--left"
-                            title={constants.PREVIOUS}
-                            onClick={photoSwipe?.prev}>
-                            <ChevronRight
-                                sx={{ transform: 'rotate(180deg)' }}
-                            />
+                            title={constants.PREVIOUS}>
+                            <ChevronLeft sx={{ pointerEvents: 'none' }} />
                         </button>
                         <button
                             className="pswp__button pswp__button--arrow--right"
-                            title={constants.NEXT}
-                            onClick={photoSwipe?.next}>
-                            <ChevronRight />
+                            title={constants.NEXT}>
+                            <ChevronRight sx={{ pointerEvents: 'none' }} />
                         </button>
-                        <div className="pswp__caption">
-                            <div />
+                        <div className="pswp__caption pswp-custom-caption-container">
+                            <CaptionContainer />
                         </div>
                     </div>
                 </div>
@@ -481,9 +498,10 @@ function PhotoSwipe(props: Iprops) {
                 metadata={metadata}
                 exif={exif}
                 scheduleUpdate={scheduleUpdate}
+                refreshPhotoswipe={refreshPhotoswipe}
             />
         </>
     );
 }
 
-export default PhotoSwipe;
+export default PhotoViewer;
