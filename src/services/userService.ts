@@ -2,7 +2,7 @@ import { PAGES } from 'constants/pages';
 import { getEndpoint, getFamilyPortalURL } from 'utils/common/apiUtil';
 import { clearKeys } from 'utils/storage/sessionStorage';
 import router from 'next/router';
-import { clearData, getData, LS_KEYS } from 'utils/storage/localStorage';
+import { clearData, getData } from 'utils/storage/localStorage';
 import localForage from 'utils/storage/localForage';
 import { getToken } from 'utils/common/key';
 import HTTPService from './HTTPService';
@@ -158,7 +158,7 @@ export const isTokenValid = async () => {
                 try {
                     await putAttributes(
                         getToken(),
-                        getData(LS_KEYS.ORIGINAL_KEY_ATTRIBUTES)
+                        getData('ORIGINAL_KEY_ATTRIBUTES')
                     );
                 } catch (e) {
                     logError(e, 'put attribute failed');

@@ -8,7 +8,7 @@ import 'photoswipe/dist/photoswipe.css';
 import 'styles/global.css';
 import EnteSpinner from 'components/EnteSpinner';
 import { logError } from '../utils/sentry';
-import { getData, LS_KEYS } from 'utils/storage/localStorage';
+import { getDat } from 'utils/storage/localStorage';
 import HTTPService from 'services/HTTPService';
 import FlashMessageBar from 'components/FlashMessageBar';
 import Head from 'next/head';
@@ -43,7 +43,6 @@ import {
 import ArrowForward from '@mui/icons-material/ArrowForward';
 import { AppUpdateInfo } from 'types/electron';
 import { getSentryUserID } from 'utils/user';
-import { User } from 'types/user';
 
 export const MessageContainer = styled('div')`
     background-color: #111;
@@ -130,7 +129,7 @@ export default function App({ Component, err }) {
         );
         clearLogsIfLocalStorageLimitExceeded();
         const main = async () => {
-            addLogLine(`userID: ${(getData(LS_KEYS.USER) as User)?.id}`);
+            addLogLine(`userID: ${getData('USER')?.id}`);
             addLogLine(`sentryID: ${await getSentryUserID()}`);
             addLogLine(`sentry release ID: ${process.env.SENTRY_RELEASE}`);
         };
@@ -191,7 +190,7 @@ export default function App({ Component, err }) {
         const query = new URLSearchParams(window.location.search);
         const redirectName = query.get('redirect');
         if (redirectName) {
-            const user = getData(LS_KEYS.USER);
+            const user = getData('USER');
             if (user?.token) {
                 redirectTo(redirectName);
             } else {
@@ -205,7 +204,7 @@ export default function App({ Component, err }) {
             }
 
             if (redirectName) {
-                const user = getData(LS_KEYS.USER);
+                const user = getData('USER');
                 if (user?.token) {
                     redirectTo(redirectName);
 

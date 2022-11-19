@@ -2,7 +2,7 @@ import constants from 'utils/strings/constants';
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { sendOtt } from 'services/userService';
-import { setData, LS_KEYS, getData } from 'utils/storage/localStorage';
+import { setData, getData } from 'utils/storage/localStorage';
 import { PAGES } from 'constants/pages';
 import FormPaperTitle from './Form/FormPaper/Title';
 import FormPaperFooter from './Form/FormPaper/Footer';
@@ -20,7 +20,7 @@ export default function Login(props: LoginProps) {
     useEffect(() => {
         const main = async () => {
             router.prefetch(PAGES.VERIFY);
-            const user = getData(LS_KEYS.USER);
+            const user = getData('USER');
             if (user?.email) {
                 await router.push(PAGES.VERIFY);
             }
@@ -34,7 +34,7 @@ export default function Login(props: LoginProps) {
     ) => {
         try {
             await sendOtt(email);
-            setData(LS_KEYS.USER, { email });
+            setData('PRE_LOGIN_USER', { email });
             router.push(PAGES.VERIFY);
         } catch (e) {
             setFieldError(`${constants.UNKNOWN_ERROR} ${e.message}`);

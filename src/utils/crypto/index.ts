@@ -2,7 +2,7 @@ import { KEK, KeyAttributes } from 'types/user';
 import * as Comlink from 'comlink';
 import { runningInBrowser } from 'utils/common';
 import { SESSION_KEYS, setKey } from 'utils/storage/sessionStorage';
-import { getData, LS_KEYS, setData } from 'utils/storage/localStorage';
+import { getData, setData } from 'utils/storage/localStorage';
 import { getActualKey, getToken } from 'utils/common/key';
 import { setRecoveryKey } from 'services/userService';
 import { logError } from 'utils/sentry';
@@ -90,7 +90,7 @@ export async function generateAndSaveIntermediateKeyAttributes(
         opsLimit: intermediateKek.opsLimit,
         memLimit: intermediateKek.memLimit,
     });
-    setData(LS_KEYS.KEY_ATTRIBUTES, intermediateKeyAttributes);
+    setData('KEY_ATTRIBUTES', intermediateKeyAttributes);
     return intermediateKeyAttributes;
 }
 
@@ -112,7 +112,7 @@ export const getRecoveryKey = async () => {
     try {
         const cryptoWorker = await new CryptoWorker();
 
-        const keyAttributes: KeyAttributes = getData(LS_KEYS.KEY_ATTRIBUTES);
+        const keyAttributes: KeyAttributes = getData('KEY_ATTRIBUTES');
         const {
             recoveryKeyEncryptedWithMasterKey,
             recoveryKeyDecryptionNonce,
@@ -137,7 +137,7 @@ export const getRecoveryKey = async () => {
 
 async function createNewRecoveryKey() {
     const masterKey = await getActualKey();
-    const existingAttributes = getData(LS_KEYS.KEY_ATTRIBUTES);
+    const existingAttributes = getData('KEY_ATTRIBUTES');
 
     const cryptoWorker = await new CryptoWorker();
 
@@ -158,14 +158,14 @@ async function createNewRecoveryKey() {
         existingAttributes,
         recoveryKeyAttributes
     );
-    setData(LS_KEYS.KEY_ATTRIBUTES, updatedKeyAttributes);
+    setData('KEY_ATTRIBUTES', updatedKeyAttributes);
 
     return recoveryKey;
 }
 export async function decryptAndStoreToken(masterKey: string) {
     const cryptoWorker = await new CryptoWorker();
-    const user = getData(LS_KEYS.USER);
-    const keyAttributes = getData(LS_KEYS.KEY_ATTRIBUTES);
+    const user = getData('USER');
+    const keyAttributes = getData('KEY_ATTRIBUTES');
     let decryptedToken = null;
     const { encryptedToken } = user;
     if (encryptedToken && encryptedToken.length > 0) {
@@ -183,7 +183,7 @@ export async function decryptAndStoreToken(masterKey: string) {
             URLUnsafeB64DecryptedToken
         );
         decryptedToken = await cryptoWorker.toURLSafeB64(decryptedTokenBytes);
-        setData(LS_KEYS.USER, {
+        setData('USER', {
             ...user,
             token: decryptedToken,
             encryptedToken: null,
@@ -207,7 +207,7 @@ export async function decryptDeleteAccountChallenge(
 ) {
     const cryptoWorker = await new CryptoWorker();
     const masterKey = await getActualKey();
-    const keyAttributes = getData(LS_KEYS.KEY_ATTRIBUTES);
+    const keyAttributes = getData('KEY_ATTRIBUTES');
     const secretKey = await cryptoWorker.decryptB64(
         keyAttributes.encryptedSecretKey,
         keyAttributes.secretKeyDecryptionNonce,

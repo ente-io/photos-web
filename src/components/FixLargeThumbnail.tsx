@@ -7,7 +7,7 @@ import {
     getLargeThumbnailFiles,
     replaceThumbnail,
 } from 'services/migrateThumbnailService';
-import { getData, LS_KEYS, setData } from 'utils/storage/localStorage';
+import { getData, setData } from 'utils/storage/localStorage';
 import { logError } from 'utils/sentry';
 
 export type SetProgressTracker = React.Dispatch<
@@ -63,7 +63,7 @@ export default function FixLargeThumbnails(props: Props) {
     );
 
     const init = (): FIX_STATE => {
-        let fixState = getData(LS_KEYS.THUMBNAIL_FIX_STATE)?.state;
+        let fixState = getData('THUMBNAIL_FIX_STATE')?.state;
         if (!fixState || fixState === FIX_STATE.RUNNING) {
             fixState = FIX_STATE.NOT_STARTED;
             updateFixState(fixState);
@@ -133,7 +133,7 @@ export default function FixLargeThumbnails(props: Props) {
 
     const updateFixState = (fixState: FIX_STATE) => {
         setFixState(fixState);
-        setData(LS_KEYS.THUMBNAIL_FIX_STATE, { state: fixState });
+        setData('THUMBNAIL_FIX_STATE', { state: fixState });
     };
     return (
         <DialogBox

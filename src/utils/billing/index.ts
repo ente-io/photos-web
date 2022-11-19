@@ -3,7 +3,7 @@ import billingService from 'services/billingService';
 import { Plan, Subscription } from 'types/billing';
 import { NextRouter } from 'next/router';
 import { SetLoading } from 'types/gallery';
-import { getData, LS_KEYS } from '../storage/localStorage';
+import { getData } from '../storage/localStorage';
 import { CustomError } from '../error';
 import { logError } from '../sentry';
 import { SetDialogBoxAttributes } from 'types/dialogBox';
@@ -111,7 +111,7 @@ export function hasNonAdminFamilyMembers(familyData: FamilyData): boolean {
 
 export function isFamilyAdmin(familyData: FamilyData): boolean {
     const familyAdmin: FamilyMember = getFamilyPlanAdmin(familyData);
-    const user: User = getData(LS_KEYS.USER);
+    const user: User = getData('USER');
     return familyAdmin.email === user.email;
 }
 
@@ -136,11 +136,11 @@ export function getTotalFamilyUsage(familyData: FamilyData): number {
 }
 
 export function getLocalUserSubscription(): Subscription {
-    return getData(LS_KEYS.SUBSCRIPTION);
+    return getData('SUBSCRIPTION');
 }
 
 export function getLocalFamilyData(): FamilyData {
-    return getData(LS_KEYS.FAMILY_DATA);
+    return getData('FAMILY_DATA');
 }
 
 export function isUserSubscribedPlan(plan: Plan, subscription: Subscription) {

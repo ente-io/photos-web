@@ -6,7 +6,7 @@ import React, { useContext } from 'react';
 import { shareCollection } from 'services/collectionService';
 import { User } from 'types/user';
 import { handleSharingErrors } from 'utils/error/ui';
-import { getData, LS_KEYS } from 'utils/storage/localStorage';
+import { getData } from 'utils/storage/localStorage';
 import constants from 'utils/strings/constants';
 import { CollectionShareSharees } from './sharees';
 
@@ -18,7 +18,7 @@ export default function EmailShare({ collection }) {
         setFieldError
     ) => {
         try {
-            const user: User = getData(LS_KEYS.USER);
+            const user: User = getData('USER');
             if (email === user.email) {
                 setFieldError(constants.SHARE_WITH_SELF);
             } else if (

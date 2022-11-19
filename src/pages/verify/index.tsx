@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import constants from 'utils/strings/constants';
-import { LS_KEYS, getData, setData } from 'utils/storage/localStorage';
+import { getData, setData } from 'utils/storage/localStorage';
 import { useRouter } from 'next/router';
 import {
     verifyOtt,
@@ -37,10 +37,8 @@ export default function Verify() {
             router.prefetch(PAGES.TWO_FACTOR_VERIFY);
             router.prefetch(PAGES.CREDENTIALS);
             router.prefetch(PAGES.GENERATE);
-            const user: User = getData(LS_KEYS.USER);
-            const keyAttributes: KeyAttributes = getData(
-                LS_KEYS.KEY_ATTRIBUTES
-            );
+            const user: User = getData('USER');
+            const keyAttributes: KeyAttributes = getData('KEY_ATTRIBUTES');
             if (!user?.email) {
                 router.push(PAGES.ROOT);
             } else if (
@@ -70,7 +68,7 @@ export default function Verify() {
                 twoFactorSessionID,
             } = resp.data as EmailVerificationResponse;
             if (twoFactorSessionID) {
-                setData(LS_KEYS.USER, {
+                setData('USER', {
                     email,
                     twoFactorSessionID,
                     isTwoFactorEnabled: true,
@@ -78,7 +76,7 @@ export default function Verify() {
                 setIsFirstLogin(true);
                 router.push(PAGES.TWO_FACTOR_VERIFY);
             } else {
-                setData(LS_KEYS.USER, {
+                setData('USER', {
                     email,
                     token,
                     encryptedToken,
@@ -86,12 +84,12 @@ export default function Verify() {
                     isTwoFactorEnabled: false,
                 });
                 if (keyAttributes) {
-                    setData(LS_KEYS.KEY_ATTRIBUTES, keyAttributes);
-                    setData(LS_KEYS.ORIGINAL_KEY_ATTRIBUTES, keyAttributes);
-                } else if (getData(LS_KEYS.ORIGINAL_KEY_ATTRIBUTES)) {
+                    setData('KEY_ATTRIBUTES', keyAttributes);
+                    setData('ORIGINAL_KEY_ATTRIBUTES', keyAttributes);
+                } else if (getData('ORIGINAL_KEY_ATTRIBUTES')) {
                     await putAttributes(
                         token,
-                        getData(LS_KEYS.ORIGINAL_KEY_ATTRIBUTES)
+                        getData('ORIGINAL_KEY_ATTRIBUTES')
                     );
                 }
                 clearFiles();

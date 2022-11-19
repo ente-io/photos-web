@@ -97,7 +97,7 @@ import { ITEM_TYPE, TimeStampListItem } from 'components/PhotoList';
 import UploadInputs from 'components/UploadSelectorInputs';
 import useFileInput from 'hooks/useFileInput';
 import { User } from 'types/user';
-import { getData, LS_KEYS } from 'utils/storage/localStorage';
+import { getData } from 'utils/storage/localStorage';
 import { CenteredFlex } from 'components/Container';
 import { checkConnectivity } from 'utils/error/ui';
 
@@ -233,7 +233,7 @@ export default function Gallery() {
                 setPlanModalView(true);
             }
             setIsFirstLogin(false);
-            const user = getData(LS_KEYS.USER);
+            const user = getData('USER');
             let files = mergeMetadata(await getLocalFiles());
             const collections = await getLocalCollections();
             const trash = await getLocalTrash();

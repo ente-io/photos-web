@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import constants from 'utils/strings/constants';
 import { logoutUser, putAttributes } from 'services/userService';
-import { getData, LS_KEYS } from 'utils/storage/localStorage';
+import { getData } from 'utils/storage/localStorage';
 import { useRouter } from 'next/router';
 import { getKey, SESSION_KEYS } from 'utils/storage/sessionStorage';
 import {
@@ -33,11 +33,11 @@ export default function Generate() {
         const main = async () => {
             const key: string = getKey(SESSION_KEYS.ENCRYPTION_KEY);
             const keyAttributes: KeyAttributes = getData(
-                LS_KEYS.ORIGINAL_KEY_ATTRIBUTES
+                'ORIGINAL_KEY_ATTRIBUTES'
             );
             router.prefetch(PAGES.GALLERY);
             router.prefetch(PAGES.CREDENTIALS);
-            const user: User = getData(LS_KEYS.USER);
+            const user: User = getData('USER');
             setUser(user);
             if (!user?.token) {
                 router.push(PAGES.ROOT);

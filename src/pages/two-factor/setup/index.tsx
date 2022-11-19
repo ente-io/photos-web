@@ -7,7 +7,7 @@ import VerifyTwoFactor, {
     VerifyTwoFactorCallback,
 } from 'components/TwoFactor/VerifyForm';
 import { encryptWithRecoveryKey } from 'utils/crypto';
-import { setData, LS_KEYS, getData } from 'utils/storage/localStorage';
+import { setData, getData } from 'utils/storage/localStorage';
 import { PAGES } from 'constants/pages';
 import { TwoFactorSecret } from 'types/user';
 import Card from '@mui/material/Card';
@@ -50,8 +50,8 @@ export default function SetupTwoFactor() {
         );
         await enableTwoFactor(otp, recoveryEncryptedTwoFactorSecret);
         await markSuccessful();
-        setData(LS_KEYS.USER, {
-            ...getData(LS_KEYS.USER),
+        setData('USER', {
+            ...getData('USER'),
             isTwoFactorEnabled: true,
         });
         router.push(PAGES.GALLERY);

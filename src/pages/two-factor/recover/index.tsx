@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import constants from 'utils/strings/constants';
-import { getData, LS_KEYS, setData } from 'utils/storage/localStorage';
+import { getData, setData } from 'utils/storage/localStorage';
 import { useRouter } from 'next/router';
 import CryptoWorker, { B64EncryptionResult } from 'utils/crypto';
 import SingleInputForm, {
@@ -28,7 +28,7 @@ export default function Recover() {
 
     useEffect(() => {
         router.prefetch(PAGES.GALLERY);
-        const user = getData(LS_KEYS.USER);
+        const user = getData('USER');
         if (!user.isTwoFactorEnabled && (user.encryptedToken || user.token)) {
             router.push(PAGES.GENERATE);
         } else if (!user.email || !user.twoFactorSessionID) {
@@ -67,14 +67,14 @@ export default function Recover() {
             );
             const resp = await removeTwoFactor(sessionID, twoFactorSecret);
             const { keyAttributes, encryptedToken, token, id } = resp;
-            setData(LS_KEYS.USER, {
-                ...getData(LS_KEYS.USER),
+            setData('USER', {
+                ...getData('USER'),
                 token,
                 encryptedToken,
                 id,
                 isTwoFactorEnabled: false,
             });
-            setData(LS_KEYS.KEY_ATTRIBUTES, keyAttributes);
+            setData('KEY_ATTRIBUTES', keyAttributes);
             router.push(PAGES.CREDENTIALS);
         } catch (e) {
             logError(e, 'two factor recovery failed');

@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 
 import constants from 'utils/strings/constants';
-import { getData, LS_KEYS } from 'utils/storage/localStorage';
+import { getData } from 'utils/storage/localStorage';
 import { AppContext } from 'pages/_app';
 import { KeyAttributes, User } from 'types/user';
 import VerifyMasterPasswordForm, {
@@ -35,12 +35,12 @@ export default function AuthenticateUserModal({
     useEffect(() => {
         const main = async () => {
             try {
-                const user = getData(LS_KEYS.USER);
+                const user = getData('USER');
                 if (!user) {
                     throw Error('User not found');
                 }
                 setUser(user);
-                const keyAttributes = getData(LS_KEYS.KEY_ATTRIBUTES);
+                const keyAttributes = getData('KEY_ATTRIBUTES');
                 if (
                     (!user?.token && !user?.encryptedToken) ||
                     (keyAttributes && !keyAttributes.memLimit)

@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useMemo, useState } from 'react';
 import SubscriptionCard from './SubscriptionCard';
 import { getUserDetailsV2 } from 'services/userService';
 import { UserDetails } from 'types/user';
-import { getData, LS_KEYS, setData } from 'utils/storage/localStorage';
+import { getData, setData } from 'utils/storage/localStorage';
 import { useLocalState } from 'hooks/useLocalState';
 import Typography from '@mui/material/Typography';
 import SubscriptionStatus from './SubscriptionStatus';
@@ -14,9 +14,8 @@ import { isPartOfFamily, isFamilyAdmin } from 'utils/billing';
 export default function UserDetailsSection({ sidebarView }) {
     const galleryContext = useContext(GalleryContext);
 
-    const [userDetails, setUserDetails] = useLocalState<UserDetails>(
-        LS_KEYS.USER_DETAILS
-    );
+    const [userDetails, setUserDetails] =
+        useLocalState<UserDetails>('USER_DETAILS');
     const [memberSubscriptionManageView, setMemberSubscriptionManageView] =
         useState(false);
 
@@ -32,10 +31,10 @@ export default function UserDetailsSection({ sidebarView }) {
         const main = async () => {
             const userDetails = await getUserDetailsV2();
             setUserDetails(userDetails);
-            setData(LS_KEYS.SUBSCRIPTION, userDetails.subscription);
-            setData(LS_KEYS.FAMILY_DATA, userDetails.familyData);
-            setData(LS_KEYS.USER, {
-                ...getData(LS_KEYS.USER),
+            setData('SUBSCRIPTION', userDetails.subscription);
+            setData('FAMILY_DATA', userDetails.familyData);
+            setData('USER', {
+                ...getData('USER'),
                 email: userDetails.email,
             });
         };

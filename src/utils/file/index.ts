@@ -11,7 +11,7 @@ import DownloadManager from 'services/downloadManager';
 import { logError } from 'utils/sentry';
 import { User } from 'types/user';
 import CryptoWorker from 'utils/crypto';
-import { getData, LS_KEYS } from 'utils/storage/localStorage';
+import { getData } from 'utils/storage/localStorage';
 import { updateFileCreationDateInEXIF } from 'services/upload/exifService';
 import {
     TYPE_JPEG,
@@ -473,7 +473,7 @@ export function getUniqueFiles(files: EnteFile[]) {
     });
 }
 export function getNonTrashedUniqueUserFiles(files: EnteFile[]) {
-    const user: User = getData(LS_KEYS.USER) ?? {};
+    const user = getData('USER');
     return getUniqueFiles(
         files.filter(
             (file) =>
@@ -520,7 +520,7 @@ export const createTypedObjectURL = async (blob: Blob, fileName: string) => {
 };
 
 export const getUserOwnedNonTrashedFiles = (files: EnteFile[]) => {
-    const user: User = getData(LS_KEYS.USER);
+    const user: User = getData('USER');
     if (!user?.id) {
         throw Error('user missing');
     }

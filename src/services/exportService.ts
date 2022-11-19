@@ -21,7 +21,7 @@ import {
 } from 'utils/export';
 import { retryAsyncFunction } from 'utils/network';
 import { logError } from 'utils/sentry';
-import { getData, LS_KEYS } from 'utils/storage/localStorage';
+import { getData } from 'utils/storage/localStorage';
 import {
     getLocalCollections,
     getNonEmptyCollections,
@@ -60,9 +60,9 @@ class ExportService {
 
     private exportInProgress: Promise<{ paused: boolean }> = null;
     private exportRecordUpdater = new QueueProcessor<void>(1);
-    private stopExport: boolean = false;
-    private pauseExport: boolean = false;
-    private allElectronAPIsExist: boolean = false;
+    private stopExport = false;
+    private pauseExport = false;
+    private allElectronAPIsExist = false;
     private fileReader: FileReader = null;
 
     constructor() {
@@ -96,12 +96,12 @@ class ExportService {
                 return await this.exportInProgress;
             }
             this.electronAPIs.showOnTray('starting export');
-            const exportDir = getData(LS_KEYS.EXPORT)?.folder;
+            const exportDir = getData('EXPORT')?.folder;
             if (!exportDir) {
                 // no-export folder set
                 return;
             }
-            const user: User = getData(LS_KEYS.USER);
+            const user: User = getData('USER');
 
             let filesToExport: EnteFile[];
             const localFiles = await getLocalFiles();
@@ -347,7 +347,7 @@ class ExportService {
     async updateExportRecordHelper(folder: string, newData: ExportRecord) {
         try {
             if (!folder) {
-                folder = getData(LS_KEYS.EXPORT)?.folder;
+                folder = getData('EXPORT')?.folder;
             }
             const exportRecord = await this.getExportRecord(folder);
             const newRecord = { ...exportRecord, ...newData };
@@ -363,7 +363,7 @@ class ExportService {
     async getExportRecord(folder?: string): Promise<ExportRecord> {
         try {
             if (!folder) {
-                folder = getData(LS_KEYS.EXPORT)?.folder;
+                folder = getData('EXPORT')?.folder;
             }
             const recordFile = await this.electronAPIs.getExportRecord(
                 `${folder}/${EXPORT_RECORD_FILE_NAME}`

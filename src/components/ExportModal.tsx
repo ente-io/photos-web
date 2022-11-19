@@ -16,7 +16,7 @@ import {
 import { sleep } from 'utils/common';
 import { getExportRecordFileUID } from 'utils/export';
 import { logError } from 'utils/sentry';
-import { getData, LS_KEYS, setData } from 'utils/storage/localStorage';
+import { getData, setData } from 'utils/storage/localStorage';
 import constants from 'utils/strings/constants';
 import { FlexWrapper, Label, Value } from './Container';
 import ExportFinished from './ExportFinished';
@@ -70,7 +70,7 @@ export default function ExportModal(props: Props) {
         if (!isElectron()) {
             return;
         }
-        setExportFolder(getData(LS_KEYS.EXPORT)?.folder);
+        setExportFolder(getData('EXPORT')?.folder);
 
         exportService.electronAPIs.registerStopExportListener(stopExport);
         exportService.electronAPIs.registerPauseExportListener(pauseExport);
@@ -105,7 +105,7 @@ export default function ExportModal(props: Props) {
             return;
         }
         const main = async () => {
-            const user: User = getData(LS_KEYS.USER);
+            const user: User = getData('USER');
             if (exportStage === ExportStage.FINISHED) {
                 try {
                     const localFiles = await getLocalFiles();
@@ -155,7 +155,7 @@ export default function ExportModal(props: Props) {
     // ==============
     const updateExportFolder = (newFolder: string) => {
         setExportFolder(newFolder);
-        setData(LS_KEYS.EXPORT, { folder: newFolder });
+        setData('EXPORT', { folder: newFolder });
     };
 
     const updateExportStage = (newStage: ExportStage) => {
@@ -178,7 +178,7 @@ export default function ExportModal(props: Props) {
     // =========================
 
     const preExportRun = async () => {
-        const exportFolder = getData(LS_KEYS.EXPORT)?.folder;
+        const exportFolder = getData('EXPORT')?.folder;
         if (!exportFolder) {
             await selectExportDirectory();
         }

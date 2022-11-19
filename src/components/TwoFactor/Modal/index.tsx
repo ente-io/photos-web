@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getTwoFactorStatus } from 'services/userService';
 import { SetLoading } from 'types/gallery';
-import { getData, LS_KEYS, setData } from 'utils/storage/localStorage';
+import { getData, setData } from 'utils/storage/localStorage';
 import constants from 'utils/strings/constants';
 import TwoFactorModalSetupSection from './Setup';
 import TwoFactorModalManageSection from './Manage';
@@ -24,8 +24,7 @@ function TwoFactorModal(props: Props) {
     const [isTwoFactorEnabled, setTwoFactorStatus] = useState(false);
 
     useEffect(() => {
-        const isTwoFactorEnabled =
-            getData(LS_KEYS.USER).isTwoFactorEnabled ?? false;
+        const isTwoFactorEnabled = getData('USER').isTwoFactorEnabled ?? false;
         setTwoFactorStatus(isTwoFactorEnabled);
     }, []);
 
@@ -36,8 +35,8 @@ function TwoFactorModal(props: Props) {
         const main = async () => {
             const isTwoFactorEnabled = await getTwoFactorStatus();
             setTwoFactorStatus(isTwoFactorEnabled);
-            setData(LS_KEYS.USER, {
-                ...getData(LS_KEYS.USER),
+            setData('USER', {
+                ...getData('USER'),
                 isTwoFactorEnabled,
             });
         };

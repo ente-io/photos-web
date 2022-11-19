@@ -23,7 +23,6 @@ import { logError } from 'utils/sentry';
 import { AppContext } from 'pages/_app';
 import { Stack } from '@mui/material';
 import { useLocalState } from 'hooks/useLocalState';
-import { LS_KEYS } from 'utils/storage/localStorage';
 import { getLocalUserDetails } from 'utils/user';
 import { PLAN_PERIOD } from 'constants/gallery';
 import FreeSubscriptionPlanSelectorCard from './free';
@@ -36,7 +35,7 @@ interface Props {
 
 function PlanSelectorCard(props: Props) {
     const subscription = useMemo(() => getLocalUserSubscription(), []);
-    const [plans, setPlans] = useLocalState<Plan[]>(LS_KEYS.PLANS);
+    const [plans, setPlans] = useLocalState<Plan[]>('PLANS');
 
     const [planPeriod, setPlanPeriod] = useState<PLAN_PERIOD>(
         subscription?.period || PLAN_PERIOD.MONTH

@@ -10,7 +10,7 @@ import { getLocalFiles } from 'services/fileService';
 import { EnteFile } from 'types/file';
 import { CustomError, ServerErrorCodes } from 'utils/error';
 import { User } from 'types/user';
-import { getData, LS_KEYS } from 'utils/storage/localStorage';
+import { getData } from 'utils/storage/localStorage';
 import { logError } from 'utils/sentry';
 import constants from 'utils/strings/constants';
 import {
@@ -81,7 +81,7 @@ export function isSharedCollection(
     collectionID: number,
     collections: Collection[]
 ) {
-    const user: User = getData(LS_KEYS.USER);
+    const user: User = getData('USER');
 
     const collection = getSelectedCollection(collectionID, collections);
     if (!collection) {
@@ -222,7 +222,7 @@ export const shouldBeShownOnCollectionBar = (type: CollectionSummaryType) => {
 };
 
 export const getUserOwnedCollections = (collections: Collection[]) => {
-    const user: User = getData(LS_KEYS.USER);
+    const user: User = getData('USER');
     if (!user?.id) {
         throw Error('user missing');
     }

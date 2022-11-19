@@ -14,7 +14,6 @@ import {
 } from 'utils/collection';
 import { useLocalState } from 'hooks/useLocalState';
 import { sortCollectionSummaries } from 'services/collectionService';
-import { LS_KEYS } from 'utils/storage/localStorage';
 
 interface Iprops {
     collections: Collection[];
@@ -43,7 +42,7 @@ export default function Collections(props: Iprops) {
 
     const [collectionSortBy, setCollectionSortBy] =
         useLocalState<COLLECTION_SORT_BY>(
-            LS_KEYS.COLLECTION_SORT_BY,
+            'COLLECTION_SORT_BY',
             COLLECTION_SORT_BY.UPDATION_TIME_DESCENDING
         );
     const collectionsMap = useRef<Map<number, Collection>>(new Map());

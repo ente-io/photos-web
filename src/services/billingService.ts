@@ -1,6 +1,6 @@
 import { getEndpoint, getPaymentsURL } from 'utils/common/apiUtil';
 import { getToken } from 'utils/common/key';
-import { setData, LS_KEYS, removeData } from 'utils/storage/localStorage';
+import { setData, removeData } from 'utils/storage/localStorage';
 import HTTPService from './HTTPService';
 import { logError } from 'utils/sentry';
 import { getPaymentToken } from './userService';
@@ -50,7 +50,7 @@ class billingService {
                 }
             );
             const { subscription } = response.data;
-            setData(LS_KEYS.SUBSCRIPTION, subscription);
+            setData('SUBSCRIPTION', subscription);
         } catch (e) {
             logError(e, "failed to get user's subscription details");
         }
@@ -95,7 +95,7 @@ class billingService {
                 }
             );
             const { subscription } = response.data;
-            setData(LS_KEYS.SUBSCRIPTION, subscription);
+            setData('SUBSCRIPTION', subscription);
         } catch (e) {
             logError(e, 'subscription cancel failed');
             throw e;
@@ -113,7 +113,7 @@ class billingService {
                 }
             );
             const { subscription } = response.data;
-            setData(LS_KEYS.SUBSCRIPTION, subscription);
+            setData('SUBSCRIPTION', subscription);
         } catch (e) {
             logError(e, 'failed to activate subscription');
             throw e;
@@ -141,7 +141,7 @@ class billingService {
                 }
             );
             const { subscription } = response.data;
-            setData(LS_KEYS.SUBSCRIPTION, subscription);
+            setData('SUBSCRIPTION', subscription);
             return subscription;
         } catch (err) {
             logError(err, 'Error while verifying subscription');
@@ -157,7 +157,7 @@ class billingService {
             await HTTPService.delete(`${ENDPOINT}/family/leave`, null, null, {
                 'X-Auth-Token': getToken(),
             });
-            removeData(LS_KEYS.FAMILY_DATA);
+            removeData('FAMILY_DATA');
         } catch (e) {
             logError(e, '/family/leave failed');
             throw e;

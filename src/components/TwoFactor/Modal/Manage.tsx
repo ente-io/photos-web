@@ -4,7 +4,7 @@ import { AppContext } from 'pages/_app';
 import { PAGES } from 'constants/pages';
 import router from 'next/router';
 import { disableTwoFactor } from 'services/userService';
-import { setData, LS_KEYS, getData } from 'utils/storage/localStorage';
+import { setData, getData } from 'utils/storage/localStorage';
 import { Button, Grid } from '@mui/material';
 
 interface Iprops {
@@ -32,8 +32,8 @@ export default function TwoFactorModalManageSection(props: Iprops) {
     const twoFactorDisable = async () => {
         try {
             await disableTwoFactor();
-            setData(LS_KEYS.USER, {
-                ...getData(LS_KEYS.USER),
+            setData('USER', {
+                ...getData('USER'),
                 isTwoFactorEnabled: false,
             });
             closeDialog();

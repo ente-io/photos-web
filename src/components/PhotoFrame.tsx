@@ -29,7 +29,7 @@ import { Search } from 'types/search';
 import { logError } from 'utils/sentry';
 import { CustomError } from 'utils/error';
 import { User } from 'types/user';
-import { getData, LS_KEYS } from 'utils/storage/localStorage';
+import { getData } from 'utils/storage/localStorage';
 import { useMemo } from 'react';
 
 const Container = styled('div')`
@@ -110,7 +110,7 @@ const PhotoFrame = ({
 
     const filteredData = useMemo(() => {
         const idSet = new Set();
-        const user: User = getData(LS_KEYS.USER);
+        const user: User = getData('USER');
 
         return files
             .map((item, index) => ({

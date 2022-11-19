@@ -4,7 +4,7 @@ import { styled, Button, Typography, TypographyProps } from '@mui/material';
 import { AppContext } from './_app';
 import Login from 'components/Login';
 import { useRouter } from 'next/router';
-import { getData, LS_KEYS } from 'utils/storage/localStorage';
+import { getData } from 'utils/storage/localStorage';
 import EnteSpinner from 'components/EnteSpinner';
 import SignUp from 'components/SignUp';
 import constants from 'utils/strings/constants';
@@ -125,7 +125,7 @@ export default function LandingPage() {
     };
 
     const handleNormalRedirect = async () => {
-        const user = getData(LS_KEYS.USER);
+        const user = getData('USER');
         let key = getKey(SESSION_KEYS.ENCRYPTION_KEY);
         if (!key && isElectron()) {
             key = await safeStorageService.getEncryptionKey();

@@ -4,7 +4,7 @@ import EnteSpinner from 'components/EnteSpinner';
 import { AppContext } from 'pages/_app';
 import Login from 'components/Login';
 import VerticallyCentered from 'components/Container';
-import { getData, LS_KEYS } from 'utils/storage/localStorage';
+import { getData } from 'utils/storage/localStorage';
 import { PAGES } from 'constants/pages';
 import FormContainer from 'components/Form/FormContainer';
 import FormPaper from 'components/Form/FormPaper';
@@ -17,7 +17,7 @@ export default function Home() {
     useEffect(() => {
         router.prefetch(PAGES.VERIFY);
         router.prefetch(PAGES.SIGNUP);
-        const user = getData(LS_KEYS.USER);
+        const user = getData('USER');
         if (user?.email) {
             router.push(PAGES.VERIFY);
         }

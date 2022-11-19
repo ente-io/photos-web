@@ -5,7 +5,7 @@ import constants from 'utils/strings/constants';
 import SubmitButton from 'components/SubmitButton';
 import router from 'next/router';
 import { changeEmail, sendOTTForEmailChange } from 'services/userService';
-import { getData, LS_KEYS, setData } from 'utils/storage/localStorage';
+import { getData, setData } from 'utils/storage/localStorage';
 import { PAGES } from 'constants/pages';
 import { Alert, TextField } from '@mui/material';
 import Container from './Container';
@@ -52,7 +52,7 @@ function ChangeEmailForm() {
         try {
             setLoading(true);
             await changeEmail(email, ott);
-            setData(LS_KEYS.USER, { ...getData(LS_KEYS.USER), email });
+            setData('USER', { ...getData('USER'), email });
             setLoading(false);
             setSuccess(true);
             await sleep(1000);

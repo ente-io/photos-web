@@ -5,12 +5,7 @@ import { isDEVSentryENV } from 'constants/sentry';
 import isElectron from 'is-electron';
 import ElectronService from 'services/electron/common';
 import { logError } from 'utils/sentry';
-import {
-    getData,
-    LS_KEYS,
-    removeData,
-    setData,
-} from 'utils/storage/localStorage';
+import { getData, removeData, setData } from 'utils/storage/localStorage';
 
 export const MAX_LOG_SIZE = 5 * 1024 * 1024; // 5MB
 export const MAX_LOG_LINES = 1000;
@@ -87,15 +82,15 @@ function saveLogLine(log: Log) {
 }
 
 function getLogs(): Log[] {
-    return getData(LS_KEYS.LOGS)?.logs ?? [];
+    return getData('LOGS')?.logs ?? [];
 }
 
 function setLogs(logs: Log[]) {
-    setData(LS_KEYS.LOGS, { logs });
+    setData('LOGS', { logs });
 }
 
 function deleteLogs() {
-    removeData(LS_KEYS.LOGS);
+    removeData('LOGS');
 }
 
 function getStringSize(str: string) {

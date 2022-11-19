@@ -1,5 +1,5 @@
 import { getEndpoint } from 'utils/common/apiUtil';
-import { getData, LS_KEYS } from 'utils/storage/localStorage';
+import { getData } from 'utils/storage/localStorage';
 import localForage from 'utils/storage/localForage';
 
 import { getActualKey, getToken } from 'utils/common/key';
@@ -54,7 +54,7 @@ const getCollectionWithSecrets = async (
     masterKey: string
 ) => {
     const worker = await new CryptoWorker();
-    const userID = getData(LS_KEYS.USER).id;
+    const userID = getData('USER').id;
     let decryptedKey: string;
     if (collection.owner.id === userID) {
         decryptedKey = await worker.decryptB64(
@@ -63,7 +63,7 @@ const getCollectionWithSecrets = async (
             masterKey
         );
     } else {
-        const keyAttributes = getData(LS_KEYS.KEY_ATTRIBUTES);
+        const keyAttributes = getData('KEY_ATTRIBUTES');
         const secretKey = await worker.decryptB64(
             keyAttributes.encryptedSecretKey,
             keyAttributes.secretKeyDecryptionNonce,
@@ -838,7 +838,7 @@ function getCollectionsFileCount(
     for (const [id, files] of collectionIDToFileMap) {
         collectionFilesCount.set(id, files.length);
     }
-    const user: User = getData(LS_KEYS.USER);
+    const user: User = getData('USER');
     const uniqueTrashedFileIDs = new Set<number>();
     const uniqueArchivedFileIDs = new Set<number>();
     const uniqueAllSectionFileIDs = new Set<number>();

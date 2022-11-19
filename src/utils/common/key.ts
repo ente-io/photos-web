@@ -1,6 +1,6 @@
 import { B64EncryptionResult } from 'utils/crypto';
 import CryptoWorker from 'utils/crypto';
-import { getData, LS_KEYS } from 'utils/storage/localStorage';
+import { getData } from 'utils/storage/localStorage';
 import { getKey, SESSION_KEYS } from 'utils/storage/sessionStorage';
 import { CustomError } from '../error';
 
@@ -22,4 +22,4 @@ export const getActualKey = async () => {
     }
 };
 
-export const getToken = () => getData(LS_KEYS.USER)?.token;
+export const getToken = () => getData('USER')?.token;

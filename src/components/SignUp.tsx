@@ -3,7 +3,7 @@ import constants from 'utils/strings/constants';
 import { Formik, FormikHelpers } from 'formik';
 import * as Yup from 'yup';
 import { sendOtt } from 'services/userService';
-import { setData, LS_KEYS } from 'utils/storage/localStorage';
+import { setData } from 'utils/storage/localStorage';
 import { useRouter } from 'next/router';
 import SubmitButton from 'components/SubmitButton';
 import {
@@ -50,7 +50,7 @@ export default function SignUp(props: SignUpProps) {
         setLoading(true);
         try {
             try {
-                setData(LS_KEYS.USER, { email });
+                setData('PRE_LOGIN_USER', { email });
                 await sendOtt(email);
             } catch (e) {
                 setFieldError(
@@ -63,7 +63,7 @@ export default function SignUp(props: SignUpProps) {
                 if (passphrase === confirm) {
                     const { keyAttributes, masterKey } =
                         await generateKeyAttributes(passphrase);
-                    setData(LS_KEYS.ORIGINAL_KEY_ATTRIBUTES, keyAttributes);
+                    setData('ORIGINAL_KEY_ATTRIBUTES', keyAttributes);
                     await generateAndSaveIntermediateKeyAttributes(
                         passphrase,
                         keyAttributes,

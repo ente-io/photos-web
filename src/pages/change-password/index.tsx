@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import constants from 'utils/strings/constants';
-import { getData, LS_KEYS, setData } from 'utils/storage/localStorage';
+import { getData, setData } from 'utils/storage/localStorage';
 import { useRouter } from 'next/router';
 import CryptoWorker, {
     saveKeyInSessionStore,
@@ -27,7 +27,7 @@ export default function ChangePassword() {
     const [user, setUser] = useState<User>();
 
     useEffect(() => {
-        const user = getData(LS_KEYS.USER);
+        const user = getData('USER');
         setUser(user);
         if (!user?.token) {
             router.push(PAGES.ROOT);
@@ -42,7 +42,7 @@ export default function ChangePassword() {
     ) => {
         const cryptoWorker = await new CryptoWorker();
         const key: string = await getActualKey();
-        const keyAttributes = getData(LS_KEYS.KEY_ATTRIBUTES);
+        const keyAttributes = getData('KEY_ATTRIBUTES');
         const kekSalt: string = await cryptoWorker.generateSaltToDeriveKey();
         let kek: KEK;
         try {
@@ -75,7 +75,7 @@ export default function ChangePassword() {
     };
 
     const redirectToGallery = () => {
-        setData(LS_KEYS.SHOW_BACK_BUTTON, { value: true });
+        setData('SHOW_BACK_BUTTON', { value: true });
         router.push(PAGES.GALLERY);
     };
 
@@ -88,7 +88,7 @@ export default function ChangePassword() {
                     callback={onSubmit}
                     buttonText={constants.CHANGE_PASSWORD}
                     back={
-                        getData(LS_KEYS.SHOW_BACK_BUTTON)?.value
+                        getData('SHOW_BACK_BUTTON')?.value
                             ? redirectToGallery
                             : null
                     }

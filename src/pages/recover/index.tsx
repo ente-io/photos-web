@@ -1,11 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import constants from 'utils/strings/constants';
-import {
-    clearData,
-    getData,
-    LS_KEYS,
-    setData,
-} from 'utils/storage/localStorage';
+import { clearData, getData, setData } from 'utils/storage/localStorage';
 import { useRouter } from 'next/router';
 import { PAGES } from 'constants/pages';
 import CryptoWorker, {
@@ -35,8 +30,8 @@ export default function Recover() {
 
     useEffect(() => {
         router.prefetch(PAGES.GALLERY);
-        const user: User = getData(LS_KEYS.USER);
-        const keyAttributes: KeyAttributes = getData(LS_KEYS.KEY_ATTRIBUTES);
+        const user: User = getData('USER');
+        const keyAttributes: KeyAttributes = getData('KEY_ATTRIBUTES');
         const key = getKey(SESSION_KEYS.ENCRYPTION_KEY);
         if (
             (!user?.token && !user?.encryptedToken) ||
@@ -75,7 +70,7 @@ export default function Recover() {
             await saveKeyInSessionStore(SESSION_KEYS.ENCRYPTION_KEY, masterKey);
             await decryptAndStoreToken(masterKey);
 
-            setData(LS_KEYS.SHOW_BACK_BUTTON, { value: false });
+            setData('SHOW_BACK_BUTTON', { value: false });
             router.push(PAGES.CHANGE_PASSWORD);
         } catch (e) {
             logError(e, 'password recovery failed');

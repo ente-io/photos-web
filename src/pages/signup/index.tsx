@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import { AppContext } from 'pages/_app';
 import EnteSpinner from 'components/EnteSpinner';
-import { getData, LS_KEYS } from 'utils/storage/localStorage';
+import { getData } from 'utils/storage/localStorage';
 import SignUp from 'components/SignUp';
 import { PAGES } from 'constants/pages';
 import FormPaper from 'components/Form/FormPaper';
@@ -16,7 +16,7 @@ export default function SignUpPage() {
     useEffect(() => {
         router.prefetch(PAGES.VERIFY);
         router.prefetch(PAGES.LOGIN);
-        const user = getData(LS_KEYS.USER);
+        const user = getData('USER');
         if (user?.email) {
             router.push(PAGES.VERIFY);
         }

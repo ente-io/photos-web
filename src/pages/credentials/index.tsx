@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 
 import constants from 'utils/strings/constants';
-import { clearData, getData, LS_KEYS } from 'utils/storage/localStorage';
+import { clearData, getData } from 'utils/storage/localStorage';
 import { useRouter } from 'next/router';
 import { PAGES } from 'constants/pages';
 import { SESSION_KEYS, getKey } from 'utils/storage/sessionStorage';
@@ -37,9 +37,9 @@ export default function Credentials() {
     useEffect(() => {
         router.prefetch(PAGES.GALLERY);
         const main = async () => {
-            const user = getData(LS_KEYS.USER);
+            const user = getData('USER');
             setUser(user);
-            const keyAttributes = getData(LS_KEYS.KEY_ATTRIBUTES);
+            const keyAttributes = getData('KEY_ATTRIBUTES');
             let key = getKey(SESSION_KEYS.ENCRYPTION_KEY);
             if (!key && isElectron()) {
                 key = await safeStorageService.getEncryptionKey();
