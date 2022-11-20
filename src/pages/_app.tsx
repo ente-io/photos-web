@@ -8,7 +8,7 @@ import 'photoswipe/dist/photoswipe.css';
 import 'styles/global.css';
 import EnteSpinner from 'components/EnteSpinner';
 import { logError } from '../utils/sentry';
-import { getDat } from 'utils/storage/localStorage';
+import { getData } from 'utils/storage/localStorage';
 import HTTPService from 'services/HTTPService';
 import FlashMessageBar from 'components/FlashMessageBar';
 import Head from 'next/head';
