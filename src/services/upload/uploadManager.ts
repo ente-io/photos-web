@@ -103,6 +103,12 @@ class UploadManager {
         collections: Collection[]
     ) {
         try {
+            filesWithCollectionToUploadIn.sort(
+                (aFileWithCollection, bFileWithCollection) =>
+                    (aFileWithCollection.file['path'] as string).localeCompare(
+                        bFileWithCollection.file['path'] as string
+                    )
+            );
             if (this.uploadInProgress) {
                 throw Error("can't run multiple uploads at once");
             }
