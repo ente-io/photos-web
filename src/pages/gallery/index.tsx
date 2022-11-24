@@ -35,7 +35,7 @@ import {
     setJustSignedUp,
 } from 'utils/storage';
 import { isTokenValid, logoutUser } from 'services/userService';
-import { useDropzone } from 'react-dropzone';
+import { DropzoneState, FileWithPath, useDropzone } from 'react-dropzone';
 import EnteSpinner from 'components/EnteSpinner';
 import { LoadingOverlay } from 'components/LoadingOverlay';
 import PhotoFrame from 'components/PhotoFrame';
@@ -101,6 +101,9 @@ import { getData, LS_KEYS } from 'utils/storage/localStorage';
 import { CenteredFlex } from 'components/Container';
 import { checkConnectivity } from 'utils/error/ui';
 
+interface UpdateDropzoneState extends Omit<DropzoneState, 'acceptedFiles'> {
+    acceptedFiles: FileWithPath[];
+}
 export const DeadCenter = styled('div')`
     flex: 1;
     display: flex;
@@ -153,7 +156,7 @@ export default function Gallery() {
         getRootProps: getDragAndDropRootProps,
         getInputProps: getDragAndDropInputProps,
         acceptedFiles: dragAndDropFiles,
-    } = useDropzone({
+    }: UpdateDropzoneState = useDropzone({
         noClick: true,
         noKeyboard: true,
         disabled: shouldDisableDropzone,

@@ -50,6 +50,7 @@ import {
 import { getUserOwnedCollections } from 'utils/collection';
 import billingService from 'services/billingService';
 import { addLogLine } from 'utils/logging';
+import { FileWithPath } from 'react-dropzone';
 
 const FIRST_ALBUM_NAME = 'My First Album';
 
@@ -69,9 +70,9 @@ interface Props {
     showSessionExpiredMessage: () => void;
     showUploadFilesDialog: () => void;
     showUploadDirsDialog: () => void;
-    webFolderSelectorFiles: File[];
-    webFileSelectorFiles: File[];
-    dragAndDropFiles: File[];
+    webFolderSelectorFiles: FileWithPath[];
+    webFileSelectorFiles: FileWithPath[];
+    dragAndDropFiles: FileWithPath[];
 }
 
 export default function Uploader(props: Props) {
@@ -291,7 +292,7 @@ export default function Uploader(props: Props) {
             const collections: Collection[] = [];
             let collectionNameToFilesMap = new Map<
                 string,
-                (File | ElectronFile)[]
+                FileWithPath[] | ElectronFile[]
             >();
             if (strategy === UPLOAD_STRATEGY.SINGLE_COLLECTION) {
                 collectionNameToFilesMap.set(

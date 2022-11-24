@@ -1,11 +1,8 @@
 import { useCallback, useRef, useState } from 'react';
-
-export interface FileWithPath extends File {
-    readonly path?: string;
-}
+import { FileWithPath } from 'react-dropzone';
 
 export default function useFileInput({ directory }: { directory?: boolean }) {
-    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+    const [selectedFiles, setSelectedFiles] = useState<FileWithPath[]>([]);
     const inputRef = useRef<HTMLInputElement>();
 
     const openSelectorDialog = useCallback(() => {

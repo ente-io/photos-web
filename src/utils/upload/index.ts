@@ -13,6 +13,7 @@ import {
 import { FILE_TYPE } from 'constants/file';
 import { ENTE_METADATA_FOLDER } from 'constants/export';
 import isElectron from 'is-electron';
+import { FileWithPath } from 'react-dropzone';
 
 const TYPE_JSON = 'json';
 const DEDUPE_COLLECTION = new Set(['icloud library', 'icloudlibrary']);
@@ -112,13 +113,13 @@ export function areFileWithCollectionsSame(
 
 export function getImportSuggestion(
     uploadType: PICKED_UPLOAD_TYPE,
-    toUploadFiles: File[] | ElectronFile[]
+    toUploadFiles: FileWithPath[] | ElectronFile[]
 ): ImportSuggestion {
     if (isElectron() && uploadType === PICKED_UPLOAD_TYPE.FILES) {
         return DEFAULT_IMPORT_SUGGESTION;
     }
 
-    const paths: string[] = toUploadFiles.map((file) => file['path']);
+    const paths: string[] = toUploadFiles.map((file) => file.path);
     const getCharCount = (str: string) => (str.match(/\//g) ?? []).length;
     paths.sort((path1, path2) => getCharCount(path1) - getCharCount(path2));
     const firstPath = paths[0];
@@ -161,11 +162,14 @@ export function getImportSuggestion(
 // b => [e,f,g],
 // c => [h, i]]
 export function groupFilesBasedOnParentFolder(
-    toUploadFiles: File[] | ElectronFile[]
+    toUploadFiles: FileWithPath[] | ElectronFile[]
 ) {
-    const collectionNameToFilesMap = new Map<string, (File | ElectronFile)[]>();
+    const collectionNameToFilesMap = new Map<
+        string,
+        FileWithPath[] | ElectronFile[]
+    >();
     for (const file of toUploadFiles) {
-        const filePath = file['path'] as string;
+        const filePath = file.path;
 
         let folderPath = filePath.substring(0, filePath.lastIndexOf('/'));
         // If the parent folder of a file is "metadata"
@@ -185,7 +189,9 @@ export function groupFilesBasedOnParentFolder(
         if (!collectionNameToFilesMap.has(folderName)) {
             collectionNameToFilesMap.set(folderName, []);
         }
-        collectionNameToFilesMap.get(folderName).push(file);
+        if (file instanceof File) {
+            collectionNameToFilesMap.get(folderName).push(file as any);
+        }
     }
     return collectionNameToFilesMap;
 }
