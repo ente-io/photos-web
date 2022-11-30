@@ -6,7 +6,7 @@ import React, {
     useState,
 } from 'react';
 import { useRouter } from 'next/router';
-import { clearKeys, getKey, SESSION_KEYS } from 'utils/storage/sessionStorage';
+import { getKey, SESSION_KEYS } from 'utils/storage/sessionStorage';
 import {
     getLocalFiles,
     syncFiles,
@@ -336,7 +336,6 @@ export default function Gallery() {
                     showSessionExpiredMessage();
                     break;
                 case CustomError.KEY_MISSING:
-                    clearKeys();
                     router.push(PAGES.CREDENTIALS);
                     break;
             }
