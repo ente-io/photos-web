@@ -27,6 +27,11 @@ export interface FilePublicMagicMetadata
     data: FilePublicMagicMetadataProps;
 }
 
+export interface EnteFileInfo {
+    fileSize: number;
+    thumbSize: number;
+}
+
 export interface EnteFile {
     id: number;
     collectionID: number;
@@ -34,6 +39,7 @@ export interface EnteFile {
     file: fileAttribute;
     thumbnail: fileAttribute;
     metadata: Metadata;
+    info: EnteFileInfo;
     magicMetadata: FileMagicMetadata;
     pubMagicMetadata: FilePublicMagicMetadata;
     encryptedKey: string;
@@ -48,6 +54,9 @@ export interface EnteFile {
     isDeleted: boolean;
     isTrashed?: boolean;
     deleteBy?: number;
+    isSourceLoaded?: boolean;
+    originalVideoURL?: string;
+    originalImageURL?: string;
     dataIndex: number;
     updationTime: number;
 }

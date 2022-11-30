@@ -27,7 +27,7 @@ import { checkSubscriptionPurchase } from 'utils/billing';
 
 import FullScreenDropZone from 'components/FullScreenDropZone';
 import Sidebar from 'components/Sidebar';
-import { checkConnectivity, preloadImage } from 'utils/common';
+import { preloadImage } from 'utils/common';
 import {
     isFirstLogin,
     justSignedUp,
@@ -99,6 +99,7 @@ import useFileInput from 'hooks/useFileInput';
 import { User } from 'types/user';
 import { getData, LS_KEYS } from 'utils/storage/localStorage';
 import { CenteredFlex } from 'components/Container';
+import { checkConnectivity } from 'utils/error/ui';
 
 export const DeadCenter = styled('div')`
     flex: 1;
@@ -256,19 +257,16 @@ export default function Gallery() {
         setDerivativeState(user, collections, files);
     }, [collections, files]);
 
-    useEffect(
-        () => collectionSelectorAttributes && setCollectionSelectorView(true),
-        [collectionSelectorAttributes]
-    );
+    useEffect(() => {
+        collectionSelectorAttributes && setCollectionSelectorView(true);
+    }, [collectionSelectorAttributes]);
 
-    useEffect(
-        () => collectionNamerAttributes && setCollectionNamerView(true),
-        [collectionNamerAttributes]
-    );
-    useEffect(
-        () => fixCreationTimeAttributes && setFixCreationTimeView(true),
-        [fixCreationTimeAttributes]
-    );
+    useEffect(() => {
+        collectionNamerAttributes && setCollectionNamerView(true);
+    }, [collectionNamerAttributes]);
+    useEffect(() => {
+        fixCreationTimeAttributes && setFixCreationTimeView(true);
+    }, [fixCreationTimeAttributes]);
 
     useEffect(() => {
         if (typeof activeCollection === 'undefined') {
@@ -668,6 +666,7 @@ export default function Gallery() {
                 />
                 <PhotoFrame
                     files={files}
+                    collections={collections}
                     syncWithRemote={syncWithRemote}
                     favItemIds={favItemIds}
                     archivedCollections={archivedCollections}
