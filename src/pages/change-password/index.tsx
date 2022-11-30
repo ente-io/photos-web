@@ -8,7 +8,7 @@ import CryptoWorker, {
     B64EncryptionResult,
 } from 'utils/crypto';
 import { getActualKey } from 'utils/common/key';
-import { setKeys } from 'services/userService';
+import { logoutUser, setKeys } from 'services/userService';
 import SetPasswordForm, {
     SetPasswordFormProps,
 } from 'components/SetPasswordForm';
@@ -30,7 +30,7 @@ export default function ChangePassword() {
         const user = getData(LS_KEYS.USER);
         setUser(user);
         if (!user?.token) {
-            router.push(PAGES.ROOT);
+            logoutUser();
         } else {
             setToken(user.token);
         }

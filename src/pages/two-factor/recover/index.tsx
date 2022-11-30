@@ -8,7 +8,11 @@ import SingleInputForm, {
 } from 'components/SingleInputForm';
 import VerticallyCentered from 'components/Container';
 import { logError } from 'utils/sentry';
-import { recoverTwoFactor, removeTwoFactor } from 'services/userService';
+import {
+    logoutUser,
+    recoverTwoFactor,
+    removeTwoFactor,
+} from 'services/userService';
 import { AppContext } from 'pages/_app';
 import { PAGES } from 'constants/pages';
 import FormPaper from 'components/Form/FormPaper';
@@ -32,7 +36,7 @@ export default function Recover() {
         if (!user.isTwoFactorEnabled && (user.encryptedToken || user.token)) {
             router.push(PAGES.GENERATE);
         } else if (!user.email || !user.twoFactorSessionID) {
-            router.push(PAGES.ROOT);
+            logoutUser();
         } else {
             setSessionID(user.twoFactorSessionID);
         }

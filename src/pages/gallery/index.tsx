@@ -222,7 +222,7 @@ export default function Gallery() {
         const key = getKey(SESSION_KEYS.ENCRYPTION_KEY);
         if (!key) {
             appContext.setRedirectURL(router.asPath);
-            router.push(PAGES.ROOT);
+            logoutUser();
             return;
         }
         const main = async () => {

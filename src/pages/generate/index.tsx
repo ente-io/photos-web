@@ -40,7 +40,7 @@ export default function Generate() {
             const user: User = getData(LS_KEYS.USER);
             setUser(user);
             if (!user?.token) {
-                router.push(PAGES.ROOT);
+                logoutUser();
             } else if (key) {
                 if (justSignedUp()) {
                     setRecoveryModalView(true);

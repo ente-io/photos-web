@@ -1,11 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import constants from 'utils/strings/constants';
-import {
-    clearData,
-    getData,
-    LS_KEYS,
-    setData,
-} from 'utils/storage/localStorage';
+import { getData, LS_KEYS, setData } from 'utils/storage/localStorage';
 import { useRouter } from 'next/router';
 import { PAGES } from 'constants/pages';
 import CryptoWorker, {
@@ -24,6 +19,7 @@ import FormPaper from 'components/Form/FormPaper';
 import FormPaperTitle from 'components/Form/FormPaper/Title';
 import FormPaperFooter from 'components/Form/FormPaper/Footer';
 import LinkButton from 'components/pages/gallery/LinkButton';
+import { logoutUser } from 'services/userService';
 const bip39 = require('bip39');
 // mobile client library only supports english.
 bip39.setDefaultWordlist('english');
@@ -42,8 +38,7 @@ export default function Recover() {
             (!user?.token && !user?.encryptedToken) ||
             !keyAttributes?.memLimit
         ) {
-            clearData();
-            router.push(PAGES.ROOT);
+            logoutUser();
         } else if (!keyAttributes) {
             router.push(PAGES.GENERATE);
         } else if (key) {

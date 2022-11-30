@@ -17,16 +17,16 @@ import {
     DeduplicateContextType,
     DefaultDeduplicateContext,
 } from 'types/deduplicate';
-import Router from 'next/router';
 import DeduplicateOptions from 'components/pages/dedupe/SelectedFileOptions';
 import { PAGES } from 'constants/pages';
-import router from 'next/router';
 import { getKey, SESSION_KEYS } from 'utils/storage/sessionStorage';
 import { styled } from '@mui/material';
 import { syncCollections } from 'services/collectionService';
 import EnteSpinner from 'components/EnteSpinner';
 import VerticallyCentered from 'components/Container';
 import { Collection } from 'types/collection';
+import { logoutUser } from 'services/userService';
+import { useRouter } from 'next/router';
 
 export const DeduplicateContext = createContext<DeduplicateContextType>(
     DefaultDeduplicateContext
@@ -44,6 +44,7 @@ export default function Deduplicate() {
         showNavBar,
         setRedirectURL,
     } = useContext(AppContext);
+    const router = useRouter();
     const [duplicateFiles, setDuplicateFiles] = useState<EnteFile[]>(null);
     const [collections, setCollection] = useState<Collection[]>([]);
     const [clubSameTimeFilesOnly, setClubSameTimeFilesOnly] = useState(false);
@@ -56,13 +57,13 @@ export default function Deduplicate() {
         collectionID: 0,
     });
     const closeDeduplication = function () {
-        Router.push(PAGES.GALLERY);
+        router.push(PAGES.GALLERY);
     };
     useEffect(() => {
         const key = getKey(SESSION_KEYS.ENCRYPTION_KEY);
         if (!key) {
             setRedirectURL(router.asPath);
-            router.push(PAGES.ROOT);
+            logoutUser();
             return;
         }
         showNavBar(true);

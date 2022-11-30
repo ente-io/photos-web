@@ -42,7 +42,7 @@ export default function Verify() {
                 LS_KEYS.KEY_ATTRIBUTES
             );
             if (!user?.email) {
-                router.push(PAGES.ROOT);
+                logoutUser();
             } else if (
                 keyAttributes?.encryptedKey &&
                 (user.token || user.encryptedToken)

@@ -22,7 +22,7 @@ export default function Home() {
             router.prefetch(PAGES.CREDENTIALS);
             const user: User = getData(LS_KEYS.USER);
             if (!user?.email || !user.twoFactorSessionID) {
-                router.push(PAGES.ROOT);
+                logoutUser();
             } else if (
                 !user.isTwoFactorEnabled &&
                 (user.encryptedToken || user.token)
