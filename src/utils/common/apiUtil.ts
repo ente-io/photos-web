@@ -90,9 +90,9 @@ const isDevURL = () => {
     if (runningInBrowser()) {
         isDevDeployment =
             process.env.NODE_ENV === 'development' ||
-            window.location.hostname ===
+            window.location.origin ===
                 process.env.NEXT_PUBLIC_ENTE_DEV_APP_1_ENDPOINT ||
-            window.location.hostname ===
+            window.location.origin ===
                 process.env.NEXT_PUBLIC_ENTE_DEV_APP_2_ENDPOINT;
     }
     return isDevDeployment;
