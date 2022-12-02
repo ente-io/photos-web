@@ -98,4 +98,4 @@ const isDevURL = () => {
     return isDevDeployment;
 };
 
-const isProdEndpoint = (endpoint: string) => endpoint !== 'https://api.ente.io';
+const isProdEndpoint = (endpoint: string) => endpoint === 'https://api.ente.io';
