@@ -1,14 +1,10 @@
 import { runningInBrowser } from '.';
 
 export const getEndpoint = () => {
-    if (
-        isDevDeployment() &&
-        process.env.NEXT_PUBLIC_DEV_ENTE_ENDPOINT !== undefined
-    ) {
-        return process.env.NEXT_PUBLIC_DEV_ENTE_ENDPOINT;
-    } else {
-        return process.env.NEXT_PUBLIC_ENTE_ENDPOINT ?? 'https://api.ente.io';
+    if (isDevURL() && process.env.NEXT_PUBLIC_ENTE_ENDPOINT !== undefined) {
+        return process.env.NEXT_PUBLIC_ENTE_ENDPOINT;
     }
+    return 'https://api.ente.io';
 };
 
 export const getFileURL = (id: number) => {
@@ -49,63 +45,55 @@ export const getSentryTunnelURL = () => {
 
 export const getPaymentsURL = () => {
     if (
-        isDevDeployment() &&
-        process.env.NEXT_PUBLIC_DEV_PAYMENT_ENDPOINT !== undefined
+        isDevURL() &&
+        process.env.NEXT_PUBLIC_ENTE_ALBUM_ENDPOINT !== undefined
     ) {
-        return process.env.NEXT_PUBLIC_DEV_PAYMENT_ENDPOINT;
-    } else {
-        return (
-            process.env.NEXT_PUBLIC_ENTE_ALBUM_ENDPOINT ??
-            'https://payments.ente.io'
-        );
+        return process.env.NEXT_PUBLIC_ENTE_ALBUM_ENDPOINT;
     }
+    return 'https://payments.ente.io';
 };
 
 // getFamilyPortalURL returns the endpoint for the family dashboard which can be used to
 // create or manage family.
 export const getFamilyPortalURL = () => {
     if (
-        isDevDeployment() &&
-        process.env.NEXT_PUBLIC_DEV_FAMILY_PORTAL_ENDPOINT !== undefined
+        isDevURL() &&
+        process.env.NEXT_PUBLIC_ENTE_FAMILY_PORTAL_ENDPOINT !== undefined
     ) {
-        return process.env.NEXT_PUBLIC_DEV_FAMILY_PORTAL_ENDPOINT;
-    } else {
-        return (
-            process.env.NEXT_PUBLIC_ENTE_FAMILY_PORTAL_ENDPOINT ??
-            'https://family.ente.io'
-        );
+        return process.env.NEXT_PUBLIC_ENTE_FAMILY_PORTAL_ENDPOINT;
     }
+    return 'https://family.ente.io';
 };
 
 export const getUploadEndpoint = () => {
-    return (
-        process.env.NEXT_PUBLIC_ENTE_UPLOAD_ENDPOINT ??
-        'https://uploader.ente.io'
-    );
+    if (
+        isDevURL() &&
+        process.env.NEXT_PUBLIC_ENTE_UPLOAD_ENDPOINT !== undefined
+    ) {
+        return process.env.NEXT_PUBLIC_ENTE_UPLOAD_ENDPOINT;
+    }
+    return 'https://uploader.ente.io';
 };
 
 export const getAlbumsURL = () => {
     if (
-        isDevDeployment() &&
-        process.env.NEXT_PUBLIC_DEV_ALBUM_ENDPOINT !== undefined
+        isDevURL() &&
+        process.env.NEXT_PUBLIC_ENTE_ALBUM_ENDPOINT !== undefined
     ) {
-        return process.env.NEXT_PUBLIC_DEV_ALBUM_ENDPOINT;
-    } else {
-        return (
-            process.env.NEXT_PUBLIC_ENTE_ALBUM_ENDPOINT ??
-            'https://albums.ente.io'
-        );
+        return process.env.NEXT_PUBLIC_ENTE_ALBUM_ENDPOINT;
     }
+    return 'https://albums.ente.io';
 };
 
-const isDevDeployment = () => {
+const isDevURL = () => {
     let isDevDeployment = false;
     if (runningInBrowser()) {
         isDevDeployment =
+            process.env.NODE_ENV === 'development' ||
             window.location.hostname ===
-                process.env.NEXT_PUBLIC_DEV_WEB_ENDPOINT ||
+                process.env.NEXT_PUBLIC_ENTE_DEV_APP_1_ENDPOINT ||
             window.location.hostname ===
-                process.env.NEXT_PUBLIC_DEV_ALBUM_ENDPOINT;
+                process.env.NEXT_PUBLIC_ENTE_DEV_APP_2_ENDPOINT;
     }
     return isDevDeployment;
 };
