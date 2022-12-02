@@ -1,33 +1,44 @@
+import { runningInBrowser } from '.';
+
 export const getEndpoint = () => {
-    const endPoint =
-        process.env.NEXT_PUBLIC_ENTE_ENDPOINT ?? 'https://api.ente.io';
-    return endPoint;
+    if (
+        isDevDeployment() &&
+        process.env.NEXT_PUBLIC_DEV_ENTE_ENDPOINT !== undefined
+    ) {
+        return process.env.NEXT_PUBLIC_DEV_ENTE_ENDPOINT;
+    } else {
+        return process.env.NEXT_PUBLIC_ENTE_ENDPOINT ?? 'https://api.ente.io';
+    }
 };
 
 export const getFileURL = (id: number) => {
-    if (process.env.NEXT_PUBLIC_ENTE_ENDPOINT !== undefined) {
-        return `${process.env.NEXT_PUBLIC_ENTE_ENDPOINT}/files/download/${id}`;
+    const endpoint = getEndpoint();
+    if (!isProdEndpoint(endpoint)) {
+        return `${endpoint}/files/download/${id}`;
     }
     return `https://files.ente.io/?fileID=${id}`;
 };
 
 export const getPublicCollectionFileURL = (id: number) => {
-    if (process.env.NEXT_PUBLIC_ENTE_ENDPOINT !== undefined) {
-        return `${process.env.NEXT_PUBLIC_ENTE_ENDPOINT}/public-collection/files/download/${id}`;
+    const endpoint = getEndpoint();
+    if (!isProdEndpoint(endpoint)) {
+        return `${endpoint}/public-collection/files/download/${id}`;
     }
     return `https://public-albums.ente.io/download/?fileID=${id}`;
 };
 
 export const getThumbnailURL = (id: number) => {
-    if (process.env.NEXT_PUBLIC_ENTE_ENDPOINT !== undefined) {
-        return `${process.env.NEXT_PUBLIC_ENTE_ENDPOINT}/files/preview/${id}`;
+    const endpoint = getEndpoint();
+    if (!isProdEndpoint(endpoint)) {
+        return `${endpoint}/files/preview/${id}`;
     }
     return `https://thumbnails.ente.io/?fileID=${id}`;
 };
 
 export const getPublicCollectionThumbnailURL = (id: number) => {
-    if (process.env.NEXT_PUBLIC_ENTE_ENDPOINT !== undefined) {
-        return `${process.env.NEXT_PUBLIC_ENTE_ENDPOINT}/public-collection/files/preview/${id}`;
+    const endpoint = getEndpoint();
+    if (!isProdEndpoint(endpoint)) {
+        return `${endpoint}/public-collection/files/preview/${id}`;
     }
     return `https://public-albums.ente.io/preview/?fileID=${id}`;
 };
@@ -37,24 +48,66 @@ export const getSentryTunnelURL = () => {
 };
 
 export const getPaymentsURL = () => {
-    if (process.env.NEXT_PUBLIC_ENTE_ENDPOINT !== undefined) {
-        return process.env.NEXT_PUBLIC_ENTE_PAYMENT_ENDPOINT;
+    if (
+        isDevDeployment() &&
+        process.env.NEXT_PUBLIC_DEV_PAYMENT_ENDPOINT !== undefined
+    ) {
+        return process.env.NEXT_PUBLIC_DEV_PAYMENT_ENDPOINT;
+    } else {
+        return (
+            process.env.NEXT_PUBLIC_ENTE_ALBUM_ENDPOINT ??
+            'https://payments.ente.io'
+        );
     }
-    return `https://payments.ente.io`;
 };
 
 // getFamilyPortalURL returns the endpoint for the family dashboard which can be used to
 // create or manage family.
 export const getFamilyPortalURL = () => {
-    if (process.env.NEXT_PUBLIC_ENTE_FAMILY_PORTAL_ENDPOINT !== undefined) {
-        return process.env.NEXT_PUBLIC_ENTE_FAMILY_PORTAL_ENDPOINT;
+    if (
+        isDevDeployment() &&
+        process.env.NEXT_PUBLIC_DEV_FAMILY_PORTAL_ENDPOINT !== undefined
+    ) {
+        return process.env.NEXT_PUBLIC_DEV_FAMILY_PORTAL_ENDPOINT;
+    } else {
+        return (
+            process.env.NEXT_PUBLIC_ENTE_FAMILY_PORTAL_ENDPOINT ??
+            'https://family.ente.io'
+        );
     }
-    return `https://family.ente.io`;
 };
 
 export const getUploadEndpoint = () => {
-    if (process.env.NEXT_PUBLIC_ENTE_UPLOAD_ENDPOINT !== undefined) {
-        return process.env.NEXT_PUBLIC_ENTE_UPLOAD_ENDPOINT;
-    }
-    return `https://uploader.ente.io`;
+    return (
+        process.env.NEXT_PUBLIC_ENTE_UPLOAD_ENDPOINT ??
+        'https://uploader.ente.io'
+    );
 };
+
+export const getAlbumsURL = () => {
+    if (
+        isDevDeployment() &&
+        process.env.NEXT_PUBLIC_DEV_ALBUM_ENDPOINT !== undefined
+    ) {
+        return process.env.NEXT_PUBLIC_DEV_ALBUM_ENDPOINT;
+    } else {
+        return (
+            process.env.NEXT_PUBLIC_ENTE_ALBUM_ENDPOINT ??
+            'https://albums.ente.io'
+        );
+    }
+};
+
+const isDevDeployment = () => {
+    let isDevDeployment = false;
+    if (runningInBrowser()) {
+        isDevDeployment =
+            window.location.hostname ===
+                process.env.NEXT_PUBLIC_DEV_WEB_ENDPOINT ||
+            window.location.hostname ===
+                process.env.NEXT_PUBLIC_DEV_ALBUM_ENDPOINT;
+    }
+    return isDevDeployment;
+};
+
+const isProdEndpoint = (endpoint: string) => endpoint !== 'https://api.ente.io';

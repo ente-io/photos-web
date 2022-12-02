@@ -26,7 +26,6 @@ import {
     SYSTEM_COLLECTION_TYPES,
     UPLOAD_NOT_ALLOWED_COLLECTION_TYPES,
 } from 'constants/collection';
-import { getAlbumSiteHost } from 'constants/pages';
 import { getUnixTimeInMicroSecondsWithDelta } from 'utils/time';
 import {
     NEW_COLLECTION_MAGIC_METADATA,
@@ -34,7 +33,7 @@ import {
     VISIBILITY_STATE,
 } from 'types/magicMetadata';
 import { IsArchived, updateMagicMetadataProps } from 'utils/magicMetadata';
-import { ENV_DEVELOPMENT } from 'constants/sentry';
+import { getAlbumsURL } from 'utils/common/apiUtil';
 
 export enum COLLECTION_OPS_TYPE {
     ADD,
@@ -123,9 +122,10 @@ export function appendCollectionKeyToShareURL(
     }
     const bs58 = require('bs58');
     const sharableURL = new URL(url);
-    if (process.env.NODE_ENV === ENV_DEVELOPMENT) {
-        sharableURL.host = getAlbumSiteHost();
-        sharableURL.protocol = 'http';
+    const albumsURL = new URL(getAlbumsURL());
+    if (sharableURL.host !== albumsURL.host) {
+        sharableURL.host = albumsURL.host;
+        sharableURL.protocol = albumsURL.protocol;
     }
     const bytes = Buffer.from(collectionKey, 'base64');
     sharableURL.hash = bs58.encode(bytes);
