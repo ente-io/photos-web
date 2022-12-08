@@ -1,16 +1,6 @@
-export type Endpoint =
-    | 'API'
-    | 'PAYMENTS'
-    | 'WEB'
-    | 'ALBUMS'
-    | 'FAMILY'
-    | 'PROXY_FILES_API'
-    | 'PROXY_THUMBNAILS_API'
-    | 'PROXY_PUBLIC_ALBUMS_API'
-    | 'PROXY_UPLOADS_API'
-    | 'SENTRY_REPORTER_TUNNEL';
+import { ENDPOINT } from 'types/endpoint';
 
-export const PRODUCTION_ENDPOINTS: Record<Endpoint, string> = {
+export const PRODUCTION_ENDPOINTS: Record<ENDPOINT, string> = {
     API: 'https://api.ente.io',
     WEB: 'https://web.ente.io',
     PAYMENTS: 'https://payments.ente.io',

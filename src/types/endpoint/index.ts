@@ -1,0 +1,11 @@
+export type ENDPOINT =
+    | 'API'
+    | 'PAYMENTS'
+    | 'WEB'
+    | 'ALBUMS'
+    | 'FAMILY'
+    | 'PROXY_FILES_API'
+    | 'PROXY_THUMBNAILS_API'
+    | 'PROXY_PUBLIC_ALBUMS_API'
+    | 'PROXY_UPLOADS_API'
+    | 'SENTRY_REPORTER_TUNNEL';

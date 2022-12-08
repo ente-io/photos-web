@@ -44,6 +44,7 @@ import ArrowForward from '@mui/icons-material/ArrowForward';
 import { AppUpdateInfo } from 'types/electron';
 import { getSentryUserID } from 'utils/user';
 import { User } from 'types/user';
+import { addDefaultENVFallbacks } from 'utils/env';
 
 export const MessageContainer = styled('div')`
     background-color: #111;
@@ -129,6 +130,7 @@ export default function App({ Component, err }) {
             }
         );
         clearLogsIfLocalStorageLimitExceeded();
+        addDefaultENVFallbacks();
         const main = async () => {
             addLogLine(`userID: ${(getData(LS_KEYS.USER) as User)?.id}`);
             addLogLine(`sentryID: ${await getSentryUserID()}`);

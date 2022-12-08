@@ -1,35 +1,20 @@
-import { Endpoint, PRODUCTION_ENDPOINTS } from 'constants/endpoint';
+import { PRODUCTION_ENDPOINTS } from 'constants/endpoint';
+import { ENDPOINT } from 'types/endpoint';
 import { runningInBrowser } from '../common';
 
-const getEndpointEnvOverridesKey = (name: Endpoint) =>
+export const getEndpointEnvOverrideKey = (name: ENDPOINT) =>
     `NEXT_PUBLIC_${name}_ENDPOINT`;
 
-export const getEndpoint = (name: Endpoint) => {
-    const endpoint = getEndpointEnvOverridesKey(name);
-    if (isProductionApp() || !endpoint) {
+export const getEndpoint = (name: ENDPOINT) => {
+    if (isProductionApp()) {
         return PRODUCTION_ENDPOINTS[name];
+    } else {
+        return process.env[getEndpointEnvOverrideKey(name)];
     }
-    return endpoint;
 };
 
-export const isProductionAPIEndpoint = (apiEndpoint: string) =>
-    PRODUCTION_ENDPOINTS['API'] === apiEndpoint;
-
-export const getThumbnailURL = (id: number) => {
-    const apiEndpoint = getEndpoint('API');
-    if (isProductionAPIEndpoint(apiEndpoint)) {
-        return `${PRODUCTION_ENDPOINTS['PROXY_THUMBNAILS_API']}?fileID=${id}`;
-    }
-    return `${apiEndpoint}/files/preview/${id}`;
-};
-
-export const getFileURL = (id: number) => {
-    const apiEndpoint = getEndpoint('API');
-    if (isProductionAPIEndpoint(apiEndpoint)) {
-        return `${PRODUCTION_ENDPOINTS['PROXY_FILES_API']}?fileID=${id}`;
-    }
-    return `${apiEndpoint}/files/download/${id}`;
-};
+export const isProductionEndpoint = (name: ENDPOINT, endpoint: string) =>
+    PRODUCTION_ENDPOINTS[name] === endpoint;
 
 export const getDesktopRedirectURL = () =>
     `${getEndpoint('PAYMENTS')}/desktop-redirect`;
@@ -47,4 +32,6 @@ const isProductionApp = () => {
 export {
     getPublicCollectionThumbnailURL,
     getPublicCollectionFileURL,
-} from './publicAlbums';
+    getFileURL,
+    getThumbnailURL,
+} from './proxy';
