@@ -16,7 +16,7 @@ import isElectron from 'is-electron';
 import safeStorageService from 'services/electron/safeStorage';
 import { saveKeyInSessionStore } from 'utils/crypto';
 import { getKey, SESSION_KEYS } from 'utils/storage/sessionStorage';
-import { getAlbumsURL } from 'utils/common/apiUtil';
+import { getEndpoint } from 'utils/endpoint';
 
 const Container = styled('div')`
     display: flex;
@@ -102,10 +102,10 @@ export default function LandingPage() {
     useEffect(() => {
         appContext.showNavBar(false);
         const currentURL = new URL(window.location.href);
-        const ALBUM_SITE_HOST = new URL(getAlbumsURL()).host;
+        const albumsURL = new URL(getEndpoint('ALBUMS'));
         currentURL.pathname = router.pathname;
         if (
-            currentURL.host === ALBUM_SITE_HOST &&
+            currentURL.host === albumsURL.host &&
             currentURL.pathname !== PAGES.SHARED_ALBUMS
         ) {
             handleAlbumsRedirect(currentURL);

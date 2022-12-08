@@ -3,7 +3,7 @@ import SidebarButton from './Button';
 import constants from 'utils/strings/constants';
 import ExportModal from 'components/ExportModal';
 import exportService from 'services/exportService';
-import { getEndpoint } from 'utils/common/apiUtil';
+import { getEndpoint } from 'utils/endpoint';
 import { getToken } from 'utils/common/key';
 import isElectron from 'is-electron';
 import { AppContext } from 'pages/_app';
@@ -18,9 +18,9 @@ export default function HelpSection() {
     const { setDialogMessage } = useContext(AppContext);
 
     function openFeedbackURL() {
-        const feedbackURL: string = `${getEndpoint()}/users/feedback?token=${encodeURIComponent(
-            getToken()
-        )}`;
+        const feedbackURL: string = `${getEndpoint(
+            'API'
+        )}/users/feedback?token=${encodeURIComponent(getToken())}`;
         openLink(feedbackURL, true);
     }
 

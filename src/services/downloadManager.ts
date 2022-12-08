@@ -1,5 +1,5 @@
 import { getToken } from 'utils/common/key';
-import { getFileURL, getThumbnailURL } from 'utils/common/apiUtil';
+import { getFileURL, getThumbnailURL } from 'utils/endpoint';
 import CryptoWorker from 'utils/crypto';
 import {
     generateStreamFromArrayBuffer,

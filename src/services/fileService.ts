@@ -1,4 +1,3 @@
-import { getEndpoint } from 'utils/common/apiUtil';
 import localForage from 'utils/storage/localForage';
 
 import { getToken } from 'utils/common/key';
@@ -20,8 +19,9 @@ import { BulkUpdateMagicMetadataRequest } from 'types/magicMetadata';
 import { addLogLine } from 'utils/logging';
 import { isCollectionHidden } from 'utils/collection';
 import { CustomError } from 'utils/error';
+import { getEndpoint } from 'utils/endpoint';
 
-const ENDPOINT = getEndpoint();
+const API_ENDPOINT = getEndpoint('API');
 const FILES_TABLE = 'files';
 
 export const getLocalFiles = async () => {
@@ -119,7 +119,7 @@ export const getFiles = async (
                 break;
             }
             resp = await HTTPService.get(
-                `${ENDPOINT}/collections/v2/diff`,
+                `${API_ENDPOINT}/collections/v2/diff`,
                 {
                     collectionID: collection.id,
                     sinceTime: time,
@@ -231,7 +231,7 @@ export const deleteFromTrash = async (filesToDelete: number[]) => {
 const deleteBatchFromTrash = async (token: string, deleteBatch: number[]) => {
     try {
         await HTTPService.post(
-            `${ENDPOINT}/trash/delete`,
+            `${API_ENDPOINT}/trash/delete`,
             { fileIDs: deleteBatch },
             null,
             {
@@ -264,9 +264,14 @@ export const updateFileMagicMetadata = async (files: EnteFile[]) => {
             },
         });
     }
-    await HTTPService.put(`${ENDPOINT}/files/magic-metadata`, reqBody, null, {
-        'X-Auth-Token': token,
-    });
+    await HTTPService.put(
+        `${API_ENDPOINT}/files/magic-metadata`,
+        reqBody,
+        null,
+        {
+            'X-Auth-Token': token,
+        }
+    );
     return files.map(
         (file): EnteFile => ({
             ...file,
@@ -299,7 +304,7 @@ export const updateFilePublicMagicMetadata = async (files: EnteFile[]) => {
         });
     }
     await HTTPService.put(
-        `${ENDPOINT}/files/public-magic-metadata`,
+        `${API_ENDPOINT}/files/public-magic-metadata`,
         reqBody,
         null,
         {
@@ -319,9 +324,14 @@ export const updateFilePublicMagicMetadata = async (files: EnteFile[]) => {
 
 async function trashFilesFromServer(trashBatch: TrashRequest, token: any) {
     try {
-        await HTTPService.post(`${ENDPOINT}/files/trash`, trashBatch, null, {
-            'X-Auth-Token': token,
-        });
+        await HTTPService.post(
+            `${API_ENDPOINT}/files/trash`,
+            trashBatch,
+            null,
+            {
+                'X-Auth-Token': token,
+            }
+        );
     } catch (e) {
         logError(e, 'trash files from server failed');
         throw e;

@@ -1,4 +1,4 @@
-import { getEndpoint } from 'utils/common/apiUtil';
+import { getEndpoint } from 'utils/endpoint';
 import localForage from 'utils/storage/localForage';
 import { Collection } from 'types/collection';
 import HTTPService from './HTTPService';
@@ -14,7 +14,7 @@ import CryptoWorker from 'utils/crypto';
 import { REPORT_REASON } from 'constants/publicCollection';
 import { CustomError, parseSharingErrorCodes } from 'utils/error';
 
-const ENDPOINT = getEndpoint();
+const API_ENDPOINT = getEndpoint('API');
 const PUBLIC_COLLECTION_FILES_TABLE = 'public-collection-files';
 const PUBLIC_COLLECTIONS_TABLE = 'public-collections';
 
@@ -227,7 +227,7 @@ const getPublicFiles = async (
                 break;
             }
             resp = await HTTPService.get(
-                `${ENDPOINT}/public-collection/diff`,
+                `${API_ENDPOINT}/public-collection/diff`,
                 {
                     sinceTime: time,
                 },
@@ -280,7 +280,7 @@ export const getPublicCollection = async (
             return;
         }
         const resp = await HTTPService.get(
-            `${ENDPOINT}/public-collection/info`,
+            `${API_ENDPOINT}/public-collection/info`,
             null,
             { 'Cache-Control': 'no-cache', 'X-Auth-Access-Token': token }
         );
@@ -308,7 +308,7 @@ export const verifyPublicCollectionPassword = async (
 ): Promise<string> => {
     try {
         const resp = await HTTPService.post(
-            `${ENDPOINT}/public-collection/verify-password`,
+            `${API_ENDPOINT}/public-collection/verify-password`,
             { passHash: passwordHash },
             null,
             { 'Cache-Control': 'no-cache', 'X-Auth-Access-Token': token }
@@ -349,7 +349,7 @@ export const reportAbuse = async (
         const abuseReportRequest: AbuseReportRequest = { url, reason, details };
 
         await HTTPService.post(
-            `${ENDPOINT}/public-collection/report-abuse`,
+            `${API_ENDPOINT}/public-collection/report-abuse`,
             abuseReportRequest,
             null,
             { 'X-Auth-Access-Token': token }

@@ -33,7 +33,7 @@ import {
     VISIBILITY_STATE,
 } from 'types/magicMetadata';
 import { IsArchived, updateMagicMetadataProps } from 'utils/magicMetadata';
-import { getAlbumsURL } from 'utils/common/apiUtil';
+import { getEndpoint } from 'utils/endpoint';
 
 export enum COLLECTION_OPS_TYPE {
     ADD,
@@ -122,7 +122,8 @@ export function appendCollectionKeyToShareURL(
     }
     const bs58 = require('bs58');
     const sharableURL = new URL(url);
-    const albumsURL = new URL(getAlbumsURL());
+    const albumsEndpointURL = new URL(getEndpoint('ALBUMS'));
+    const albumsURL = albumsEndpointURL;
     if (sharableURL.host !== albumsURL.host) {
         sharableURL.host = albumsURL.host;
         sharableURL.protocol = albumsURL.protocol;

@@ -1,5 +1,5 @@
 import * as chrono from 'chrono-node';
-import { getEndpoint } from 'utils/common/apiUtil';
+import { getEndpoint } from 'utils/endpoint';
 import { getToken } from 'utils/common/key';
 import HTTPService from './HTTPService';
 import { Collection } from 'types/collection';
@@ -18,7 +18,7 @@ import {
 import { FILE_TYPE } from 'constants/file';
 import { getFormattedDate, isInsideBox, isSameDayAnyYear } from 'utils/search';
 
-const ENDPOINT = getEndpoint();
+const API_ENDPOINT = getEndpoint('API');
 
 const DIGITS = new Set(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
 
@@ -208,7 +208,7 @@ async function searchLocation(
 ): Promise<LocationSearchResponse[]> {
     try {
         const resp = await HTTPService.get(
-            `${ENDPOINT}/search/location`,
+            `${API_ENDPOINT}/search/location`,
             {
                 query: searchPhrase,
                 limit: 4,

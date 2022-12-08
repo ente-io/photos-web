@@ -1,5 +1,5 @@
 import { PAGES } from 'constants/pages';
-import { getEndpoint, getFamilyPortalURL } from 'utils/common/apiUtil';
+import { getEndpoint } from 'utils/endpoint';
 import { clearKeys } from 'utils/storage/sessionStorage';
 import router from 'next/router';
 import { clearData, getData, LS_KEYS } from 'utils/storage/localStorage';
@@ -24,12 +24,13 @@ import isElectron from 'is-electron';
 import safeStorageService from './electron/safeStorage';
 import { deleteThumbnailCache } from './cacheService';
 
-const ENDPOINT = getEndpoint();
+const API_ENDPOINT = getEndpoint('API');
+const FAMILY_ENDPOINT = getEndpoint('FAMILY');
 
 const HAS_SET_KEYS = 'hasSetKeys';
 
 export const sendOtt = (email: string) =>
-    HTTPService.post(`${ENDPOINT}/users/ott`, {
+    HTTPService.post(`${API_ENDPOINT}/users/ott`, {
         email,
         client: 'web',
     });
@@ -37,7 +38,7 @@ export const getPublicKey = async (email: string) => {
     const token = getToken();
 
     const resp = await HTTPService.get(
-        `${ENDPOINT}/users/public-key`,
+        `${API_ENDPOINT}/users/public-key`,
         { email },
         {
             'X-Auth-Token': token,
@@ -50,7 +51,7 @@ export const getPaymentToken = async () => {
     const token = getToken();
 
     const resp = await HTTPService.get(
-        `${ENDPOINT}/users/payment-token`,
+        `${API_ENDPOINT}/users/payment-token`,
         null,
         {
             'X-Auth-Token': token,
@@ -64,7 +65,7 @@ export const getFamiliesToken = async () => {
         const token = getToken();
 
         const resp = await HTTPService.get(
-            `${ENDPOINT}/users/families-token`,
+            `${API_ENDPOINT}/users/families-token`,
             null,
             {
                 'X-Auth-Token': token,
@@ -82,7 +83,7 @@ export const getRoadmapRedirectURL = async () => {
         const token = getToken();
 
         const resp = await HTTPService.get(
-            `${ENDPOINT}/users/roadmap/v2`,
+            `${API_ENDPOINT}/users/roadmap/v2`,
             null,
             {
                 'X-Auth-Token': token,
@@ -96,20 +97,25 @@ export const getRoadmapRedirectURL = async () => {
 };
 
 export const verifyOtt = (email: string, ott: string) =>
-    HTTPService.post(`${ENDPOINT}/users/verify-email`, { email, ott });
+    HTTPService.post(`${API_ENDPOINT}/users/verify-email`, { email, ott });
 
 export const putAttributes = (token: string, keyAttributes: KeyAttributes) =>
-    HTTPService.put(`${ENDPOINT}/users/attributes`, { keyAttributes }, null, {
-        'X-Auth-Token': token,
-    });
+    HTTPService.put(
+        `${API_ENDPOINT}/users/attributes`,
+        { keyAttributes },
+        null,
+        {
+            'X-Auth-Token': token,
+        }
+    );
 
 export const setKeys = (token: string, updatedKey: UpdatedKey) =>
-    HTTPService.put(`${ENDPOINT}/users/keys`, updatedKey, null, {
+    HTTPService.put(`${API_ENDPOINT}/users/keys`, updatedKey, null, {
         'X-Auth-Token': token,
     });
 
 export const setRecoveryKey = (token: string, recoveryKey: RecoveryKey) =>
-    HTTPService.put(`${ENDPOINT}/users/recovery-key`, recoveryKey, null, {
+    HTTPService.put(`${API_ENDPOINT}/users/recovery-key`, recoveryKey, null, {
         'X-Auth-Token': token,
     });
 
@@ -144,7 +150,7 @@ export const isTokenValid = async () => {
             return false;
         }
         const resp = await HTTPService.get(
-            `${ENDPOINT}/users/session-validity/v2`,
+            `${API_ENDPOINT}/users/session-validity/v2`,
             null,
             {
                 'X-Auth-Token': getToken(),
@@ -180,7 +186,7 @@ export const isTokenValid = async () => {
 
 export const setupTwoFactor = async () => {
     const resp = await HTTPService.post(
-        `${ENDPOINT}/users/two-factor/setup`,
+        `${API_ENDPOINT}/users/two-factor/setup`,
         null,
         null,
         {
@@ -195,7 +201,7 @@ export const enableTwoFactor = async (
     recoveryEncryptedTwoFactorSecret: B64EncryptionResult
 ) => {
     await HTTPService.post(
-        `${ENDPOINT}/users/two-factor/enable`,
+        `${API_ENDPOINT}/users/two-factor/enable`,
         {
             code,
             encryptedTwoFactorSecret:
@@ -212,7 +218,7 @@ export const enableTwoFactor = async (
 
 export const verifyTwoFactor = async (code: string, sessionID: string) => {
     const resp = await HTTPService.post(
-        `${ENDPOINT}/users/two-factor/verify`,
+        `${API_ENDPOINT}/users/two-factor/verify`,
         {
             code,
             sessionID,
@@ -223,29 +229,40 @@ export const verifyTwoFactor = async (code: string, sessionID: string) => {
 };
 
 export const recoverTwoFactor = async (sessionID: string) => {
-    const resp = await HTTPService.get(`${ENDPOINT}/users/two-factor/recover`, {
-        sessionID,
-    });
+    const resp = await HTTPService.get(
+        `${API_ENDPOINT}/users/two-factor/recover`,
+        {
+            sessionID,
+        }
+    );
     return resp.data as TwoFactorRecoveryResponse;
 };
 
 export const removeTwoFactor = async (sessionID: string, secret: string) => {
-    const resp = await HTTPService.post(`${ENDPOINT}/users/two-factor/remove`, {
-        sessionID,
-        secret,
-    });
+    const resp = await HTTPService.post(
+        `${API_ENDPOINT}/users/two-factor/remove`,
+        {
+            sessionID,
+            secret,
+        }
+    );
     return resp.data as TwoFactorVerificationResponse;
 };
 
 export const disableTwoFactor = async () => {
-    await HTTPService.post(`${ENDPOINT}/users/two-factor/disable`, null, null, {
-        'X-Auth-Token': getToken(),
-    });
+    await HTTPService.post(
+        `${API_ENDPOINT}/users/two-factor/disable`,
+        null,
+        null,
+        {
+            'X-Auth-Token': getToken(),
+        }
+    );
 };
 
 export const getTwoFactorStatus = async () => {
     const resp = await HTTPService.get(
-        `${ENDPOINT}/users/two-factor/status`,
+        `${API_ENDPOINT}/users/two-factor/status`,
         null,
         {
             'X-Auth-Token': getToken(),
@@ -257,7 +274,7 @@ export const getTwoFactorStatus = async () => {
 export const _logout = async () => {
     if (!getToken()) return true;
     try {
-        await HTTPService.post(`${ENDPOINT}/users/logout`, null, null, {
+        await HTTPService.post(`${API_ENDPOINT}/users/logout`, null, null, {
             'X-Auth-Token': getToken(),
         });
         return true;
@@ -271,7 +288,7 @@ export const sendOTTForEmailChange = async (email: string) => {
     if (!getToken()) {
         return null;
     }
-    await HTTPService.post(`${ENDPOINT}/users/ott`, {
+    await HTTPService.post(`${API_ENDPOINT}/users/ott`, {
         email,
         client: 'web',
         purpose: 'change',
@@ -283,7 +300,7 @@ export const changeEmail = async (email: string, ott: string) => {
         return null;
     }
     await HTTPService.post(
-        `${ENDPOINT}/users/change-email`,
+        `${API_ENDPOINT}/users/change-email`,
         {
             email,
             ott,
@@ -300,7 +317,7 @@ export const getUserDetailsV2 = async (): Promise<UserDetails> => {
         const token = getToken();
 
         const resp = await HTTPService.get(
-            `${ENDPOINT}/users/details/v2`,
+            `${API_ENDPOINT}/users/details/v2`,
             null,
             {
                 'X-Auth-Token': token,
@@ -317,9 +334,8 @@ export const getFamilyPortalRedirectURL = async () => {
     try {
         const jwtToken = await getFamiliesToken();
         const isFamilyCreated = isPartOfFamily(getLocalFamilyData());
-        return `${getFamilyPortalURL()}?token=${jwtToken}&isFamilyCreated=${isFamilyCreated}&redirectURL=${
-            window.location.origin
-        }/gallery`;
+
+        return `${FAMILY_ENDPOINT}?token=${jwtToken}&isFamilyCreated=${isFamilyCreated}&redirectURL=${window.location.origin}/gallery`;
     } catch (e) {
         logError(e, 'unable to generate to family portal URL');
         throw e;
@@ -331,7 +347,7 @@ export const getAccountDeleteChallenge = async () => {
         const token = getToken();
 
         const resp = await HTTPService.get(
-            `${ENDPOINT}/users/delete-challenge`,
+            `${API_ENDPOINT}/users/delete-challenge`,
             null,
             {
                 'X-Auth-Token': token,
@@ -352,7 +368,7 @@ export const deleteAccount = async (challenge: string) => {
         }
 
         await HTTPService.delete(
-            `${ENDPOINT}/users/delete`,
+            `${API_ENDPOINT}/users/delete`,
             { challenge },
             null,
             {

@@ -1,6 +1,6 @@
 import { SetFiles } from 'types/gallery';
 import { Collection } from 'types/collection';
-import { getEndpoint } from 'utils/common/apiUtil';
+import { getEndpoint } from 'utils/endpoint';
 import { getToken } from 'utils/common/key';
 import {
     decryptFile,
@@ -20,7 +20,7 @@ const TRASH = 'file-trash';
 const TRASH_TIME = 'trash-time';
 const DELETED_COLLECTION = 'deleted-collection';
 
-const ENDPOINT = getEndpoint();
+const API_ENDPOINT = getEndpoint('API');
 
 export async function getLocalTrash() {
     const trash = (await localForage.getItem<Trash>(TRASH)) || [];
@@ -91,7 +91,7 @@ export const updateTrash = async (
                 break;
             }
             resp = await HTTPService.get(
-                `${ENDPOINT}/trash/v2/diff`,
+                `${API_ENDPOINT}/trash/v2/diff`,
                 {
                     sinceTime: time,
                 },
@@ -187,7 +187,7 @@ export const emptyTrash = async () => {
         const lastUpdatedAt = await getLastSyncTime();
 
         await HTTPService.post(
-            `${ENDPOINT}/trash/empty`,
+            `${API_ENDPOINT}/trash/empty`,
             { lastUpdatedAt },
             null,
             {

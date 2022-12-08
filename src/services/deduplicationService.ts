@@ -1,25 +1,14 @@
 import { FILE_TYPE } from 'constants/file';
+import { DuplicateFiles, DuplicatesResponse } from 'types/dedupe';
 import { EnteFile } from 'types/file';
 import { Metadata } from 'types/upload';
-import { getEndpoint } from 'utils/common/apiUtil';
+import { getEndpoint } from 'utils/endpoint';
 import { getToken } from 'utils/common/key';
 import { logError } from 'utils/sentry';
 import { hasFileHash } from 'utils/upload';
 import HTTPService from './HTTPService';
 
-const ENDPOINT = getEndpoint();
-
-interface DuplicatesResponse {
-    duplicates: Array<{
-        fileIDs: number[];
-        size: number;
-    }>;
-}
-
-interface DuplicateFiles {
-    files: EnteFile[];
-    size: number;
-}
+const API_ENDPOINT = getEndpoint('API');
 
 export async function getDuplicateFiles(
     files: EnteFile[],
@@ -196,7 +185,7 @@ export function clubDuplicatesByTime(dupes: DuplicateFiles[]) {
 async function fetchDuplicateFileIDs() {
     try {
         const response = await HTTPService.get(
-            `${ENDPOINT}/files/duplicates`,
+            `${API_ENDPOINT}/files/duplicates`,
             null,
             {
                 'X-Auth-Token': getToken(),

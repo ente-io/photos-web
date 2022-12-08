@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/nextjs';
-import { getSentryTunnelURL } from 'utils/common/apiUtil';
+import { getEndpoint } from 'utils/endpoint';
 import { getSentryUserID } from 'utils/user';
 import {
     getSentryDSN,
@@ -20,7 +20,7 @@ Sentry.init({
     release: SENTRY_RELEASE,
     attachStacktrace: true,
     autoSessionTracking: false,
-    tunnel: getSentryTunnelURL(),
+    tunnel: getEndpoint('SENTRY_REPORTER_TUNNEL'),
     beforeSend(event) {
         event.request = event.request || {};
         const currentURL = new URL(document.location.href);

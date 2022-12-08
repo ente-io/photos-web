@@ -1,5 +1,5 @@
 import HTTPService from 'services/HTTPService';
-import { getEndpoint, getUploadEndpoint } from 'utils/common/apiUtil';
+import { getEndpoint } from 'utils/endpoint';
 import { getToken } from 'utils/common/key';
 import { logError } from 'utils/sentry';
 import { EnteFile } from 'types/file';
@@ -7,8 +7,8 @@ import { CustomError, handleUploadError } from 'utils/error';
 import { UploadFile, UploadURL, MultipartUploadURLs } from 'types/upload';
 import { retryHTTPCall } from 'utils/upload/uploadRetrier';
 
-const ENDPOINT = getEndpoint();
-const UPLOAD_ENDPOINT = getUploadEndpoint();
+const ENDPOINT = getEndpoint('API');
+const UPLOAD_ENDPOINT = getEndpoint('PROXY_UPLOADS_API');
 
 const MAX_URL_REQUESTS = 50;
 

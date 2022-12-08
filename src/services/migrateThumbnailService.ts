@@ -3,7 +3,7 @@ import { getLocalFiles } from 'services/fileService';
 import { generateThumbnail } from 'services/upload/thumbnailService';
 import { getToken } from 'utils/common/key';
 import { logError } from 'utils/sentry';
-import { getEndpoint } from 'utils/common/apiUtil';
+import { getEndpoint } from 'utils/endpoint';
 import HTTPService from 'services/HTTPService';
 import CryptoWorker from 'utils/crypto';
 import uploadHttpClient from 'services/upload/uploadHttpClient';
@@ -14,8 +14,9 @@ import { EncryptionResult, UploadURL } from 'types/upload';
 import { fileAttribute } from 'types/file';
 import { USE_CF_PROXY } from 'constants/upload';
 
-const ENDPOINT = getEndpoint();
+const API_ENDPOINT = getEndpoint('API');
 const REPLACE_THUMBNAIL_THRESHOLD = 500 * 1024; // 500KB
+
 export async function getLargeThumbnailFiles() {
     try {
         const token = getToken();
@@ -23,7 +24,7 @@ export async function getLargeThumbnailFiles() {
             return;
         }
         const resp = await HTTPService.get(
-            `${ENDPOINT}/files/large-thumbnails`,
+            `${API_ENDPOINT}/files/large-thumbnails`,
             {
                 threshold: REPLACE_THUMBNAIL_THRESHOLD,
             },
@@ -139,7 +140,7 @@ export async function updateThumbnail(
             return;
         }
         await HTTPService.put(
-            `${ENDPOINT}/files/thumbnail`,
+            `${API_ENDPOINT}/files/thumbnail`,
             {
                 fileID: fileID,
                 thumbnail: newThumbnail,

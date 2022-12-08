@@ -1,7 +1,7 @@
 import {
     getPublicCollectionFileURL,
     getPublicCollectionThumbnailURL,
-} from 'utils/common/apiUtil';
+} from 'utils/endpoint';
 import CryptoWorker from 'utils/crypto';
 import {
     generateStreamFromArrayBuffer,
