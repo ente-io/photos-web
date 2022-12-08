@@ -43,3 +43,8 @@ const isProductionApp = () => {
     }
     return isProductionApp;
 };
+
+export {
+    getPublicCollectionThumbnailURL,
+    getPublicCollectionFileURL,
+} from './publicAlbums';

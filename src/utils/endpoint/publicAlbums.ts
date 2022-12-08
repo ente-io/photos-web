@@ -1,7 +1,7 @@
 import { PRODUCTION_ENDPOINTS } from 'constants/endpoint';
 import { getEndpoint, isProductionAPIEndpoint } from '.';
 
-export const getPublicAlbumsThumbnailURL = (id: number) => {
+export const getPublicCollectionThumbnailURL = (id: number) => {
     const apiEndpoint = getEndpoint('API');
     if (isProductionAPIEndpoint(apiEndpoint)) {
         return `${PRODUCTION_ENDPOINTS['PROXY_PUBLIC_ALBUMS_API']}/preview?fileID=${id}`;
