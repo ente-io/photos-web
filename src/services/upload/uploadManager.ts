@@ -353,7 +353,9 @@ class UploadManager {
                     UPLOAD_RESULT.ADDED_SYMLINK,
                     UPLOAD_RESULT.UPLOADED,
                     UPLOAD_RESULT.UPLOADED_WITH_STATIC_THUMBNAIL,
-                ].includes(fileUploadResult)
+                ].includes(fileUploadResult) &&
+                process.env.NEXT_PUBLIC_DISABLE_UPLOAD_LOCAL_FILE_UPDATE !==
+                    'true'
             ) {
                 this.updateExistingFiles(decryptedFile);
             }
