@@ -1,6 +1,5 @@
 import React, { useContext } from 'react';
 import { PeopleList } from 'components/MachineLearning/PeopleList';
-import { Legend } from 'components/PhotoSwipe/styledComponents/Legend';
 import { IndexStatus } from 'types/machineLearning/ui';
 import { SuggestionType, Suggestion } from 'types/search';
 import { components } from 'react-select';
@@ -43,7 +42,7 @@ const MenuWithPeople = (props) => {
                 {((appContext.mlSearchEnabled && indexStatus) ||
                     (people && people.length > 0)) && (
                     <LegendRow>
-                        <Legend>{constants.PEOPLE}</Legend>
+                        <div>{constants.PEOPLE}</div>
                     </LegendRow>
                 )}
                 {appContext.mlSearchEnabled && indexStatus && (

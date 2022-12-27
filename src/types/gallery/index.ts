@@ -4,7 +4,6 @@ import { Collection } from 'types/collection';
 import { EnteFile } from 'types/file';
 import { Person, ThingClass, WordGroup } from 'types/machineLearning';
 import { DateValue, Bbox } from 'types/search';
-import { NotificationAttributes } from 'types/Notification';
 
 export type SelectedState = {
     [k: number]: boolean;
@@ -13,7 +12,6 @@ export type SelectedState = {
 };
 export type SetFiles = React.Dispatch<React.SetStateAction<EnteFile[]>>;
 export type SetCollections = React.Dispatch<React.SetStateAction<Collection[]>>;
-export type SetLoading = React.Dispatch<React.SetStateAction<Boolean>>;
 export type setSearchStats = React.Dispatch<React.SetStateAction<SearchStats>>;
 
 export type Search = {
@@ -28,17 +26,17 @@ export interface SearchStats {
     resultCount: number;
     timeTaken: number;
 }
+export type SetLoading = React.Dispatch<React.SetStateAction<boolean>>;
 export type SetCollectionSelectorAttributes = React.Dispatch<
     React.SetStateAction<CollectionSelectorAttributes>
 >;
 
 export type GalleryContextType = {
     thumbs: Map<number, string>;
-    files: Map<number, string>;
+    files: Map<number, { original: string; converted: string }>;
     showPlanSelectorModal: () => void;
     setActiveCollection: (collection: number) => void;
     syncWithRemote: (force?: boolean, silent?: boolean) => Promise<void>;
-    setNotificationAttributes: (attributes: NotificationAttributes) => void;
     setBlockingLoad: (value: boolean) => void;
     photoListHeader: TimeStampListItem;
 };
