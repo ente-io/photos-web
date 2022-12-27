@@ -34,7 +34,7 @@ import { CustomError } from 'utils/error';
 import {
     addLogLine,
     clearLogsIfLocalStorageLimitExceeded,
-    pipeConsoleLogsToDebugLogs,
+    // pipeConsoleLogsToDebugLogs,
 } from 'utils/logging';
 import isElectron from 'is-electron';
 import ElectronUpdateService from 'services/electron/update';
@@ -152,7 +152,8 @@ export default function App({ Component, err }) {
 
         loadMlSearchState();
         clearLogsIfLocalStorageLimitExceeded();
-        pipeConsoleLogsToDebugLogs();
+        // causing tab crash
+        // pipeConsoleLogsToDebugLogs();
         const main = async () => {
             addLogLine(`userID: ${(getData(LS_KEYS.USER) as User)?.id}`);
             addLogLine(`sentryID: ${await getSentryUserID()}`);
