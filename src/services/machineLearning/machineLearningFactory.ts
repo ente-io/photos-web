@@ -23,8 +23,6 @@ import {
     SceneDetectionMethod,
 } from 'types/machineLearning';
 import { getConcurrency } from 'utils/common/concurrency';
-import { getDedicatedCryptoWorker } from 'utils/crypto';
-import { ComlinkWorker } from 'utils/comlink';
 import { logQueueStats } from 'utils/machineLearning';
 import arcfaceAlignmentService from './arcfaceAlignmentService';
 import arcfaceCropService from './arcfaceCropService';
@@ -35,6 +33,9 @@ import dbscanClusteringService from './dbscanClusteringService';
 import ssdMobileNetV2Service from './ssdMobileNetV2Service';
 import tesseractService from './tesseractService';
 import imageSceneService from './imageSceneService';
+import { getDedicatedCryptoWorker } from 'utils/comlink';
+import { DedicatedCryptoWorker } from 'worker/crypto.worker';
+import { ComlinkWorker } from 'utils/comlink/comlinkWorker';
 
 export class MLFactory {
     public static getFaceDetectionService(
@@ -157,7 +158,9 @@ export class LocalMLSyncContext implements MLSyncContext {
     // private downloadQueue: PQueue;
 
     private concurrency: number;
-    private enteComlinkWorkers: Array<ComlinkWorker>;
+    private enteComlinkWorkers: Array<
+        ComlinkWorker<typeof DedicatedCryptoWorker>
+    >;
     private enteWorkers: Array<any>;
 
     constructor(
@@ -219,7 +222,7 @@ export class LocalMLSyncContext implements MLSyncContext {
         const wid = id % this.enteWorkers.length;
         if (!this.enteWorkers[wid]) {
             this.enteComlinkWorkers[wid] = getDedicatedCryptoWorker();
-            this.enteWorkers[wid] = new this.enteComlinkWorkers[wid].comlink();
+            this.enteWorkers[wid] = new this.enteComlinkWorkers[wid].remote();
         }
 
         return this.enteWorkers[wid];
@@ -233,7 +236,7 @@ export class LocalMLSyncContext implements MLSyncContext {
         await this.syncQueue.onIdle();
         this.syncQueue.removeAllListeners();
         for (const enteComlinkWorker of this.enteComlinkWorkers) {
-            enteComlinkWorker?.worker.terminate();
+            enteComlinkWorker?.terminate();
         }
     }
 }

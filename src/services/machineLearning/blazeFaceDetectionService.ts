@@ -62,7 +62,8 @@ class BlazeFaceDetectionService implements FaceDetectionService {
         console.log(
             'loaded blazeFaceModel: ',
             // await this.blazeFaceModel,
-            await tf.getBackend()
+            // POSSIBLE_ERROR: tf.getBackend() is a promise, not the actual results
+            tf.getBackend()
         );
     }
 
@@ -151,7 +152,8 @@ class BlazeFaceDetectionService implements FaceDetectionService {
             3,
         ]);
         const normalizedImage = tf.sub(tf.div(reshapedImage, 127.5), 1.0);
-        const results = await this.blazeFaceBackModel.predict(normalizedImage);
+        // POSSIBLE ERROR: results is a promise, not the actual results
+        const results = this.blazeFaceBackModel.predict(normalizedImage);
         // console.log('onFacesDetected: ', results);
         return results;
     }

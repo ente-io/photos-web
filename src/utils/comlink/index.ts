@@ -3,6 +3,7 @@ import { runningInBrowser } from 'utils/common';
 import { DedicatedConvertWorker } from 'worker/convert.worker';
 import { DedicatedCryptoWorker } from 'worker/crypto.worker';
 import { DedicatedFFmpegWorker } from 'worker/ffmpeg.worker';
+import { DedicatedMLWorker } from 'worker/machineLearning.worker';
 
 const getDedicatedFFmpegWorker = () => {
     if (runningInBrowser()) {
@@ -39,6 +40,18 @@ export const getDedicatedConvertWorker = () => {
         >(
             'ente-convert-worker',
             new Worker(new URL('worker/convert.worker.ts', import.meta.url))
+        );
+        return cryptoComlinkWorker;
+    }
+};
+
+export const getDedicatedMLWorker = () => {
+    if (runningInBrowser()) {
+        const cryptoComlinkWorker = new ComlinkWorker<typeof DedicatedMLWorker>(
+            'ente-ml-worker',
+            new Worker(
+                new URL('worker/machineLearning.worker.ts', import.meta.url)
+            )
         );
         return cryptoComlinkWorker;
     }

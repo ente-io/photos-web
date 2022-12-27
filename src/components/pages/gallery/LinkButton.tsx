@@ -1,3 +1,4 @@
+import { ButtonProps } from '@mui/material';
 import Link, { LinkProps } from '@mui/material/Link';
 import React, { FC } from 'react';
 

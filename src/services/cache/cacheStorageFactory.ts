@@ -27,6 +27,6 @@ function transformBrowserCacheStorageToLimitedCacheStorage(
                 delete: cache.delete.bind(cache),
             };
         },
-        delete: caches.delete,
+        delete: (cacheName: string) => caches.delete(cacheName),
     };
 }

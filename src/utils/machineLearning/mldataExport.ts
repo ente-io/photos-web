@@ -4,7 +4,7 @@ import * as zip from '@zip.js/zip.js';
 import { FACE_CROPS_CACHE } from 'constants/cache';
 import { CacheStorageService } from 'services/cache/cacheStorageService';
 
-class FileSystemWriter extends zip.Writer {
+class FileSystemWriter extends zip.Writer<Uint8Array> {
     writableStream: FileSystemWritableFileStream;
 
     constructor(writableStream: FileSystemWritableFileStream) {
@@ -22,11 +22,11 @@ class FileSystemWriter extends zip.Writer {
     }
 }
 
-class FileReader extends zip.Reader {
+class FileReader extends zip.Reader<File> {
     file: File;
 
     constructor(file: File) {
-        super();
+        super(file);
         this.file = file;
     }
 
@@ -50,7 +50,7 @@ class FileReader extends zip.Reader {
 export async function exportMlData(
     mlDataZipWritable: FileSystemWritableFileStream
 ) {
-    const zipWriter = new zip.ZipWriter(
+    const zipWriter = new zip.ZipWriter<typeof FileSystemWriter>(
         new FileSystemWriter(mlDataZipWritable)
     );
 
@@ -69,7 +69,9 @@ export async function exportMlData(
     console.log('Ml Data Exported');
 }
 
-async function exportMlDataToZipWriter(zipWriter: zip.ZipWriter) {
+async function exportMlDataToZipWriter(
+    zipWriter: zip.ZipWriter<typeof FileSystemWriter>
+) {
     const mlDbData = await mlIDbStorage.getAllMLData();
     const faceClusteringResults =
         mlDbData?.library?.data?.faceClusteringResults;
@@ -112,7 +114,9 @@ async function exportMlDataToZipWriter(zipWriter: zip.ZipWriter) {
     }
 }
 export async function importMlData(mlDataZipFile: File) {
-    const zipReader = new zip.ZipReader(new FileReader(mlDataZipFile));
+    const zipReader = new zip.ZipReader<typeof FileReader>(
+        new FileReader(mlDataZipFile)
+    );
 
     try {
         await importMlDataFromZipReader(zipReader);
@@ -123,7 +127,9 @@ export async function importMlData(mlDataZipFile: File) {
     console.log('ML Data Imported');
 }
 
-async function importMlDataFromZipReader(zipReader: zip.ZipReader) {
+async function importMlDataFromZipReader(
+    zipReader: zip.ZipReader<typeof FileReader>
+) {
     const zipEntries = await zipReader.getEntries();
     // console.log(zipEntries);
 

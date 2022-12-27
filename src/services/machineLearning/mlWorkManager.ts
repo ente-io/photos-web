@@ -35,7 +35,9 @@ class MLWorkManager {
         });
         this.mlSearchEnabled = false;
 
-        eventBus.on(Events.LOGOUT, this.logoutHandler, this);
+        eventBus.on(Events.LOGOUT, () => {
+            this.logoutHandler();
+        });
         this.debouncedLiveSyncIdle = debounce(
             () => this.onLiveSyncIdle(),
             LIVE_SYNC_IDLE_DEBOUNCE_SEC * 1000
@@ -56,7 +58,9 @@ class MLWorkManager {
 
             // eventBus.on(Events.APP_START, this.appStartHandler, this);
             // eventBus.on(Events.LOGIN, this.startSyncJob, this);
-            eventBus.on(Events.FILE_UPLOADED, this.fileUploadedHandler, this);
+            eventBus.on(Events.FILE_UPLOADED, (args) => {
+                this.fileUploadedHandler(args);
+            });
             eventBus.on(
                 Events.LOCAL_FILES_UPDATED,
                 this.debouncedFilesUpdated,
@@ -72,18 +76,16 @@ class MLWorkManager {
 
             // eventBus.removeListener(Events.APP_START, this.appStartHandler, this);
             // eventBus.removeListener(Events.LOGIN, this.startSyncJob, this);
-            eventBus.removeListener(
-                Events.FILE_UPLOADED,
-                this.fileUploadedHandler,
-                this
-            );
+            eventBus.removeListener(Events.FILE_UPLOADED, (args) => {
+                this.fileUploadedHandler(args);
+            });
             eventBus.removeListener(
                 Events.LOCAL_FILES_UPDATED,
                 this.debouncedFilesUpdated,
                 this
             );
 
-            await this.stopSyncJob();
+            this.stopSyncJob();
         }
     }
 
@@ -100,7 +102,7 @@ class MLWorkManager {
     private async logoutHandler() {
         console.log('logoutHandler');
         try {
-            await this.stopSyncJob();
+            this.stopSyncJob();
             this.mlSyncJob = undefined;
             await this.terminateLiveSyncWorker();
             await mlIDbStorage.clearMLDB();

@@ -73,7 +73,7 @@ type AppContextType = {
     redirectURL: string;
     setRedirectURL: (url: string) => void;
     mlSearchEnabled: boolean;
-    updateMlSearchEnabled: (enabled: boolean) => void;
+    updateMlSearchEnabled: (enabled: boolean) => Promise<void>;
     startLoading: () => void;
     finishLoading: () => void;
     closeMessageDialog: () => void;

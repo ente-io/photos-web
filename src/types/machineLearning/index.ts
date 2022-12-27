@@ -9,7 +9,10 @@ import * as tf from '@tensorflow/tfjs-core';
 import { DebugInfo } from 'hdbscan';
 import PQueue from 'p-queue';
 
-import { Point as D3Point, RawNodeDatum } from 'react-d3-tree/lib/types/common';
+import {
+    Point as D3Point,
+    RawNodeDatum,
+} from 'react-d3-tree/lib/types/types/common';
 import { EnteFile } from 'types/file';
 import { Config } from 'types/common/config';
 import { Dimensions } from 'types/image';
