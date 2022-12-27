@@ -2,14 +2,14 @@ import { expose } from 'comlink';
 import { EnteFile } from 'types/file';
 import mlService from 'services/machineLearning/machineLearningService';
 import { MachineLearningWorker } from 'types/machineLearning';
-import { pipeConsoleLogsToDebugLogs } from 'utils/logging';
+// import { pipeConsoleLogsToDebugLogs } from 'utils/logging';
 // import ReverseProxiedElectronCacheStorageProxy from './electronCacheStorageProxy.proxy';
 // import { setupResponseComlinkTransferHandler } from 'utils/comlink';
 
 export class DedicatedMLWorker implements MachineLearningWorker {
     constructor() {
         console.log('DedicatedMLWorker constructor called');
-        pipeConsoleLogsToDebugLogs();
+        // pipeConsoleLogsToDebugLogs();
         // this.init();
     }
 
