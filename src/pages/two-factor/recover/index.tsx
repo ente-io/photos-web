@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import constants from 'utils/strings/constants';
 import { getData, LS_KEYS, setData } from 'utils/storage/localStorage';
 import { useRouter } from 'next/router';
-import CryptoWorker from 'utils/crypto';
+import { CryptoWorker } from 'utils/comlink/crypto';
 import SingleInputForm, {
     SingleInputFormProps,
 } from 'components/SingleInputForm';

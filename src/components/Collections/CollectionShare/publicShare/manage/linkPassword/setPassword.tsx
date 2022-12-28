@@ -3,7 +3,7 @@ import SingleInputForm, {
     SingleInputFormProps,
 } from 'components/SingleInputForm';
 import React from 'react';
-import CryptoWorker from 'utils/crypto';
+import { CryptoWorker } from 'utils/comlink/crypto';
 import constants from 'utils/strings/constants';
 
 export function PublicLinkSetPassword({

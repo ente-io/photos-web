@@ -10,7 +10,7 @@ import {
     AbuseReportRequest,
     LocalSavedPublicCollectionFiles,
 } from 'types/publicCollection';
-import CryptoWorker from 'utils/crypto';
+import { CryptoWorker } from 'utils/comlink/crypto';
 import { REPORT_REASON } from 'constants/publicCollection';
 import { CustomError, parseSharingErrorCodes } from 'utils/error';
 

@@ -1,6 +1,6 @@
 import { getToken } from 'utils/common/key';
 import { getFileURL, getThumbnailURL } from 'utils/common/apiUtil';
-import CryptoWorker from 'utils/crypto';
+import { CryptoWorker } from 'utils/comlink/crypto';
 import {
     generateStreamFromArrayBuffer,
     getRenderableFileURL,

@@ -1,7 +1,7 @@
 import isElectron from 'is-electron';
 import { ElectronFFmpeg } from 'services/electron/ffmpeg';
 import { ElectronFile } from 'types/upload';
-import { FFmpegWorker } from 'utils/comlink';
+import { FFmpegWorker } from 'utils/comlink/ffmpeg';
 
 export interface IFFmpeg {
     run: (

@@ -6,7 +6,7 @@ import { setRecoveryKey } from 'services/userService';
 import { logError } from 'utils/sentry';
 import isElectron from 'is-electron';
 import safeStorageService from 'services/electron/safeStorage';
-import { CryptoWorker } from 'utils/comlink';
+import { CryptoWorker } from 'utils/comlink/crypto';
 
 export async function generateKeyAttributes(
     passphrase: string
@@ -211,4 +211,3 @@ export async function decryptDeleteAccountChallenge(
     const utf8DecryptedChallenge = atob(b64DecryptedChallenge);
     return utf8DecryptedChallenge;
 }
-export default CryptoWorker;

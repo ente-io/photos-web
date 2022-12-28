@@ -11,7 +11,7 @@ import {
     preservePhotoswipeProps,
     sortFiles,
 } from 'utils/file';
-import CryptoWorker from 'utils/crypto';
+import { CryptoWorker } from 'utils/comlink/crypto';
 import { eventBus, Events } from './events';
 import { EnteFile, TrashRequest, EncryptedEnteFile } from 'types/file';
 import { SetFiles } from 'types/gallery';

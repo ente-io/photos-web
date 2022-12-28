@@ -1,5 +1,5 @@
 import { B64EncryptionResult } from 'types/crypto';
-import CryptoWorker from 'utils/crypto';
+import { CryptoWorker } from 'utils/comlink/crypto';
 import { getData, LS_KEYS } from 'utils/storage/localStorage';
 import { getKey, SESSION_KEYS } from 'utils/storage/sessionStorage';
 import { CustomError } from '../error';

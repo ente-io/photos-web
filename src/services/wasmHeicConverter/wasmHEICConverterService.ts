@@ -6,7 +6,7 @@ import { addLogLine } from 'utils/logging';
 import { makeHumanReadableStorage } from 'utils/billing';
 import { DedicatedConvertWorker } from 'worker/convert.worker';
 import { ComlinkWorker } from 'utils/comlink/comlinkWorker';
-import { getDedicatedConvertWorker } from 'utils/comlink';
+import { getDedicatedConvertWorker } from 'utils/comlink/convert';
 
 const WORKER_POOL_SIZE = 2;
 const MAX_CONVERSION_IN_PARALLEL = 1;

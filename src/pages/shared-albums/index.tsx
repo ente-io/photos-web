@@ -23,7 +23,7 @@ import { CustomError, parseSharingErrorCodes } from 'utils/error';
 import VerticallyCentered, { CenteredFlex } from 'components/Container';
 import constants from 'utils/strings/constants';
 import EnteSpinner from 'components/EnteSpinner';
-import CryptoWorker from 'utils/crypto';
+import { CryptoWorker } from 'utils/comlink/crypto';
 import { PAGES } from 'constants/pages';
 import { useRouter } from 'next/router';
 import SingleInputForm, {

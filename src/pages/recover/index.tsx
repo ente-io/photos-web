@@ -8,10 +8,8 @@ import {
 } from 'utils/storage/localStorage';
 import { useRouter } from 'next/router';
 import { PAGES } from 'constants/pages';
-import CryptoWorker, {
-    decryptAndStoreToken,
-    saveKeyInSessionStore,
-} from 'utils/crypto';
+import { CryptoWorker } from 'utils/comlink/crypto';
+import { decryptAndStoreToken, saveKeyInSessionStore } from 'utils/crypto';
 import SingleInputForm, {
     SingleInputFormProps,
 } from 'components/SingleInputForm';

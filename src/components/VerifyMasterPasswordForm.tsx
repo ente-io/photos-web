@@ -1,7 +1,7 @@
 import React from 'react';
 
 import constants from 'utils/strings/constants';
-import CryptoWorker from 'utils/crypto';
+import { CryptoWorker } from 'utils/comlink/crypto';
 import SingleInputForm, {
     SingleInputFormProps,
 } from 'components/SingleInputForm';

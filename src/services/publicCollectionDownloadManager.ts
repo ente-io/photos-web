@@ -2,7 +2,7 @@ import {
     getPublicCollectionFileURL,
     getPublicCollectionThumbnailURL,
 } from 'utils/common/apiUtil';
-import CryptoWorker from 'utils/crypto';
+import { CryptoWorker } from 'utils/comlink/crypto';
 import {
     generateStreamFromArrayBuffer,
     getRenderableFileURL,

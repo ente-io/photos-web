@@ -36,7 +36,7 @@ import { ProgressUpdater } from 'types/upload/ui';
 import uploadCancelService from './uploadCancelService';
 import { DedicatedCryptoWorker } from 'worker/crypto.worker';
 import { ComlinkWorker } from 'utils/comlink/comlinkWorker';
-import { getDedicatedCryptoWorker } from 'utils/comlink';
+import { getDedicatedCryptoWorker } from 'utils/comlink/crypto';
 import { Remote } from 'comlink';
 import {
     getLocalPublicFiles,

@@ -33,7 +33,7 @@ import dbscanClusteringService from './dbscanClusteringService';
 import ssdMobileNetV2Service from './ssdMobileNetV2Service';
 import tesseractService from './tesseractService';
 import imageSceneService from './imageSceneService';
-import { getDedicatedCryptoWorker } from 'utils/comlink';
+import { getDedicatedCryptoWorker } from 'utils/comlink/crypto';
 import { DedicatedCryptoWorker } from 'worker/crypto.worker';
 import { ComlinkWorker } from 'utils/comlink/comlinkWorker';
 

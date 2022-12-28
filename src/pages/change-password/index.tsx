@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import constants from 'utils/strings/constants';
 import { getData, LS_KEYS, setData } from 'utils/storage/localStorage';
 import { useRouter } from 'next/router';
-import CryptoWorker, {
+import { CryptoWorker } from 'utils/comlink/crypto';
+import {
     saveKeyInSessionStore,
     generateAndSaveIntermediateKeyAttributes,
 } from 'utils/crypto';

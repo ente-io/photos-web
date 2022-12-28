@@ -3,7 +3,7 @@ import { getData, LS_KEYS } from 'utils/storage/localStorage';
 import localForage from 'utils/storage/localForage';
 
 import { getActualKey, getToken } from 'utils/common/key';
-import CryptoWorker from 'utils/crypto';
+import { CryptoWorker } from 'utils/comlink/crypto';
 import { getPublicKey } from './userService';
 import HTTPService from './HTTPService';
 import { EnteFile } from 'types/file';
