@@ -558,7 +558,7 @@ class MachineLearningService {
 
         const input = allFaces
             .slice(0, syncContext.config.tsne.samples)
-            .map((f) => Array.from(f.embedding));
+            .map((f) => Array.from<number>(f.embedding));
         syncContext.tsne = toTSNE(input, syncContext.config.tsne);
         console.log('tsne: ', syncContext.tsne);
     }
