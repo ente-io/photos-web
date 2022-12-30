@@ -1,6 +1,10 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 
-import { syncCollections, createAlbum } from 'services/collectionService';
+import {
+    syncCollections,
+    createAlbum,
+    getLocalCollections,
+} from 'services/collectionService';
 import constants from 'utils/strings/constants';
 import UploadProgress from './UploadProgress';
 
@@ -276,7 +280,6 @@ export default function Uploader(props: Props) {
                 publicCollectionGalleryContext.accessedThroughSharedURL
             );
             pickedUploadType.current = null;
-            props.setLoading(false);
         }
     }, [webFiles, appContext.sharedFiles, electronFiles]);
 
@@ -346,7 +349,7 @@ export default function Uploader(props: Props) {
             }
             try {
                 const existingCollection = getUserOwnedCollections(
-                    await syncCollections()
+                    await getLocalCollections()
                 );
                 let index = 0;
                 for (const [
@@ -424,7 +427,7 @@ export default function Uploader(props: Props) {
         uploaderName?: string
     ) => {
         try {
-            preUploadAction();
+            await preUploadAction();
             if (
                 isElectron() &&
                 !isPendingDesktopUpload.current &&
@@ -560,6 +563,7 @@ export default function Uploader(props: Props) {
                 showUserNameInputDialog();
                 return;
             }
+            props.setCollections(await syncCollections());
             if (isPendingDesktopUpload.current) {
                 isPendingDesktopUpload.current = false;
                 if (pendingDesktopUploadCollectionName.current) {
@@ -600,6 +604,8 @@ export default function Uploader(props: Props) {
             });
         } catch (e) {
             logError(e, 'handleCollectionCreationAndUpload failed');
+        } finally {
+            props.setLoading(false);
         }
     };
 
