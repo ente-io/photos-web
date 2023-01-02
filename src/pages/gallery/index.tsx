@@ -601,6 +601,7 @@ export default function Gallery() {
                     collectionSummaries={collectionSummaries}
                     attributes={collectionSelectorAttributes}
                     collections={collections}
+                    setCollections={setCollections}
                 />
                 <FixCreationTime
                     isOpen={fixCreationTimeView}

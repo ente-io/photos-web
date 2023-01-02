@@ -8,6 +8,7 @@ import { DialogContent } from '@mui/material';
 import { FlexWrapper } from 'components/Container';
 import CollectionSelectorCard from './CollectionCard';
 import AddCollectionButton from './AddCollectionButton';
+import { syncCollections } from 'services/collectionService';
 
 export interface CollectionSelectorAttributes {
     callback: (collection: Collection) => void;
@@ -23,6 +24,7 @@ interface Props {
     attributes: CollectionSelectorAttributes;
     collections: Collection[];
     collectionSummaries: CollectionSummaries;
+    setCollections: (collections: Collection[]) => void;
 }
 function CollectionSelector({
     attributes,
@@ -51,6 +53,17 @@ function CollectionSelector({
             attributes.showNextModal();
         }
     }, [collectionToShow, attributes, props.open]);
+
+    useEffect(() => {
+        if (!attributes || !props.open) {
+            return;
+        }
+        const main = async () => {
+            const updatedCollections = await syncCollections();
+            props.setCollections(updatedCollections);
+        };
+        main();
+    }, [attributes, props.open]);
 
     if (!attributes) {
         return <></>;
