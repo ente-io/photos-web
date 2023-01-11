@@ -552,6 +552,8 @@ export default function Gallery() {
         setCollectionSelectorView(false);
     };
 
+    const dummySyncWithRemote = async () => {};
+
     return (
         <GalleryContext.Provider
             value={{
@@ -627,7 +629,7 @@ export default function Gallery() {
                 />
 
                 <Uploader
-                    syncWithRemote={syncWithRemote}
+                    syncWithRemote={dummySyncWithRemote}
                     showCollectionSelector={setCollectionSelectorView.bind(
                         null,
                         true
@@ -667,7 +669,7 @@ export default function Gallery() {
                 <PhotoFrame
                     files={files}
                     collections={collections}
-                    syncWithRemote={syncWithRemote}
+                    syncWithRemote={dummySyncWithRemote}
                     favItemIds={favItemIds}
                     archivedCollections={archivedCollections}
                     setSelected={setSelected}
