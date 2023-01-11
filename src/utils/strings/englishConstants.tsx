@@ -390,7 +390,7 @@ const englishConstants = {
     CREATE_ALBUM_FAILED: 'Failed to create album , please try again',
 
     SEARCH_RESULTS: 'Search results',
-    SEARCH_HINT: () => <span>Search for location, dates, albums ...</span>,
+    SEARCH_HINT: () => <span>Search for albums, dates ...</span>,
     SEARCH_TYPE: (type: SuggestionType) => {
         switch (type) {
             case SuggestionType.COLLECTION:
@@ -611,7 +611,12 @@ const englishConstants = {
     EMPTY_TRASH_TITLE: 'Empty trash?',
     EMPTY_TRASH_MESSAGE:
         'These files will be permanently deleted from your ente account.',
-
+    LEAVE_SHARED_ALBUM: 'Yes, leave',
+    LEAVE_ALBUM: 'Leave album',
+    LEAVE_SHARED_ALBUM_TITLE: 'Leave shared album?',
+    LEAVE_SHARED_ALBUM_FAILED: 'failed to leave the album, please try again',
+    LEAVE_SHARED_ALBUM_MESSAGE:
+        'You will leave the album, and it will stop being visible to you.',
     CONFIRM_REMOVE_MESSAGE: () => (
         <>
             <p>Are you sure you want to remove these files from the album?</p>

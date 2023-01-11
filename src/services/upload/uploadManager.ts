@@ -1,6 +1,5 @@
 import { getLocalFiles } from '../fileService';
 import { SetFiles } from 'types/gallery';
-import { getDedicatedCryptoWorker } from 'utils/crypto';
 import {
     sortFiles,
     preservePhotoswipeProps,
@@ -18,15 +17,15 @@ import UIService from './uiService';
 import UploadService from './uploadService';
 import { CustomError } from 'utils/error';
 import { Collection } from 'types/collection';
-import { EnteFile } from 'types/file';
+import { EncryptedEnteFile, EnteFile } from 'types/file';
 import {
     FileWithCollection,
     ParsedMetadataJSON,
     ParsedMetadataJSONMap,
     PublicUploadProps,
 } from 'types/upload';
+
 import { UPLOAD_RESULT, UPLOAD_STAGES } from 'constants/upload';
-import { ComlinkWorker } from 'utils/comlink';
 import uiService from './uiService';
 import { addLogLine, getFileNameSize } from 'utils/logging';
 import isElectron from 'is-electron';
@@ -34,16 +33,22 @@ import ImportService from 'services/importService';
 import watchFolderService from 'services/watchFolder/watchFolderService';
 import { ProgressUpdater } from 'types/upload/ui';
 import uploadCancelService from './uploadCancelService';
+import { DedicatedCryptoWorker } from 'worker/crypto.worker';
+import { ComlinkWorker } from 'utils/comlink/comlinkWorker';
+import { Remote } from 'comlink';
 import {
     getLocalPublicFiles,
     getPublicCollectionUID,
 } from 'services/publicCollectionService';
+import { getDedicatedCryptoWorker } from 'utils/comlink/ComlinkCryptoWorker';
 
 const MAX_CONCURRENT_UPLOADS = 4;
 const FILE_UPLOAD_COMPLETED = 100;
 
 class UploadManager {
-    private cryptoWorkers = new Array<ComlinkWorker>(MAX_CONCURRENT_UPLOADS);
+    private cryptoWorkers = new Array<
+        ComlinkWorker<typeof DedicatedCryptoWorker>
+    >(MAX_CONCURRENT_UPLOADS);
     private parsedMetadataJSONMap: ParsedMetadataJSONMap;
     private filesToBeUploaded: FileWithCollection[];
     private remainingFiles: FileWithCollection[] = [];
@@ -114,9 +119,6 @@ class UploadManager {
                 throw Error("can't run multiple uploads at once");
             }
             this.uploadInProgress = true;
-            for (let i = 0; i < MAX_CONCURRENT_UPLOADS; i++) {
-                this.cryptoWorkers[i] = getDedicatedCryptoWorker();
-            }
             await this.updateExistingFilesAndCollections(collections);
             this.uploaderName = uploaderName;
             addLogLine(
@@ -182,7 +184,7 @@ class UploadManager {
             UIService.setUploadStage(UPLOAD_STAGES.FINISH);
             UIService.setPercentComplete(FILE_UPLOAD_COMPLETED);
             for (let i = 0; i < MAX_CONCURRENT_UPLOADS; i++) {
-                this.cryptoWorkers[i]?.worker.terminate();
+                this.cryptoWorkers[i]?.terminate();
             }
             this.uploadInProgress = false;
         }
@@ -272,13 +274,14 @@ class UploadManager {
             i < MAX_CONCURRENT_UPLOADS && this.filesToBeUploaded.length > 0;
             i++
         ) {
-            const worker = await new this.cryptoWorkers[i].comlink();
+            this.cryptoWorkers[i] = getDedicatedCryptoWorker();
+            const worker = await new this.cryptoWorkers[i].remote();
             uploadProcesses.push(this.uploadNextFileInQueue(worker));
         }
         await Promise.all(uploadProcesses);
     }
 
-    private async uploadNextFileInQueue(worker: any) {
+    private async uploadNextFileInQueue(worker: Remote<DedicatedCryptoWorker>) {
         while (this.filesToBeUploaded.length > 0) {
             if (uploadCancelService.isUploadCancelationRequested()) {
                 throw Error(CustomError.UPLOAD_CANCELLED);
@@ -311,7 +314,7 @@ class UploadManager {
 
     async postUploadTask(
         fileUploadResult: UPLOAD_RESULT,
-        uploadedFile: EnteFile | null,
+        uploadedFile: EncryptedEnteFile | EnteFile | null,
         fileWithCollection: FileWithCollection
     ) {
         try {
@@ -326,16 +329,16 @@ class UploadManager {
                     this.failedFiles.push(fileWithCollection);
                     break;
                 case UPLOAD_RESULT.ALREADY_UPLOADED:
-                    decryptedFile = uploadedFile;
+                    decryptedFile = uploadedFile as EnteFile;
                     break;
                 case UPLOAD_RESULT.ADDED_SYMLINK:
-                    decryptedFile = uploadedFile;
+                    decryptedFile = uploadedFile as EnteFile;
                     fileUploadResult = UPLOAD_RESULT.UPLOADED;
                     break;
                 case UPLOAD_RESULT.UPLOADED:
                 case UPLOAD_RESULT.UPLOADED_WITH_STATIC_THUMBNAIL:
                     decryptedFile = await decryptFile(
-                        uploadedFile,
+                        uploadedFile as EncryptedEnteFile,
                         fileWithCollection.collection.key
                     );
                     break;
@@ -360,7 +363,7 @@ class UploadManager {
             await this.watchFolderCallback(
                 fileUploadResult,
                 fileWithCollection,
-                uploadedFile
+                uploadedFile as EncryptedEnteFile
             );
             return fileUploadResult;
         } catch (e) {
@@ -372,7 +375,7 @@ class UploadManager {
     private async watchFolderCallback(
         fileUploadResult: UPLOAD_RESULT,
         fileWithCollection: FileWithCollection,
-        uploadedFile: EnteFile
+        uploadedFile: EncryptedEnteFile
     ) {
         if (isElectron()) {
             await watchFolderService.onFileUpload(

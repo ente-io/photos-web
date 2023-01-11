@@ -1,4 +1,4 @@
-import { EnteFile, FilePublicMagicMetadata } from 'types/file';
+import { EnteFile } from 'types/file';
 import { handleUploadError, CustomError } from 'utils/error';
 import { logError } from 'utils/sentry';
 import { findMatchingExistingFiles } from 'utils/upload';
@@ -18,7 +18,10 @@ import { convertBytesToHumanReadable } from 'utils/file/size';
 import { sleep } from 'utils/common';
 import { addToCollection } from 'services/collectionService';
 import uploadCancelService from './uploadCancelService';
+import { Remote } from 'comlink';
+import { DedicatedCryptoWorker } from 'worker/crypto.worker';
 import uploadService from './uploadService';
+import { FilePublicMagicMetadata } from 'types/magicMetadata';
 
 interface UploadResponse {
     fileUploadResult: UPLOAD_RESULT;
@@ -26,7 +29,7 @@ interface UploadResponse {
 }
 
 export default async function uploader(
-    worker: any,
+    worker: Remote<DedicatedCryptoWorker>,
     existingFiles: EnteFile[],
     fileWithCollection: FileWithCollection,
     uploaderName: string,

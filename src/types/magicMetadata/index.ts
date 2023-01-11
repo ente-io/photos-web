@@ -5,9 +5,30 @@ export interface MagicMetadataCore {
     data: Record<string, any>;
 }
 
-export interface EncryptedMagicMetadataCore
+export interface EncryptedMagicMetadata
     extends Omit<MagicMetadataCore, 'data'> {
     data: string;
+}
+
+export interface FileMagicMetadataProps {
+    visibility?: VISIBILITY_STATE;
+    filePaths?: string[];
+}
+
+export interface FileMagicMetadata extends Omit<MagicMetadataCore, 'data'> {
+    data: FileMagicMetadataProps;
+}
+
+export interface FilePublicMagicMetadataProps {
+    editedTime?: number;
+    editedName?: string;
+    caption?: string;
+    uploaderName?: string;
+}
+
+export interface FilePublicMagicMetadata
+    extends Omit<MagicMetadataCore, 'data'> {
+    data: FilePublicMagicMetadataProps;
 }
 
 export enum VISIBILITY_STATE {
@@ -17,7 +38,9 @@ export enum VISIBILITY_STATE {
 }
 
 export enum SUB_TYPE {
+    DEFAULT = 0,
     DEFAULT_HIDDEN = 1,
+    QUICK_LINK_COLLECTION = 2,
 }
 
 export const NEW_FILE_MAGIC_METADATA: MagicMetadataCore = {
@@ -40,5 +63,5 @@ export interface BulkUpdateMagicMetadataRequest {
 
 export interface UpdateMagicMetadataRequest {
     id: number;
-    magicMetadata: EncryptedMagicMetadataCore;
+    magicMetadata: EncryptedMagicMetadata;
 }

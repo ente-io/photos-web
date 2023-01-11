@@ -42,7 +42,7 @@ import PhotoFrame from 'components/PhotoFrame';
 import {
     changeFilesVisibility,
     downloadFiles,
-    getNonTrashedUniqueUserFiles,
+    getNonTrashedFiles,
     getSelectedFiles,
     mergeMetadata,
     sortFiles,
@@ -225,6 +225,7 @@ export default function Gallery() {
             router.push(PAGES.ROOT);
             return;
         }
+        preloadImage('/images/subscription-card-background');
         const main = async () => {
             const valid = await validateKey();
             if (!valid) {
@@ -249,7 +250,6 @@ export default function Gallery() {
             setIsFirstLoad(false);
             setJustSignedUp(false);
             setIsFirstFetch(false);
-            preloadImage('/images/subscription-card-background');
         };
         main();
     }, []);
@@ -515,7 +515,6 @@ export default function Gallery() {
         if (newSearch?.collection) {
             setActiveCollection(newSearch?.collection);
         } else {
-            setActiveCollection(ALL_SECTION);
             setSearch(newSearch);
         }
         if (!newSearch?.collection && !newSearch?.file) {
@@ -524,13 +523,6 @@ export default function Gallery() {
         } else {
             setIsInSearchMode(false);
         }
-    };
-
-    const closeCollectionSelector = (closeBtnClick?: boolean) => {
-        if (closeBtnClick === true) {
-            appContext.resetSharedFiles();
-        }
-        setCollectionSelectorView(false);
     };
 
     const fixTimeHelper = async () => {
@@ -554,6 +546,10 @@ export default function Gallery() {
 
     const openUploader = () => {
         setUploadTypeSelectorView(true);
+    };
+
+    const closeCollectionSelector = () => {
+        setCollectionSelectorView(false);
     };
 
     return (
@@ -615,7 +611,7 @@ export default function Gallery() {
                     openUploader={openUploader}
                     isInSearchMode={isInSearchMode}
                     collections={collections}
-                    files={getNonTrashedUniqueUserFiles(files)}
+                    files={getNonTrashedFiles(files)}
                     setActiveCollection={setActiveCollection}
                     updateSearch={updateSearch}
                 />

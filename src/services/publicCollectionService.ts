@@ -1,18 +1,18 @@
 import { getEndpoint } from 'utils/common/apiUtil';
 import localForage from 'utils/storage/localForage';
-import { Collection } from 'types/collection';
+import { Collection, EncryptedCollection } from 'types/collection';
 import HTTPService from './HTTPService';
 import { logError } from 'utils/sentry';
 import { decryptFile, mergeMetadata, sortFiles } from 'utils/file';
-import { EnteFile } from 'types/file';
+import { EncryptedEnteFile, EnteFile } from 'types/file';
 import {
     AbuseReportDetails,
     AbuseReportRequest,
     LocalSavedPublicCollectionFiles,
 } from 'types/publicCollection';
-import CryptoWorker from 'utils/crypto';
 import { REPORT_REASON } from 'constants/publicCollection';
 import { CustomError, parseSharingErrorCodes } from 'utils/error';
+import ComlinkCryptoWorker from 'utils/comlink/ComlinkCryptoWorker';
 
 const ENDPOINT = getEndpoint();
 const PUBLIC_COLLECTION_FILES_TABLE = 'public-collection-files';
@@ -259,11 +259,12 @@ const getPublicFiles = async (
             decryptedFiles = [
                 ...decryptedFiles,
                 ...(await Promise.all(
-                    resp.data.diff.map(async (file: EnteFile) => {
+                    resp.data.diff.map(async (file: EncryptedEnteFile) => {
                         if (!file.isDeleted) {
-                            file = await decryptFile(file, collection.key);
+                            return await decryptFile(file, collection.key);
+                        } else {
+                            return file;
                         }
-                        return file;
                     }) as Promise<EnteFile>[]
                 )),
             ];
@@ -339,14 +340,14 @@ export const verifyPublicCollectionPassword = async (
 };
 
 const decryptCollectionName = async (
-    collection: Collection,
+    collection: EncryptedCollection,
     collectionKey: string
 ) => {
-    const worker = await new CryptoWorker();
+    const cryptoWorker = await ComlinkCryptoWorker.getInstance();
 
     return (collection.name =
         collection.name ||
-        (await worker.decryptToUTF8(
+        (await cryptoWorker.decryptToUTF8(
             collection.encryptedName,
             collection.nameDecryptionNonce,
             collectionKey

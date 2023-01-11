@@ -19,7 +19,7 @@ export interface CollectionSelectorAttributes {
 
 interface Props {
     open: boolean;
-    onClose: (closeBtnClick?: boolean) => void;
+    onClose: () => void;
     attributes: CollectionSelectorAttributes;
     collections: Collection[];
     collectionSummaries: CollectionSummaries;
@@ -62,18 +62,18 @@ function CollectionSelector({
         props.onClose();
     };
 
-    const onCloseButtonClick = () => {
-        attributes?.onCancel();
-        props.onClose(true);
+    const onUserTriggeredClose = () => {
+        attributes.onCancel?.();
+        props.onClose();
     };
 
     return (
         <AllCollectionDialog
-            onClose={props.onClose}
+            onClose={onUserTriggeredClose}
             open={props.open}
             position="center"
             fullScreen={appContext.isMobile}>
-            <DialogTitleWithCloseButton onClose={onCloseButtonClick}>
+            <DialogTitleWithCloseButton onClose={onUserTriggeredClose}>
                 {attributes.title}
             </DialogTitleWithCloseButton>
             <DialogContent>
