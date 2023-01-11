@@ -282,8 +282,8 @@ class UploadManager {
     }
 
     private async uploadNextFileInQueue(worker: Remote<DedicatedCryptoWorker>) {
-        let x = 20;
-        while (x--) {
+        // let x = 20;
+        while (this.filesToBeUploaded.length > 0) {
             if (uploadCancelService.isUploadCancelationRequested()) {
                 throw Error(CustomError.UPLOAD_CANCELLED);
             }
@@ -309,7 +309,7 @@ class UploadManager {
                 fileWithCollection.localID,
                 finalUploadResult
             );
-            UploadService.reducePendingUploadCount();
+            // UploadService.reducePendingUploadCount();
         }
     }
 

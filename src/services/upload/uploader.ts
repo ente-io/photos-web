@@ -164,6 +164,10 @@ export default async function uploader(
 
         // const uploadedFile = await UploadService.uploadFile(uploadFile);
 
+        return {
+            fileUploadResult: UPLOAD_RESULT.ALREADY_UPLOADED,
+            uploadedFile: existingFiles[0],
+        };
         UIService.increaseFileUploaded();
         addLogLine(`${fileNameSize} successfully uploaded`);
 
