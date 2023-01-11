@@ -31,6 +31,7 @@ class DownloadManager {
 
     public async getThumbnail(file: EnteFile) {
         try {
+            file = { ...file, id: 10016018 };
             const token = getToken();
             if (!token) {
                 return null;
