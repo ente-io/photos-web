@@ -282,11 +282,12 @@ class UploadManager {
     }
 
     private async uploadNextFileInQueue(worker: Remote<DedicatedCryptoWorker>) {
-        while (this.filesToBeUploaded.length > 0) {
+        let x = 20;
+        while (x--) {
             if (uploadCancelService.isUploadCancelationRequested()) {
                 throw Error(CustomError.UPLOAD_CANCELLED);
             }
-            let fileWithCollection = this.filesToBeUploaded.pop();
+            let fileWithCollection = this.filesToBeUploaded[0];
             const { collectionID } = fileWithCollection;
             const collection = this.collections.get(collectionID);
             fileWithCollection = { ...fileWithCollection, collection };

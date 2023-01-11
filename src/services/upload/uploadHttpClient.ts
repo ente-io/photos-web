@@ -94,6 +94,7 @@ class UploadHttpClient {
         progressTracker
     ): Promise<string> {
         try {
+            return null;
             await retryHTTPCall(
                 () =>
                     HTTPService.put(
@@ -146,6 +147,7 @@ class UploadHttpClient {
         progressTracker
     ) {
         try {
+            return null;
             const response = await retryHTTPCall(async () => {
                 const resp = await HTTPService.put(
                     partUploadURL,
@@ -204,6 +206,7 @@ class UploadHttpClient {
 
     async completeMultipartUpload(completeURL: string, reqBody: any) {
         try {
+            return null;
             await retryHTTPCall(() =>
                 HTTPService.post(completeURL, reqBody, null, {
                     'content-type': 'text/xml',
