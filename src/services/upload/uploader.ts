@@ -7,41 +7,48 @@ import UploadService from './uploadService';
 import { FILE_TYPE } from 'constants/file';
 import { UPLOAD_RESULT, MAX_FILE_SIZE_SUPPORTED } from 'constants/upload';
 import {
-    FileWithCollection,
     BackupedFile,
     UploadFile,
     FileWithMetadata,
     FileTypeInfo,
+    FileWithCollection,
 } from 'types/upload';
 import { addLocalLog, addLogLine } from 'utils/logging';
 import { convertBytesToHumanReadable } from 'utils/file/size';
 import { sleep } from 'utils/common';
-import { addToCollection } from 'services/collectionService';
+import { addToCollection, createAlbum } from 'services/collectionService';
 import uploadCancelService from './uploadCancelService';
 import { Remote } from 'comlink';
 import { DedicatedCryptoWorker } from 'worker/crypto.worker';
 import uploadService from './uploadService';
 import { FilePublicMagicMetadata } from 'types/magicMetadata';
+import { Collection } from 'types/collection';
 
 interface UploadResponse {
     fileUploadResult: UPLOAD_RESULT;
     uploadedFile?: EnteFile;
+    createdCollection?: Collection;
 }
 
 export default async function uploader(
     worker: Remote<DedicatedCryptoWorker>,
+    existingCollections: Collection[],
     existingFiles: EnteFile[],
     fileWithCollection: FileWithCollection,
     uploaderName: string,
     skipVideos: boolean
 ): Promise<UploadResponse> {
-    const { collection, localID, ...uploadAsset } = fileWithCollection;
+    const {
+        collectionName,
+        collection: existingCollection,
+        uploadAsset,
+    } = fileWithCollection;
     const fileNameSize = `${UploadService.getAssetName(
-        fileWithCollection
+        uploadAsset
     )}_${convertBytesToHumanReadable(UploadService.getAssetSize(uploadAsset))}`;
 
     addLogLine(`uploader called for  ${fileNameSize}`);
-    UIService.setFileProgress(localID, 0);
+    UIService.setFileProgress(uploadAsset.localID, 0);
     await sleep(0);
     let fileTypeInfo: FileTypeInfo;
     try {
@@ -62,11 +69,24 @@ export default async function uploader(
             return { fileUploadResult: UPLOAD_RESULT.SKIPPED_VIDEOS };
         }
 
+        if (uploadCancelService.isUploadCancelationRequested()) {
+            throw Error(CustomError.UPLOAD_CANCELLED);
+        }
+        let collectionToUploadIn: Collection;
+        if (existingCollection) {
+            collectionToUploadIn = existingCollection;
+        } else if (collectionName) {
+            collectionToUploadIn = await createAlbum(
+                collectionName,
+                existingCollections
+            );
+        } else {
+            throw Error(CustomError.NO_COLLECTION);
+        }
         addLogLine(`extracting  metadata ${fileNameSize}`);
         const metadata = await UploadService.extractAssetMetadata(
             worker,
-            uploadAsset,
-            collection.id,
+            fileWithCollection,
             fileTypeInfo
         );
 
@@ -86,15 +106,19 @@ export default async function uploader(
             addLocalLog(
                 () =>
                     `matched file collectionIDs:${matchingExistingFilesCollectionIDs}
-                       and collectionID:${collection.id}`
+                       and collectionID:${collectionToUploadIn.id}`
             );
-            if (matchingExistingFilesCollectionIDs.includes(collection.id)) {
+            if (
+                matchingExistingFilesCollectionIDs.includes(
+                    collectionToUploadIn.id
+                )
+            ) {
                 addLogLine(
                     `file already present in the collection , skipped upload for  ${fileNameSize}`
                 );
                 const sameCollectionMatchingExistingFile =
                     matchingExistingFiles.find(
-                        (f) => f.collectionID === collection.id
+                        (f) => f.collectionID === collectionToUploadIn.id
                     );
                 return {
                     fileUploadResult: UPLOAD_RESULT.ALREADY_UPLOADED,
@@ -106,8 +130,8 @@ export default async function uploader(
                 );
                 // any of the matching file can used to add a symlink
                 const resultFile = Object.assign({}, matchingExistingFiles[0]);
-                resultFile.collectionID = collection.id;
-                await addToCollection(collection, [resultFile]);
+                resultFile.collectionID = collectionToUploadIn.id;
+                await addToCollection(collectionToUploadIn, [resultFile]);
                 return {
                     fileUploadResult: UPLOAD_RESULT.ADDED_SYMLINK,
                     uploadedFile: resultFile,
@@ -131,7 +155,7 @@ export default async function uploader(
             );
         }
         const fileWithMetadata: FileWithMetadata = {
-            localID,
+            localID: uploadAsset.localID,
             filedata: file.filedata,
             thumbnail: file.thumbnail,
             metadata,
@@ -145,7 +169,7 @@ export default async function uploader(
         const encryptedFile = await UploadService.encryptAsset(
             worker,
             fileWithMetadata,
-            collection.key
+            collectionToUploadIn.key
         );
 
         if (uploadCancelService.isUploadCancelationRequested()) {
@@ -158,7 +182,7 @@ export default async function uploader(
         );
 
         const uploadFile: UploadFile = UploadService.getUploadFile(
-            collection,
+            collectionToUploadIn,
             backupedFile,
             encryptedFile.fileKey
         );

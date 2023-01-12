@@ -73,22 +73,50 @@ export interface ElectronFile {
     arrayBuffer: () => Promise<Uint8Array>;
 }
 
-export interface UploadAsset {
+export interface UploadAssetBase {
+    localID: number;
     isLivePhoto?: boolean;
-    file?: File | ElectronFile;
-    livePhotoAssets?: LivePhotoAssets;
-    isElectron?: boolean;
 }
+export interface LivePhotoUploadAsset extends UploadAssetBase {
+    file?: never;
+    livePhotoAssets?: LivePhotoAssets;
+}
+
+export interface FileUploadAsset extends UploadAssetBase {
+    file?: File | ElectronFile;
+    livePhotoAssets?: never;
+}
+export type UploadAsset = FileUploadAsset | LivePhotoUploadAsset;
 export interface LivePhotoAssets {
     image: globalThis.File | ElectronFile;
     video: globalThis.File | ElectronFile;
 }
 
-export interface FileWithCollection extends UploadAsset {
-    localID: number;
-    collection?: Collection;
-    collectionID?: number;
+export interface FileWithCollectionBase {
+    uploadAsset: UploadAsset;
 }
+export interface FileWithCollectionID extends FileWithCollectionBase {
+    collection?: never;
+    collectionName?: never;
+    collectionID: number;
+}
+
+export interface FileWithExistingCollection extends FileWithCollectionBase {
+    collection: Collection;
+    collectionName?: never;
+    collectionID?: never;
+}
+
+export interface FileWithCollectionName extends FileWithCollectionBase {
+    collection?: never;
+    collectionName: string;
+    collectionID?: never;
+}
+
+export type FileWithCollection =
+    | FileWithCollectionName
+    | FileWithExistingCollection
+    | FileWithCollectionID;
 
 export type ParsedMetadataJSONMap = Map<string, ParsedMetadataJSON>;
 

@@ -18,6 +18,8 @@ import { extractFileMetadata } from './fileService';
 import { getFileHash } from './hashService';
 import { generateThumbnail } from './thumbnailService';
 import uploadCancelService from './uploadCancelService';
+import { Remote } from 'comlink';
+import { DedicatedCryptoWorker } from 'worker/crypto.worker';
 
 interface LivePhotoIdentifier {
     collectionID: number;
@@ -44,11 +46,10 @@ export async function getLivePhotoFileType(
 }
 
 export async function extractLivePhotoMetadata(
-    worker,
+    worker: Remote<DedicatedCryptoWorker>,
     parsedMetadataJSONMap: ParsedMetadataJSONMap,
-    collectionID: number,
-    fileTypeInfo: FileTypeInfo,
-    livePhotoAssets: LivePhotoAssets
+    fileWithCollection: FileWithCollection,
+    fileTypeInfo: FileTypeInfo
 ) {
     const imageFileTypeInfo: FileTypeInfo = {
         fileType: FILE_TYPE.IMAGE,
@@ -57,14 +58,16 @@ export async function extractLivePhotoMetadata(
     const imageMetadata = await extractFileMetadata(
         worker,
         parsedMetadataJSONMap,
-        collectionID,
-        imageFileTypeInfo,
-        livePhotoAssets.image
+        fileWithCollection,
+        imageFileTypeInfo
     );
-    const videoHash = await getFileHash(worker, livePhotoAssets.video);
+    const videoHash = await getFileHash(
+        worker,
+        fileWithCollection.uploadAsset.livePhotoAssets.video
+    );
     return {
         ...imageMetadata,
-        title: getLivePhotoName(livePhotoAssets),
+        title: getLivePhotoName(fileWithCollection.uploadAsset.livePhotoAssets),
         fileType: FILE_TYPE.LIVE_PHOTO,
         imageHash: imageMetadata.hash,
         videoHash: videoHash,
@@ -112,12 +115,16 @@ export async function clusterLivePhotoFiles(mediaFiles: FileWithCollection[]) {
     try {
         const analysedMediaFiles: FileWithCollection[] = [];
         mediaFiles
-            .sort((firstMediaFile, secondMediaFile) =>
-                splitFilenameAndExtension(
-                    firstMediaFile.file.name
-                )[0].localeCompare(
-                    splitFilenameAndExtension(secondMediaFile.file.name)[0]
-                )
+            .sort(
+                (
+                    { uploadAsset: firstMediaFile },
+                    { uploadAsset: secondMediaFile }
+                ) =>
+                    splitFilenameAndExtension(
+                        firstMediaFile.file.name
+                    )[0].localeCompare(
+                        splitFilenameAndExtension(secondMediaFile.file.name)[0]
+                    )
             )
             .sort(
                 (firstMediaFile, secondMediaFile) =>
@@ -132,23 +139,23 @@ export async function clusterLivePhotoFiles(mediaFiles: FileWithCollection[]) {
             const secondMediaFile = mediaFiles[index + 1];
             const firstFileType =
                 getFileTypeFromExtensionForLivePhotoClustering(
-                    firstMediaFile.file.name
+                    firstMediaFile.uploadAsset.file.name
                 );
             const secondFileType =
                 getFileTypeFromExtensionForLivePhotoClustering(
-                    secondMediaFile.file.name
+                    secondMediaFile.uploadAsset.file.name
                 );
             const firstFileIdentifier: LivePhotoIdentifier = {
                 collectionID: firstMediaFile.collectionID,
                 fileType: firstFileType,
-                name: firstMediaFile.file.name,
-                size: firstMediaFile.file.size,
+                name: firstMediaFile.uploadAsset.file.name,
+                size: firstMediaFile.uploadAsset.file.size,
             };
             const secondFileIdentifier: LivePhotoIdentifier = {
                 collectionID: secondMediaFile.collectionID,
                 fileType: secondFileType,
-                name: secondMediaFile.file.name,
-                size: secondMediaFile.file.size,
+                name: secondMediaFile.uploadAsset.file.name,
+                size: secondMediaFile.uploadAsset.file.size,
             };
             if (
                 areFilesLivePhotoAssets(
@@ -162,27 +169,28 @@ export async function clusterLivePhotoFiles(mediaFiles: FileWithCollection[]) {
                     firstFileType === FILE_TYPE.IMAGE &&
                     secondFileType === FILE_TYPE.VIDEO
                 ) {
-                    imageFile = firstMediaFile.file;
-                    videoFile = secondMediaFile.file;
+                    imageFile = firstMediaFile.uploadAsset.file;
+                    videoFile = secondMediaFile.uploadAsset.file;
                 } else {
-                    videoFile = firstMediaFile.file;
-                    imageFile = secondMediaFile.file;
+                    videoFile = firstMediaFile.uploadAsset.file;
+                    imageFile = secondMediaFile.uploadAsset.file;
                 }
-                const livePhotoLocalID = firstMediaFile.localID;
+                const livePhotoLocalID = firstMediaFile.uploadAsset.localID;
                 analysedMediaFiles.push({
-                    localID: livePhotoLocalID,
-                    collectionID: firstMediaFile.collectionID,
-                    isLivePhoto: true,
-                    livePhotoAssets: {
-                        image: imageFile,
-                        video: videoFile,
+                    uploadAsset: {
+                        localID: livePhotoLocalID,
+                        isLivePhoto: true,
+                        livePhotoAssets: {
+                            image: imageFile,
+                            video: videoFile,
+                        },
                     },
+                    collectionID: firstMediaFile.collectionID,
                 });
                 index += 2;
             } else {
                 analysedMediaFiles.push({
                     ...firstMediaFile,
-                    isLivePhoto: false,
                 });
                 index += 1;
             }
@@ -190,7 +198,6 @@ export async function clusterLivePhotoFiles(mediaFiles: FileWithCollection[]) {
         if (index === mediaFiles.length - 1) {
             analysedMediaFiles.push({
                 ...mediaFiles[index],
-                isLivePhoto: false,
             });
         }
         return analysedMediaFiles;

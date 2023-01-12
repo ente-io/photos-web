@@ -48,6 +48,7 @@ export enum CustomError {
     REQUEST_TIMEOUT = 'request taking too long',
     HIDDEN_COLLECTION_SYNC_FILE_ATTEMPTED = 'hidden collection sync file attempted',
     UNKNOWN_ERROR = 'Something went wrong, please try again',
+    NO_COLLECTION = 'no collection',
 }
 
 function parseUploadErrorCodes(error) {

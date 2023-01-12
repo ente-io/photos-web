@@ -105,25 +105,22 @@ class UploadService {
     }
 
     async extractAssetMetadata(
-        worker,
-        { isLivePhoto, file, livePhotoAssets }: UploadAsset,
-        collectionID: number,
+        worker: Remote<DedicatedCryptoWorker>,
+        fileWithCollection: FileWithCollection,
         fileTypeInfo: FileTypeInfo
     ): Promise<Metadata> {
-        return isLivePhoto
+        return fileWithCollection.uploadAsset.isLivePhoto
             ? extractLivePhotoMetadata(
                   worker,
                   this.parsedMetadataJSONMap,
-                  collectionID,
-                  fileTypeInfo,
-                  livePhotoAssets
+                  fileWithCollection,
+                  fileTypeInfo
               )
             : await extractFileMetadata(
                   worker,
                   this.parsedMetadataJSONMap,
-                  collectionID,
-                  fileTypeInfo,
-                  file
+                  fileWithCollection,
+                  fileTypeInfo
               );
     }
 

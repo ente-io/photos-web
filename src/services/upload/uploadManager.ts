@@ -56,7 +56,8 @@ class UploadManager {
     private existingFiles: EnteFile[];
     private userOwnedNonTrashedExistingFiles: EnteFile[];
     private setFiles: SetFiles;
-    private collections: Map<number, Collection>;
+    private collections: Collection[];
+    private collectionsMap: Map<number, Collection>;
     private uploadInProgress: boolean;
     private publicUploadProps: PublicUploadProps;
     private uploaderName: string;
@@ -104,14 +105,15 @@ class UploadManager {
                 this.existingFiles
             );
         }
-        this.collections = new Map(
+        this.collections = collections;
+        this.collectionsMap = new Map(
             collections.map((collection) => [collection.id, collection])
         );
     }
 
     public async queueFilesForUpload(
         filesWithCollectionToUploadIn: FileWithCollection[],
-        collections: Collection[],
+        collections?: Collection[],
         uploaderName?: string
     ) {
         try {
@@ -126,9 +128,9 @@ class UploadManager {
             );
             uiService.setFilenames(
                 new Map<number, string>(
-                    filesWithCollectionToUploadIn.map((mediaFile) => [
-                        mediaFile.localID,
-                        UploadService.getAssetName(mediaFile),
+                    filesWithCollectionToUploadIn.map(({ uploadAsset }) => [
+                        uploadAsset.localID,
+                        UploadService.getAssetName(uploadAsset),
                     ])
                 )
             );
@@ -158,9 +160,9 @@ class UploadManager {
                 );
                 uiService.setFilenames(
                     new Map<number, string>(
-                        analysedMediaFiles.map((mediaFile) => [
-                            mediaFile.localID,
-                            UploadService.getAssetName(mediaFile),
+                        analysedMediaFiles.map(({ uploadAsset }) => [
+                            uploadAsset.localID,
+                            UploadService.getAssetName(uploadAsset),
                         ])
                     )
                 );
@@ -169,7 +171,28 @@ class UploadManager {
                     mediaFiles.length !== analysedMediaFiles.length
                 );
 
-                await this.uploadMediaFiles(analysedMediaFiles);
+                collections = await this.uploadMediaFiles(analysedMediaFiles);
+            }
+            if (isElectron()) {
+                if (watchFolderService.isUploadRunning()) {
+                    await watchFolderService.allFileUploadsDone(
+                        filesWithCollectionToUploadIn,
+                        collections
+                    );
+                } else if (watchFolderService.isSyncPaused()) {
+                    // resume the service after user upload is done
+                    watchFolderService.resumePausedSync();
+                }
+            }
+            try {
+                if (!UIService.hasFilesInResultList()) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } catch (e) {
+                logError(e, ' failed to return shouldCloseProgressBar');
+                return false;
             }
         } catch (e) {
             if (e.message === CustomError.UPLOAD_CANCELLED) {
@@ -188,16 +211,6 @@ class UploadManager {
             }
             this.uploadInProgress = false;
         }
-        try {
-            if (!UIService.hasFilesInResultList()) {
-                return true;
-            } else {
-                return false;
-            }
-        } catch (e) {
-            logError(e, ' failed to return shouldCloseProgressBar');
-            return false;
-        }
     }
 
     private async parseMetadataJSONFiles(metadataFiles: FileWithCollection[]) {
@@ -206,30 +219,32 @@ class UploadManager {
 
             UIService.reset(metadataFiles.length);
 
-            for (const { file, collectionID } of metadataFiles) {
+            for (const fileWithCollection of metadataFiles) {
                 try {
                     if (uploadCancelService.isUploadCancelationRequested()) {
                         throw Error(CustomError.UPLOAD_CANCELLED);
                     }
                     addLogLine(
-                        `parsing metadata json file ${getFileNameSize(file)}`
+                        `parsing metadata json file ${getFileNameSize(
+                            fileWithCollection.uploadAsset.file
+                        )}`
                     );
 
                     const parsedMetadataJSONWithTitle = await parseMetadataJSON(
-                        file
+                        fileWithCollection.uploadAsset.file
                     );
                     if (parsedMetadataJSONWithTitle) {
                         const { title, parsedMetadataJSON } =
                             parsedMetadataJSONWithTitle;
                         this.parsedMetadataJSONMap.set(
-                            getMetadataJSONMapKey(collectionID, title),
+                            getMetadataJSONMapKey(fileWithCollection, title),
                             parsedMetadataJSON && { ...parsedMetadataJSON }
                         );
                         UIService.increaseFileUploaded();
                     }
                     addLogLine(
                         `successfully parsed metadata json file ${getFileNameSize(
-                            file
+                            fileWithCollection.uploadAsset.file
                         )}`
                     );
                 } catch (e) {
@@ -240,7 +255,7 @@ class UploadManager {
                         logError(e, 'parsing failed for a file');
                         addLogLine(
                             `failed to parse metadata json file ${getFileNameSize(
-                                file
+                                fileWithCollection.uploadAsset.file
                             )} error: ${e.message}`
                         );
                     }
@@ -278,25 +293,45 @@ class UploadManager {
             const worker = await new this.cryptoWorkers[i].remote();
             uploadProcesses.push(this.uploadNextFileInQueue(worker));
         }
-        await Promise.all(uploadProcesses);
+        return await Promise.all(uploadProcesses);
     }
 
     private async uploadNextFileInQueue(worker: Remote<DedicatedCryptoWorker>) {
+        const createdCollections: Collection[] = [];
         while (this.filesToBeUploaded.length > 0) {
             if (uploadCancelService.isUploadCancelationRequested()) {
                 throw Error(CustomError.UPLOAD_CANCELLED);
             }
-            let fileWithCollection = this.filesToBeUploaded.pop();
-            const { collectionID } = fileWithCollection;
-            const collection = this.collections.get(collectionID);
-            fileWithCollection = { ...fileWithCollection, collection };
-            const { fileUploadResult, uploadedFile } = await uploader(
-                worker,
-                this.userOwnedNonTrashedExistingFiles,
-                fileWithCollection,
-                this.uploaderName,
-                this.publicUploadProps?.accessedThroughSharedURL
-            );
+            const fileWithPossibleCollectionID = this.filesToBeUploaded.pop();
+            let fileWithCollection: FileWithCollection;
+            if (fileWithPossibleCollectionID.collectionID) {
+                const collection = this.collectionsMap.get(
+                    fileWithPossibleCollectionID.collectionID
+                );
+                fileWithCollection = {
+                    uploadAsset: fileWithPossibleCollectionID.uploadAsset,
+                    collection: collection,
+                };
+            }
+
+            const { fileUploadResult, uploadedFile, createdCollection } =
+                await uploader(
+                    worker,
+                    this.collections,
+                    this.userOwnedNonTrashedExistingFiles,
+                    fileWithCollection,
+                    this.uploaderName,
+                    this.publicUploadProps?.accessedThroughSharedURL
+                );
+
+            if (createdCollection) {
+                createdCollections.push(createdCollection);
+                this.collections.push(createdCollection);
+                this.collectionsMap.set(
+                    createdCollection.id,
+                    createdCollection
+                );
+            }
 
             const finalUploadResult = await this.postUploadTask(
                 fileUploadResult,
@@ -305,11 +340,12 @@ class UploadManager {
             );
 
             UIService.moveFileToResultList(
-                fileWithCollection.localID,
+                fileWithCollection.uploadAsset.localID,
                 finalUploadResult
             );
             UploadService.reducePendingUploadCount();
         }
+        return createdCollections;
     }
 
     async postUploadTask(

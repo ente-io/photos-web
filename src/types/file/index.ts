@@ -11,11 +11,11 @@ interface FileAttributesBase {
 
 interface MetadataFileAttributes extends FileAttributesBase {
     encryptedData: string;
-    objectKey?: string;
+    objectKey?: never;
 }
 interface S3FileAttributes extends FileAttributesBase {
     objectKey: string;
-    encryptedData?: string;
+    encryptedData?: never;
 }
 
 export type FileAttributes = MetadataFileAttributes | S3FileAttributes;

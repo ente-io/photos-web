@@ -1,6 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 
-import { syncCollections, createAlbum } from 'services/collectionService';
 import constants from 'utils/strings/constants';
 import UploadProgress from './UploadProgress';
 
@@ -49,7 +48,6 @@ import {
     getImportSuggestion,
     groupFilesBasedOnParentFolder,
 } from 'utils/upload';
-import { getUserOwnedCollections } from 'utils/collection';
 import billingService from 'services/billingService';
 import { addLogLine } from 'utils/logging';
 import { PublicCollectionGalleryContext } from 'utils/publicCollectionGallery';
@@ -338,8 +336,7 @@ export default function Uploader(props: Props) {
             await preCollectionCreationAction();
             const filesWithCollectionToUpload: FileWithCollection[] =
                 toUploadFiles.current.map((file, index) => ({
-                    file,
-                    localID: index,
+                    uploadAsset: { file, localID: index },
                     collectionID: collection.id,
                 }));
             waitInQueueAndUploadFiles(
@@ -362,7 +359,6 @@ export default function Uploader(props: Props) {
             );
             await preCollectionCreationAction();
             let filesWithCollectionToUpload: FileWithCollection[] = [];
-            const collections: Collection[] = [];
             let collectionNameToFilesMap = new Map<
                 string,
                 (File | ElectronFile)[]
@@ -381,29 +377,19 @@ export default function Uploader(props: Props) {
                 `upload collections - [${[...collectionNameToFilesMap.keys()]}]`
             );
             try {
-                const existingCollection = getUserOwnedCollections(
-                    await syncCollections()
-                );
                 let index = 0;
                 for (const [
                     collectionName,
                     files,
                 ] of collectionNameToFilesMap) {
-                    const collection = await createAlbum(
-                        collectionName,
-                        existingCollection
-                    );
-                    collections.push(collection);
-                    props.setCollections([
-                        ...existingCollection,
-                        ...collections,
-                    ]);
                     filesWithCollectionToUpload = [
                         ...filesWithCollectionToUpload,
                         ...files.map((file) => ({
-                            localID: index++,
-                            collectionID: collection.id,
-                            file,
+                            uploadAsset: {
+                                localID: index++,
+                                file,
+                            },
+                            collectionName,
                         })),
                     ];
                 }
@@ -418,7 +404,7 @@ export default function Uploader(props: Props) {
                 });
                 throw e;
             }
-            waitInQueueAndUploadFiles(filesWithCollectionToUpload, collections);
+            waitInQueueAndUploadFiles(filesWithCollectionToUpload);
             toUploadFiles.current = null;
         } catch (e) {
             logError(e, 'Failed to upload files to new collections');
@@ -427,7 +413,7 @@ export default function Uploader(props: Props) {
 
     const waitInQueueAndUploadFiles = (
         filesWithCollectionToUploadIn: FileWithCollection[],
-        collections: Collection[],
+        collections?: Collection[],
         uploaderName?: string
     ) => {
         const currentPromise = currentUploadPromise.current;
@@ -456,7 +442,7 @@ export default function Uploader(props: Props) {
 
     const uploadFiles = async (
         filesWithCollectionToUploadIn: FileWithCollection[],
-        collections: Collection[],
+        collections?: Collection[],
         uploaderName?: string
     ) => {
         try {
@@ -478,7 +464,8 @@ export default function Uploader(props: Props) {
                 await ImportService.setToUploadFiles(
                     PICKED_UPLOAD_TYPE.FILES,
                     filesWithCollectionToUploadIn.map(
-                        ({ file }) => (file as ElectronFile).path
+                        ({ uploadAsset }) =>
+                            (uploadAsset.file as ElectronFile).path
                     )
                 );
             }
@@ -490,17 +477,6 @@ export default function Uploader(props: Props) {
                 );
             if (shouldCloseUploadProgress) {
                 closeUploadProgress();
-            }
-            if (isElectron()) {
-                if (watchFolderService.isUploadRunning()) {
-                    await watchFolderService.allFileUploadsDone(
-                        filesWithCollectionToUploadIn,
-                        collections
-                    );
-                } else if (watchFolderService.isSyncPaused()) {
-                    // resume the service after user upload is done
-                    watchFolderService.resumePausedSync();
-                }
             }
         } catch (err) {
             logError(err, 'failed to upload files');

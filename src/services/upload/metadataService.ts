@@ -8,6 +8,7 @@ import {
     FileTypeInfo,
     ParsedExtractedMetadata,
     ElectronFile,
+    FileWithCollection,
 } from 'types/upload';
 import { NULL_EXTRACTED_METADATA, NULL_LOCATION } from 'constants/upload';
 import { getVideoMetadata } from './videoMetadataService';
@@ -58,10 +59,17 @@ export async function extractMetadata(
 }
 
 export const getMetadataJSONMapKey = (
-    collectionID: number,
-
+    fileWithCollection: FileWithCollection,
     title: string
-) => `${collectionID}-${title}`;
+) => {
+    if (fileWithCollection.collection || fileWithCollection.collectionID) {
+        const collectionID =
+            fileWithCollection.collection.id ?? fileWithCollection.collectionID;
+        return `${collectionID}-${title}`;
+    } else {
+        return `${fileWithCollection.collectionName}-${title}`;
+    }
+};
 
 export async function parseMetadataJSON(receivedFile: File | ElectronFile) {
     try {
