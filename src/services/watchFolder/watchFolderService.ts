@@ -294,7 +294,7 @@ class watchFolderService {
 
     async onFileUpload(
         fileUploadResult: UPLOAD_RESULT,
-        fileWithCollection: FileWithCollection,
+        { uploadAsset }: FileWithCollection,
         file: EncryptedEnteFile
     ) {
         addLocalLog(() => `onFileUpload called`);
@@ -309,20 +309,18 @@ class watchFolderService {
                 UPLOAD_RESULT.ALREADY_UPLOADED,
             ].includes(fileUploadResult)
         ) {
-            if (fileWithCollection.isLivePhoto) {
+            if (uploadAsset.isLivePhoto) {
                 this.filePathToUploadedFileIDMap.set(
-                    (fileWithCollection.livePhotoAssets.image as ElectronFile)
-                        .path,
+                    (uploadAsset.livePhotoAssets.image as ElectronFile).path,
                     file
                 );
                 this.filePathToUploadedFileIDMap.set(
-                    (fileWithCollection.livePhotoAssets.video as ElectronFile)
-                        .path,
+                    (uploadAsset.livePhotoAssets.video as ElectronFile).path,
                     file
                 );
             } else {
                 this.filePathToUploadedFileIDMap.set(
-                    (fileWithCollection.file as ElectronFile).path,
+                    (uploadAsset.file as ElectronFile).path,
                     file
                 );
             }
@@ -331,18 +329,16 @@ class watchFolderService {
                 fileUploadResult
             )
         ) {
-            if (fileWithCollection.isLivePhoto) {
+            if (uploadAsset.isLivePhoto) {
                 this.unUploadableFilePaths.add(
-                    (fileWithCollection.livePhotoAssets.image as ElectronFile)
-                        .path
+                    (uploadAsset.livePhotoAssets.image as ElectronFile).path
                 );
                 this.unUploadableFilePaths.add(
-                    (fileWithCollection.livePhotoAssets.video as ElectronFile)
-                        .path
+                    (uploadAsset.livePhotoAssets.video as ElectronFile).path
                 );
             } else {
                 this.unUploadableFilePaths.add(
-                    (fileWithCollection.file as ElectronFile).path
+                    (uploadAsset.file as ElectronFile).path
                 );
             }
         }
@@ -427,16 +423,16 @@ class watchFolderService {
     }
 
     private handleUploadedFile(
-        fileWithCollection: FileWithCollection,
+        { uploadAsset }: FileWithCollection,
         syncedFiles: WatchMapping['syncedFiles'],
         ignoredFiles: WatchMapping['ignoredFiles']
     ) {
-        if (fileWithCollection.isLivePhoto) {
+        if (uploadAsset.isLivePhoto) {
             const imagePath = (
-                fileWithCollection.livePhotoAssets.image as ElectronFile
+                uploadAsset.livePhotoAssets.image as ElectronFile
             ).path;
             const videoPath = (
-                fileWithCollection.livePhotoAssets.video as ElectronFile
+                uploadAsset.livePhotoAssets.video as ElectronFile
             ).path;
 
             if (
@@ -483,7 +479,7 @@ class watchFolderService {
             this.filePathToUploadedFileIDMap.delete(imagePath);
             this.filePathToUploadedFileIDMap.delete(videoPath);
         } else {
-            const filePath = (fileWithCollection.file as ElectronFile).path;
+            const filePath = (uploadAsset.file as ElectronFile).path;
 
             if (this.filePathToUploadedFileIDMap.has(filePath)) {
                 const file = {

@@ -56,8 +56,8 @@ class UploadManager {
     private existingFiles: EnteFile[];
     private userOwnedNonTrashedExistingFiles: EnteFile[];
     private setFiles: SetFiles;
-    private collections: Collection[];
-    private collectionsMap: Map<number, Collection>;
+    private collections: Collection[] = [];
+    private collectionsMap: Map<number, Collection> = new Map();
     private uploadInProgress: boolean;
     private publicUploadProps: PublicUploadProps;
     private uploaderName: string;
@@ -105,10 +105,12 @@ class UploadManager {
                 this.existingFiles
             );
         }
-        this.collections = collections;
-        this.collectionsMap = new Map(
-            collections.map((collection) => [collection.id, collection])
-        );
+        if (collections) {
+            this.collections = collections;
+            this.collectionsMap = new Map(
+                collections.map((collection) => [collection.id, collection])
+            );
+        }
     }
 
     public async queueFilesForUpload(

@@ -93,7 +93,7 @@ export function segregateMetadataAndMediaFiles(
     const metadataJSONFiles: FileWithCollection[] = [];
     const mediaFiles: FileWithCollection[] = [];
     filesWithCollectionToUpload.forEach((fileWithCollection) => {
-        const file = fileWithCollection.file;
+        const file = fileWithCollection.uploadAsset.file;
         if (file.name.toLowerCase().endsWith(TYPE_JSON)) {
             metadataJSONFiles.push(fileWithCollection);
         } else {
@@ -104,8 +104,8 @@ export function segregateMetadataAndMediaFiles(
 }
 
 export function areFileWithCollectionsSame(
-    firstFile: FileWithCollection,
-    secondFile: FileWithCollection
+    { uploadAsset: firstFile }: FileWithCollection,
+    { uploadAsset: secondFile }: FileWithCollection
 ): boolean {
     return firstFile.localID === secondFile.localID;
 }

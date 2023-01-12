@@ -99,22 +99,15 @@ class ImportService {
     updatePendingUploads(files: FileWithCollection[]) {
         if (this.allElectronAPIsExist) {
             const filePaths = [];
-            for (const fileWithCollection of files) {
-                if (fileWithCollection.isLivePhoto) {
+            for (const { uploadAsset } of files) {
+                if (uploadAsset.isLivePhoto) {
                     filePaths.push(
-                        (
-                            fileWithCollection.livePhotoAssets
-                                .image as ElectronFile
-                        ).path,
-                        (
-                            fileWithCollection.livePhotoAssets
-                                .video as ElectronFile
-                        ).path
+                        (uploadAsset.livePhotoAssets.image as ElectronFile)
+                            .path,
+                        (uploadAsset.livePhotoAssets.video as ElectronFile).path
                     );
                 } else {
-                    filePaths.push(
-                        (fileWithCollection.file as ElectronFile).path
-                    );
+                    filePaths.push((uploadAsset.file as ElectronFile).path);
                 }
             }
             this.setToUploadFiles(PICKED_UPLOAD_TYPE.FILES, filePaths);
