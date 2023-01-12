@@ -1,11 +1,6 @@
 import { getLocalFiles } from '../fileService';
 import { SetFiles } from 'types/gallery';
-import {
-    sortFiles,
-    preservePhotoswipeProps,
-    decryptFile,
-    getUserOwnedNonTrashedFiles,
-} from 'utils/file';
+import { decryptFile, getUserOwnedNonTrashedFiles } from 'utils/file';
 import { logError } from 'utils/sentry';
 import { getMetadataJSONMapKey, parseMetadataJSON } from './metadataService';
 import {
@@ -41,6 +36,7 @@ import {
     getPublicCollectionUID,
 } from 'services/publicCollectionService';
 import { getDedicatedCryptoWorker } from 'utils/comlink/ComlinkCryptoWorker';
+import uploadService from './uploadService';
 
 const MAX_CONCURRENT_UPLOADS = 4;
 const FILE_UPLOAD_COMPLETED = 100;
@@ -53,8 +49,6 @@ class UploadManager {
     private filesToBeUploaded: FileWithCollection[];
     private remainingFiles: FileWithCollection[] = [];
     private failedFiles: FileWithCollection[];
-    private existingFiles: EnteFile[];
-    private userOwnedNonTrashedExistingFiles: EnteFile[];
     private setFiles: SetFiles;
     private collections: Collection[] = [];
     private collectionsMap: Map<number, Collection> = new Map();
@@ -95,21 +89,18 @@ class UploadManager {
 
     async updateExistingFilesAndCollections(collections: Collection[]) {
         if (this.publicUploadProps.accessedThroughSharedURL) {
-            this.existingFiles = await getLocalPublicFiles(
-                getPublicCollectionUID(this.publicUploadProps.token)
+            uploadService.setExistingFiles(
+                await getLocalPublicFiles(
+                    getPublicCollectionUID(this.publicUploadProps.token)
+                )
             );
-            this.userOwnedNonTrashedExistingFiles = this.existingFiles;
         } else {
-            this.existingFiles = await getLocalFiles();
-            this.userOwnedNonTrashedExistingFiles = getUserOwnedNonTrashedFiles(
-                this.existingFiles
+            uploadService.setExistingFiles(
+                getUserOwnedNonTrashedFiles(await getLocalFiles())
             );
         }
         if (collections) {
-            this.collections = collections;
-            this.collectionsMap = new Map(
-                collections.map((collection) => [collection.id, collection])
-            );
+            UploadService.setExistingCollection(collections);
         }
     }
 
@@ -325,8 +316,6 @@ class UploadManager {
             const { fileUploadResult, uploadedFile, createdCollection } =
                 await uploader(
                     worker,
-                    this.collections,
-                    this.userOwnedNonTrashedExistingFiles,
                     fileWithCollection,
                     this.uploaderName,
                     this.publicUploadProps?.accessedThroughSharedURL
@@ -452,14 +441,11 @@ class UploadManager {
         if (!decryptedFile) {
             throw Error("decrypted file can't be undefined");
         }
-        this.userOwnedNonTrashedExistingFiles.push(decryptedFile);
         this.updateUIFiles(decryptedFile);
     }
 
     private updateUIFiles(decryptedFile: EnteFile) {
-        this.existingFiles.push(decryptedFile);
-        this.existingFiles = sortFiles(this.existingFiles);
-        this.setFiles(preservePhotoswipeProps(this.existingFiles));
+        this.setFiles((existingFiles) => [...existingFiles, decryptedFile]);
     }
 
     private updateElectronRemainingFiles(

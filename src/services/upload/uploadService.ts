@@ -39,6 +39,10 @@ import publicUploadHttpClient from './publicUploadHttpClient';
 import { constructPublicMagicMetadata } from './magicMetadataService';
 import { FilePublicMagicMetadataProps } from 'types/magicMetadata';
 import { B64EncryptionResult } from 'types/crypto';
+import QueueProcessor from 'services/queueProcessor';
+import { createAlbum } from 'services/collectionService';
+import { EnteFile } from 'types/file';
+import { findMatchingExistingFiles } from 'utils/upload';
 
 class UploadService {
     private uploadURLs: UploadURL[] = [];
@@ -52,6 +56,13 @@ class UploadService {
     private pendingUploadCount: number = 0;
 
     private publicUploadProps: PublicUploadProps = undefined;
+
+    private existingCollections: Collection[] = [];
+
+    private existingFiles: EnteFile[] = [];
+
+    private newCollectionCreator: QueueProcessor<Collection> =
+        new QueueProcessor<Collection>(1);
 
     init(publicUploadProps: PublicUploadProps) {
         this.publicUploadProps = publicUploadProps;
@@ -264,6 +275,26 @@ class UploadService {
                 this.uploadURLs
             );
         }
+    }
+
+    setExistingCollection(collections: Collection[]) {
+        this.existingCollections = collections;
+    }
+
+    setExistingFiles(files: EnteFile[]) {
+        this.existingFiles = files;
+    }
+
+    async createUploadCollection(collectionName: string): Promise<Collection> {
+        const collection = await this.newCollectionCreator.queueUpRequest(() =>
+            createAlbum(collectionName, this.existingCollections)
+        ).promise;
+        this.existingCollections.push(collection);
+        return collection;
+    }
+
+    findUploadFileMatchingExistingFiles(metadata: Metadata): EnteFile[] {
+        return findMatchingExistingFiles(this.existingFiles, metadata);
     }
 }
 

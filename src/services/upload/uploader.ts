@@ -1,7 +1,6 @@
 import { EnteFile } from 'types/file';
 import { handleUploadError, CustomError } from 'utils/error';
 import { logError } from 'utils/sentry';
-import { findMatchingExistingFiles } from 'utils/upload';
 import UIService from './uiService';
 import UploadService from './uploadService';
 import { FILE_TYPE } from 'constants/file';
@@ -16,7 +15,7 @@ import {
 import { addLocalLog, addLogLine } from 'utils/logging';
 import { convertBytesToHumanReadable } from 'utils/file/size';
 import { sleep } from 'utils/common';
-import { addToCollection, createAlbum } from 'services/collectionService';
+import { addToCollection } from 'services/collectionService';
 import uploadCancelService from './uploadCancelService';
 import { Remote } from 'comlink';
 import { DedicatedCryptoWorker } from 'worker/crypto.worker';
@@ -32,8 +31,6 @@ interface UploadResponse {
 
 export default async function uploader(
     worker: Remote<DedicatedCryptoWorker>,
-    existingCollections: Collection[],
-    existingFiles: EnteFile[],
     fileWithCollection: FileWithCollection,
     uploaderName: string,
     skipVideos: boolean
@@ -78,9 +75,8 @@ export default async function uploader(
             collectionToUploadIn = existingCollection;
         } else if (collectionName) {
             createdNewCollection = true;
-            collectionToUploadIn = await createAlbum(
-                collectionName,
-                existingCollections
+            collectionToUploadIn = await uploadService.createUploadCollection(
+                collectionName
             );
         } else {
             throw Error(CustomError.NO_COLLECTION);
@@ -92,10 +88,8 @@ export default async function uploader(
             fileTypeInfo
         );
 
-        const matchingExistingFiles = findMatchingExistingFiles(
-            existingFiles,
-            metadata
-        );
+        const matchingExistingFiles =
+            uploadService.findUploadFileMatchingExistingFiles(metadata);
         addLocalLog(
             () =>
                 `matchedFileList: ${matchingExistingFiles
