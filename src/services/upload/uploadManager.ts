@@ -42,7 +42,7 @@ import {
 } from 'services/publicCollectionService';
 import { getDedicatedCryptoWorker } from 'utils/comlink/ComlinkCryptoWorker';
 
-const MAX_CONCURRENT_UPLOADS = 4;
+const MAX_CONCURRENT_UPLOADS = 1;
 const FILE_UPLOAD_COMPLETED = 100;
 
 class UploadManager {
