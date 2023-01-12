@@ -73,9 +73,11 @@ export default async function uploader(
             throw Error(CustomError.UPLOAD_CANCELLED);
         }
         let collectionToUploadIn: Collection;
+        let createdNewCollection = false;
         if (existingCollection) {
             collectionToUploadIn = existingCollection;
         } else if (collectionName) {
+            createdNewCollection = true;
             collectionToUploadIn = await createAlbum(
                 collectionName,
                 existingCollections
@@ -197,6 +199,9 @@ export default async function uploader(
                 ? UPLOAD_RESULT.UPLOADED_WITH_STATIC_THUMBNAIL
                 : UPLOAD_RESULT.UPLOADED,
             uploadedFile: uploadedFile,
+            createdCollection: createdNewCollection
+                ? collectionToUploadIn
+                : null,
         };
     } catch (e) {
         addLogLine(`upload failed for  ${fileNameSize} ,error: ${e.message}`);

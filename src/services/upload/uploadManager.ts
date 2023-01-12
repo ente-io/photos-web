@@ -339,6 +339,7 @@ class UploadManager {
                     createdCollection.id,
                     createdCollection
                 );
+                fileWithCollection.collection = createdCollection;
             }
 
             const finalUploadResult = await this.postUploadTask(
