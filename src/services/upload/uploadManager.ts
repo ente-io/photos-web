@@ -314,6 +314,8 @@ class UploadManager {
                     uploadAsset: fileWithPossibleCollectionID.uploadAsset,
                     collection: collection,
                 };
+            } else {
+                fileWithCollection = fileWithPossibleCollectionID;
             }
 
             const { fileUploadResult, uploadedFile, createdCollection } =
