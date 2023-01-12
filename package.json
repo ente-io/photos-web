@@ -35,7 +35,7 @@
     "heic-convert": "^1.2.4",
     "is-electron": "^2.2.0",
     "jszip": "3.7.1",
-    "libsodium-wrappers": "^0.7.8",
+    "libsodium-wrappers": "^0.7.10",
     "localforage": "^1.9.0",
     "next": "^13.0.6",
     "next-transpile-modules": "^10.0.0",
