@@ -48,7 +48,8 @@ export async function getLivePhotoFileType(
 export async function extractLivePhotoMetadata(
     worker: Remote<DedicatedCryptoWorker>,
     parsedMetadataJSONMap: ParsedMetadataJSONMap,
-    fileWithCollection: FileWithCollection,
+    livePhotoAssets: LivePhotoAssets,
+    collectionIdentifier: number | string,
     fileTypeInfo: FileTypeInfo
 ) {
     const imageFileTypeInfo: FileTypeInfo = {
@@ -58,16 +59,14 @@ export async function extractLivePhotoMetadata(
     const imageMetadata = await extractFileMetadata(
         worker,
         parsedMetadataJSONMap,
-        fileWithCollection,
+        livePhotoAssets.image,
+        collectionIdentifier,
         imageFileTypeInfo
     );
-    const videoHash = await getFileHash(
-        worker,
-        fileWithCollection.uploadAsset.livePhotoAssets.video
-    );
+    const videoHash = await getFileHash(worker, livePhotoAssets.video);
     return {
         ...imageMetadata,
-        title: getLivePhotoName(fileWithCollection.uploadAsset.livePhotoAssets),
+        title: getLivePhotoName(livePhotoAssets),
         fileType: FILE_TYPE.LIVE_PHOTO,
         imageHash: imageMetadata.hash,
         videoHash: videoHash,
@@ -179,7 +178,6 @@ export async function clusterLivePhotoFiles(mediaFiles: FileWithCollection[]) {
                 analysedMediaFiles.push({
                     uploadAsset: {
                         localID: livePhotoLocalID,
-                        isLivePhoto: true,
                         livePhotoAssets: {
                             image: imageFile,
                             video: videoFile,

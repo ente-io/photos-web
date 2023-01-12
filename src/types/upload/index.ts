@@ -75,17 +75,23 @@ export interface ElectronFile {
 
 export interface UploadAssetBase {
     localID: number;
-    isLivePhoto?: boolean;
 }
 export interface LivePhotoUploadAsset extends UploadAssetBase {
     file?: never;
     livePhotoAssets?: LivePhotoAssets;
 }
 
+export function isLivePhotoUploadAsset(
+    uploadAsset: UploadAsset
+): uploadAsset is LivePhotoUploadAsset {
+    return 'livePhotoAssets' in uploadAsset;
+}
+
 export interface FileUploadAsset extends UploadAssetBase {
     file?: File | ElectronFile;
     livePhotoAssets?: never;
 }
+
 export type UploadAsset = FileUploadAsset | LivePhotoUploadAsset;
 export interface LivePhotoAssets {
     image: globalThis.File | ElectronFile;

@@ -11,6 +11,7 @@ import {
     FileWithCollection,
     FileWithMetadata,
     isDataStream,
+    isLivePhotoUploadAsset,
     Metadata,
     ParsedMetadataJSON,
     ParsedMetadataJSONMap,
@@ -77,49 +78,48 @@ class UploadService {
         this.pendingUploadCount--;
     }
 
-    getAssetSize({ isLivePhoto, file, livePhotoAssets }: UploadAsset) {
-        return isLivePhoto
-            ? getLivePhotoSize(livePhotoAssets)
-            : getFileSize(file);
+    getAssetSize(uploadAsset: UploadAsset) {
+        return isLivePhotoUploadAsset(uploadAsset)
+            ? getLivePhotoSize(uploadAsset.livePhotoAssets)
+            : getFileSize(uploadAsset.file);
     }
 
-    getAssetName({ isLivePhoto, file, livePhotoAssets }: UploadAsset) {
-        return isLivePhoto
-            ? getLivePhotoName(livePhotoAssets)
-            : getFilename(file);
+    getAssetName(uploadAsset: UploadAsset) {
+        return isLivePhotoUploadAsset(uploadAsset)
+            ? getLivePhotoName(uploadAsset.livePhotoAssets)
+            : getFilename(uploadAsset.file);
     }
 
-    getAssetFileType({ isLivePhoto, file, livePhotoAssets }: UploadAsset) {
-        return isLivePhoto
-            ? getLivePhotoFileType(livePhotoAssets)
-            : getFileType(file);
+    getAssetFileType(uploadAsset: UploadAsset) {
+        return isLivePhotoUploadAsset(uploadAsset)
+            ? getLivePhotoFileType(uploadAsset.livePhotoAssets)
+            : getFileType(uploadAsset.file);
     }
 
-    async readAsset(
-        fileTypeInfo: FileTypeInfo,
-        { isLivePhoto, file, livePhotoAssets }: UploadAsset
-    ) {
-        return isLivePhoto
-            ? await readLivePhoto(fileTypeInfo, livePhotoAssets)
-            : await readFile(fileTypeInfo, file);
+    async readAsset(fileTypeInfo: FileTypeInfo, uploadAsset: UploadAsset) {
+        return isLivePhotoUploadAsset(uploadAsset)
+            ? await readLivePhoto(fileTypeInfo, uploadAsset.livePhotoAssets)
+            : await readFile(fileTypeInfo, uploadAsset.file);
     }
 
     async extractAssetMetadata(
         worker: Remote<DedicatedCryptoWorker>,
-        fileWithCollection: FileWithCollection,
+        { uploadAsset, collectionID, collectionName }: FileWithCollection,
         fileTypeInfo: FileTypeInfo
     ): Promise<Metadata> {
-        return fileWithCollection.uploadAsset.isLivePhoto
+        return isLivePhotoUploadAsset(uploadAsset)
             ? extractLivePhotoMetadata(
                   worker,
                   this.parsedMetadataJSONMap,
-                  fileWithCollection,
+                  uploadAsset.livePhotoAssets,
+                  collectionID ?? collectionName,
                   fileTypeInfo
               )
             : await extractFileMetadata(
                   worker,
                   this.parsedMetadataJSONMap,
-                  fileWithCollection,
+                  uploadAsset.file,
+                  collectionID ?? collectionName,
                   fileTypeInfo
               );
     }

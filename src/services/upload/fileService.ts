@@ -8,7 +8,6 @@ import {
     ParsedMetadataJSONMap,
     DataStream,
     ElectronFile,
-    FileWithCollection,
 } from 'types/upload';
 import { splitFilenameAndExtension } from 'utils/file';
 import { logError } from 'utils/sentry';
@@ -72,19 +71,18 @@ export async function readFile(
 export async function extractFileMetadata(
     worker: Remote<DedicatedCryptoWorker>,
     parsedMetadataJSONMap: ParsedMetadataJSONMap,
-    fileWithCollection: FileWithCollection,
+    file: File | ElectronFile,
+    collectionIdentifier: number | string,
     fileTypeInfo: FileTypeInfo
 ) {
-    const originalName = getFileOriginalName(
-        fileWithCollection.uploadAsset.file
-    );
+    const originalName = getFileOriginalName(file);
     const googleMetadata =
         parsedMetadataJSONMap.get(
-            getMetadataJSONMapKey(fileWithCollection, originalName)
+            getMetadataJSONMapKey(collectionIdentifier, originalName)
         ) ?? {};
     const extractedMetadata: Metadata = await extractMetadata(
         worker,
-        fileWithCollection.uploadAsset.file,
+        file,
         fileTypeInfo
     );
 
