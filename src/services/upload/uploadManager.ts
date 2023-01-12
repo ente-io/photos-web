@@ -239,7 +239,11 @@ class UploadManager {
                         const { title, parsedMetadataJSON } =
                             parsedMetadataJSONWithTitle;
                         this.parsedMetadataJSONMap.set(
-                            getMetadataJSONMapKey(fileWithCollection, title),
+                            getMetadataJSONMapKey(
+                                fileWithCollection.collectionID ??
+                                    fileWithCollection.collectionName,
+                                title
+                            ),
                             parsedMetadataJSON && { ...parsedMetadataJSON }
                         );
                         UIService.increaseFileUploaded();
