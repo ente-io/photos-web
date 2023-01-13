@@ -26,7 +26,7 @@ import { Collection } from 'types/collection';
 interface UploadResponse {
     fileUploadResult: UPLOAD_RESULT;
     uploadedFile?: EnteFile;
-    createdCollection?: Collection;
+    collectionUploadedIn?: Collection;
 }
 
 export default async function uploader(
@@ -70,11 +70,9 @@ export default async function uploader(
             throw Error(CustomError.UPLOAD_CANCELLED);
         }
         let collectionToUploadIn: Collection;
-        let createdNewCollection = false;
         if (existingCollection) {
             collectionToUploadIn = existingCollection;
         } else if (collectionName) {
-            createdNewCollection = true;
             collectionToUploadIn = await uploadService.createUploadCollection(
                 collectionName
             );
@@ -193,9 +191,7 @@ export default async function uploader(
                 ? UPLOAD_RESULT.UPLOADED_WITH_STATIC_THUMBNAIL
                 : UPLOAD_RESULT.UPLOADED,
             uploadedFile: uploadedFile,
-            createdCollection: createdNewCollection
-                ? collectionToUploadIn
-                : null,
+            collectionUploadedIn: collectionToUploadIn,
         };
     } catch (e) {
         addLogLine(`upload failed for  ${fileNameSize} ,error: ${e.message}`);

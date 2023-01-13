@@ -1,7 +1,7 @@
 import { PICKED_UPLOAD_TYPE } from 'constants/upload';
-import { Collection } from 'types/collection';
+// import { Collection } from 'types/collection';
 import { ElectronAPIs } from 'types/electron';
-import { ElectronFile, FileWithCollection } from 'types/upload';
+import { ElectronFile } from 'types/upload';
 import { runningInBrowser } from 'utils/common';
 import { logError } from 'utils/sentry';
 
@@ -68,21 +68,8 @@ class ImportService {
         }
     }
 
-    async setToUploadCollection(collections: Collection[]) {
+    async setToUploadCollection(collectionName: string) {
         if (this.allElectronAPIsExist) {
-            let collectionName: string = null;
-            /* collection being one suggest one of two things
-                1. Either the user has upload to a single existing collection
-                2. Created a new single collection to upload to 
-                    may have had multiple folder, but chose to upload
-                    to one album
-                hence saving the collection name when upload collection count is 1
-                helps the info of user choosing this options
-                and on next upload we can directly start uploading to this collection 
-            */
-            if (collections.length === 1) {
-                collectionName = collections[0].name;
-            }
             this.electronAPIs.setToUploadCollection(collectionName);
         }
     }
@@ -96,23 +83,23 @@ class ImportService {
         }
     }
 
-    updatePendingUploads(files: FileWithCollection[]) {
-        if (this.allElectronAPIsExist) {
-            const filePaths = [];
-            for (const { uploadAsset } of files) {
-                if (uploadAsset.isLivePhoto) {
-                    filePaths.push(
-                        (uploadAsset.livePhotoAssets.image as ElectronFile)
-                            .path,
-                        (uploadAsset.livePhotoAssets.video as ElectronFile).path
-                    );
-                } else {
-                    filePaths.push((uploadAsset.file as ElectronFile).path);
-                }
-            }
-            this.setToUploadFiles(PICKED_UPLOAD_TYPE.FILES, filePaths);
-        }
-    }
+    // updatePendingUploads(files: FileWithCollection[]) {
+    //     if (this.allElectronAPIsExist) {
+    //         const filePaths = [];
+    //         for (const { uploadAsset } of files) {
+    //             if (uploadAsset.isLivePhoto) {
+    //                 filePaths.push(
+    //                     (uploadAsset.livePhotoAssets.image as ElectronFile)
+    //                         .path,
+    //                     (uploadAsset.livePhotoAssets.video as ElectronFile).path
+    //                 );
+    //             } else {
+    //                 filePaths.push((uploadAsset.file as ElectronFile).path);
+    //             }
+    //         }
+    //         this.setToUploadFiles(PICKED_UPLOAD_TYPE.FILES, filePaths);
+    //     }
+    // }
     cancelRemainingUploads() {
         if (this.allElectronAPIsExist) {
             this.electronAPIs.setToUploadCollection(null);

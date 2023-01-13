@@ -27,6 +27,8 @@ export interface Metadata {
     hash?: string;
     imageHash?: string;
     videoHash?: string;
+    imagePath?: string;
+    videoPath?: string;
 }
 
 export interface Location {
