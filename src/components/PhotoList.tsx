@@ -159,11 +159,7 @@ interface Props {
     width: number;
     filteredData: EnteFile[];
     showAppDownloadBanner: boolean;
-    getThumbnail: (
-        files: EnteFile[],
-        index: number,
-        isScrolling?: boolean
-    ) => JSX.Element;
+    getThumbnail: (file: EnteFile, showPlaceholder?: boolean) => JSX.Element;
     activeCollection: number;
     resetFetching: () => void;
 }
@@ -577,12 +573,8 @@ export function PhotoList({
                     </SizeAndCountContainer>
                 );
             case ITEM_TYPE.FILE: {
-                const ret = listItem.items.map((item, idx) =>
-                    getThumbnail(
-                        filteredData,
-                        listItem.itemStartIndex + idx,
-                        isScrolling
-                    )
+                const ret = listItem.items.map((item) =>
+                    getThumbnail(item, isScrolling)
                 );
                 if (listItem.groups) {
                     let sum = 0;
