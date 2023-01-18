@@ -1,4 +1,4 @@
-import React, { useRef, useContext, useMemo } from 'react';
+import React, { useRef, useContext, useMemo, useEffect } from 'react';
 import { VariableSizeList as List } from 'react-window';
 import { Box, Link, styled } from '@mui/material';
 import { EnteFile } from 'types/file';
@@ -532,7 +532,6 @@ export function PhotoList({
             }
         }
 
-        refreshList();
         return timeStampList;
     }, [
         width,
@@ -546,6 +545,10 @@ export function PhotoList({
         deduplicateContext.isOnDeduplicatePage,
         deduplicateContext.fileSizeMap,
     ]);
+
+    useEffect(() => {
+        refreshList();
+    }, [timeStampList]);
 
     const renderListItem = (
         listItem: TimeStampListItem,
