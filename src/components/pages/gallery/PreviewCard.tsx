@@ -211,6 +211,7 @@ export default function PreviewCard(props: IProps) {
         onRangeSelect,
         isRangeSelectActive,
         isInsSelectRange,
+        showPlaceholder,
     } = props;
     const publicCollectionGalleryContext = useContext(
         PublicCollectionGalleryContext
@@ -218,50 +219,57 @@ export default function PreviewCard(props: IProps) {
     const deduplicateContext = useContext(DeduplicateContext);
 
     useLayoutEffect(() => {
-        if (file && !file.msrc && !props.showPlaceholder) {
-            const main = async () => {
-                try {
-                    let url;
-                    if (
-                        publicCollectionGalleryContext.accessedThroughSharedURL
-                    ) {
-                        url =
-                            await PublicCollectionDownloadManager.getThumbnail(
-                                file,
-                                publicCollectionGalleryContext.token,
-                                publicCollectionGalleryContext.passwordToken
-                            );
-                    } else {
-                        url = await DownloadManager.getThumbnail(file);
+        try {
+            if (!file) {
+                return;
+            }
+            if (!file.msrc && !showPlaceholder) {
+                const main = async () => {
+                    try {
+                        let url;
+                        if (
+                            publicCollectionGalleryContext.accessedThroughSharedURL
+                        ) {
+                            url =
+                                await PublicCollectionDownloadManager.getThumbnail(
+                                    file,
+                                    publicCollectionGalleryContext.token,
+                                    publicCollectionGalleryContext.passwordToken
+                                );
+                        } else {
+                            url = await DownloadManager.getThumbnail(file);
+                        }
+                        setImgSrc(url);
+                        thumbs.set(file.id, url);
+                        const newFile = updateURL(url);
+                        file.msrc = newFile.msrc;
+                        file.html = newFile.html;
+                        file.src = newFile.src;
+                        file.w = newFile.w;
+                        file.h = newFile.h;
+                    } catch (e) {
+                        logError(e, 'preview card main failed');
+                        // no-op
                     }
-                    setImgSrc(url);
-                    thumbs.set(file.id, url);
-                    const newFile = updateURL(url);
+                };
+
+                if (thumbs.has(file.id)) {
+                    const thumbImgSrc = thumbs.get(file.id);
+                    setImgSrc(thumbImgSrc);
+                    const newFile = updateURL(thumbImgSrc);
                     file.msrc = newFile.msrc;
                     file.html = newFile.html;
                     file.src = newFile.src;
                     file.w = newFile.w;
                     file.h = newFile.h;
-                } catch (e) {
-                    logError(e, 'preview card useEffect failed');
-                    // no-op
+                } else {
+                    main();
                 }
-            };
-
-            if (thumbs.has(file.id)) {
-                const thumbImgSrc = thumbs.get(file.id);
-                setImgSrc(thumbImgSrc);
-                const newFile = updateURL(thumbImgSrc);
-                file.msrc = newFile.msrc;
-                file.html = newFile.html;
-                file.src = newFile.src;
-                file.w = newFile.w;
-                file.h = newFile.h;
-            } else {
-                main();
             }
+        } catch (e) {
+            logError(e, 'preview card useLayoutEffect failed');
         }
-    }, [file, props.showPlaceholder]);
+    }, [file, showPlaceholder]);
 
     const handleClick = () => {
         if (selectOnClick) {
@@ -291,6 +299,10 @@ export default function PreviewCard(props: IProps) {
             onHover();
         }
     };
+
+    if (!file) {
+        return <></>;
+    }
 
     return (
         <Cont
