@@ -198,67 +198,6 @@ export function PhotoList({
         resetFetching();
     };
 
-    const timeStampList = useMemo(() => {
-        let timeStampList: TimeStampListItem[] = [];
-
-        if (galleryContext.photoListHeader) {
-            timeStampList.push(
-                getPhotoListHeader(galleryContext.photoListHeader)
-            );
-        } else if (publicCollectionGalleryContext.photoListHeader) {
-            timeStampList.push(
-                getPhotoListHeader(
-                    publicCollectionGalleryContext.photoListHeader
-                )
-            );
-        }
-        if (deduplicateContext.isOnDeduplicatePage) {
-            skipMerge = true;
-            groupByFileSize(timeStampList);
-        } else {
-            groupByTime(timeStampList);
-        }
-
-        if (!skipMerge) {
-            timeStampList = mergeTimeStampList(timeStampList, columns);
-        }
-        if (timeStampList.length === 1) {
-            timeStampList.push(getEmptyListItem());
-        }
-        timeStampList.push(getVacuumItem(timeStampList));
-        if (publicCollectionGalleryContext.photoListFooter) {
-            timeStampList.push(
-                getPhotoListFooter(
-                    publicCollectionGalleryContext.photoListFooter
-                )
-            );
-        }
-        if (
-            showAppDownloadBanner ||
-            publicCollectionGalleryContext.accessedThroughSharedURL
-        ) {
-            if (publicCollectionGalleryContext.accessedThroughSharedURL) {
-                timeStampList.push(getAlbumsFooter());
-            } else {
-                timeStampList.push(getAppDownloadFooter());
-            }
-        }
-
-        refreshList();
-        return timeStampList;
-    }, [
-        width,
-        height,
-        filteredData,
-        showAppDownloadBanner,
-        publicCollectionGalleryContext.accessedThroughSharedURL,
-        galleryContext.photoListHeader,
-        publicCollectionGalleryContext.photoListFooter,
-        publicCollectionGalleryContext.photoListHeader,
-        deduplicateContext.isOnDeduplicatePage,
-        deduplicateContext.fileSizeMap,
-    ]);
-
     const groupByFileSize = (timeStampList: TimeStampListItem[]) => {
         let index = 0;
         while (index < filteredData.length) {
@@ -546,6 +485,67 @@ export function PhotoList({
                 return `${timeStampList[index].id}-${index}`;
         }
     };
+
+    const timeStampList = useMemo(() => {
+        let timeStampList: TimeStampListItem[] = [];
+
+        if (galleryContext.photoListHeader) {
+            timeStampList.push(
+                getPhotoListHeader(galleryContext.photoListHeader)
+            );
+        } else if (publicCollectionGalleryContext.photoListHeader) {
+            timeStampList.push(
+                getPhotoListHeader(
+                    publicCollectionGalleryContext.photoListHeader
+                )
+            );
+        }
+        if (deduplicateContext.isOnDeduplicatePage) {
+            skipMerge = true;
+            groupByFileSize(timeStampList);
+        } else {
+            groupByTime(timeStampList);
+        }
+
+        if (!skipMerge) {
+            timeStampList = mergeTimeStampList(timeStampList, columns);
+        }
+        if (timeStampList.length === 1) {
+            timeStampList.push(getEmptyListItem());
+        }
+        timeStampList.push(getVacuumItem(timeStampList));
+        if (publicCollectionGalleryContext.photoListFooter) {
+            timeStampList.push(
+                getPhotoListFooter(
+                    publicCollectionGalleryContext.photoListFooter
+                )
+            );
+        }
+        if (
+            showAppDownloadBanner ||
+            publicCollectionGalleryContext.accessedThroughSharedURL
+        ) {
+            if (publicCollectionGalleryContext.accessedThroughSharedURL) {
+                timeStampList.push(getAlbumsFooter());
+            } else {
+                timeStampList.push(getAppDownloadFooter());
+            }
+        }
+
+        refreshList();
+        return timeStampList;
+    }, [
+        width,
+        height,
+        filteredData,
+        showAppDownloadBanner,
+        publicCollectionGalleryContext.accessedThroughSharedURL,
+        galleryContext.photoListHeader,
+        publicCollectionGalleryContext.photoListFooter,
+        publicCollectionGalleryContext.photoListHeader,
+        deduplicateContext.isOnDeduplicatePage,
+        deduplicateContext.fileSizeMap,
+    ]);
 
     const renderListItem = (
         listItem: TimeStampListItem,
