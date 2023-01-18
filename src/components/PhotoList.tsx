@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useContext } from 'react';
+import React, { useRef, useContext, useMemo } from 'react';
 import { VariableSizeList as List } from 'react-window';
 import { Box, Link, styled } from '@mui/material';
 import { EnteFile } from 'types/file';
@@ -179,10 +179,6 @@ export function PhotoList({
 }: Props) {
     const galleryContext = useContext(GalleryContext);
 
-    const timeStampListRef = useRef([]);
-    const timeStampList = timeStampListRef?.current ?? [];
-    const filteredDataCopyRef = useRef([]);
-    const filteredDataCopy = filteredDataCopyRef.current ?? [];
     const listRef = useRef(null);
     const publicCollectionGalleryContext = useContext(
         PublicCollectionGalleryContext
@@ -206,7 +202,7 @@ export function PhotoList({
         resetFetching();
     };
 
-    useEffect(() => {
+    const timeStampList = useMemo(() => {
         let timeStampList: TimeStampListItem[] = [];
 
         if (galleryContext.photoListHeader) {
@@ -252,9 +248,8 @@ export function PhotoList({
             }
         }
 
-        timeStampListRef.current = timeStampList;
-        filteredDataCopyRef.current = filteredData;
         refreshList();
+        return timeStampList;
     }, [
         width,
         height,
@@ -584,7 +579,7 @@ export function PhotoList({
             case ITEM_TYPE.FILE: {
                 const ret = listItem.items.map((item, idx) =>
                     getThumbnail(
-                        filteredDataCopy,
+                        filteredData,
                         listItem.itemStartIndex + idx,
                         isScrolling
                     )
