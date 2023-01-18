@@ -27,7 +27,6 @@ import { IsArchived } from 'utils/magicMetadata';
 import { isSameDayAnyYear, isInsideBox } from 'utils/search';
 import { Search } from 'types/search';
 import { logError } from 'utils/sentry';
-import { CustomError } from 'utils/error';
 import { User } from 'types/user';
 import { getData, LS_KEYS } from 'utils/storage/localStorage';
 import { useMemo } from 'react';
@@ -289,15 +288,7 @@ const PhotoFrame = ({
         }
     }, [selected]);
 
-    const getFileIndexFromID = (files: EnteFile[], id: number) => {
-        const index = files.findIndex((file) => file.id === id);
-        if (index === -1) {
-            throw CustomError.FILE_ID_NOT_FOUND;
-        }
-        return index;
-    };
-
-    const updateURL = (id: number) => (url: string) => {
+    const updateURL = (index: number) => (url: string) => {
         const updateFile = (file: EnteFile) => {
             file.msrc = url;
             file.w = window.innerWidth;
@@ -332,11 +323,10 @@ const PhotoFrame = ({
             }
             return file;
         };
-        const index = getFileIndexFromID(files, id);
         return updateFile(files[index]);
     };
 
-    const updateSrcURL = async (id: number, srcURL: SourceURL) => {
+    const updateSrcURL = async (index: number, srcURL: SourceURL) => {
         const {
             originalImageURL,
             convertedImageURL,
@@ -398,7 +388,6 @@ const PhotoFrame = ({
             return file;
         };
         setIsSourceLoaded(true);
-        const index = getFileIndexFromID(files, id);
         return updateFile(files[index]);
     };
 
@@ -526,7 +515,7 @@ const PhotoFrame = ({
                     }
                     galleryContext.thumbs.set(item.id, url);
                 }
-                const newFile = updateURL(item.id)(url);
+                const newFile = updateURL(item.dataIndex)(url);
                 item.msrc = newFile.msrc;
                 item.html = newFile.html;
                 item.src = newFile.src;
