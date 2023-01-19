@@ -60,8 +60,7 @@ export const syncFiles = async (
         await setLocalFiles(files);
         setFiles(preservePhotoswipeProps([...sortFiles(mergeMetadata(files))]));
     }
-    while (collections?.length > 0) {
-        const collection = collections[0];
+    for (const collection of collections) {
         if (!getToken()) {
             continue;
         }
@@ -69,9 +68,9 @@ export const syncFiles = async (
             throw Error(CustomError.HIDDEN_COLLECTION_SYNC_FILE_ATTEMPTED);
         }
         const lastSyncTime = await getCollectionLastSyncTime(collection);
-        // if (collection.updationTime === lastSyncTime) {
-        //     continue;
-        // }
+        if (collection.updationTime === lastSyncTime) {
+            continue;
+        }
         const fetchedFiles =
             (await getFiles(collection, lastSyncTime, files, setFiles)) ?? [];
         files = [...files, ...fetchedFiles];
