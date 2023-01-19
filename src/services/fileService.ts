@@ -69,9 +69,9 @@ export const syncFiles = async (
             throw Error(CustomError.HIDDEN_COLLECTION_SYNC_FILE_ATTEMPTED);
         }
         const lastSyncTime = await getCollectionLastSyncTime(collection);
-        if (collection.updationTime === lastSyncTime) {
-            continue;
-        }
+        // if (collection.updationTime === lastSyncTime) {
+        //     continue;
+        // }
         const fetchedFiles =
             (await getFiles(collection, lastSyncTime, files, setFiles)) ?? [];
         files = [...files, ...fetchedFiles];
