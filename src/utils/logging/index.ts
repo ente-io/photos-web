@@ -22,6 +22,7 @@ export interface Log {
 
 export function addLogLine(log: string) {
     try {
+        return;
         if (isDEVSentryENV()) {
             console.log(log);
         }
