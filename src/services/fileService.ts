@@ -60,7 +60,8 @@ export const syncFiles = async (
         await setLocalFiles(files);
         setFiles(preservePhotoswipeProps([...sortFiles(mergeMetadata(files))]));
     }
-    for (const collection of collections) {
+    while (collections?.length > 0) {
+        const collection = collections[0];
         if (!getToken()) {
             continue;
         }
