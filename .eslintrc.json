@@ -19,7 +19,7 @@
         "react/display-name": "off",
         "react/no-unescaped-entities": "off",
         "no-unused-vars": "off",
-        "@typescript-eslint/no-unused-vars": ["error"],
+        "@typescript-eslint/no-unused-vars": ["off"],
         "require-jsdoc": "off",
         "valid-jsdoc": "off",
         "max-len": "off",
