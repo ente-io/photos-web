@@ -17,6 +17,7 @@ import {
 } from 'types/search';
 import { FILE_TYPE } from 'constants/file';
 import { getFormattedDate, isInsideBox, isSameDayAnyYear } from 'utils/search';
+import { getUniqueFiles } from 'utils/file';
 
 const ENDPOINT = getEndpoint();
 
@@ -35,7 +36,6 @@ export const getAutoCompleteSuggestions =
             ...getDateSuggestion(searchPhrase),
             ...getCollectionSuggestion(searchPhrase, collections),
             ...getFileSuggestion(searchPhrase, files),
-            ...(await getLocationSuggestions(searchPhrase)),
         ];
 
         const previewImageAppendedOptions: SearchOption[] = suggestions
@@ -44,8 +44,8 @@ export const getAutoCompleteSuggestions =
                 searchQuery: convertSuggestionToSearchQuery(suggestion),
             }))
             .map(({ suggestion, searchQuery }) => {
-                const resultFiles = files.filter((file) =>
-                    isSearchedFile(file, searchQuery)
+                const resultFiles = getUniqueFiles(
+                    files.filter((file) => isSearchedFile(file, searchQuery))
                 );
                 return {
                     ...suggestion,
@@ -115,7 +115,7 @@ function searchCollection(
 }
 
 function searchFiles(searchPhrase: string, files: EnteFile[]) {
-    return files
+    return getUniqueFiles(files)
         .map((file) => ({
             title: file.metadata.title,
             id: file.id,
@@ -166,6 +166,7 @@ function getFileSuggestion(
     }));
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function getLocationSuggestions(searchPhrase: string) {
     const locationResults = await searchLocation(searchPhrase);
 

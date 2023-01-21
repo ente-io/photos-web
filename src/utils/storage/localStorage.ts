@@ -20,6 +20,8 @@ export enum LS_KEYS {
     COLLECTION_SORT_BY = 'collectionSortBy',
     THEME = 'theme',
     USER_PREFERENCES = 'userPreferences',
+    WAIT_TIME = 'waitTime',
+    API_ENDPOINT = 'apiEndpoint',
 }
 
 export const setData = (key: LS_KEYS, value: object) => {
@@ -41,7 +43,8 @@ export const getData = (key: LS_KEYS) => {
         if (
             typeof localStorage === 'undefined' ||
             typeof key === 'undefined' ||
-            typeof localStorage.getItem(key) === 'undefined'
+            typeof localStorage.getItem(key) === 'undefined' ||
+            localStorage.getItem(key) === 'undefined'
         ) {
             return null;
         }

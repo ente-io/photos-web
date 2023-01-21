@@ -9,19 +9,41 @@ declare module '@mui/material/styles' {
     interface TypeBackground {
         overPaper?: string;
     }
+
+    interface BlurStrength {
+        base: string;
+        muted: string;
+        faint: string;
+    }
+    interface BlurStrengthOptions {
+        base?: string;
+        muted?: string;
+        faint?: string;
+    }
+
+    interface FixedColor {
+        white: string;
+        black: string;
+        strokeMutedWhite: string;
+    }
+
     interface Palette {
         accent: PaletteColor;
         fill: PaletteColor;
-        glass: PaletteColor;
+        backdrop: PaletteColor;
+        blur: BlurStrength;
         danger: PaletteColor;
         stroke: TypeText;
+        fixed: FixedColor;
     }
     interface PaletteOptions {
         accent?: PaletteColorOptions;
         danger?: PaletteColorOptions;
         fill?: PaletteColorOptions;
-        glass?: PaletteColorOptions;
+        backdrop?: PaletteColorOptions;
+        blur?: BlurStrengthOptions;
         stroke?: Partial<TypeText>;
+        fixed?: Partial<FixedColor>;
     }
 
     interface TypographyVariants {
@@ -74,6 +96,12 @@ declare module '@mui/material/Alert' {
     }
 }
 
+declare module '@mui/material/CircularProgress' {
+    export interface CircularProgressPropsColorOverrides {
+        accent: true;
+    }
+}
+
 // Create a theme instance.
 const darkThemeOptions = createTheme({
     components: {
@@ -103,7 +131,7 @@ const darkThemeOptions = createTheme({
                         backgroundColor: 'rgba(0,0,0,0.65)',
                     },
                     '& .MuiDialog-paper': {
-                        boxShadow: '0px 0px 10px 0px rgba(0, 0, 0, 0.25)',
+                        boxShadow: '0px 0px 10px 0px #252525',
                     },
                     '& .MuiDialogTitle-root': {
                         padding: '16px',
@@ -130,12 +158,14 @@ const darkThemeOptions = createTheme({
         },
         MuiLink: {
             defaultProps: {
-                underline: 'always',
+                color: '#1db954',
+                underline: 'none',
             },
             styleOverrides: {
                 root: {
                     '&:hover': {
-                        color: '#1dba54',
+                        underline: 'always',
+                        color: '#1db954',
                     },
                 },
             },
@@ -209,7 +239,7 @@ const darkThemeOptions = createTheme({
                             };
                         case 'secondary':
                             return {
-                                color: 'rgba(256,256,256,0.24)',
+                                color: 'rgba(255,255,255,0.24)',
                             };
                         case 'disabled':
                             return {
@@ -230,7 +260,7 @@ const darkThemeOptions = createTheme({
                             };
                         case 'secondary':
                             return {
-                                color: 'rgba(256,256,256,0.24)',
+                                color: 'rgba(255,255,255,0.24)',
                             };
                     }
                     if (ownerState.disabled) {
@@ -238,6 +268,13 @@ const darkThemeOptions = createTheme({
                             color: 'rgba(255, 255, 255, 0.16)',
                         };
                     }
+                },
+            },
+        },
+        MuiSnackbar: {
+            styleOverrides: {
+                root: {
+                    borderRadius: '8px',
                 },
             },
         },
@@ -250,24 +287,33 @@ const darkThemeOptions = createTheme({
             contrastText: '#000',
         },
         secondary: {
-            main: 'rgba(256, 256, 256, 0.12)',
+            main: 'rgba(255, 255, 255, 0.12)',
             contrastText: '#fff',
         },
         accent: {
             main: '#1DB954',
-            dark: '#2EB45D',
+            dark: '#00B33C',
             light: '#26CB5F',
         },
         fill: {
-            main: 'rgba(256, 256, 256, 0.16)',
-            dark: 'rgba(256, 256, 256, 0.12)',
-            light: 'rgba(256, 256, 256)',
+            main: 'rgba(255, 255, 255, 0.16)',
+            dark: 'rgba(255, 255, 255, 0.12)',
+            light: 'rgba(255, 255, 255)',
         },
-        glass: {
-            main: 'rgba(256, 256, 256, 0.7)',
-            dark: 'rgba(256, 256, 256, 0.9)',
-            light: 'rgba(256, 256, 256,0.3)',
-            contrastText: '#000',
+        backdrop: {
+            main: 'rgba(0, 0, 0, 0.65)',
+            light: 'rgba(0, 0, 0,0.2)',
+        },
+
+        blur: {
+            base: '96px',
+            muted: '48px',
+            faint: '24px',
+        },
+        fixed: {
+            white: '#fff',
+            black: '#000',
+            strokeMutedWhite: 'rgba(255, 255, 255, 0.48)',
         },
         text: {
             primary: '#fff',
@@ -276,24 +322,25 @@ const darkThemeOptions = createTheme({
         },
 
         danger: {
-            main: '#c93f3f',
+            main: '#EA3f3f',
         },
         stroke: {
             primary: '#ffffff',
-            secondary: 'rgba(256,256,256,0.24)',
-            disabled: 'rgba(256,256,256,0.16)',
+            secondary: 'rgba(255,255,255,0.24)',
+            disabled: 'rgba(255,255,255,0.16)',
         },
         background: {
             default: '#000000',
-            paper: '#141414',
-            overPaper: '#1b1b1b',
+            paper: '#1b1b1b',
+            overPaper: '#252525',
         },
         grey: {
             A100: '#ccc',
-            A200: 'rgba(256, 256, 256, 0.24)',
+            A200: 'rgba(255, 255, 255, 0.24)',
             A400: '#434343',
+            500: 'rgba(255, 255, 255, 0.5)',
         },
-        divider: 'rgba(256, 256, 256, 0.16)',
+        divider: 'rgba(255, 255, 255, 0.16)',
     },
     shape: {
         borderRadius: 8,
@@ -301,7 +348,7 @@ const darkThemeOptions = createTheme({
     typography: {
         body1: {
             fontSize: '16px',
-            lineHeight: '19px',
+            lineHeight: '20px',
         },
         body2: {
             fontSize: '14px',
@@ -313,7 +360,7 @@ const darkThemeOptions = createTheme({
         },
         button: {
             fontSize: '16px',
-            lineHeight: '19px',
+            lineHeight: '20px',
             fontWeight: 'bold',
             textTransform: 'none',
         },

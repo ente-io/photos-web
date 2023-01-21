@@ -2,11 +2,19 @@
 
 **ente** is a cloud storage provider that provides end-to-end encryption for your data.
 
-We have open-source apps across [Android](https://github.com/ente-io/frame), [iOS](https://github.com/ente-io/frame), [web](https://github.com/ente-io/bada-frame) and [desktop](https://github.com/ente-io/bhari-frame) that automatically backup your photos and videos.
+We have open-source apps across
+[Android](https://github.com/ente-io/photos-app),
+[iOS](https://github.com/ente-io/photos-app),
+[web](https://github.com/ente-io/photos-web) and
+[desktop](https://github.com/ente-io/photos-desktop) that automatically backup
+your photos and videos.
 
-This repository contains the code for our web app, built with a lot of ❤️, and a little bit of JavaScript.
+This repository contains the code for our web app, built with a lot of ❤️, and a
+little bit of JavaScript.
+
 <br/><br/><br/>
-![App Screenshots](https://user-images.githubusercontent.com/1161789/154797467-a2c14f13-6b04-4282-ab61-f6a9f60c2026.png)
+
+![App Screenshots](https://user-images.githubusercontent.com/24503581/189914045-9d4e9c44-37c6-4ac6-9e17-d8c37aee1e08.png)
 
 ## ✨ Features
 
@@ -19,32 +27,45 @@ This repository contains the code for our web app, built with a lot of ❤️, a
 - EXIF viewer
 - Zero third-party tracking / analytics
 
+<br/>
+
 ## 💻 Deployed Application
 
 The deployed application is accessible @ [web.ente.io](https://web.ente.io).
 
+<br/>
+
 ## 🧑‍💻 Building from source
 
-1. Clone this repository with `git clone git@github.com:ente-io/bada-frame.git` 
+1. Clone this repository with `git clone https://github.com/ente-io/photos-web.git`
 2. Pull in all submodules with `git submodule update --init --recursive`
 3. Install dependencies with `yarn install`
 4. Finally, run the development server with `yarn dev`
 
 Open [http://localhost:3000](http://localhost:3000) on your browser to see the live application.
 
+<br/>
+
 ## 🙋 Help
 
 We provide human support to our customers. Please write to [support@ente.io](mailto:support@ente.io) sharing as many details as possible about whatever it is that you need help with, and we will get back to you as soon as possible.
+
+<br/>
 
 ## 🧭 Roadmap
 
 We maintain a public roadmap, that's driven by our community @ [roadmap.ente.io](https://roadmap.ente.io).
 
+<br/>
+
 ## 🤗 Support
 
 If you like this project, please consider upgrading to a paid subscription.
 
-If you would like to motivate us to keep building, you can do so by [starring](https://github.com/ente-io/bada-frame/stargazers) this project.
+If you would like to motivate us to keep building, you can do so by
+[starring](https://github.com/ente-io/photos-web/stargazers) this project.
+
+<br/>
 
 ## ❤️ Join the Community
 
@@ -52,7 +73,9 @@ Follow us on [Twitter](https://twitter.com/enteio) and join [r/enteio](https://r
 
 An important part of our journey is to build better software by consistently listening to community feedback. Please feel free to [share your thoughts](mailto:feedback@ente.io) with us at any time.
 
+<br/>
+
 ---
 
-Cross-browser testing provided by 
+Cross-browser testing provided by
 [<img src="https://d98b8t1nnulk5.cloudfront.net/production/images/layout/logo-header.png?1469004780" width="115" height="25">](https://www.browserstack.com/open-source)

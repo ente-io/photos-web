@@ -5,6 +5,8 @@ import HTTPService from './HTTPService';
 import { logError } from 'utils/sentry';
 import { getPaymentToken } from './userService';
 import { Plan, Subscription } from 'types/billing';
+import isElectron from 'is-electron';
+import { getDesktopRedirectURL } from 'constants/billing';
 
 const ENDPOINT = getEndpoint();
 
@@ -131,7 +133,7 @@ class billingService {
                 {
                     paymentProvider: 'stripe',
                     productID: null,
-                    VerificationData: sessionID,
+                    verificationData: sessionID,
                 },
                 null,
                 {
@@ -168,9 +170,8 @@ class billingService {
         action: string
     ) {
         try {
-            window.location.href = `${getPaymentsURL()}?productID=${productID}&paymentToken=${paymentToken}&action=${action}&redirectURL=${
-                window.location.origin
-            }/gallery`;
+            const redirectURL = this.getRedirectURL();
+            window.location.href = `${getPaymentsURL()}?productID=${productID}&paymentToken=${paymentToken}&action=${action}&redirectURL=${redirectURL}`;
         } catch (e) {
             logError(e, 'unable to get payments url');
             throw e;
@@ -179,9 +180,10 @@ class billingService {
 
     public async redirectToCustomerPortal() {
         try {
+            const redirectURL = this.getRedirectURL();
             const response = await HTTPService.get(
                 `${ENDPOINT}/billing/stripe/customer-portal`,
-                { redirectURL: `${window.location.origin}/gallery` },
+                { redirectURL },
                 {
                     'X-Auth-Token': getToken(),
                 }
@@ -190,6 +192,14 @@ class billingService {
         } catch (e) {
             logError(e, 'unable to get customer portal url');
             throw e;
+        }
+    }
+
+    public getRedirectURL() {
+        if (isElectron()) {
+            return getDesktopRedirectURL();
+        } else {
+            return `${window.location.origin}/gallery`;
         }
     }
 }

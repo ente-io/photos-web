@@ -3,11 +3,9 @@ import { logError } from 'utils/sentry';
 import UploadHttpClient from './uploadHttpClient';
 import { extractFileMetadata, getFilename } from './fileService';
 import { getFileType } from '../typeDetectionService';
-import { handleUploadError } from 'utils/error';
+import { CustomError, handleUploadError } from 'utils/error';
 import {
-    B64EncryptionResult,
     BackupedFile,
-    ElectronFile,
     EncryptedFile,
     FileTypeInfo,
     FileVariants,
@@ -15,17 +13,18 @@ import {
     FileWithMetadata,
     isDataStream,
     Metadata,
-    MetadataAndFileTypeInfo,
-    MetadataAndFileTypeInfoMap,
     ParsedMetadataJSON,
     ParsedMetadataJSONMap,
     ProcessedFile,
+    PublicUploadProps,
     UploadAsset,
     UploadFile,
     UploadURL,
 } from 'types/upload';
 import {
     clusterLivePhotoFiles,
+    extractLivePhotoMetadata,
+    getLivePhotoFileType,
     getLivePhotoName,
     getLivePhotoSize,
     readLivePhoto,
@@ -34,6 +33,12 @@ import { encryptFile, getFileSize, readFile } from './fileService';
 import { uploadStreamUsingMultipart } from './multiPartUploadService';
 import UIService from './uiService';
 import { USE_CF_PROXY } from 'constants/upload';
+import { Remote } from 'comlink';
+import { DedicatedCryptoWorker } from 'worker/crypto.worker';
+import publicUploadHttpClient from './publicUploadHttpClient';
+import { constructPublicMagicMetadata } from './magicMetadataService';
+import { FilePublicMagicMetadataProps } from 'types/magicMetadata';
+import { B64EncryptionResult } from 'types/crypto';
 
 class UploadService {
     private uploadURLs: UploadURL[] = [];
@@ -41,25 +46,32 @@ class UploadService {
         string,
         ParsedMetadataJSON
     >();
-    private metadataAndFileTypeInfoMap: MetadataAndFileTypeInfoMap = new Map<
-        number,
-        MetadataAndFileTypeInfo
-    >();
+
+    private uploaderName: string;
+
     private pendingUploadCount: number = 0;
+
+    private publicUploadProps: PublicUploadProps = undefined;
+
+    init(publicUploadProps: PublicUploadProps) {
+        this.publicUploadProps = publicUploadProps;
+    }
 
     async setFileCount(fileCount: number) {
         this.pendingUploadCount = fileCount;
-        await this.preFetchUploadURLs();
+        this.preFetchUploadURLs();
     }
 
     setParsedMetadataJSONMap(parsedMetadataJSONMap: ParsedMetadataJSONMap) {
         this.parsedMetadataJSONMap = parsedMetadataJSONMap;
     }
 
-    setMetadataAndFileTypeInfoMap(
-        metadataAndFileTypeInfoMap: MetadataAndFileTypeInfoMap
-    ) {
-        this.metadataAndFileTypeInfoMap = metadataAndFileTypeInfoMap;
+    setUploaderName(uploaderName: string) {
+        this.uploaderName = uploaderName;
+    }
+
+    getUploaderName() {
+        return this.uploaderName;
     }
 
     reducePendingUploadCount() {
@@ -72,14 +84,16 @@ class UploadService {
             : getFileSize(file);
     }
 
-    getAssetName({ isLivePhoto, file, livePhotoAssets }: FileWithCollection) {
+    getAssetName({ isLivePhoto, file, livePhotoAssets }: UploadAsset) {
         return isLivePhoto
-            ? getLivePhotoName(livePhotoAssets.image.name)
+            ? getLivePhotoName(livePhotoAssets)
             : getFilename(file);
     }
 
-    async getFileType(file: File | ElectronFile) {
-        return getFileType(file);
+    getAssetFileType({ isLivePhoto, file, livePhotoAssets }: UploadAsset) {
+        return isLivePhoto
+            ? getLivePhotoFileType(livePhotoAssets)
+            : getFileType(file);
     }
 
     async readAsset(
@@ -91,39 +105,41 @@ class UploadService {
             : await readFile(fileTypeInfo, file);
     }
 
-    async extractFileMetadata(
-        file: File | ElectronFile,
+    async extractAssetMetadata(
+        worker,
+        { isLivePhoto, file, livePhotoAssets }: UploadAsset,
         collectionID: number,
         fileTypeInfo: FileTypeInfo
     ): Promise<Metadata> {
-        return extractFileMetadata(
-            this.parsedMetadataJSONMap,
-            file,
-            collectionID,
-            fileTypeInfo
-        );
-    }
-
-    getFileMetadataAndFileTypeInfo(localID: number) {
-        return this.metadataAndFileTypeInfoMap.get(localID);
-    }
-
-    setFileMetadataAndFileTypeInfo(
-        localID: number,
-        metadataAndFileTypeInfo: MetadataAndFileTypeInfo
-    ) {
-        return this.metadataAndFileTypeInfoMap.set(
-            localID,
-            metadataAndFileTypeInfo
-        );
+        return isLivePhoto
+            ? extractLivePhotoMetadata(
+                  worker,
+                  this.parsedMetadataJSONMap,
+                  collectionID,
+                  fileTypeInfo,
+                  livePhotoAssets
+              )
+            : await extractFileMetadata(
+                  worker,
+                  this.parsedMetadataJSONMap,
+                  collectionID,
+                  fileTypeInfo,
+                  file
+              );
     }
 
     clusterLivePhotoFiles(mediaFiles: FileWithCollection[]) {
         return clusterLivePhotoFiles(mediaFiles);
     }
 
+    constructPublicMagicMetadata(
+        publicMagicMetadataProps: FilePublicMagicMetadataProps
+    ) {
+        return constructPublicMagicMetadata(publicMagicMetadataProps);
+    }
+
     async encryptAsset(
-        worker: any,
+        worker: Remote<DedicatedCryptoWorker>,
         file: FileWithMetadata,
         encryptionKey: string
     ): Promise<EncryptedFile> {
@@ -146,13 +162,13 @@ class UploadService {
                 if (USE_CF_PROXY) {
                     fileObjectKey = await UploadHttpClient.putFileV2(
                         fileUploadURL,
-                        file.file.encryptedData,
+                        file.file.encryptedData as Uint8Array,
                         progressTracker
                     );
                 } else {
                     fileObjectKey = await UploadHttpClient.putFile(
                         fileUploadURL,
-                        file.file.encryptedData,
+                        file.file.encryptedData as Uint8Array,
                         progressTracker
                     );
                 }
@@ -162,13 +178,13 @@ class UploadService {
             if (USE_CF_PROXY) {
                 thumbnailObjectKey = await UploadHttpClient.putFileV2(
                     thumbnailUploadURL,
-                    file.thumbnail.encryptedData as Uint8Array,
+                    file.thumbnail.encryptedData,
                     null
                 );
             } else {
                 thumbnailObjectKey = await UploadHttpClient.putFile(
                     thumbnailUploadURL,
-                    file.thumbnail.encryptedData as Uint8Array,
+                    file.thumbnail.encryptedData,
                     null
                 );
             }
@@ -210,10 +226,13 @@ class UploadService {
                 },
                 fileVariants: backupedFileVariants,
                 metadata: file.metadata,
+                pubMagicMetadata: file.pubMagicMetadata,
             };
             return backupedFile;
         } catch (e) {
-            logError(e, 'error uploading to bucket');
+            if (e.message !== CustomError.UPLOAD_CANCELLED) {
+                logError(e, 'error uploading to bucket');
+            }
             throw e;
         }
     }
@@ -250,11 +269,32 @@ class UploadService {
         }
     }
 
+    async uploadFile(uploadFile: UploadFile) {
+        if (this.publicUploadProps.accessedThroughSharedURL) {
+            return publicUploadHttpClient.uploadFile(
+                uploadFile,
+                this.publicUploadProps.token,
+                this.publicUploadProps.passwordToken
+            );
+        } else {
+            return UploadHttpClient.uploadFile(uploadFile);
+        }
+    }
+
     private async fetchUploadURLs() {
-        await UploadHttpClient.fetchUploadURLs(
-            this.pendingUploadCount,
-            this.uploadURLs
-        );
+        if (this.publicUploadProps.accessedThroughSharedURL) {
+            await publicUploadHttpClient.fetchUploadURLs(
+                this.pendingUploadCount,
+                this.uploadURLs,
+                this.publicUploadProps.token,
+                this.publicUploadProps.passwordToken
+            );
+        } else {
+            await UploadHttpClient.fetchUploadURLs(
+                this.pendingUploadCount,
+                this.uploadURLs
+            );
+        }
     }
 }
 

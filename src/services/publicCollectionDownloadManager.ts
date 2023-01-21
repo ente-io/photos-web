@@ -2,7 +2,6 @@ import {
     getPublicCollectionFileURL,
     getPublicCollectionThumbnailURL,
 } from 'utils/common/apiUtil';
-import CryptoWorker from 'utils/crypto';
 import {
     generateStreamFromArrayBuffer,
     getRenderableFileURL,
@@ -14,21 +13,35 @@ import { EnteFile } from 'types/file';
 import { logError } from 'utils/sentry';
 import { FILE_TYPE } from 'constants/file';
 import { CustomError } from 'utils/error';
+import QueueProcessor from './queueProcessor';
+import ComlinkCryptoWorker from 'utils/comlink/ComlinkCryptoWorker';
+import { addLogLine } from 'utils/logging';
 
 class PublicCollectionDownloadManager {
-    private fileObjectURLPromise = new Map<string, Promise<string[]>>();
+    private fileObjectURLPromise = new Map<
+        string,
+        Promise<{ original: string[]; converted: string[] }>
+    >();
     private thumbnailObjectURLPromise = new Map<number, Promise<string>>();
+
+    private thumbnailDownloadRequestsProcessor = new QueueProcessor<any>(5);
 
     public async getThumbnail(
         file: EnteFile,
         token: string,
         passwordToken: string
     ) {
+        addLogLine(`[${file.id}] [PublicDownloadManger] getThumbnail called`);
         try {
             if (!token) {
                 return null;
             }
-            if (!this.thumbnailObjectURLPromise.get(file.id)) {
+            if (this.thumbnailObjectURLPromise.has(file.id)) {
+                addLogLine(
+                    `[${file.id}] [PublicDownloadManger] getThumbnail promise cache hit, returning existing promise`
+                );
+            }
+            if (!this.thumbnailObjectURLPromise.has(file.id)) {
                 const downloadPromise = async () => {
                     const thumbnailCache = await (async () => {
                         try {
@@ -44,13 +57,18 @@ class PublicCollectionDownloadManager {
                     );
 
                     if (cacheResp) {
+                        addLogLine(
+                            `[${file.id}] [PublicDownloadManger] in memory cache hit, using localCache files`
+                        );
                         return URL.createObjectURL(await cacheResp.blob());
                     }
-                    const thumb = await this.downloadThumb(
-                        token,
-                        passwordToken,
-                        file
+                    addLogLine(
+                        `[${file.id}] [PublicDownloadManger] in memory cache miss, getThumbnail download started`
                     );
+                    const thumb =
+                        await this.thumbnailDownloadRequestsProcessor.queueUpRequest(
+                            () => this.downloadThumb(token, passwordToken, file)
+                        ).promise;
                     const thumbBlob = new Blob([thumb]);
                     try {
                         await thumbnailCache?.put(
@@ -68,7 +86,7 @@ class PublicCollectionDownloadManager {
             return await this.thumbnailObjectURLPromise.get(file.id);
         } catch (e) {
             this.thumbnailObjectURLPromise.delete(file.id);
-            logError(e, 'get preview Failed');
+            logError(e, 'get publicDownloadManger preview Failed');
             throw e;
         }
     }
@@ -92,10 +110,10 @@ class PublicCollectionDownloadManager {
         if (typeof resp.data === 'undefined') {
             throw Error(CustomError.REQUEST_FAILED);
         }
-        const worker = await new CryptoWorker();
-        const decrypted: Uint8Array = await worker.decryptThumbnail(
+        const cryptoWorker = await ComlinkCryptoWorker.getInstance();
+        const decrypted = await cryptoWorker.decryptThumbnail(
             new Uint8Array(resp.data),
-            await worker.fromB64(file.thumbnail.decryptionHeader),
+            await cryptoWorker.fromB64(file.thumbnail.decryptionHeader),
             file.key
         );
         return decrypted;
@@ -110,6 +128,9 @@ class PublicCollectionDownloadManager {
         const fileKey = forPreview ? `${file.id}_preview` : `${file.id}`;
         try {
             const getFilePromise = async () => {
+                addLogLine(
+                    `[${file.id}] [PublicDownloadManager] downloading file`
+                );
                 const fileStream = await this.downloadFile(
                     token,
                     passwordToken,
@@ -119,14 +140,18 @@ class PublicCollectionDownloadManager {
                 if (forPreview) {
                     return await getRenderableFileURL(file, fileBlob);
                 } else {
-                    return [
-                        await createTypedObjectURL(
-                            fileBlob,
-                            file.metadata.title
-                        ),
-                    ];
+                    const fileURL = await createTypedObjectURL(
+                        fileBlob,
+                        file.metadata.title
+                    );
+                    return { converted: [fileURL], original: [fileURL] };
                 }
             };
+            if (this.fileObjectURLPromise.has(fileKey)) {
+                addLogLine(
+                    `[${file.id}] [PublicDownloadManager] getFile promise cache hit, returning existing promise`
+                );
+            }
             if (!this.fileObjectURLPromise.get(fileKey)) {
                 this.fileObjectURLPromise.set(fileKey, getFilePromise());
             }
@@ -134,7 +159,7 @@ class PublicCollectionDownloadManager {
             return fileURLs;
         } catch (e) {
             this.fileObjectURLPromise.delete(fileKey);
-            logError(e, 'Failed to get File');
+            logError(e, 'public download manager Failed to get File');
             throw e;
         }
     };
@@ -144,7 +169,7 @@ class PublicCollectionDownloadManager {
     }
 
     async downloadFile(token: string, passwordToken: string, file: EnteFile) {
-        const worker = await new CryptoWorker();
+        const cryptoWorker = await ComlinkCryptoWorker.getInstance();
         if (!token) {
             return null;
         }
@@ -166,9 +191,9 @@ class PublicCollectionDownloadManager {
             if (typeof resp.data === 'undefined') {
                 throw Error(CustomError.REQUEST_FAILED);
             }
-            const decrypted: any = await worker.decryptFile(
+            const decrypted = await cryptoWorker.decryptFile(
                 new Uint8Array(resp.data),
-                await worker.fromB64(file.file.decryptionHeader),
+                await cryptoWorker.fromB64(file.file.decryptionHeader),
                 file.key
             );
             return generateStreamFromArrayBuffer(decrypted);
@@ -176,17 +201,23 @@ class PublicCollectionDownloadManager {
         const resp = await fetch(getPublicCollectionFileURL(file.id), {
             headers: {
                 'X-Auth-Access-Token': token,
+                ...(passwordToken && {
+                    'X-Auth-Access-Token-JWT': passwordToken,
+                }),
             },
         });
         const reader = resp.body.getReader();
         const stream = new ReadableStream({
             async start(controller) {
-                const decryptionHeader = await worker.fromB64(
+                const decryptionHeader = await cryptoWorker.fromB64(
                     file.file.decryptionHeader
                 );
-                const fileKey = await worker.fromB64(file.key);
+                const fileKey = await cryptoWorker.fromB64(file.key);
                 const { pullState, decryptionChunkSize } =
-                    await worker.initDecryption(decryptionHeader, fileKey);
+                    await cryptoWorker.initDecryption(
+                        decryptionHeader,
+                        fileKey
+                    );
                 let data = new Uint8Array();
                 // The following function handles each data chunk
                 function push() {
@@ -205,7 +236,7 @@ class PublicCollectionDownloadManager {
                                     decryptionChunkSize
                                 );
                                 const { decryptedData } =
-                                    await worker.decryptChunk(
+                                    await cryptoWorker.decryptChunk(
                                         fileData,
                                         pullState
                                     );
@@ -218,7 +249,10 @@ class PublicCollectionDownloadManager {
                         } else {
                             if (data) {
                                 const { decryptedData } =
-                                    await worker.decryptChunk(data, pullState);
+                                    await cryptoWorker.decryptChunk(
+                                        data,
+                                        pullState
+                                    );
                                 controller.enqueue(decryptedData);
                                 data = null;
                             }

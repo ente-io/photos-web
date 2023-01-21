@@ -1,4 +1,4 @@
-import React, { useContext, useLayoutEffect, useRef, useState } from 'react';
+import React, { useContext, useLayoutEffect, useState } from 'react';
 import { EnteFile } from 'types/file';
 import { styled } from '@mui/material';
 import PlayCircleOutlineOutlinedIcon from '@mui/icons-material/PlayCircleOutlineOutlined';
@@ -14,25 +14,25 @@ import { DeduplicateContext } from 'pages/deduplicate';
 import { logError } from 'utils/sentry';
 import { Overlay } from 'components/Container';
 import { TRASH_SECTION } from 'constants/collection';
-import { formatDateRelative } from 'utils/time';
+import { formatDateRelative } from 'utils/time/format';
 
 interface IProps {
     file: EnteFile;
-    updateURL?: (url: string) => EnteFile;
-    onClick?: () => void;
-    forcedEnable?: boolean;
-    selectable?: boolean;
-    selected?: boolean;
-    onSelect?: (checked: boolean) => void;
-    onHover?: () => void;
-    onRangeSelect?: () => void;
-    isRangeSelectActive?: boolean;
-    selectOnClick?: boolean;
-    isInsSelectRange?: boolean;
-    activeCollection?: number;
+    updateURL: (url: string) => EnteFile;
+    onClick: () => void;
+    selectable: boolean;
+    selected: boolean;
+    onSelect: (checked: boolean) => void;
+    onHover: () => void;
+    onRangeSelect: () => void;
+    isRangeSelectActive: boolean;
+    selectOnClick: boolean;
+    isInsSelectRange: boolean;
+    activeCollection: number;
+    showPlaceholder: boolean;
 }
 
-const Check = styled('input')<{ active: boolean }>`
+const Check = styled('input')<{ $active: boolean }>`
     appearance: none;
     position: absolute;
     z-index: 10;
@@ -85,7 +85,7 @@ const Check = styled('input')<{ active: boolean }>`
         border-right: 2px solid #ddd;
         border-bottom: 2px solid #ddd;
     }
-    ${(props) => props.active && 'opacity: 0.5 '};
+    ${(props) => props.$active && 'opacity: 0.5 '};
     &:checked {
         opacity: 1 !important;
     }
@@ -104,15 +104,15 @@ export const HoverOverlay = styled('div')<{ checked: boolean }>`
         'background:linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0))'};
 `;
 
-export const InSelectRangeOverLay = styled('div')<{ active: boolean }>`
-    opacity: ${(props) => (!props.active ? 0 : 1)};
+export const InSelectRangeOverLay = styled('div')<{ $active: boolean }>`
+    opacity: ${(props) => (!props.$active ? 0 : 1)};
     left: 0;
     top: 0;
     outline: none;
     height: 100%;
     width: 100%;
     position: absolute;
-    ${(props) => props.active && 'background:rgba(81, 205, 124, 0.25)'};
+    ${(props) => props.$active && 'background:rgba(81, 205, 124, 0.25)'};
 `;
 
 export const FileAndCollectionNameOverlay = styled('div')`
@@ -203,7 +203,6 @@ export default function PreviewCard(props: IProps) {
         file,
         onClick,
         updateURL,
-        forcedEnable,
         selectable,
         selected,
         onSelect,
@@ -213,14 +212,13 @@ export default function PreviewCard(props: IProps) {
         isRangeSelectActive,
         isInsSelectRange,
     } = props;
-    const isMounted = useRef(true);
     const publicCollectionGalleryContext = useContext(
         PublicCollectionGalleryContext
     );
     const deduplicateContext = useContext(DeduplicateContext);
 
     useLayoutEffect(() => {
-        if (file && !file.msrc) {
+        if (file && !file.msrc && !props.showPlaceholder) {
             const main = async () => {
                 try {
                     let url;
@@ -236,18 +234,14 @@ export default function PreviewCard(props: IProps) {
                     } else {
                         url = await DownloadManager.getThumbnail(file);
                     }
-                    if (isMounted.current) {
-                        setImgSrc(url);
-                        thumbs.set(file.id, url);
-                        if (updateURL) {
-                            const newFile = updateURL(url);
-                            file.msrc = newFile.msrc;
-                            file.html = newFile.html;
-                            file.src = newFile.src;
-                            file.w = newFile.w;
-                            file.h = newFile.h;
-                        }
-                    }
+                    setImgSrc(url);
+                    thumbs.set(file.id, url);
+                    const newFile = updateURL(url);
+                    file.msrc = newFile.msrc;
+                    file.html = newFile.html;
+                    file.src = newFile.src;
+                    file.w = newFile.w;
+                    file.h = newFile.h;
                 } catch (e) {
                     logError(e, 'preview card useEffect failed');
                     // no-op
@@ -257,17 +251,17 @@ export default function PreviewCard(props: IProps) {
             if (thumbs.has(file.id)) {
                 const thumbImgSrc = thumbs.get(file.id);
                 setImgSrc(thumbImgSrc);
-                file.msrc = thumbImgSrc;
+                const newFile = updateURL(thumbImgSrc);
+                file.msrc = newFile.msrc;
+                file.html = newFile.html;
+                file.src = newFile.src;
+                file.w = newFile.w;
+                file.h = newFile.h;
             } else {
                 main();
             }
         }
-
-        return () => {
-            // cool cool cool
-            isMounted.current = false;
-        };
-    }, [file]);
+    }, [file, props.showPlaceholder]);
 
     const handleClick = () => {
         if (selectOnClick) {
@@ -300,17 +294,17 @@ export default function PreviewCard(props: IProps) {
 
     return (
         <Cont
-            id={`thumb-${file?.id}`}
+            id={`thumb-${file?.id}-${props.showPlaceholder}`}
             onClick={handleClick}
             onMouseEnter={handleHover}
-            disabled={!forcedEnable && !file?.msrc && !imgSrc}
+            disabled={!file?.msrc && !imgSrc}
             {...(selectable ? useLongPress(longPressCallback, 500) : {})}>
             {selectable && (
                 <Check
                     type="checkbox"
                     checked={selected}
                     onChange={handleSelect}
-                    active={isRangeSelectActive && isInsSelectRange}
+                    $active={isRangeSelectActive && isInsSelectRange}
                     onClick={(e) => e.stopPropagation()}
                 />
             )}
@@ -319,7 +313,7 @@ export default function PreviewCard(props: IProps) {
             <SelectedOverlay selected={selected} />
             <HoverOverlay checked={selected} />
             <InSelectRangeOverLay
-                active={isRangeSelectActive && isInsSelectRange}
+                $active={isRangeSelectActive && isInsSelectRange}
             />
             {isLivePhoto(file) && <LivePhotoIndicator />}
             {deduplicateContext.isOnDeduplicatePage && (

@@ -1,6 +1,10 @@
 import { ENCRYPTION_CHUNK_SIZE } from 'constants/crypto';
 import { FILE_TYPE } from 'constants/file';
-import { Location, ParsedExtractedMetadata } from 'types/upload';
+import {
+    ImportSuggestion,
+    Location,
+    ParsedExtractedMetadata,
+} from 'types/upload';
 
 // list of format that were missed by type-detection for some files.
 export const FORMAT_MISSED_BY_FILE_TYPE_LIB = [
@@ -8,6 +12,7 @@ export const FORMAT_MISSED_BY_FILE_TYPE_LIB = [
     { fileType: FILE_TYPE.IMAGE, exactType: 'jpg', mimeType: 'image/jpeg' },
     { fileType: FILE_TYPE.VIDEO, exactType: 'webm', mimeType: 'video/webm' },
     { fileType: FILE_TYPE.VIDEO, exactType: 'mod', mimeType: 'video/mpeg' },
+    { fileType: FILE_TYPE.VIDEO, exactType: 'mp4', mimeType: 'video/mp4' },
 ];
 
 // this is the chunk size of the un-encrypted file which is read and encrypted before uploading it as a single part.
@@ -28,7 +33,13 @@ export enum UPLOAD_STAGES {
     READING_GOOGLE_METADATA_FILES,
     EXTRACTING_METADATA,
     UPLOADING,
+    CANCELLING,
     FINISH,
+}
+
+export enum UPLOAD_STRATEGY {
+    SINGLE_COLLECTION,
+    COLLECTION_PER_FOLDER,
 }
 
 export enum UPLOAD_RESULT {
@@ -40,6 +51,15 @@ export enum UPLOAD_RESULT {
     LARGER_THAN_AVAILABLE_STORAGE,
     UPLOADED,
     UPLOADED_WITH_STATIC_THUMBNAIL,
+    ADDED_SYMLINK,
+    CANCELLED,
+    SKIPPED_VIDEOS,
+}
+
+export enum PICKED_UPLOAD_TYPE {
+    FILES = 'files',
+    FOLDERS = 'folders',
+    ZIPS = 'zips',
 }
 
 export const MAX_FILE_SIZE_SUPPORTED = 4 * 1024 * 1024 * 1024; // 4 GB
@@ -54,6 +74,12 @@ export const NULL_EXTRACTED_METADATA: ParsedExtractedMetadata = {
 export const A_SEC_IN_MICROSECONDS = 1e6;
 
 export const USE_CF_PROXY = false;
+
+export const DEFAULT_IMPORT_SUGGESTION: ImportSuggestion = {
+    rootFolderName: '',
+    hasNestedFolders: false,
+    hasRootLevelFileWithFolder: false,
+};
 
 export const BLACK_THUMBNAIL_BASE64 =
     '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAEBAQEBAQEB' +

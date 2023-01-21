@@ -1,5 +1,5 @@
 import { GalleryContext } from 'pages/gallery';
-import React, { useContext, useMemo } from 'react';
+import React, { MouseEventHandler, useContext, useMemo } from 'react';
 import {
     hasPaidSubscription,
     isFamilyAdmin,
@@ -8,11 +8,13 @@ import {
     hasExceededStorageQuota,
     isSubscriptionActive,
     isSubscriptionCancelled,
+    hasStripeSubscription,
 } from 'utils/billing';
 import Box from '@mui/material/Box';
 import { UserDetails } from 'types/user';
 import constants from 'utils/strings/constants';
 import { Typography } from '@mui/material';
+import billingService from 'services/billingService';
 
 export default function SubscriptionStatus({
     userDetails,
@@ -33,11 +35,31 @@ export default function SubscriptionStatus({
         }
         if (
             hasPaidSubscription(userDetails.subscription) &&
-            isSubscriptionActive(userDetails.subscription)
+            !isSubscriptionCancelled(userDetails.subscription)
         ) {
             return false;
         }
         return true;
+    }, [userDetails]);
+
+    const handleClick = useMemo(() => {
+        const eventHandler: MouseEventHandler<HTMLSpanElement> = (e) => {
+            e.stopPropagation();
+            if (userDetails) {
+                if (isSubscriptionActive(userDetails.subscription)) {
+                    if (hasExceededStorageQuota(userDetails)) {
+                        showPlanSelectorModal();
+                    }
+                } else {
+                    if (hasStripeSubscription(userDetails.subscription)) {
+                        billingService.redirectToCustomerPortal();
+                    } else {
+                        showPlanSelectorModal();
+                    }
+                }
+            }
+        };
+        return eventHandler;
     }, [userDetails]);
 
     if (!hasAMessage) {
@@ -49,8 +71,8 @@ export default function SubscriptionStatus({
             <Typography
                 variant="body2"
                 color={'text.secondary'}
-                onClick={showPlanSelectorModal}
-                sx={{ cursor: 'pointer' }}>
+                onClick={handleClick && handleClick}
+                sx={{ cursor: handleClick && 'pointer' }}>
                 {isSubscriptionActive(userDetails.subscription)
                     ? isOnFreePlan(userDetails.subscription)
                         ? constants.FREE_SUBSCRIPTION_INFO(
@@ -61,10 +83,10 @@ export default function SubscriptionStatus({
                               userDetails.subscription?.expiryTime
                           )
                         : hasExceededStorageQuota(userDetails) &&
-                          constants.STORAGE_QUOTA_EXCEEDED_SUBSCRIPTION_INFO
-                    : constants.SUBSCRIPTION_EXPIRED_MESSAGE(
-                          showPlanSelectorModal
-                      )}
+                          constants.STORAGE_QUOTA_EXCEEDED_SUBSCRIPTION_INFO(
+                              handleClick
+                          )
+                    : constants.SUBSCRIPTION_EXPIRED_MESSAGE(handleClick)}
             </Typography>
         </Box>
     );

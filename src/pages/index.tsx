@@ -10,12 +10,13 @@ import SignUp from 'components/SignUp';
 import constants from 'utils/strings/constants';
 import localForage from 'utils/storage/localForage';
 import { logError } from 'utils/sentry';
-import { getAlbumSiteHost, PAGES } from 'constants/pages';
+import { PAGES } from 'constants/pages';
 import { EnteLogo } from 'components/EnteLogo';
 import isElectron from 'is-electron';
-import desktopService from 'services/desktopService';
+import safeStorageService from 'services/electron/safeStorage';
 import { saveKeyInSessionStore } from 'utils/crypto';
 import { getKey, SESSION_KEYS } from 'utils/storage/sessionStorage';
+import { getAlbumsURL } from 'utils/common/apiUtil';
 
 const Container = styled('div')`
     display: flex;
@@ -101,10 +102,10 @@ export default function LandingPage() {
     useEffect(() => {
         appContext.showNavBar(false);
         const currentURL = new URL(window.location.href);
-        const ALBUM_SITE_HOST = getAlbumSiteHost();
+        const albumsURL = new URL(getAlbumsURL());
         currentURL.pathname = router.pathname;
         if (
-            currentURL.host === ALBUM_SITE_HOST &&
+            currentURL.host === albumsURL.host &&
             currentURL.pathname !== PAGES.SHARED_ALBUMS
         ) {
             handleAlbumsRedirect(currentURL);
@@ -128,7 +129,7 @@ export default function LandingPage() {
         const user = getData(LS_KEYS.USER);
         let key = getKey(SESSION_KEYS.ENCRYPTION_KEY);
         if (!key && isElectron()) {
-            key = await desktopService.getEncryptionKey();
+            key = await safeStorageService.getEncryptionKey();
             if (key) {
                 await saveKeyInSessionStore(
                     SESSION_KEYS.ENCRYPTION_KEY,

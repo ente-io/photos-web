@@ -35,15 +35,11 @@ export interface RecoveryKey {
 }
 export interface User {
     id: number;
-    name: string;
     email: string;
     token: string;
     encryptedToken: string;
     isTwoFactorEnabled: boolean;
     twoFactorSessionID: string;
-    usage: number;
-    fileCount: number;
-    sharedCollectionCount: number;
 }
 export interface EmailVerificationResponse {
     id: number;
@@ -106,4 +102,8 @@ export interface UserPreferencesProps {
 export interface UserPreferences
     extends Omit<EncryptedUserPreferences, 'data'> {
     data: UserPreferencesProps;
+}
+export interface DeleteChallengeResponse {
+    allowDelete: boolean;
+    encryptedChallenge: string;
 }

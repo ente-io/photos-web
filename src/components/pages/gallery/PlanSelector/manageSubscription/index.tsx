@@ -2,6 +2,7 @@ import { Stack } from '@mui/material';
 import { AppContext } from 'pages/_app';
 import React, { useContext } from 'react';
 import { Subscription } from 'types/billing';
+import { SetLoading } from 'types/gallery';
 import {
     activateSubscription,
     cancelSubscription,
@@ -15,7 +16,7 @@ import ManageSubscriptionButton from './button';
 interface Iprops {
     subscription: Subscription;
     closeModal: () => void;
-    setLoading: (value: boolean) => void;
+    setLoading: SetLoading;
 }
 
 export function ManageSubscription({
@@ -52,14 +53,14 @@ function StripeSubscriptionOptions({
 }: Iprops) {
     const appContext = useContext(AppContext);
 
-    const confirmActivation = () =>
+    const confirmReactivation = () =>
         appContext.setDialogMessage({
-            title: constants.CONFIRM_ACTIVATE_SUBSCRIPTION,
-            content: constants.ACTIVATE_SUBSCRIPTION_MESSAGE(
+            title: constants.REACTIVATE_SUBSCRIPTION,
+            content: constants.REACTIVATE_SUBSCRIPTION_MESSAGE(
                 subscription.expiryTime
             ),
             proceed: {
-                text: constants.ACTIVATE_SUBSCRIPTION,
+                text: constants.REACTIVATE_SUBSCRIPTION,
                 action: activateSubscription.bind(
                     null,
                     appContext.setDialogMessage,
@@ -87,7 +88,7 @@ function StripeSubscriptionOptions({
                 variant: 'danger',
             },
             close: {
-                text: constants.CANCEL,
+                text: constants.NEVERMIND,
             },
         });
     const openManagementPortal = updatePaymentMethod.bind(
@@ -100,8 +101,8 @@ function StripeSubscriptionOptions({
             {isSubscriptionCancelled(subscription) ? (
                 <ManageSubscriptionButton
                     color="secondary"
-                    onClick={confirmActivation}>
-                    {constants.ACTIVATE_SUBSCRIPTION}
+                    onClick={confirmReactivation}>
+                    {constants.REACTIVATE_SUBSCRIPTION}
                 </ManageSubscriptionButton>
             ) : (
                 <ManageSubscriptionButton

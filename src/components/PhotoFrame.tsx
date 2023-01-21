@@ -6,7 +6,7 @@ import { styled } from '@mui/material';
 import DownloadManager from 'services/downloadManager';
 import constants from 'utils/strings/constants';
 import AutoSizer from 'react-virtualized-auto-sizer';
-import PhotoSwipe from 'components/PhotoSwipe';
+import PhotoViewer from 'components/PhotoViewer';
 import {
     ALL_SECTION,
     ARCHIVE_SECTION,
@@ -15,7 +15,7 @@ import {
 import { canFileBeStreamed, isSharedFile } from 'utils/file';
 import { isPlaybackPossible } from 'utils/photoFrame';
 import { PhotoList } from './PhotoList';
-import { SetFiles, SelectedState } from 'types/gallery';
+import { SelectedState } from 'types/gallery';
 import { FILE_TYPE } from 'constants/file';
 import PublicCollectionDownloadManager from 'services/publicCollectionDownloadManager';
 import { PublicCollectionGalleryContext } from 'utils/publicCollectionGallery';
@@ -28,6 +28,11 @@ import { isSameDayAnyYear, isInsideBox } from 'utils/search';
 import { Search } from 'types/search';
 import { logError } from 'utils/sentry';
 import { CustomError } from 'utils/error';
+import { User } from 'types/user';
+import { getData, LS_KEYS } from 'utils/storage/localStorage';
+import { useMemo } from 'react';
+import { Collection } from 'types/collection';
+import { addLogLine } from 'utils/logging';
 
 const Container = styled('div')`
     display: block;
@@ -46,7 +51,7 @@ const PHOTOSWIPE_HASH_SUFFIX = '&opened';
 
 interface Props {
     files: EnteFile[];
-    setFiles: SetFiles;
+    collections?: Collection[];
     syncWithRemote: () => Promise<void>;
     favItemIds?: Set<number>;
     archivedCollections?: Set<number>;
@@ -58,7 +63,8 @@ interface Props {
     openUploader?;
     isInSearchMode?: boolean;
     search?: Search;
-    deleted?: number[];
+    deletedFileIds?: Set<number>;
+    setDeletedFileIds?: (value: Set<number>) => void;
     activeCollection: number;
     isSharedCollection?: boolean;
     enableDownload?: boolean;
@@ -67,13 +73,15 @@ interface Props {
 }
 
 type SourceURL = {
-    imageURL?: string;
-    videoURL?: string;
+    originalImageURL?: string;
+    originalVideoURL?: string;
+    convertedImageURL?: string;
+    convertedVideoURL?: string;
 };
 
 const PhotoFrame = ({
     files,
-    setFiles,
+    collections,
     syncWithRemote,
     favItemIds,
     archivedCollections,
@@ -84,7 +92,8 @@ const PhotoFrame = ({
     isInSearchMode,
     search,
     resetSearch,
-    deleted,
+    deletedFileIds,
+    setDeletedFileIds,
     activeCollection,
     isSharedCollection,
     enableDownload,
@@ -102,10 +111,155 @@ const PhotoFrame = ({
     const [rangeStart, setRangeStart] = useState(null);
     const [currentHover, setCurrentHover] = useState(null);
     const [isShiftKeyPressed, setIsShiftKeyPressed] = useState(false);
-    const filteredDataRef = useRef<EnteFile[]>([]);
-    const filteredData = filteredDataRef?.current ?? [];
     const router = useRouter();
     const [isSourceLoaded, setIsSourceLoaded] = useState(false);
+
+    const updateInProgress = useRef(false);
+    const updateRequired = useRef(false);
+
+    const [filteredData, setFilteredData] = useState<EnteFile[]>([]);
+
+    useEffect(() => {
+        const main = () => {
+            if (updateInProgress.current) {
+                updateRequired.current = true;
+                return;
+            }
+            updateInProgress.current = true;
+            const idSet = new Set();
+            const user: User = getData(LS_KEYS.USER);
+
+            const filteredData = files
+                .map((item, index) => ({
+                    ...item,
+                    dataIndex: index,
+                    w: window.innerWidth,
+                    h: window.innerHeight,
+                    title: item.pubMagicMetadata?.data.caption,
+                }))
+                .filter((item) => {
+                    if (
+                        deletedFileIds?.has(item.id) &&
+                        activeCollection !== TRASH_SECTION
+                    ) {
+                        return false;
+                    }
+                    if (
+                        search?.date &&
+                        !isSameDayAnyYear(search.date)(
+                            new Date(item.metadata.creationTime / 1000)
+                        )
+                    ) {
+                        return false;
+                    }
+                    if (
+                        search?.location &&
+                        !isInsideBox(
+                            {
+                                latitude: item.metadata.latitude,
+                                longitude: item.metadata.longitude,
+                            },
+                            search.location
+                        )
+                    ) {
+                        return false;
+                    }
+                    if (
+                        !isDeduplicating &&
+                        activeCollection === ALL_SECTION &&
+                        (IsArchived(item) ||
+                            archivedCollections?.has(item.collectionID))
+                    ) {
+                        return false;
+                    }
+                    if (
+                        activeCollection === ARCHIVE_SECTION &&
+                        !IsArchived(item)
+                    ) {
+                        return false;
+                    }
+
+                    if (isSharedFile(user, item) && !isSharedCollection) {
+                        return false;
+                    }
+                    if (activeCollection === TRASH_SECTION && !item.isTrashed) {
+                        return false;
+                    }
+                    if (activeCollection !== TRASH_SECTION && item.isTrashed) {
+                        return false;
+                    }
+                    if (!idSet.has(item.id)) {
+                        if (
+                            activeCollection === ALL_SECTION ||
+                            activeCollection === ARCHIVE_SECTION ||
+                            activeCollection === TRASH_SECTION ||
+                            activeCollection === item.collectionID ||
+                            isInSearchMode
+                        ) {
+                            idSet.add(item.id);
+                            return true;
+                        }
+                        return false;
+                    }
+                    return false;
+                });
+            setFilteredData(filteredData);
+            updateInProgress.current = false;
+            if (updateRequired.current) {
+                updateRequired.current = false;
+                setTimeout(() => {
+                    main();
+                }, 0);
+            }
+        };
+        main();
+    }, [
+        files,
+        deletedFileIds,
+        search?.date,
+        search?.location,
+        activeCollection,
+    ]);
+
+    const fileToCollectionsMap = useMemo(() => {
+        const fileToCollectionsMap = new Map<number, number[]>();
+        files.forEach((file) => {
+            if (!fileToCollectionsMap.get(file.id)) {
+                fileToCollectionsMap.set(file.id, []);
+            }
+            fileToCollectionsMap.get(file.id).push(file.collectionID);
+        });
+        return fileToCollectionsMap;
+    }, [files]);
+
+    const collectionNameMap = useMemo(() => {
+        if (collections) {
+            return new Map<number, string>(
+                collections.map((collection) => [
+                    collection.id,
+                    collection.name,
+                ])
+            );
+        } else {
+            return new Map();
+        }
+    }, [collections]);
+
+    useEffect(() => {
+        const currentURL = new URL(window.location.href);
+        const end = currentURL.hash.lastIndexOf('&');
+        const hash = currentURL.hash.slice(1, end !== -1 ? end : undefined);
+        if (open) {
+            router.push({
+                hash: hash + PHOTOSWIPE_HASH_SUFFIX,
+            });
+        } else {
+            router.push({
+                hash: hash,
+            });
+        }
+    }, [open]);
+
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Shift') {
@@ -159,91 +313,6 @@ const PhotoFrame = ({
         }
     }, [selected]);
 
-    useEffect(() => {
-        const idSet = new Set();
-        filteredDataRef.current = files
-            .map((item, index) => ({
-                ...item,
-                dataIndex: index,
-                w: window.innerWidth,
-                h: window.innerHeight,
-            }))
-            .filter((item) => {
-                if (deleted?.includes(item.id)) {
-                    return false;
-                }
-                if (
-                    search?.date &&
-                    !isSameDayAnyYear(search.date)(
-                        new Date(item.metadata.creationTime / 1000)
-                    )
-                ) {
-                    return false;
-                }
-                if (
-                    search?.location &&
-                    !isInsideBox(
-                        {
-                            latitude: item.metadata.latitude,
-                            longitude: item.metadata.longitude,
-                        },
-                        search.location
-                    )
-                ) {
-                    return false;
-                }
-                if (
-                    !isDeduplicating &&
-                    activeCollection === ALL_SECTION &&
-                    (IsArchived(item) ||
-                        archivedCollections?.has(item.collectionID))
-                ) {
-                    return false;
-                }
-                if (activeCollection === ARCHIVE_SECTION && !IsArchived(item)) {
-                    return false;
-                }
-
-                if (isSharedFile(item) && !isSharedCollection) {
-                    return false;
-                }
-                if (activeCollection === TRASH_SECTION && !item.isTrashed) {
-                    return false;
-                }
-                if (activeCollection !== TRASH_SECTION && item.isTrashed) {
-                    return false;
-                }
-                if (!idSet.has(item.id)) {
-                    if (
-                        activeCollection === ALL_SECTION ||
-                        activeCollection === ARCHIVE_SECTION ||
-                        activeCollection === TRASH_SECTION ||
-                        activeCollection === item.collectionID
-                    ) {
-                        idSet.add(item.id);
-                        return true;
-                    }
-                    return false;
-                }
-                return false;
-            });
-    }, [files, deleted, search, activeCollection]);
-
-    useEffect(() => {
-        const currentURL = new URL(window.location.href);
-        const end = currentURL.hash.lastIndexOf('&');
-        const hash = currentURL.hash.slice(1, end !== -1 ? end : undefined);
-        if (open) {
-            router.push({
-                hash: hash + PHOTOSWIPE_HASH_SUFFIX,
-            });
-        } else {
-            router.push({
-                hash: hash,
-            });
-        }
-    }, [open]);
-
     const getFileIndexFromID = (files: EnteFile[], id: number) => {
         const index = files.findIndex((file) => file.id === id);
         if (index === -1) {
@@ -254,12 +323,10 @@ const PhotoFrame = ({
 
     const updateURL = (id: number) => (url: string) => {
         const updateFile = (file: EnteFile) => {
-            file = {
-                ...file,
-                msrc: url,
-                w: window.innerWidth,
-                h: window.innerHeight,
-            };
+            file.msrc = url;
+            file.w = window.innerWidth;
+            file.h = window.innerHeight;
+
             if (file.metadata.fileType === FILE_TYPE.VIDEO && !file.html) {
                 file.html = `
                 <div class="pswp-item-container">
@@ -289,11 +356,6 @@ const PhotoFrame = ({
             }
             return file;
         };
-        setFiles((files) => {
-            const index = getFileIndexFromID(files, id);
-            files[index] = updateFile(files[index]);
-            return files;
-        });
         const index = getFileIndexFromID(files, id);
         return updateFile(files[index]);
     };
@@ -303,20 +365,26 @@ const PhotoFrame = ({
         srcURL: SourceURL,
         isStreamable: boolean = false
     ) => {
-        const { videoURL, imageURL } = srcURL;
+        const {
+            originalImageURL,
+            convertedImageURL,
+            originalVideoURL,
+            convertedVideoURL,
+        } = srcURL;
         const isPlayable =
-            videoURL && (isStreamable || (await isPlaybackPossible(videoURL)));
+            convertedVideoURL &&
+            (isStreamable || (await isPlaybackPossible(convertedVideoURL)));
         const updateFile = (file: EnteFile) => {
-            file = {
-                ...file,
-                w: window.innerWidth,
-                h: window.innerHeight,
-            };
+            file.w = window.innerWidth;
+            file.h = window.innerHeight;
+            file.isSourceLoaded = true;
+            file.originalImageURL = originalImageURL;
+            file.originalVideoURL = originalVideoURL;
             if (file.metadata.fileType === FILE_TYPE.VIDEO) {
                 if (isPlayable) {
                     file.html = `
             <video controls onContextMenu="return false;">
-                <source src="${videoURL}" />
+                <source src="${convertedVideoURL}" />
                 Your browser does not support the video tag.
             </video>
         `;
@@ -326,7 +394,7 @@ const PhotoFrame = ({
                 <img src="${file.msrc}" onContextMenu="return false;"/>
                 <div class="download-banner" >
                     ${constants.VIDEO_PLAYBACK_FAILED_DOWNLOAD_INSTEAD}
-                    <a class="btn btn-outline-success" href=${videoURL} download="${file.metadata.title}"">Download</a>
+                    <a class="btn btn-outline-success" href=${convertedVideoURL} download="${file.metadata.title}"">Download</a>
                 </div>
             </div>
             `;
@@ -335,9 +403,9 @@ const PhotoFrame = ({
                 if (isPlayable) {
                     file.html = `
                 <div class = 'pswp-item-container'>
-                    <img id = "live-photo-image-${file.id}" src="${imageURL}" onContextMenu="return false;"/>
+                    <img id = "live-photo-image-${file.id}" src="${convertedImageURL}" onContextMenu="return false;"/>
                     <video id = "live-photo-video-${file.id}" loop muted onContextMenu="return false;">
-                        <source src="${videoURL}" />
+                        <source src="${convertedVideoURL}" />
                         Your browser does not support the video tag.
                     </video>
                 </div>
@@ -354,15 +422,10 @@ const PhotoFrame = ({
                 `;
                 }
             } else {
-                file.src = imageURL;
+                file.src = convertedImageURL;
             }
             return file;
         };
-        setFiles((files) => {
-            const index = getFileIndexFromID(files, id);
-            files[index] = updateFile(files[index]);
-            return files;
-        });
         setIsSourceLoaded(true);
         const index = getFileIndexFromID(files, id);
         return updateFile(files[index]);
@@ -428,7 +491,11 @@ const PhotoFrame = ({
             handleSelect(filteredData[index].id, index)(!checked);
         }
     };
-    const getThumbnail = (files: EnteFile[], index: number) =>
+    const getThumbnail = (
+        files: EnteFile[],
+        index: number,
+        isScrolling: boolean
+    ) =>
         files[index] ? (
             <PreviewCard
                 key={`tile-${files[index].id}-selected-${
@@ -452,6 +519,7 @@ const PhotoFrame = ({
                     (index >= currentHover && index <= rangeStart)
                 }
                 activeCollection={activeCollection}
+                showPlaceholder={isScrolling}
             />
         ) : (
             <></>
@@ -462,12 +530,26 @@ const PhotoFrame = ({
         index: number,
         item: EnteFile
     ) => {
+        addLogLine(
+            `[${
+                item.id
+            }] getSlideData called for thumbnail:${!!item.msrc} original:${
+                !!item.msrc && item.src !== item.msrc
+            } inProgress:${fetching[item.id]}`
+        );
         if (!item.msrc) {
+            addLogLine(`[${item.id}] doesn't have thumbnail`);
             try {
                 let url: string;
                 if (galleryContext.thumbs.has(item.id)) {
+                    addLogLine(
+                        `[${item.id}] gallery context cache hit, using cached thumb`
+                    );
                     url = galleryContext.thumbs.get(item.id);
                 } else {
+                    addLogLine(
+                        `[${item.id}] gallery context cache miss, calling downloadManager to get thumb`
+                    );
                     if (
                         publicCollectionGalleryContext.accessedThroughSharedURL
                     ) {
@@ -486,9 +568,15 @@ const PhotoFrame = ({
                 item.msrc = newFile.msrc;
                 item.html = newFile.html;
                 item.src = newFile.src;
+                item.isSourceLoaded = newFile.isSourceLoaded;
+                item.originalImageURL = newFile.originalImageURL;
+                item.originalVideoURL = newFile.originalVideoURL;
                 item.w = newFile.w;
                 item.h = newFile.h;
 
+                addLogLine(
+                    `[${item.id}] calling invalidateCurrItems for thumbnail`
+                );
                 try {
                     instance.invalidateCurrItems();
                     if (instance.isOpen()) {
@@ -506,14 +594,24 @@ const PhotoFrame = ({
             }
         }
         if (!fetching[item.id]) {
+            addLogLine(`[${item.id}] new file download fetch original request`);
             try {
                 fetching[item.id] = true;
-                let urls: string[];
+                let urls: { original: string[]; converted: string[] };
                 let isStreamableFile = false;
                 if (galleryContext.files.has(item.id)) {
+                    addLogLine(
+                        `[${item.id}] gallery context cache hit, using cached file`
+                    );
                     const mergedURL = galleryContext.files.get(item.id);
-                    urls = mergedURL.split(',');
+                    urls = {
+                        original: mergedURL.original.split(','),
+                        converted: mergedURL.converted.split(','),
+                    };
                 } else {
+                    addLogLine(
+                        `[${item.id}] gallery context cache miss, calling downloadManager to get file`
+                    );
                     appContext.startLoading();
                     if (
                         publicCollectionGalleryContext.accessedThroughSharedURL
@@ -536,50 +634,67 @@ const PhotoFrame = ({
                     }
                     appContext.finishLoading();
                     if (!isStreamableFile) {
-                        const mergedURL = urls.join(',');
+                        const mergedURL = {
+                            original: urls.original.join(','),
+                            converted: urls.converted.join(','),
+                        };
                         galleryContext.files.set(item.id, mergedURL);
                     }
-                }
-                let imageURL;
-                let videoURL;
-                if (item.metadata.fileType === FILE_TYPE.LIVE_PHOTO) {
-                    [imageURL, videoURL] = urls;
-                } else if (item.metadata.fileType === FILE_TYPE.VIDEO) {
-                    [videoURL] = urls;
-                } else {
-                    [imageURL] = urls;
-                }
-                setIsSourceLoaded(false);
-                const newFile = await updateSrcURL(
-                    item.id,
-                    {
-                        imageURL,
-                        videoURL,
-                    },
-                    isStreamableFile
-                );
-                item.msrc = newFile.msrc;
-                item.html = newFile.html;
-                item.src = newFile.src;
-                item.w = newFile.w;
-                item.h = newFile.h;
-                try {
-                    instance.invalidateCurrItems();
-                    if (instance.isOpen()) {
-                        instance.updateSize(true);
+
+                    let originalImageURL;
+                    let originalVideoURL;
+                    let convertedImageURL;
+                    let convertedVideoURL;
+
+                    if (item.metadata.fileType === FILE_TYPE.LIVE_PHOTO) {
+                        [originalImageURL, originalVideoURL] = urls.original;
+                        [convertedImageURL, convertedVideoURL] = urls.converted;
+                    } else if (item.metadata.fileType === FILE_TYPE.VIDEO) {
+                        [originalVideoURL] = urls.original;
+                        [convertedVideoURL] = urls.converted;
+                    } else {
+                        [originalImageURL] = urls.original;
+                        [convertedImageURL] = urls.converted;
                     }
-                } catch (e) {
-                    logError(
-                        e,
-                        'updating photoswipe after src url update failed'
+                    setIsSourceLoaded(false);
+                    const newFile = await updateSrcURL(
+                        item.id,
+                        {
+                            originalImageURL,
+                            originalVideoURL,
+                            convertedImageURL,
+                            convertedVideoURL,
+                        },
+                        isStreamableFile
                     );
-                    // ignore
+                    item.msrc = newFile.msrc;
+                    item.html = newFile.html;
+                    item.src = newFile.src;
+                    item.isSourceLoaded = newFile.isSourceLoaded;
+                    item.originalImageURL = newFile.originalImageURL;
+                    item.originalVideoURL = newFile.originalVideoURL;
+                    item.w = newFile.w;
+                    item.h = newFile.h;
+                    try {
+                        addLogLine(
+                            `[${item.id}] calling invalidateCurrItems for src`
+                        );
+                        instance.invalidateCurrItems();
+                        if (instance.isOpen()) {
+                            instance.updateSize(true);
+                        }
+                    } catch (e) {
+                        logError(
+                            e,
+                            'updating photoswipe after src url update failed'
+                        );
+                        throw e;
+                    }
                 }
             } catch (e) {
                 logError(e, 'getSlideData failed get src url failed');
-                // no-op
-            } finally {
                 fetching[item.id] = false;
+                // no-op
             }
         }
     };
@@ -607,17 +722,21 @@ const PhotoFrame = ({
                             />
                         )}
                     </AutoSizer>
-                    <PhotoSwipe
+                    <PhotoViewer
                         isOpen={open}
                         items={filteredData}
                         currentIndex={currentIndex}
                         onClose={handleClose}
                         gettingData={getSlideData}
                         favItemIds={favItemIds}
+                        deletedFileIds={deletedFileIds}
+                        setDeletedFileIds={setDeletedFileIds}
                         isSharedCollection={isSharedCollection}
                         isTrashCollection={activeCollection === TRASH_SECTION}
                         enableDownload={enableDownload}
                         isSourceLoaded={isSourceLoaded}
+                        fileToCollectionsMap={fileToCollectionsMap}
+                        collectionNameMap={collectionNameMap}
                     />
                 </Container>
             )}

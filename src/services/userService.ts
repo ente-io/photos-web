@@ -11,7 +11,7 @@ import {
 import localForage from 'utils/storage/localForage';
 import { getToken } from 'utils/common/key';
 import HTTPService from './HTTPService';
-import { B64EncryptionResult } from 'utils/crypto';
+import { getRecoveryKey } from 'utils/crypto';
 import { logError } from 'utils/sentry';
 import {
     KeyAttributes,
@@ -23,12 +23,15 @@ import {
     UserDetails,
     UserPreferences,
     EncryptedUserPreferences,
+    DeleteChallengeResponse,
 } from 'types/user';
 import { getLocalFamilyData, isPartOfFamily } from 'utils/billing';
 import { ServerErrorCodes } from 'utils/error';
 import { decryptUserPreferences, encryptUserPreferences } from 'utils/user';
 import isElectron from 'is-electron';
-import desktopService from './desktopService';
+import safeStorageService from './electron/safeStorage';
+import { deleteThumbnailCache } from './cacheService';
+import { B64EncryptionResult } from 'types/crypto';
 
 const ENDPOINT = getEndpoint();
 
@@ -126,13 +129,13 @@ export const logoutUser = async () => {
         clearKeys();
         clearData();
         try {
-            await caches.delete('thumbs');
+            await deleteThumbnailCache();
         } catch (e) {
             // ignore
         }
         await clearFiles();
         if (isElectron()) {
-            desktopService.clearElectronStore();
+            safeStorageService.clearElectronStore();
         }
         router.push(PAGES.ROOT);
     } catch (e) {
@@ -332,6 +335,23 @@ export const getFamilyPortalRedirectURL = async () => {
     }
 };
 
+export const getAccountDeleteChallenge = async () => {
+    try {
+        const token = getToken();
+
+        const resp = await HTTPService.get(
+            `${ENDPOINT}/users/delete-challenge`,
+            null,
+            {
+                'X-Auth-Token': token,
+            }
+        );
+        return resp.data as DeleteChallengeResponse;
+    } catch (e) {
+        logError(e, 'failed to get account delete challenge');
+    }
+};
+
 export const getUserPreferences = async (): Promise<UserPreferences> => {
     try {
         const token = getToken();
@@ -343,6 +363,7 @@ export const getUserPreferences = async (): Promise<UserPreferences> => {
                 'X-Auth-Token': token,
             }
         );
+
         const encryptedUserPreferences = resp.data
             .userPreferences as EncryptedUserPreferences;
         const decryptedUserPreferences = await decryptUserPreferences(
@@ -371,6 +392,7 @@ export const updateUserPreferences = async (
             {
                 userPreferences: encryptedUserPreferences,
             },
+
             null,
             {
                 'X-Auth-Token': token,
@@ -381,5 +403,15 @@ export const updateUserPreferences = async (
     } catch (e) {
         logError(e, 'failed to update user preferences');
         throw e;
+    }
+};
+
+export const validateKey = async () => {
+    try {
+        await getRecoveryKey();
+        return true;
+    } catch (e) {
+        await logoutUser();
+        return false;
     }
 };

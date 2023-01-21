@@ -4,8 +4,36 @@ import {
     UserPreferences,
 } from 'types/user';
 import { getActualKey } from 'utils/common/key';
-import CryptoWorker from 'utils/crypto';
-import { getData, LS_KEYS } from 'utils/storage/localStorage';
+import isElectron from 'is-electron';
+import { getData, LS_KEYS, setData } from 'utils/storage/localStorage';
+import ElectronService from 'services/electron/common';
+import ComlinkCryptoWorker from 'utils/comlink/ComlinkCryptoWorker';
+
+export function makeID(length) {
+    let result = '';
+    const characters =
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const charactersLength = characters.length;
+    for (let i = 0; i < length; i++) {
+        result += characters.charAt(
+            Math.floor(Math.random() * charactersLength)
+        );
+    }
+    return result;
+}
+
+export async function getSentryUserID() {
+    if (isElectron()) {
+        return await ElectronService.getSentryUserID();
+    } else {
+        let anonymizeUserID = getData(LS_KEYS.AnonymizedUserID)?.id;
+        if (!anonymizeUserID) {
+            anonymizeUserID = makeID(6);
+            setData(LS_KEYS.AnonymizedUserID, { id: anonymizeUserID });
+        }
+        return anonymizeUserID;
+    }
+}
 
 export function getLocalUserDetails(): UserDetails {
     return getData(LS_KEYS.USER_DETAILS)?.value;
@@ -32,7 +60,7 @@ export const decryptUserPreferences = async (
     if (!encryptedUserPreferences?.version) {
         return newDefaultUserPreferences();
     }
-    const worker = await new CryptoWorker();
+    const worker = await ComlinkCryptoWorker.getInstance();
     const masterKey = await getActualKey();
     const data: UserPreferences['data'] = await worker.decryptMetadata(
         encryptedUserPreferences.data,
@@ -49,7 +77,7 @@ export const decryptUserPreferences = async (
 export const encryptUserPreferences = async (
     userPreferences: UserPreferences
 ): Promise<EncryptedUserPreferences> => {
-    const worker = await new CryptoWorker();
+    const worker = await ComlinkCryptoWorker.getInstance();
     const masterKey = await getActualKey();
     const { file: encryptedUserPreferencesData } = await worker.encryptMetadata(
         userPreferences.data,
@@ -60,4 +88,12 @@ export const encryptUserPreferences = async (
         data: encryptedUserPreferencesData.encryptedData as string,
         header: encryptedUserPreferencesData.decryptionHeader,
     };
+};
+
+export const isInternalUser = () => {
+    const userEmail = getData(LS_KEYS.USER)?.email;
+
+    return (
+        userEmail.endsWith('@ente.io') || userEmail === 'kr.anand619@gmail.com'
+    );
 };

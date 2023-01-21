@@ -14,7 +14,6 @@ import { openLink } from 'utils/common';
 const PAYMENT_PROVIDER_STRIPE = 'stripe';
 const PAYMENT_PROVIDER_APPSTORE = 'appstore';
 const PAYMENT_PROVIDER_PLAYSTORE = 'playstore';
-const PAYMENT_PROVIDER_PAYPAL = 'paypal';
 const FREE_PLAN = 'free';
 
 enum FAILURE_REASON {
@@ -42,7 +41,7 @@ export function makeHumanReadableStorage(
     bytes: number,
     round: 'round-up' | 'round-down' = 'round-down'
 ): string {
-    if (bytes === 0) {
+    if (bytes <= 0) {
         return '0 MB';
     }
     const i = Math.floor(Math.log(bytes) / Math.log(1024));
@@ -154,7 +153,6 @@ export function isUserSubscribedPlan(plan: Plan, subscription: Subscription) {
 }
 export function hasStripeSubscription(subscription: Subscription) {
     return (
-        hasPaidSubscription(subscription) &&
         subscription.paymentProvider.length > 0 &&
         subscription.paymentProvider === PAYMENT_PROVIDER_STRIPE
     );
@@ -166,14 +164,6 @@ export function hasMobileSubscription(subscription: Subscription) {
         subscription.paymentProvider.length > 0 &&
         (subscription.paymentProvider === PAYMENT_PROVIDER_APPSTORE ||
             subscription.paymentProvider === PAYMENT_PROVIDER_PLAYSTORE)
-    );
-}
-
-export function hasPaypalSubscription(subscription: Subscription) {
-    return (
-        hasPaidSubscription(subscription) &&
-        subscription.paymentProvider.length > 0 &&
-        subscription.paymentProvider === PAYMENT_PROVIDER_PAYPAL
     );
 }
 

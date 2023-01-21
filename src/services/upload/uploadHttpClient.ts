@@ -51,7 +51,9 @@ class UploadHttpClient {
                         { 'X-Auth-Token': token }
                     );
                     const response = await this.uploadURLFetchInProgress;
-                    urlStore.push(...response.data['urls']);
+                    for (const url of response.data['urls']) {
+                        urlStore.push(url);
+                    }
                 } finally {
                     this.uploadURLFetchInProgress = null;
                 }
@@ -92,18 +94,22 @@ class UploadHttpClient {
         progressTracker
     ): Promise<string> {
         try {
-            await retryHTTPCall(() =>
-                HTTPService.put(
-                    fileUploadURL.url,
-                    file,
-                    null,
-                    null,
-                    progressTracker
-                )
+            await retryHTTPCall(
+                () =>
+                    HTTPService.put(
+                        fileUploadURL.url,
+                        file,
+                        null,
+                        null,
+                        progressTracker
+                    ),
+                handleUploadError
             );
             return fileUploadURL.objectKey;
         } catch (e) {
-            logError(e, 'putFile to dataStore failed ');
+            if (e.message !== CustomError.UPLOAD_CANCELLED) {
+                logError(e, 'putFile to dataStore failed ');
+            }
             throw e;
         }
     }
@@ -127,7 +133,9 @@ class UploadHttpClient {
             );
             return fileUploadURL.objectKey;
         } catch (e) {
-            logError(e, 'putFile to dataStore failed ');
+            if (e.message !== CustomError.UPLOAD_CANCELLED) {
+                logError(e, 'putFile to dataStore failed ');
+            }
             throw e;
         }
     }
@@ -152,10 +160,12 @@ class UploadHttpClient {
                     throw err;
                 }
                 return resp;
-            });
+            }, handleUploadError);
             return response.headers.etag as string;
         } catch (e) {
-            logError(e, 'put filePart failed');
+            if (e.message !== CustomError.UPLOAD_CANCELLED) {
+                logError(e, 'put filePart failed');
+            }
             throw e;
         }
     }
@@ -185,7 +195,9 @@ class UploadHttpClient {
             });
             return response.data.etag as string;
         } catch (e) {
-            logError(e, 'put filePart failed');
+            if (e.message !== CustomError.UPLOAD_CANCELLED) {
+                logError(e, 'put filePart failed');
+            }
             throw e;
         }
     }

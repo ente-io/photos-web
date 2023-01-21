@@ -8,10 +8,24 @@ import { PAGES } from 'constants/pages';
 import { useRouter } from 'next/router';
 import { AppContext } from 'pages/_app';
 import UserPreferenceModal from 'components/UserPreferenceModal';
+import isElectron from 'is-electron';
+import WatchFolder from 'components/WatchFolder';
+import { getDownloadAppMessage } from 'utils/ui';
+
+import ThemeSwitcher from './ThemeSwitcher';
+import { SpaceBetweenFlex } from 'components/Container';
+import { isInternalUser } from 'utils/user';
 
 export default function UtilitySection({ closeSidebar }) {
     const router = useRouter();
-    const { setDialogMessage, startLoading } = useContext(AppContext);
+    const {
+        setDialogMessage,
+        startLoading,
+        watchFolderView,
+        setWatchFolderView,
+        theme,
+        setTheme,
+    } = useContext(AppContext);
 
     const [recoverModalView, setRecoveryModalView] = useState(false);
     const [twoFactorModalView, setTwoFactorModalView] = useState(false);
@@ -22,8 +36,17 @@ export default function UtilitySection({ closeSidebar }) {
     const openRecoveryKeyModal = () => setRecoveryModalView(true);
     const closeRecoveryKeyModal = () => setRecoveryModalView(false);
 
-    const openTwoFactorModalView = () => setTwoFactorModalView(true);
-    const closeTwoFactorModalView = () => setTwoFactorModalView(false);
+    const openTwoFactorModal = () => setTwoFactorModalView(true);
+    const closeTwoFactorModal = () => setTwoFactorModalView(false);
+
+    const openWatchFolder = () => {
+        if (isElectron()) {
+            setWatchFolderView(true);
+        } else {
+            setDialogMessage(getDownloadAppMessage());
+        }
+    };
+    const closeWatchFolder = () => setWatchFolderView(false);
 
     const openUserPrefModalView = () => setUserPreferenceModalView(true);
     const closeUserPrefModalView = () => setUserPreferenceModalView(false);
@@ -51,10 +74,21 @@ export default function UtilitySection({ closeSidebar }) {
 
     return (
         <>
+            {isElectron() && (
+                <SidebarButton onClick={openWatchFolder}>
+                    {constants.WATCH_FOLDERS}
+                </SidebarButton>
+            )}
             <SidebarButton onClick={openRecoveryKeyModal}>
                 {constants.RECOVERY_KEY}
             </SidebarButton>
-            <SidebarButton onClick={openTwoFactorModalView}>
+            {isInternalUser() && (
+                <SpaceBetweenFlex sx={{ px: 1.5 }}>
+                    {constants.CHOSE_THEME}
+                    <ThemeSwitcher theme={theme} setTheme={setTheme} />
+                </SpaceBetweenFlex>
+            )}
+            <SidebarButton onClick={openTwoFactorModal}>
                 {constants.TWO_FACTOR}
             </SidebarButton>
             <SidebarButton onClick={redirectToChangePasswordPage}>
@@ -73,7 +107,6 @@ export default function UtilitySection({ closeSidebar }) {
             {/* <SidebarButton onClick={openThumbnailCompressModal}>
                 {constants.COMPRESS_THUMBNAILS}
             </SidebarButton> */}
-
             <RecoveryKey
                 show={recoverModalView}
                 onHide={closeRecoveryKeyModal}
@@ -81,7 +114,7 @@ export default function UtilitySection({ closeSidebar }) {
             />
             <TwoFactorModal
                 show={twoFactorModalView}
-                onHide={closeTwoFactorModalView}
+                onHide={closeTwoFactorModal}
                 closeSidebar={closeSidebar}
                 setLoading={startLoading}
             />
@@ -90,6 +123,7 @@ export default function UtilitySection({ closeSidebar }) {
                 onClose={closeUserPrefModalView}
             />
 
+            <WatchFolder open={watchFolderView} onClose={closeWatchFolder} />
             {/* <FixLargeThumbnails
                 isOpen={fixLargeThumbsView}
                 hide={() => setFixLargeThumbsView(false)}
