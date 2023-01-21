@@ -344,7 +344,7 @@ export default function Gallery() {
                         searchResultSummary={searchResultSummary}
                     />
                 ),
-                itemType: ITEM_TYPE.OTHER,
+                itemType: ITEM_TYPE.HEADER,
             });
         }
     }, [isInSearchMode, searchResultSummary]);
@@ -366,6 +366,7 @@ export default function Gallery() {
             let files = await syncFiles(collections, setFiles);
             const trash = await syncTrash(collections, setFiles, files);
             files = [...files, ...getTrashedFiles(trash)];
+            setFiles(sortFiles(files));
         } catch (e) {
             logError(e, 'syncWithRemote failed');
             switch (e.message) {
