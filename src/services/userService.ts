@@ -374,7 +374,7 @@ export const deleteAccount = async (challenge: string) => {
     }
 };
 
-export const getUserPreferences = async (): Promise<UserPreferences> => {
+const getUserPreferences = async (): Promise<UserPreferences> => {
     try {
         const token = getToken();
 
@@ -391,11 +391,19 @@ export const getUserPreferences = async (): Promise<UserPreferences> => {
         const decryptedUserPreferences = await decryptUserPreferences(
             encryptedUserPreferences
         );
-        setData(LS_KEYS.USER_PREFERENCES, decryptedUserPreferences);
         return decryptedUserPreferences;
     } catch (e) {
         logError(e, 'failed to get user preferences');
         throw e;
+    }
+};
+
+export const syncUserPreferences = async () => {
+    try {
+        const updatedUserPreference = await getUserPreferences();
+        setData(LS_KEYS.USER_PREFERENCES, updatedUserPreference);
+    } catch (e) {
+        logError(e, 'failed to update local user preferences');
     }
 };
 

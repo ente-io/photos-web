@@ -37,7 +37,7 @@ import {
 import {
     isTokenValid,
     logoutUser,
-    getUserPreferences,
+    syncUserPreferences,
     validateKey,
 } from 'services/userService';
 import { useDropzone } from 'react-dropzone';
@@ -285,7 +285,6 @@ export default function Gallery() {
             setFiles(sortFiles(files));
             setCollections(collections);
             await syncWithRemote(true);
-            await syncUserPreferences();
             setIsFirstLoad(false);
             setJustSignedUp(false);
             setIsFirstFetch(false);
@@ -373,6 +372,7 @@ export default function Gallery() {
             const trash = await syncTrash(collections, setFiles, files);
             files = [...files, ...getTrashedFiles(trash)];
             setFiles(sortFiles(files));
+            await syncUserPreferences();
         } catch (e) {
             logError(e, 'syncWithRemote failed');
             switch (e.message) {
@@ -411,14 +411,6 @@ export default function Gallery() {
             archivedCollections
         );
         setCollectionSummaries(collectionSummaries);
-    };
-
-    const syncUserPreferences = async () => {
-        try {
-            await getUserPreferences();
-        } catch (e) {
-            logError(e, 'failed to update local user preferences');
-        }
     };
 
     const clearSelection = function () {
