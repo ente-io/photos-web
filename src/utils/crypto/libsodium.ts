@@ -147,14 +147,17 @@ export async function encryptChaCha(data: Uint8Array, key?: string) {
     };
 }
 
-export async function initChunkEncryption() {
+export async function initChunkEncryption(key?: string) {
     await sodium.ready;
-    const key = sodium.crypto_secretstream_xchacha20poly1305_keygen();
+    const uintkey: Uint8Array = key
+        ? await fromB64(key)
+        : sodium.crypto_secretstream_xchacha20poly1305_keygen();
+
     const initPushResult =
-        sodium.crypto_secretstream_xchacha20poly1305_init_push(key);
+        sodium.crypto_secretstream_xchacha20poly1305_init_push(uintkey);
     const [pushState, header] = [initPushResult.state, initPushResult.header];
     return {
-        key: await toB64(key),
+        key: await toB64(uintkey),
         decryptionHeader: await toB64(header),
         pushState,
     };

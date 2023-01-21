@@ -49,7 +49,7 @@ export class DedicatedCryptoWorker {
         return libsodium.encryptChaChaOneShot(fileData, key);
     }
 
-    async encryptFile(fileData: Uint8Array, key: string) {
+    async encryptFile(fileData: Uint8Array, key?: string) {
         return libsodium.encryptChaCha(fileData, key);
     }
 
@@ -61,8 +61,8 @@ export class DedicatedCryptoWorker {
         return libsodium.encryptFileChunk(data, pushState, finalChunk);
     }
 
-    async initChunkEncryption() {
-        return libsodium.initChunkEncryption();
+    async initChunkEncryption(key?: string) {
+        return libsodium.initChunkEncryption(key);
     }
 
     async initDecryption(header: Uint8Array, key: Uint8Array) {
