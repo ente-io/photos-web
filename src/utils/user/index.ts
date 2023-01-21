@@ -6,6 +6,7 @@ import {
 import { getActualKey } from 'utils/common/key';
 import { getData, LS_KEYS } from 'utils/storage/localStorage';
 import ComlinkCryptoWorker from 'utils/comlink/ComlinkCryptoWorker';
+import { DEFAULT_USER_PREFERENCES } from 'constants/user';
 
 export function getLocalUserDetails(): UserDetails {
     return getData(LS_KEYS.USER_DETAILS)?.value;
@@ -15,22 +16,11 @@ export function getLocalUserPreferences(): UserPreferences {
     return getData(LS_KEYS.USER_PREFERENCES);
 }
 
-const newDefaultUserPreferences = (): UserPreferences => {
-    return {
-        version: 0,
-        data: {
-            isImgTranscodingEnabled: false,
-            isVidTranscodingEnabled: false,
-        },
-        header: '',
-    };
-};
-
 export const decryptUserPreferences = async (
     encryptedUserPreferences: EncryptedUserPreferences
 ): Promise<UserPreferences> => {
     if (!encryptedUserPreferences?.version) {
-        return newDefaultUserPreferences();
+        return DEFAULT_USER_PREFERENCES;
     }
     const worker = await ComlinkCryptoWorker.getInstance();
     const masterKey = await getActualKey();

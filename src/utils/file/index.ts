@@ -559,7 +559,8 @@ export const getFileDataDecryptionHeader = (
 
 export function canFileBeStreamed(file: EnteFile) {
     return (
-        file.metadata.fileType === FILE_TYPE.VIDEO && file.fileVariants?.tcFile
+        file.metadata.fileType === FILE_TYPE.VIDEO &&
+        !!file.fileVariants?.tcFile
     );
 }
 export const getUserOwnedNonTrashedFiles = (files: EnteFile[]) => {
