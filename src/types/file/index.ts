@@ -1,9 +1,9 @@
-import { LocalFileVariants, Metadata } from 'types/upload';
 import {
     EncryptedMagicMetadata,
     FileMagicMetadata,
     FilePublicMagicMetadata,
 } from 'types/magicMetadata';
+import { Metadata } from 'types/upload';
 
 interface FileAttributesBase {
     decryptionHeader: string;
@@ -35,7 +35,7 @@ export interface EncryptedEnteFile {
     ownerID: number;
     file: FileAttributes;
     thumbnail: FileAttributes;
-    fileVariants?: LocalFileVariants;
+    fileVariants?: FileVariants;
     metadata: FileAttributes;
     info: FileInfo;
     magicMetadata: EncryptedMagicMetadata;
