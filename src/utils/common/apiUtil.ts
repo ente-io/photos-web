@@ -26,7 +26,8 @@ export const getFileVariantURL = (
     id: number,
     fileVariantType: FileVariantType
 ) => {
-    if (process.env.NEXT_PUBLIC_ENTE_ENDPOINT !== undefined) {
+    const endpoint = process.env.NEXT_PUBLIC_ENTE_ENDPOINT;
+    if (isDevDeployment() && endpoint) {
         return `${process.env.NEXT_PUBLIC_ENTE_ENDPOINT}/files/download/v3/${id}/${fileVariantType}`;
     }
     return `https://api.ente.io/files/download/v3/${id}/${fileVariantType}`;
