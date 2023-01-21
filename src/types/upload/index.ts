@@ -1,7 +1,7 @@
 import { FILE_TYPE } from 'constants/file';
 import { Collection } from 'types/collection';
 import { B64EncryptionResult, LocalFileAttributes } from 'types/crypto';
-import { FileAttributes } from 'types/file';
+import { FileAttributes, FileVariants } from 'types/file';
 import {
     EncryptedMagicMetadata,
     FilePublicMagicMetadata,
@@ -118,7 +118,7 @@ export interface EncryptedFile {
     fileKey: B64EncryptionResult;
 }
 
-export interface FileVariants {
+export interface LocalFileVariants {
     tcFile?: LocalFileAttributes<Uint8Array | DataStream>;
 }
 
@@ -127,13 +127,14 @@ export interface ProcessedFile {
     thumbnail: LocalFileAttributes<Uint8Array>;
     metadata: LocalFileAttributes<string>;
     pubMagicMetadata: EncryptedMagicMetadata;
-    fileVariants?: FileVariants;
+    fileVariants?: LocalFileVariants;
     localID: number;
 }
 export interface BackupedFile {
     file: FileAttributes;
     thumbnail: FileAttributes;
     metadata: FileAttributes;
+    fileVariants: FileVariants;
     pubMagicMetadata: EncryptedMagicMetadata;
 }
 

@@ -6,7 +6,7 @@ import {
     FileWithMetadata,
     ParsedMetadataJSONMap,
     ElectronFile,
-    FileVariants,
+    LocalFileVariants,
 } from 'types/upload';
 import { canBeTranscoded, splitFilenameAndExtension } from 'utils/file';
 import { logError } from 'utils/sentry';
@@ -119,7 +119,7 @@ export async function encryptFile(
                 header: encryptedPubMagicMetadataData.decryptionHeader,
             };
         }
-        let encryptedFileVariants: FileVariants;
+        let encryptedFileVariants: LocalFileVariants;
         if (file.fileVariants) {
             if (file.fileVariants.tcFile) {
                 const { file: encryptedFileVariant } = await encryptFiledata(

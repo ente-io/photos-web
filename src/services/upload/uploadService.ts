@@ -8,7 +8,6 @@ import {
     BackupedFile,
     EncryptedFile,
     FileTypeInfo,
-    FileVariants,
     FileWithCollection,
     FileWithMetadata,
     isDataStream,
@@ -20,6 +19,7 @@ import {
     UploadAsset,
     UploadFile,
     UploadURL,
+    DataStream,
 } from 'types/upload';
 import {
     clusterLivePhotoFiles,
@@ -38,7 +38,7 @@ import { DedicatedCryptoWorker } from 'worker/crypto.worker';
 import publicUploadHttpClient from './publicUploadHttpClient';
 import { constructPublicMagicMetadata } from './magicMetadataService';
 import { FilePublicMagicMetadataProps } from 'types/magicMetadata';
-import { B64EncryptionResult } from 'types/crypto';
+import { B64EncryptionResult, LocalFileAttributes } from 'types/crypto';
 
 class UploadService {
     private uploadURLs: UploadURL[] = [];
@@ -148,70 +148,25 @@ class UploadService {
 
     async uploadToBucket(file: ProcessedFile): Promise<BackupedFile> {
         try {
-            let fileObjectKey: string = null;
-            if (isDataStream(file.file.encryptedData)) {
-                fileObjectKey = await uploadStreamUsingMultipart(
-                    file.localID,
-                    file.file.encryptedData
-                );
-            } else {
-                const progressTracker = UIService.trackUploadProgress(
-                    file.localID
-                );
-                const fileUploadURL = await this.getUploadURL();
-                if (USE_CF_PROXY) {
-                    fileObjectKey = await UploadHttpClient.putFileV2(
-                        fileUploadURL,
-                        file.file.encryptedData as Uint8Array,
-                        progressTracker
-                    );
-                } else {
-                    fileObjectKey = await UploadHttpClient.putFile(
-                        fileUploadURL,
-                        file.file.encryptedData as Uint8Array,
-                        progressTracker
-                    );
-                }
-            }
-            const thumbnailUploadURL = await this.getUploadURL();
-            let thumbnailObjectKey: string = null;
-            if (USE_CF_PROXY) {
-                thumbnailObjectKey = await UploadHttpClient.putFileV2(
-                    thumbnailUploadURL,
-                    file.thumbnail.encryptedData,
-                    null
-                );
-            } else {
-                thumbnailObjectKey = await UploadHttpClient.putFile(
-                    thumbnailUploadURL,
-                    file.thumbnail.encryptedData,
-                    null
-                );
-            }
-            const backupedFileVariants: FileVariants = {};
+            const fileObjectKey = await this.uploadFileStreamToBucket(
+                file.localID,
+                file.file
+            );
+            const thumbnailObjectKey: string =
+                await this.uploadThumbnailToBucket(file);
+            let backupedFileVariants: BackupedFile['fileVariants'] = {};
             if (file.fileVariants) {
                 if (file.fileVariants.tcFile) {
-                    const fileVariantUploadURL = await this.getUploadURL();
-                    let fileVariantObjectKey: string = null;
-                    if (USE_CF_PROXY) {
-                        fileVariantObjectKey = await UploadHttpClient.putFileV2(
-                            fileVariantUploadURL,
-                            file.fileVariants.tcFile
-                                .encryptedData as Uint8Array,
-                            null
-                        );
-                    } else {
-                        fileVariantObjectKey = await UploadHttpClient.putFile(
-                            fileVariantUploadURL,
-                            file.fileVariants.tcFile
-                                .encryptedData as Uint8Array,
-                            null
-                        );
-                    }
-                    backupedFileVariants.tcFile = {
-                        objectKey: fileVariantObjectKey,
-                        decryptionHeader:
-                            file.fileVariants.tcFile.decryptionHeader,
+                    const tcFileObjectKey = await this.uploadFileStreamToBucket(
+                        file.localID,
+                        file.fileVariants.tcFile
+                    );
+                    backupedFileVariants = {
+                        tcFile: {
+                            decryptionHeader:
+                                file.fileVariants.tcFile.decryptionHeader,
+                            objectKey: tcFileObjectKey,
+                        },
                     };
                 }
             }
@@ -235,6 +190,55 @@ class UploadService {
             }
             throw e;
         }
+    }
+
+    private async uploadThumbnailToBucket(file: ProcessedFile) {
+        const thumbnailUploadURL = await this.getUploadURL();
+        let thumbnailObjectKey: string = null;
+        if (USE_CF_PROXY) {
+            thumbnailObjectKey = await UploadHttpClient.putFileV2(
+                thumbnailUploadURL,
+                file.thumbnail.encryptedData,
+                null
+            );
+        } else {
+            thumbnailObjectKey = await UploadHttpClient.putFile(
+                thumbnailUploadURL,
+                file.thumbnail.encryptedData,
+                null
+            );
+        }
+        return thumbnailObjectKey;
+    }
+
+    private async uploadFileStreamToBucket(
+        localID: number,
+        file: LocalFileAttributes<Uint8Array | DataStream>
+    ) {
+        let fileObjectKey: string;
+        if (isDataStream(file.encryptedData)) {
+            fileObjectKey = await uploadStreamUsingMultipart(
+                localID,
+                file.encryptedData
+            );
+        } else {
+            const progressTracker = UIService.trackUploadProgress(localID);
+            const fileUploadURL = await this.getUploadURL();
+            if (USE_CF_PROXY) {
+                fileObjectKey = await UploadHttpClient.putFileV2(
+                    fileUploadURL,
+                    file.encryptedData as Uint8Array,
+                    progressTracker
+                );
+            } else {
+                fileObjectKey = await UploadHttpClient.putFile(
+                    fileUploadURL,
+                    file.encryptedData as Uint8Array,
+                    progressTracker
+                );
+            }
+        }
+        return fileObjectKey;
     }
 
     getUploadFile(

@@ -1,4 +1,4 @@
-import { FileVariants, Metadata } from 'types/upload';
+import { LocalFileVariants, Metadata } from 'types/upload';
 import {
     EncryptedMagicMetadata,
     FileMagicMetadata,
@@ -20,6 +20,10 @@ interface S3FileAttributes extends FileAttributesBase {
 
 export type FileAttributes = MetadataFileAttributes | S3FileAttributes;
 
+export interface FileVariants {
+    tcFile?: FileAttributes;
+}
+
 export interface FileInfo {
     fileSize: number;
     thumbSize: number;
@@ -31,7 +35,7 @@ export interface EncryptedEnteFile {
     ownerID: number;
     file: FileAttributes;
     thumbnail: FileAttributes;
-    fileVariants?: FileVariants;
+    fileVariants?: LocalFileVariants;
     metadata: FileAttributes;
     info: FileInfo;
     magicMetadata: EncryptedMagicMetadata;
