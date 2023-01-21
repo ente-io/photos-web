@@ -163,6 +163,9 @@ export default function Gallery() {
         }
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const dummySetFiles: SetFiles = (filesFn) => {};
+
     const [favItemIds, setFavItemIds] = useState<Set<number>>();
 
     const [isFirstLoad, setIsFirstLoad] = useState(false);
@@ -680,7 +683,7 @@ export default function Gallery() {
                     setLoading={setBlockingLoad}
                     setCollectionNamerAttributes={setCollectionNamerAttributes}
                     setShouldDisableDropzone={setShouldDisableDropzone}
-                    setFiles={setFiles}
+                    setFiles={dummySetFiles}
                     setCollections={setCollections}
                     isFirstUpload={
                         !hasNonSystemCollections(collectionSummaries)
