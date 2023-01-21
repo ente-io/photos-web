@@ -640,56 +640,55 @@ const PhotoFrame = ({
                         };
                         galleryContext.files.set(item.id, mergedURL);
                     }
+                }
+                let originalImageURL;
+                let originalVideoURL;
+                let convertedImageURL;
+                let convertedVideoURL;
 
-                    let originalImageURL;
-                    let originalVideoURL;
-                    let convertedImageURL;
-                    let convertedVideoURL;
-
-                    if (item.metadata.fileType === FILE_TYPE.LIVE_PHOTO) {
-                        [originalImageURL, originalVideoURL] = urls.original;
-                        [convertedImageURL, convertedVideoURL] = urls.converted;
-                    } else if (item.metadata.fileType === FILE_TYPE.VIDEO) {
-                        [originalVideoURL] = urls.original;
-                        [convertedVideoURL] = urls.converted;
-                    } else {
-                        [originalImageURL] = urls.original;
-                        [convertedImageURL] = urls.converted;
-                    }
-                    setIsSourceLoaded(false);
-                    const newFile = await updateSrcURL(
-                        item.id,
-                        {
-                            originalImageURL,
-                            originalVideoURL,
-                            convertedImageURL,
-                            convertedVideoURL,
-                        },
-                        isStreamableFile
+                if (item.metadata.fileType === FILE_TYPE.LIVE_PHOTO) {
+                    [originalImageURL, originalVideoURL] = urls.original;
+                    [convertedImageURL, convertedVideoURL] = urls.converted;
+                } else if (item.metadata.fileType === FILE_TYPE.VIDEO) {
+                    [originalVideoURL] = urls.original;
+                    [convertedVideoURL] = urls.converted;
+                } else {
+                    [originalImageURL] = urls.original;
+                    [convertedImageURL] = urls.converted;
+                }
+                setIsSourceLoaded(false);
+                const newFile = await updateSrcURL(
+                    item.id,
+                    {
+                        originalImageURL,
+                        originalVideoURL,
+                        convertedImageURL,
+                        convertedVideoURL,
+                    },
+                    isStreamableFile
+                );
+                item.msrc = newFile.msrc;
+                item.html = newFile.html;
+                item.src = newFile.src;
+                item.isSourceLoaded = newFile.isSourceLoaded;
+                item.originalImageURL = newFile.originalImageURL;
+                item.originalVideoURL = newFile.originalVideoURL;
+                item.w = newFile.w;
+                item.h = newFile.h;
+                try {
+                    addLogLine(
+                        `[${item.id}] calling invalidateCurrItems for src`
                     );
-                    item.msrc = newFile.msrc;
-                    item.html = newFile.html;
-                    item.src = newFile.src;
-                    item.isSourceLoaded = newFile.isSourceLoaded;
-                    item.originalImageURL = newFile.originalImageURL;
-                    item.originalVideoURL = newFile.originalVideoURL;
-                    item.w = newFile.w;
-                    item.h = newFile.h;
-                    try {
-                        addLogLine(
-                            `[${item.id}] calling invalidateCurrItems for src`
-                        );
-                        instance.invalidateCurrItems();
-                        if (instance.isOpen()) {
-                            instance.updateSize(true);
-                        }
-                    } catch (e) {
-                        logError(
-                            e,
-                            'updating photoswipe after src url update failed'
-                        );
-                        throw e;
+                    instance.invalidateCurrItems();
+                    if (instance.isOpen()) {
+                        instance.updateSize(true);
                     }
+                } catch (e) {
+                    logError(
+                        e,
+                        'updating photoswipe after src url update failed'
+                    );
+                    throw e;
                 }
             } catch (e) {
                 logError(e, 'getSlideData failed get src url failed');
