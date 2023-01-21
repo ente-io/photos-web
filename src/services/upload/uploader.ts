@@ -11,7 +11,6 @@ import {
     BackupedFile,
     UploadFile,
     FileWithMetadata,
-    FileInMemory,
     FileTypeInfo,
 } from 'types/upload';
 import { addLocalLog, addLogLine } from 'utils/logging';
@@ -120,10 +119,7 @@ export default async function uploader(
         }
         addLogLine(`reading asset ${fileNameSize}`);
 
-        const file: FileInMemory = await UploadService.readAsset(
-            fileTypeInfo,
-            uploadAsset
-        );
+        const file = await UploadService.readAsset(fileTypeInfo, uploadAsset);
 
         if (file.hasStaticThumbnail) {
             metadata.hasStaticThumbnail = true;
@@ -138,13 +134,10 @@ export default async function uploader(
             localID,
             filedata: file.filedata,
             thumbnail: file.thumbnail,
+            fileVariants: file.fileVariants,
             metadata,
             pubMagicMetadata,
         };
-
-        if (file.fileVariants) {
-            fileWithMetadata.fileVariants = file.fileVariants;
-        }
 
         if (uploadCancelService.isUploadCancelationRequested()) {
             throw Error(CustomError.UPLOAD_CANCELLED);
