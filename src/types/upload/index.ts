@@ -100,7 +100,9 @@ export interface UploadURL {
 export interface FileInMemory {
     filedata: Uint8Array | DataStream;
     thumbnail: Uint8Array;
-    fileVariants?: FileWithMetadata['fileVariants'];
+    fileVariants?: {
+        tcFile?: Uint8Array | DataStream;
+    };
     hasStaticThumbnail: boolean;
 }
 
@@ -108,9 +110,6 @@ export interface FileWithMetadata
     extends Omit<FileInMemory, 'hasStaticThumbnail'> {
     metadata: Metadata;
     localID: number;
-    fileVariants?: {
-        tcFile?: Uint8Array;
-    };
     pubMagicMetadata: FilePublicMagicMetadata;
 }
 

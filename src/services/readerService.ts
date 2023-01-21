@@ -1,5 +1,25 @@
-import { ElectronFile } from 'types/upload';
+import { MULTIPART_PART_SIZE, FILE_READER_CHUNK_SIZE } from 'constants/upload';
+import { DataStream, ElectronFile } from 'types/upload';
 import { logError } from 'utils/sentry';
+
+export async function getFileData(rawFile: File | ElectronFile) {
+    let filedata: Uint8Array | DataStream;
+    if (!(rawFile instanceof File)) {
+        if (rawFile.size > MULTIPART_PART_SIZE) {
+            filedata = await getElectronFileStream(
+                rawFile,
+                FILE_READER_CHUNK_SIZE
+            );
+        } else {
+            filedata = await getUint8ArrayView(rawFile);
+        }
+    } else if (rawFile.size > MULTIPART_PART_SIZE) {
+        filedata = getFileStream(rawFile, FILE_READER_CHUNK_SIZE);
+    } else {
+        filedata = await getUint8ArrayView(rawFile);
+    }
+    return filedata;
+}
 
 export async function getUint8ArrayView(
     file: Blob | ElectronFile

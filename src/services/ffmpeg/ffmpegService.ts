@@ -45,7 +45,7 @@ export async function generateVideoThumbnail(
     }
 }
 
-export async function convertToStreamableVideo(
+export async function transcodeVideo(
     file: ElectronFile | File
 ): Promise<ElectronFile | File> {
     try {
@@ -75,7 +75,7 @@ export async function convertToStreamableVideo(
             'output.mp4'
         );
     } catch (e) {
-        logError(e, 'ffmpeg streamable video conversion failed');
+        logError(e, 'ffmpeg transcode video conversion failed');
         throw e;
     }
 }

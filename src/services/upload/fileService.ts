@@ -1,4 +1,3 @@
-import { MULTIPART_PART_SIZE, FILE_READER_CHUNK_SIZE } from 'constants/upload';
 import {
     FileTypeInfo,
     FileInMemory,
@@ -6,25 +5,20 @@ import {
     EncryptedFile,
     FileWithMetadata,
     ParsedMetadataJSONMap,
-    DataStream,
     ElectronFile,
     FileVariants,
 } from 'types/upload';
-import { splitFilenameAndExtension } from 'utils/file';
+import { canBeTranscoded, splitFilenameAndExtension } from 'utils/file';
 import { logError } from 'utils/sentry';
 import { getFileNameSize, addLogLine } from 'utils/logging';
 import { encryptFiledata } from './encryptionService';
 import { extractMetadata, getMetadataJSONMapKey } from './metadataService';
-import {
-    getFileStream,
-    getElectronFileStream,
-    getUint8ArrayView,
-} from '../readerService';
+import { getFileData } from '../readerService';
 import { generateThumbnail } from './thumbnailService';
-import transcodingService from 'services/transcodingService';
 import { DedicatedCryptoWorker } from 'worker/crypto.worker';
 import { Remote } from 'comlink';
 import { EncryptedMagicMetadata } from 'types/magicMetadata';
+import { transcodeVideo } from 'services/ffmpeg/ffmpegService';
 
 const EDITED_FILE_SUFFIX = '-edited';
 
@@ -45,34 +39,22 @@ export async function readFile(
         fileTypeInfo
     );
     addLogLine(`reading file data ${getFileNameSize(rawFile)} `);
-    let filedata: Uint8Array | DataStream;
-    if (!(rawFile instanceof File)) {
-        if (rawFile.size > MULTIPART_PART_SIZE) {
-            filedata = await getElectronFileStream(
-                rawFile,
-                FILE_READER_CHUNK_SIZE
-            );
-        } else {
-            filedata = await getUint8ArrayView(rawFile);
-        }
-    } else if (rawFile.size > MULTIPART_PART_SIZE) {
-        filedata = getFileStream(rawFile, FILE_READER_CHUNK_SIZE);
-    } else {
-        filedata = await getUint8ArrayView(rawFile);
+    const filedata = await getFileData(rawFile);
+    let fileVariants: FileInMemory['fileVariants'];
+    if (canBeTranscoded(fileTypeInfo)) {
+        const transcodedVideo = await transcodeVideo(rawFile);
+        fileVariants = {
+            tcFile: await getFileData(transcodedVideo),
+        };
     }
-
-    const fileVariants = await transcodingService.transcodeFile(
-        rawFile,
-        fileTypeInfo
-    );
 
     addLogLine(`read file data successfully ${getFileNameSize(rawFile)} `);
 
     return {
         filedata,
         thumbnail,
-        fileVariants,
         hasStaticThumbnail,
+        fileVariants,
     };
 }
 

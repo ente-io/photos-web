@@ -31,6 +31,8 @@ import { addLogLine } from 'utils/logging';
 import { CustomError } from 'utils/error';
 import { convertBytesToHumanReadable } from './size';
 import ComlinkCryptoWorker from 'utils/comlink/ComlinkCryptoWorker';
+import { getLocalUserPreferences } from 'utils/user';
+import { FileTypeInfo } from 'types/upload';
 
 const WAIT_TIME_IMAGE_CONVERSION = 30 * 1000;
 
@@ -610,3 +612,11 @@ export const copyFileToClipboard = async (fileUrl: string) => {
         .write([new ClipboardItem({ 'image/png': blobPromise })])
         .catch((e) => logError(e, 'failed to copy to clipboard'));
 };
+
+export async function canBeTranscoded(fileTypeInfo: FileTypeInfo) {
+    const userPreferences = getLocalUserPreferences();
+    return (
+        fileTypeInfo.fileType === FILE_TYPE.VIDEO &&
+        userPreferences?.data.isVidTranscodingEnabled
+    );
+}
