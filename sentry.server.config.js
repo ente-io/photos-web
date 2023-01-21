@@ -6,7 +6,7 @@ import {
     getIsSentryEnabled,
 } from 'constants/sentry';
 
-import { getSentryUserID } from 'utils/user';
+import { getSentryUserID } from 'utils/sentry/user';
 
 const SENTRY_DSN = getSentryDSN();
 const SENTRY_ENV = getSentryENV();
