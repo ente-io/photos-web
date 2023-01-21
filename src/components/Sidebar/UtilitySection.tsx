@@ -48,8 +48,9 @@ export default function UtilitySection({ closeSidebar }) {
     };
     const closeWatchFolder = () => setWatchFolderView(false);
 
-    const openUserPrefModalView = () => setUserPreferenceModalView(true);
-    const closeUserPrefModalView = () => setUserPreferenceModalView(false);
+    const openUserPreferenceModalView = () => setUserPreferenceModalView(true);
+    const closeUserPreferenceModalView = () =>
+        setUserPreferenceModalView(false);
 
     const redirectToChangePasswordPage = () => {
         closeSidebar();
@@ -100,7 +101,7 @@ export default function UtilitySection({ closeSidebar }) {
             <SidebarButton onClick={redirectToDeduplicatePage}>
                 {constants.DEDUPLICATE_FILES}
             </SidebarButton>
-            <SidebarButton onClick={openUserPrefModalView}>
+            <SidebarButton onClick={openUserPreferenceModalView}>
                 Preferences
             </SidebarButton>
 
@@ -120,7 +121,7 @@ export default function UtilitySection({ closeSidebar }) {
             />
             <UserPreferenceModal
                 open={userPreferenceModalView}
-                onClose={closeUserPrefModalView}
+                onClose={closeUserPreferenceModalView}
             />
 
             <WatchFolder open={watchFolderView} onClose={closeWatchFolder} />
