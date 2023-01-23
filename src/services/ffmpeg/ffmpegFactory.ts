@@ -9,6 +9,9 @@ export interface IFFmpeg {
         inputFile: File | ElectronFile,
         outputFilename: string
     ) => Promise<File | ElectronFile>;
+    liveTranscodeVideo(
+        inputFile: File | ElectronFile
+    ): Promise<ReadableStream<Uint8Array>>;
 }
 
 class FFmpegFactory {

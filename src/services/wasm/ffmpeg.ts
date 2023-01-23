@@ -96,6 +96,13 @@ export class WasmFFmpeg {
             }
         }
     }
+
+    async liveTranscodeVideo(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        inputFile: File
+    ): Promise<ReadableStream<Uint8Array>> {
+        throw new Error('Not Supported');
+    }
 }
 
 function getFileExtension(filename: string) {

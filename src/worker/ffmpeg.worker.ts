@@ -10,6 +10,9 @@ export class DedicatedFFmpegWorker {
     run(cmd, inputFile, outputFileName) {
         return this.wasmFFmpeg.run(cmd, inputFile, outputFileName);
     }
+    liveTranscodeVideo(inputFile) {
+        return this.wasmFFmpeg.liveTranscodeVideo(inputFile);
+    }
 }
 
 Comlink.expose(DedicatedFFmpegWorker, self);

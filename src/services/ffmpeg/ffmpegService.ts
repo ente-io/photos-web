@@ -97,3 +97,13 @@ export async function convertToMP4(file: File | ElectronFile) {
         throw e;
     }
 }
+
+export async function liveTranscodeVideo(file: File | ElectronFile) {
+    try {
+        const ffmpegClient = await ffmpegFactory.getFFmpegClient();
+        return await ffmpegClient.liveTranscodeVideo(file);
+    } catch (e) {
+        logError(e, 'ffmpeg liveTranscodeVideo failed');
+        throw e;
+    }
+}

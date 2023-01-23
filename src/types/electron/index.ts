@@ -92,4 +92,7 @@ export interface ElectronAPIs {
         maxSize: number
     ) => Promise<Uint8Array>;
     logRendererProcessMemoryUsage: (message: string) => Promise<void>;
+    liveTranscodeVideo: (
+        inputFile: File | ElectronFile
+    ) => Promise<ReadableStream<Uint8Array>>;
 }

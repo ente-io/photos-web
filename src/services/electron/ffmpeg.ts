@@ -23,4 +23,9 @@ export class ElectronFFmpeg implements IFFmpeg {
             );
         }
     }
+    async liveTranscodeVideo(inputFile: ElectronFile | File) {
+        if (this.electronAPIs?.liveTranscodeVideo) {
+            return this.electronAPIs.liveTranscodeVideo(inputFile);
+        }
+    }
 }
