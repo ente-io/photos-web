@@ -98,10 +98,12 @@ export async function convertToMP4(file: File | ElectronFile) {
     }
 }
 
-export async function liveTranscodeVideo(file: File | ElectronFile) {
+export async function liveTranscodeVideo(
+    fileStream: ReadableStream<Uint8Array>
+) {
     try {
         const ffmpegClient = await ffmpegFactory.getFFmpegClient();
-        return await ffmpegClient.liveTranscodeVideo(file);
+        return await ffmpegClient.liveTranscodeVideo(fileStream);
     } catch (e) {
         logError(e, 'ffmpeg liveTranscodeVideo failed');
         throw e;
