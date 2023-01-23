@@ -319,6 +319,27 @@ export async function getRenderableFileURL(file: EnteFile, fileBlob: Blob) {
                 original: [URL.createObjectURL(fileBlob)],
             };
         }
+        case FILE_TYPE.VIDEO: {
+            const transcodedVideoStream =
+                await ffmpegService.liveTranscodeVideo(
+                    new File([fileBlob], file.metadata.title)
+                );
+            const transcodedVideoBlob = await new Response(
+                transcodedVideoStream
+            ).blob();
+            return {
+                converted: [
+                    await createTypedObjectURL(
+                        transcodedVideoBlob,
+                        file.metadata.title
+                    ),
+                ],
+                original: [
+                    await createTypedObjectURL(fileBlob, file.metadata.title),
+                ],
+            };
+        }
+
         default: {
             const previewURL = await createTypedObjectURL(
                 fileBlob,
@@ -539,7 +560,9 @@ export const getArchivedFiles = (files: EnteFile[]) => {
 
 export const createTypedObjectURL = async (blob: Blob, fileName: string) => {
     const type = await getFileType(new File([blob], fileName));
-    return URL.createObjectURL(new Blob([blob], { type: type.mimeType }));
+    const typedBlob = new Blob([blob], { type: type.mimeType });
+    console.log('typed blob', typedBlob);
+    return URL.createObjectURL(typedBlob);
 };
 
 export const getUserOwnedNonTrashedFiles = (files: EnteFile[]) => {
