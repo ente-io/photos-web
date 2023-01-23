@@ -13,7 +13,6 @@ import {
     TRASH_SECTION,
 } from 'constants/collection';
 import { isSharedFile } from 'utils/file';
-import { isPlaybackPossible } from 'utils/photoFrame';
 import { PhotoList } from './PhotoList';
 import { SelectedState } from 'types/gallery';
 import { FILE_TYPE } from 'constants/file';
@@ -367,8 +366,8 @@ const PhotoFrame = ({
             originalVideoURL,
             convertedVideoURL,
         } = srcURL;
-        const isPlayable =
-            convertedVideoURL && (await isPlaybackPossible(convertedVideoURL));
+        const isPlayable = true;
+        // convertedVideoURL && (await isPlaybackPossible(convertedVideoURL));
         const updateFile = (file: EnteFile) => {
             file.w = window.innerWidth;
             file.h = window.innerHeight;
@@ -378,7 +377,7 @@ const PhotoFrame = ({
             if (file.metadata.fileType === FILE_TYPE.VIDEO) {
                 if (isPlayable) {
                     file.html = `
-            <video controls onContextMenu="return false;">
+            <video controls autoplay onContextMenu="return false;">
                 <source src="${convertedVideoURL}" />
                 Your browser does not support the video tag.
             </video>
