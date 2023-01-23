@@ -108,10 +108,10 @@ class DownloadManager {
             const getFilePromise = async () => {
                 addLogLine(`[${file.id}] [DownloadManager] downloading file`);
                 const fileStream = await this.downloadFile(file);
-                const fileBlob = await new Response(fileStream).blob();
                 if (forPreview) {
-                    return await getRenderableFileURL(file, fileBlob);
+                    return await getRenderableFileURL(file, fileStream);
                 } else {
+                    const fileBlob = await new Response(fileStream).blob();
                     const fileURL = await createTypedObjectURL(
                         fileBlob,
                         file.metadata.title

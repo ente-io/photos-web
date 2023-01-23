@@ -300,9 +300,13 @@ export function generateStreamFromArrayBuffer(data: Uint8Array) {
     });
 }
 
-export async function getRenderableFileURL(file: EnteFile, fileBlob: Blob) {
+export async function getRenderableFileURL(
+    file: EnteFile,
+    fileStream: ReadableStream<Uint8Array>
+) {
     switch (file.metadata.fileType) {
         case FILE_TYPE.IMAGE: {
+            const fileBlob = await new Response(fileStream).blob();
             const convertedBlob = await getRenderableImage(
                 file.metadata.title,
                 fileBlob
@@ -313,6 +317,7 @@ export async function getRenderableFileURL(file: EnteFile, fileBlob: Blob) {
             };
         }
         case FILE_TYPE.LIVE_PHOTO: {
+            const fileBlob = await new Response(fileStream).blob();
             const livePhoto = await getRenderableLivePhoto(file, fileBlob);
             return {
                 converted: livePhoto.map((asset) => URL.createObjectURL(asset)),
@@ -321,34 +326,19 @@ export async function getRenderableFileURL(file: EnteFile, fileBlob: Blob) {
         }
         case FILE_TYPE.VIDEO: {
             const transcodedVideoStream =
-                await ffmpegService.liveTranscodeVideo(
-                    new File([fileBlob], file.metadata.title)
-                );
-            const transcodedVideoBlob = await new Response(
+                await ffmpegService.liveTranscodeVideo(fileStream);
+            const streamableVideoURL = await getStreamableVideo(
                 transcodedVideoStream
-            ).blob();
+            );
+
             return {
-                converted: [
-                    await createTypedObjectURL(
-                        transcodedVideoBlob,
-                        file.metadata.title
-                    ),
-                ],
-                original: [
-                    await createTypedObjectURL(fileBlob, file.metadata.title),
-                ],
+                converted: [streamableVideoURL],
+                original: [streamableVideoURL],
             };
         }
 
         default: {
-            const previewURL = await createTypedObjectURL(
-                fileBlob,
-                file.metadata.title
-            );
-            return {
-                converted: [previewURL],
-                original: [previewURL],
-            };
+            throw new Error('Unsupported file type');
         }
     }
 }
@@ -388,6 +378,55 @@ async function getRenderableImage(fileName: string, imageBlob: Blob) {
         return convertedImageBlob;
     } else {
         return imageBlob;
+    }
+}
+
+async function getStreamableVideo(fileStream: ReadableStream<Uint8Array>) {
+    try {
+        const source = new MediaSource();
+        console.log('source', source);
+        source.addEventListener('sourceopen', async () => {
+            if (!source.sourceBuffers.length) {
+                const sourceBuffer = source.addSourceBuffer(
+                    'video/mp4; codecs="avc1.64001E,mp4a.40.2"'
+                );
+                console.log('sourceBuffer', sourceBuffer);
+
+                const reader = fileStream.getReader();
+
+                let chunk = await reader.read();
+                while (!chunk.done) {
+                    console.log(
+                        'got chunk',
+                        chunk.done,
+                        convertBytesToHumanReadable(chunk.value.length)
+                    );
+                    if (chunk.value) {
+                        while (sourceBuffer.updating) {
+                            console.log('waiting for update to finish');
+                            // wait for previous update to finish
+                            await new Promise((resolve) =>
+                                setTimeout(resolve, 100)
+                            );
+                        }
+                        console.log('appending chunk');
+                        sourceBuffer.appendBuffer(chunk.value);
+                    }
+                    chunk = await reader.read();
+                }
+                sourceBuffer.addEventListener('updateend', function () {
+                    if (
+                        !sourceBuffer.updating &&
+                        source.readyState === 'open'
+                    ) {
+                        source.endOfStream();
+                    }
+                });
+            }
+        });
+        return URL.createObjectURL(source);
+    } catch (e) {
+        console.log('getRenderableVideo error', e);
     }
 }
 
