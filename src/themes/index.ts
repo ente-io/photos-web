@@ -1,11 +1,13 @@
-import { createTheme, PaletteOptions } from '@mui/material';
+import { createTheme, EnteBasePaletteOptions } from '@mui/material';
 import { THEME_COLOR } from 'constants/theme';
 import { components } from './components';
-import darkThemePalette from './darkThemeOptions';
-import lightThemeOptions from './lightThemeOptions';
+import darkThemePalette from './darkPalette';
+import lightThemeOptions from './lightPalette';
 import { typography } from './typography';
 
-export const getPallette = (themeColor: THEME_COLOR): PaletteOptions => {
+export const getPallette = (
+    themeColor: THEME_COLOR
+): EnteBasePaletteOptions => {
     switch (themeColor) {
         case THEME_COLOR.DARK:
             return darkThemePalette;
@@ -19,7 +21,7 @@ export const getPallette = (themeColor: THEME_COLOR): PaletteOptions => {
 export const getTheme = (themeColor: THEME_COLOR) => {
     const palette = getPallette(themeColor);
     const theme = createTheme({
-        palette,
+        entePalette: palette,
         components,
         typography,
     });
