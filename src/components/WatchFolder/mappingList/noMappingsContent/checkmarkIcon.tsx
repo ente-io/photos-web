@@ -9,7 +9,7 @@ export function CheckmarkIcon() {
                 display: 'inline',
                 fontSize: '15px',
 
-                color: (theme) => theme.palette.secondary.main,
+                color: (theme) => theme.colors.secondary.main,
             }}
         />
     );

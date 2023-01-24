@@ -2,14 +2,14 @@ import { styled } from '@mui/material';
 
 const PlanTile = styled('div')<{ current: boolean }>(({ theme, current }) => ({
     padding: theme.spacing(3),
-    border: `1px solid ${theme.palette.divider}`,
+    border: `1px solid ${theme.colors.divider}`,
 
     '&:hover': {
         backgroundColor: ' rgba(40, 214, 101, 0.11)',
         cursor: 'pointer',
     },
     ...(current && {
-        borderColor: theme.palette.accent.main,
+        borderColor: theme.colors.accent.main,
         cursor: 'not-allowed',
         '&:hover': { backgroundColor: 'transparent' },
     }),

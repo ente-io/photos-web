@@ -21,7 +21,7 @@ const ShareeRow = ({ sharee, collectionUnshare }: IProps) => {
                 menuPaperProps={{
                     sx: {
                         backgroundColor: (theme) =>
-                            theme.palette.background.overPaper,
+                            theme.colors.background.overPaper,
                     },
                 }}
                 ariaControls={`email-share-${sharee.email}`}

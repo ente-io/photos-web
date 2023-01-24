@@ -29,8 +29,8 @@ function CurrentPlanTileButton() {
             disabled={true}
             sx={(theme) => ({
                 '&&': {
-                    color: theme.palette.accent.main,
-                    borderColor: theme.palette.accent.main,
+                    color: theme.colors.accent.main,
+                    borderColor: theme.colors.accent.main,
                 },
             })}
             fullWidth
@@ -49,7 +49,7 @@ function NormalPlanTileButton({ onClick }) {
         <Button
             color="accent"
             sx={(theme) => ({
-                border: `1px solid ${theme.palette.accent.main}`,
+                border: `1px solid ${theme.colors.accent.main}`,
             })}
             fullWidth
             onClick={onClick}

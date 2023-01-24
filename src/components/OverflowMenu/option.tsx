@@ -32,7 +32,7 @@ export function OverflowMenuOption({
             onClick={handleClick}
             sx={{
                 width: 180,
-                color: (theme) => theme.palette[color].main,
+                color: (theme) => theme.colors[color].main,
                 padding: 1.5,
                 '& .MuiSvgIcon-root': {
                     fontSize: '20px',

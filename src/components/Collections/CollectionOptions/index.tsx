@@ -245,7 +245,7 @@ const CollectionOptions = (props: CollectionOptionsProps) => {
                     triggerButtonIcon={<MoreHoriz />}
                     triggerButtonProps={{
                         sx: {
-                            background: (theme) => theme.palette.fill.dark,
+                            background: (theme) => theme.colors.fill.dark,
                         },
                     }}>
                     {collectionSummaryType === CollectionSummaryType.trash ? (

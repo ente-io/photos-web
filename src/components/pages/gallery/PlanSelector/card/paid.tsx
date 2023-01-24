@@ -50,7 +50,7 @@ export default function PaidSubscriptionPlanSelectorCard({
             <Box>
                 <Stack
                     spacing={3}
-                    border={(theme) => `1px solid ${theme.palette.divider}`}
+                    border={(theme) => `1px solid ${theme.colors.divider}`}
                     p={1.5}
                     borderRadius={(theme) => `${theme.shape.borderRadius}px`}>
                     <Box>

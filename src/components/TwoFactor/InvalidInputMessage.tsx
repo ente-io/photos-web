@@ -7,7 +7,7 @@ const InvalidInputMessage: FC<TypographyProps> = (props) => {
         <Typography
             variant="caption"
             sx={{
-                color: (theme) => theme.palette.danger.main,
+                color: (theme) => theme.colors.danger.main,
             }}
             {...props}>
             {props.children}

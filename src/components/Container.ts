@@ -29,7 +29,7 @@ export const Row = styled('div')`
 
 export const Label = styled('div')<{ width?: string }>`
     width: ${(props) => props.width ?? '70%'};
-    color: ${(props) => props.theme.palette.text.secondary};
+    color: ${(props) => props.theme.colors.text.secondary};
 `;
 export const Value = styled('div')<{ width?: string }>`
     display: flex;
@@ -71,7 +71,7 @@ export const Overlay = styled(Box)`
 `;
 
 export const IconButtonWithBG = styled(IconButton)(({ theme }) => ({
-    backgroundColor: theme.palette.fill.dark,
+    backgroundColor: theme.colors.fill.dark,
 }));
 
 export const HorizontalFlex = styled(Box)({
