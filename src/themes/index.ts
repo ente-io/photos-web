@@ -5,7 +5,7 @@ import darkThemePalette from './darkThemeOptions';
 import lightThemeOptions from './lightThemeOptions';
 import { typography } from './typography';
 
-export const getPlalette = (themeColor: THEME_COLOR): PaletteOptions => {
+export const getPallette = (themeColor: THEME_COLOR): PaletteOptions => {
     switch (themeColor) {
         case THEME_COLOR.DARK:
             return darkThemePalette;
@@ -17,7 +17,7 @@ export const getPlalette = (themeColor: THEME_COLOR): PaletteOptions => {
 };
 
 export const getTheme = (themeColor: THEME_COLOR) => {
-    const palette = getPlalette(themeColor);
+    const palette = getPallette(themeColor);
     const theme = createTheme({
         palette,
         components,
