@@ -2,10 +2,10 @@ import { PaletteMode } from '@mui/material';
 
 declare module '@mui/material/styles' {
     interface Theme {
-        entePalette: EntePalette;
+        colors: ColorPalette;
     }
     interface ThemeOptions {
-        entePalette?: EntePaletteOptions;
+        colors?: ColorPalette;
     }
     interface TypographyVariants {
         title: React.CSSProperties;
@@ -67,7 +67,7 @@ declare module '@mui/material/CircularProgress' {
 // =================================================
 
 declare module '@mui/material/styles' {
-    interface EntePalette extends EnteBasePalette {
+    interface ColorPalette extends BaseColorPalette {
         mode: PaletteMode;
         background: Background;
         backdrop: Strength;
@@ -77,32 +77,13 @@ declare module '@mui/material/styles' {
         shadows: Shadows;
     }
 
-    interface EntePaletteOptions extends EnteBasePaletteOptions {
-        mode?: Partial<PaletteMode>;
-        background?: Partial<Background>;
-        backdrop?: Partial<Strength>;
-        text?: Partial<Strength>;
-        fill?: Partial<FillStrength>;
-        stroke?: Partial<StrokeStrength>;
-        shadows?: ShadowsOptions;
-    }
-
-    interface EnteBasePalette {
-        primary: EnteColorPartial;
-        warning: EnteColorPartial;
-        caution: EnteColorPartial;
+    interface BaseColorPalette {
+        primary: PrimaryColor;
+        warning: WarningColor;
+        caution: CautionColor;
         blur: BlurStrength;
-        white: Strength;
+        white: Omit<Strength, 'faint'>;
         black: string;
-    }
-
-    interface EnteBasePaletteOptions {
-        primary?: Partial<EnteColorPartial>;
-        warning?: Partial<EnteColorPartial>;
-        caution?: Partial<EnteColorPartial>;
-        blur?: Partial<BlurStrength>;
-        white?: Partial<Strength>;
-        black?: string;
     }
 
     interface Background {
@@ -135,15 +116,9 @@ declare module '@mui/material/styles' {
     }
 
     interface Shadows {
-        float: Shadow;
-        menu: Shadow;
-        Button: Shadow;
-    }
-
-    interface ShadowsOptions {
-        float?: Array<Partial<Shadow>>;
-        menu?: Array<Partial<Shadow>>;
-        button?: Array<Partial<Shadow>>;
+        float: Shadow[];
+        menu: Shadow[];
+        button: Shadow[];
     }
 
     interface Shadow {
@@ -152,12 +127,22 @@ declare module '@mui/material/styles' {
         color: string;
     }
 
-    interface EnteColorPartial {
-        800: string;
+    interface PrimaryColor {
         700: string;
         500: string;
         400: string;
         300: string;
+    }
+
+    interface WarningColor {
+        800: string;
+        700: string;
+        500: string;
+        400: string;
+    }
+
+    interface CautionColor {
+        500: string;
     }
 
     interface BlurStrength {

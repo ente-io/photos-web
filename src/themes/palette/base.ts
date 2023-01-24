@@ -1,7 +1,7 @@
-import { EnteBasePaletteOptions } from '@mui/material/styles';
+import { BaseColorPalette } from '@mui/material/styles';
 
 // Create a theme instance.
-const basePalette: EnteBasePaletteOptions = {
+const baseColorPalette: BaseColorPalette = {
     primary: {
         700: '#00B33C',
         500: '#1DB954',
@@ -27,4 +27,4 @@ const basePalette: EnteBasePaletteOptions = {
     black: '#000',
 };
 
-export default basePalette;
+export default baseColorPalette;

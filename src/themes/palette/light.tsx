@@ -1,7 +1,6 @@
-import { EntePaletteOptions } from '@mui/material/styles';
+import { ColorPalette, BaseColorPalette } from '@mui/material';
 
-// Create a theme instance.
-const lightThemePalette: EntePaletteOptions = {
+const lightThemePalette: Omit<ColorPalette, keyof BaseColorPalette> = {
     mode: 'light',
     background: {
         base: '#fff',
