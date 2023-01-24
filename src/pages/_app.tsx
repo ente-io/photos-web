@@ -15,8 +15,6 @@ import Head from 'next/head';
 import LoadingBar from 'react-top-loading-bar';
 import DialogBox from 'components/DialogBox';
 import { styled, ThemeProvider } from '@mui/material/styles';
-import darkThemeOptions from 'themes/darkThemeOptions';
-import lightThemeOptions from 'themes/lightThemeOptions';
 import { CssBaseline, useMediaQuery } from '@mui/material';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import * as types from 'styled-components/cssprop'; // need to css prop on styled component
@@ -48,6 +46,7 @@ import { User } from 'types/user';
 import { SetTheme } from 'types/theme';
 import { useLocalState } from 'hooks/useLocalState';
 import { THEME_COLOR } from 'constants/theme';
+import { getTheme } from 'themes';
 
 export const MessageContainer = styled('div')`
     background-color: #111;
@@ -273,12 +272,7 @@ export default function App({ Component, err }) {
                 />
             </Head>
 
-            <ThemeProvider
-                theme={
-                    theme === THEME_COLOR.DARK
-                        ? darkThemeOptions
-                        : lightThemeOptions
-                }>
+            <ThemeProvider theme={getTheme(theme)}>
                 <CssBaseline enableColorScheme />
                 {showNavbar && <AppNavbar />}
                 <MessageContainer>
