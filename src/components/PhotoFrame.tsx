@@ -328,12 +328,10 @@ const PhotoFrame = ({
 
             if (file.metadata.fileType === FILE_TYPE.VIDEO && !file.html) {
                 file.html = `
-                <div class="pswp-item-container">
-                    <img src="${url}" onContextMenu="return false;"/>
-                    <div class="spinner-border text-light" role="status">
-                        <span class="sr-only">Loading...</span>
-                    </div>
-                </div>
+                <video controls autoplay onContextMenu="return false;" poster="${file.msrc}">
+                    <source src="" />
+                    Your browser does not support the video tag.
+                </video>
             `;
             } else if (
                 file.metadata.fileType === FILE_TYPE.LIVE_PHOTO &&
@@ -377,7 +375,7 @@ const PhotoFrame = ({
             if (file.metadata.fileType === FILE_TYPE.VIDEO) {
                 if (isPlayable) {
                     file.html = `
-            <video controls autoplay onContextMenu="return false;">
+            <video controls autoplay onContextMenu="return false;" poster="${file.msrc}">
                 <source src="${convertedVideoURL}" />
                 Your browser does not support the video tag.
             </video>
