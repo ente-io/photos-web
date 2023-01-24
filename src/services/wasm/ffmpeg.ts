@@ -97,10 +97,15 @@ export class WasmFFmpeg {
         }
     }
 
-    async liveTranscodeVideo(
+    liveTranscodeVideo(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         inputFile: File
-    ): Promise<ReadableStream<Uint8Array>> {
+    ): {
+        stream: ReadableStream<Uint8Array>;
+        durationRef: {
+            duration: number;
+        };
+    } {
         throw new Error('Not Supported');
     }
 }

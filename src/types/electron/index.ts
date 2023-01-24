@@ -92,7 +92,10 @@ export interface ElectronAPIs {
         maxSize: number
     ) => Promise<Uint8Array>;
     logRendererProcessMemoryUsage: (message: string) => Promise<void>;
-    liveTranscodeVideo: (
-        inputFileStream: ReadableStream<Uint8Array>
-    ) => Promise<ReadableStream<Uint8Array>>;
+    liveTranscodeVideo(inputFileStream: ReadableStream<Uint8Array>): {
+        stream: ReadableStream<Uint8Array>;
+        durationRef: {
+            duration: number;
+        };
+    };
 }

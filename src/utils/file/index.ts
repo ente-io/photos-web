@@ -381,7 +381,10 @@ async function getRenderableImage(fileName: string, imageBlob: Blob) {
     }
 }
 
-async function getStreamableVideo(fileStream: ReadableStream<Uint8Array>) {
+async function getStreamableVideo(transcodedVideo: {
+    stream: ReadableStream<Uint8Array>;
+    durationRef: { duration: number };
+}) {
     try {
         const source = new MediaSource();
         console.log('source', source);
@@ -392,10 +395,17 @@ async function getStreamableVideo(fileStream: ReadableStream<Uint8Array>) {
                 );
                 console.log('sourceBuffer', sourceBuffer);
 
-                const reader = fileStream.getReader();
+                const reader = transcodedVideo.stream.getReader();
 
                 let chunk = await reader.read();
                 while (!chunk.done) {
+                    console.log(
+                        'got chunk',
+                        convertBytesToHumanReadable(chunk.value.length),
+                        'duration',
+                        transcodedVideo.durationRef.duration
+                    );
+                    source.duration = transcodedVideo.durationRef.duration;
                     console.log(
                         'got chunk',
                         chunk.done,
