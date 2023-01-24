@@ -30,8 +30,8 @@ const SubmitButton: FC<ButtonProps<'button', SubmitButtonProps>> = ({
                     ? {
                           '&.Mui-disabled': {
                               backgroundColor: (theme) =>
-                                  theme.colors.accent.main,
-                              color: (theme) => theme.colors.text.primary,
+                                  theme.colors.primary[500],
+                              color: (theme) => theme.colors.white.base,
                           },
                       }
                     : {}),

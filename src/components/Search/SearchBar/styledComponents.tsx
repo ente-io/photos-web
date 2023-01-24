@@ -21,7 +21,7 @@ export const SearchMobileBox = styled(FluidContainer)`
 `;
 
 export const SearchInputWrapper = styled(CenteredFlex)<{ isOpen: boolean }>`
-    background: ${({ theme }) => theme.colors.background.default};
+    background: ${({ theme }) => theme.colors.fill.faint};
     max-width: 484px;
     margin: auto;
     ${(props) =>

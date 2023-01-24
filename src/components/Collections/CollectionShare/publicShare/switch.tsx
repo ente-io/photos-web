@@ -19,8 +19,7 @@ const PublicShareSwitch = styled((props: SwitchProps) => (
             transform: 'translateX(16px)',
             color: '#fff',
             '& + .MuiSwitch-track': {
-                backgroundColor:
-                    theme.colors.mode === 'dark' ? '#2ECA45' : '#65C466',
+                backgroundColor: theme.colors.primary[400],
                 opacity: 1,
                 border: 0,
             },
@@ -33,13 +32,10 @@ const PublicShareSwitch = styled((props: SwitchProps) => (
             border: '6px solid #fff',
         },
         '&.Mui-disabled .MuiSwitch-thumb': {
-            color:
-                theme.colors.mode === 'light'
-                    ? theme.colors.grey[100]
-                    : theme.colors.grey[600],
+            color: theme.colors.stroke.base,
         },
         '&.Mui-disabled + .MuiSwitch-track': {
-            opacity: theme.colors.mode === 'light' ? 0.7 : 0.3,
+            opacity: theme.palette.mode === 'light' ? 0.7 : 0.3,
         },
     },
     '& .MuiSwitch-thumb': {
@@ -49,7 +45,7 @@ const PublicShareSwitch = styled((props: SwitchProps) => (
     },
     '& .MuiSwitch-track': {
         borderRadius: 22 / 2,
-        backgroundColor: theme.colors.mode === 'light' ? '#E9E9EA' : '#39393D',
+        backgroundColor: theme.palette.mode === 'light' ? '#E9E9EA' : '#39393D',
         opacity: 1,
         transition: theme.transitions.create(['background-color'], {
             duration: 500,

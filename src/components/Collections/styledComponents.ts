@@ -12,7 +12,7 @@ export const CollectionListWrapper = styled(Box)`
 export const CollectionListBarWrapper = styled(Box)`
     ${SpecialPadding}
     margin-bottom: 16px;
-    border-bottom: 1px solid ${({ theme }) => theme.colors.divider};
+    border-bottom: 1px solid ${({ theme }) => theme.colors.stroke.faint};
 `;
 
 export const CollectionInfoBarWrapper = styled(Box)`
@@ -46,7 +46,7 @@ export const CollectionTile = styled('div')`
 
 export const ActiveIndicator = styled('div')`
     height: 3px;
-    background-color: ${({ theme }) => theme.colors.primary.main};
+    background-color: ${({ theme }) => theme.colors.stroke.base};
     margin-top: 18px;
     border-radius: 2px;
 `;

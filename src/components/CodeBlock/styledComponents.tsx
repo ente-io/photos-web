@@ -3,7 +3,7 @@ import { CenteredFlex } from 'components/Container';
 import { styled } from '@mui/material';
 export const Wrapper = styled(CenteredFlex)`
     position: relative;
-    background: ${({ theme }) => theme.colors.accent.dark};
+    background: ${({ theme }) => theme.colors.primary[500]};
     border-radius: ${({ theme }) => theme.shape.borderRadius}px;
     min-height: 80px;
 `;

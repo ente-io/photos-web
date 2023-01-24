@@ -14,8 +14,8 @@ const Wrapper = styled('button')<{ direction: SCROLL_DIRECTION }>`
     margin: 0;
 
     border-radius: 50%;
-    background-color: ${({ theme }) => theme.colors.background.paper};
-    color: ${({ theme }) => theme.colors.primary.main};
+    background-color: ${({ theme }) => theme.colors.backdrop.muted};
+    color: ${({ theme }) => theme.colors.text.base};
 
     ${(props) =>
         props.direction === SCROLL_DIRECTION.LEFT

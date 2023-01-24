@@ -54,7 +54,7 @@ const CaptionContainer = styled('div')(({ theme }) => ({
     maxWidth: '375px',
     fontSize: '14px',
     lineHeight: '17px',
-    backgroundColor: theme.colors.backdrop.light,
+    backgroundColor: theme.colors.backdrop.faint,
     backdropFilter: `blur(${theme.colors.blur.base})`,
 }));
 interface Iprops {

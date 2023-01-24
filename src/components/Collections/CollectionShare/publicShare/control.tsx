@@ -90,7 +90,7 @@ export default function PublicShareControl({
                 <Typography
                     variant="body2"
                     sx={{
-                        color: (theme) => theme.colors.danger.main,
+                        color: (theme) => theme.colors.warning[700],
                         mt: 0.5,
                     }}>
                     {sharableLinkError}
