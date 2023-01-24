@@ -27,7 +27,7 @@ const ShareeRow = ({ sharee, collectionUnshare }: IProps) => {
                 ariaControls={`email-share-${sharee.email}`}
                 triggerButtonIcon={<MoreHorizIcon />}>
                 <OverflowMenuOption
-                    color="danger"
+                    color="warning"
                     onClick={handleClick}
                     startIcon={<NotInterestedIcon />}>
                     {constants.REMOVE}
