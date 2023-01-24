@@ -405,7 +405,6 @@ async function getStreamableVideo(transcodedVideo: {
                         'duration',
                         transcodedVideo.durationRef.duration
                     );
-                    source.duration = transcodedVideo.durationRef.duration;
                     console.log(
                         'got chunk',
                         chunk.done,
@@ -419,8 +418,30 @@ async function getStreamableVideo(transcodedVideo: {
                                 setTimeout(resolve, 100)
                             );
                         }
-                        console.log('appending chunk');
-                        sourceBuffer.appendBuffer(chunk.value);
+                        source.duration = transcodedVideo.durationRef.duration;
+
+                        // detect if the buffer is full
+
+                        const appendWasSuccessful = () => {
+                            try {
+                                sourceBuffer.appendBuffer(chunk.value);
+                                return true;
+                            } catch (e) {
+                                console.log(e);
+                                return false;
+                            }
+                        };
+                        while (!appendWasSuccessful()) {
+                            // compute the time of video that is buffered
+                            const bufferedTime =
+                                sourceBuffer.buffered.end(
+                                    sourceBuffer.buffered.length - 1
+                                ) - sourceBuffer.buffered.start(0);
+                            console.log('bufferedTime', bufferedTime);
+                            await new Promise((resolve) =>
+                                setTimeout(resolve, (bufferedTime - 1) * 1000)
+                            );
+                        }
                     }
                     chunk = await reader.read();
                 }
