@@ -5,12 +5,12 @@ declare module '@mui/material/styles' {
         overPaper?: string;
     }
 
-    interface BlurStrength {
+    interface Strength {
         base: string;
         muted: string;
         faint: string;
     }
-    interface BlurStrengthOptions {
+    interface StrengthOptions {
         base?: string;
         muted?: string;
         faint?: string;
@@ -25,7 +25,7 @@ declare module '@mui/material/styles' {
         accent: PaletteColor;
         fill: PaletteColor;
         backdrop: PaletteColor;
-        blur: BlurStrength;
+        blur: Strength;
         danger: PaletteColor;
         stroke: TypeText;
         fixed: FixedColor;
@@ -35,7 +35,7 @@ declare module '@mui/material/styles' {
         danger?: PaletteColorOptions;
         fill?: PaletteColorOptions;
         backdrop?: PaletteColorOptions;
-        blur?: BlurStrengthOptions;
+        blur?: StrengthOptions;
         stroke?: Partial<TypeText>;
         fixed?: Partial<FixedColor>;
     }
