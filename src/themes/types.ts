@@ -1,4 +1,4 @@
-import { PaletteColor, TypeText, PaletteColorOptions } from '@mui/material';
+import { PaletteColor, TypeText } from '@mui/material';
 
 declare module '@mui/material/styles' {
     interface TypeBackground {
@@ -10,18 +10,20 @@ declare module '@mui/material/styles' {
         muted: string;
         faint: string;
     }
-    interface StrengthOptions {
-        base?: string;
-        muted?: string;
-        faint?: string;
-    }
 
     interface FixedColor {
         white: string;
         black: string;
         strokeMutedWhite: string;
     }
-    interface Palette {
+    interface Theme {
+        entePalette: EntePalette;
+    }
+    interface ThemeOptions {
+        entePalette?: EntePaletteOptions;
+    }
+    interface EntePalette {
+        text: Strength;
         accent: PaletteColor;
         fill: PaletteColor;
         backdrop: PaletteColor;
@@ -30,12 +32,14 @@ declare module '@mui/material/styles' {
         stroke: TypeText;
         fixed: FixedColor;
     }
-    interface PaletteOptions {
-        accent?: PaletteColorOptions;
-        danger?: PaletteColorOptions;
-        fill?: PaletteColorOptions;
-        backdrop?: PaletteColorOptions;
-        blur?: StrengthOptions;
+
+    interface EntePaletteOptions {
+        text?: Partial<Strength>;
+        accent?: Partial<PaletteColor>;
+        fill?: Partial<PaletteColor>;
+        backdrop?: Partial<PaletteColor>;
+        blur?: Partial<Strength>;
+        danger?: Partial<PaletteColor>;
         stroke?: Partial<TypeText>;
         fixed?: Partial<FixedColor>;
     }
