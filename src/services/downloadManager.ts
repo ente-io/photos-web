@@ -32,15 +32,15 @@ class DownloadManager {
 
     public async getThumbnail(file: EnteFile) {
         try {
-            addLogLine(`[${file.id}] [DownloadManager] getThumbnail called`);
+            // addLogLine(`[${file.id}] [DownloadManager] getThumbnail called`);
             const token = getToken();
             if (!token) {
                 return null;
             }
             if (this.thumbnailObjectURLPromise.has(file.id)) {
-                addLogLine(
-                    `[${file.id}] [DownloadManager] getThumbnail promise cache hit, returning existing promise`
-                );
+                // addLogLine(
+                //     `[${file.id}] [DownloadManager] getThumbnail promise cache hit, returning existing promise`
+                // );
             }
             if (!this.thumbnailObjectURLPromise.has(file.id)) {
                 const downloadPromise = async () => {
@@ -50,14 +50,14 @@ class DownloadManager {
                         file.id.toString()
                     );
                     if (cacheResp) {
-                        addLogLine(
-                            `[${file.id}] [DownloadManager] in memory cache hit, using localCache files`
-                        );
+                        // addLogLine(
+                        //     `[${file.id}] [DownloadManager] in memory cache hit, using localCache files`
+                        // );
                         return URL.createObjectURL(await cacheResp.blob());
                     }
-                    addLogLine(
-                        `[${file.id}] [DownloadManager] in memory cache miss, DownloadManager getThumbnail download started`
-                    );
+                    // addLogLine(
+                    //     `[${file.id}] [DownloadManager] in memory cache miss, DownloadManager getThumbnail download started`
+                    // );
                     const thumb =
                         await this.thumbnailDownloadRequestsProcessor.queueUpRequest(
                             () => this.downloadThumb(token, file)
