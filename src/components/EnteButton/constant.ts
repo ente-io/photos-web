@@ -1,162 +1,170 @@
-import { ButtonProps } from '@mui/material';
+import { Theme } from '@mui/material';
+import { SxProps, SystemStyleObject } from '@mui/system';
 import { EnteButtonProps } from '.';
 
 type ButtonVariantsProps = {
     [key in EnteButtonProps['type']]:
         | Partial<
               {
-                  [key in EnteButtonProps['state']]: ButtonProps['sx'];
+                  [key in EnteButtonProps['state']]: SystemStyleObject<Theme>;
               }
           >
-        | Partial<{ default: ButtonProps['sx'] }>;
+        | Partial<{ default: SystemStyleObject<Theme> }>;
 };
 
 type ButtonVariantsPropsOverrides = Partial<
     {
         [key in EnteButtonProps['type'] | 'common']: Partial<
             {
-                [key in EnteButtonProps['state'] | 'common']: ButtonProps['sx'];
+                [key in
+                    | EnteButtonProps['state']
+                    | 'common']: SystemStyleObject<Theme>;
             }
         >;
     }
 >;
 
-export const BUTTON_VARIANT_SX_PROPS: ButtonVariantsProps = {
-    primary: {
-        default: {
-            color: 'fixed.white.base',
-            backgroundColor: 'primary.500',
+const BUTTON_VARIANT_SX_PROPS = ({ colors }: Theme): ButtonVariantsProps => {
+    return {
+        primary: {
+            default: {
+                color: colors.white.base,
+                backgroundColor: colors.primary[500],
+            },
+            hover: {
+                backgroundColor: colors.primary[700],
+                borderColor: colors.primary[500],
+            },
+            pressed: {
+                backgroundColor: colors.primary[700],
+            },
+            disabled: {
+                backgroundColor: colors.fill.muted,
+                color: colors.text.faint,
+            },
         },
-        hover: {
-            backgroundColor: 'primary.700',
-            borderColor: 'primary.500',
+        secondary: {
+            default: {
+                backgroundColor: colors.fill.faint,
+                color: colors.text.base,
+            },
+            hover: {
+                backgroundColor: colors.fill.faintPressed,
+                borderColor: colors.stroke.fainter,
+            },
+            pressed: {
+                backgroundColor: colors.fill.faintPressed,
+            },
+            disabled: {
+                backgroundColor: colors.fill.faint,
+                color: colors.text.faint,
+            },
         },
-        pressed: {
-            backgroundColor: 'primary.700',
+        neutral: {
+            default: {
+                backgroundColor: colors.fill.base,
+                color: colors.text.base,
+            },
+            hover: {
+                backgroundColor: colors.fill.basePressed,
+                borderColor: colors.stroke.base,
+            },
+            pressed: {
+                backgroundColor: colors.fill.basePressed,
+            },
+            disabled: {
+                backgroundColor: colors.fill.muted,
+                color: colors.text.faint,
+            },
         },
-        disabled: {
-            backgroundColor: 'fill.muted',
-            color: 'text.faint',
+        tertiary: {
+            default: {
+                backgroundColor: 'transparent',
+                color: colors.text.base,
+            },
+            hover: {
+                color: colors.fill.basePressed,
+            },
+            pressed: {
+                color: colors.fill.basePressed,
+            },
+            disabled: {
+                color: colors.text.faint,
+            },
         },
-    },
-    secondary: {
-        default: {
-            backgroundColor: 'fill.faint',
-            color: 'text.base',
+        critical: {
+            default: {
+                backgroundColor: colors.warning[700],
+                color: colors.white.base,
+            },
+            hover: {
+                backgroundColor: colors.warning[800],
+                borderColor: colors.warning[500],
+            },
+            pressed: {
+                backgroundColor: colors.warning[800],
+            },
+            disabled: {
+                backgroundColor: colors.fill.muted,
+                color: colors.text.faint,
+            },
         },
-        hover: {
-            backgroundColor: 'fill.faintPressed',
-            borderColor: 'stroke.fainter',
+        tertiaryCritical: {
+            default: {
+                backgroundColor: 'transparent',
+                color: colors.warning[500],
+            },
+            hover: {
+                color: colors.warning[700],
+            },
+            pressed: {
+                color: colors.warning[700],
+            },
+            disabled: {
+                color: colors.text.faint,
+            },
         },
-        pressed: {
-            backgroundColor: 'fill.faintPressed',
-        },
-        disabled: {
-            backgroundColor: 'fill.faint',
-            color: 'text.faint',
-        },
-    },
-    neutral: {
-        default: {
-            backgroundColor: 'fill.base',
-            color: 'text.base',
-        },
-        hover: {
-            backgroundColor: 'fill.basePressed',
-            borderColor: 'stroke.base',
-        },
-        pressed: {
-            backgroundColor: 'fill.basePressed',
-        },
-        disabled: {
-            backgroundColor: 'fill.muted',
-            color: 'text.faint',
-        },
-    },
-    tertiary: {
-        default: {
-            backgroundColor: 'transparent',
-            color: 'text.base',
-        },
-        hover: {
-            color: 'text.basedPressed',
-        },
-        pressed: {
-            color: 'text.basedPressed',
-        },
-        disabled: {
-            color: 'text.faint',
-        },
-    },
-    critical: {
-        default: {
-            backgroundColor: 'warning.700',
-            color: 'fixed.white.base',
-        },
-        hover: {
-            backgroundColor: 'warning.800',
-            borderColor: 'warning.500',
-        },
-        pressed: {
-            backgroundColor: 'warning.800',
-        },
-        disabled: {
-            backgroundColor: 'fill.muted',
-            color: 'text.faint',
-        },
-    },
-    tertiaryCritical: {
-        default: {
-            backgroundColor: 'transparent',
-            color: 'warning.500',
-        },
-        hover: {
-            color: 'warning.700',
-        },
-        pressed: {
-            color: 'warning.700',
-        },
-        disabled: {
-            color: 'text.faint',
-        },
-    },
+    };
 };
 
-export const LARGE_BUTTON_VARIANT_SX_PROPS_OVERRIDES: ButtonVariantsPropsOverrides =
-    {
+const LARGE_BUTTON_VARIANT_SX_PROPS_OVERRIDES = ({
+    colors,
+}: Theme): ButtonVariantsPropsOverrides => {
+    return {
         primary: {
             disabled: {
-                backgroundColor: 'fill.faint',
-                color: 'text.faint',
+                backgroundColor: colors.fill.faint,
+                color: colors.text.faint,
             },
         },
         neutral: {
             disabled: {
-                backgroundColor: 'fill.faint',
-                color: 'text.faint',
+                backgroundColor: colors.fill.faint,
+                color: colors.text.faint,
             },
         },
         critical: {
             disabled: {
-                backgroundColor: 'fill.faint',
-                color: 'text.faint',
+                backgroundColor: colors.fill.faint,
+                color: colors.text.faint,
             },
         },
         tertiaryCritical: {
             common: {
-                borderColor: 'warning.500',
+                borderColor: colors.warning[500],
             },
             pressed: {
-                borderColor: 'warning.700',
+                borderColor: colors.warning[700],
             },
             disabled: {
-                borderColor: 'stroke.muted',
-                color: 'text.faint',
+                borderColor: colors.stroke.muted,
+                color: colors.text.faint,
             },
         },
     };
+};
 
-export const TRAILING_ICON_BUTTON_VARIANT_SX_PROPS_OVERRIDES: ButtonVariantsPropsOverrides =
+const TRAILING_ICON_BUTTON_VARIANT_SX_PROPS_OVERRIDES: ButtonVariantsPropsOverrides =
     {
         common: {
             default: {
@@ -164,4 +172,40 @@ export const TRAILING_ICON_BUTTON_VARIANT_SX_PROPS_OVERRIDES: ButtonVariantsProp
                 justifyContent: 'space-between',
             },
         },
+    };
+
+export const getButtonSxProps =
+    (
+        options: Partial<{
+            type: EnteButtonProps['type'];
+            state: EnteButtonProps['state'];
+            size: EnteButtonProps['size'];
+            trailingIcon: EnteButtonProps['trailingIcon'];
+        }>
+    ): SxProps<Theme> =>
+    (theme) => {
+        const {
+            type = 'primary',
+            state = 'default',
+            size = 'medium',
+            trailingIcon = false,
+        } = options;
+        const baseProps = BUTTON_VARIANT_SX_PROPS(theme);
+        const largeButtonProps = LARGE_BUTTON_VARIANT_SX_PROPS_OVERRIDES(theme);
+        const buttonVariantSxProps = {
+            ...baseProps[type][state],
+            ...baseProps[type].default,
+            ...baseProps,
+            ...(size === 'large'
+                ? {
+                      ...largeButtonProps[type][state],
+                      ...largeButtonProps[type].default,
+                      ...largeButtonProps.common,
+                  }
+                : undefined),
+            ...(trailingIcon
+                ? TRAILING_ICON_BUTTON_VARIANT_SX_PROPS_OVERRIDES.common.default
+                : undefined),
+        };
+        return buttonVariantSxProps;
     };

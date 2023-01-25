@@ -1,11 +1,15 @@
-import { MenuItem, ButtonProps, Typography, Box } from '@mui/material';
+import { MenuItem, Typography, Box } from '@mui/material';
 import { FluidContainer } from 'components/Container';
 import { OverflowMenuContext } from 'contexts/overflowMenu';
 import React, { useContext } from 'react';
+import {
+    getOverflowMenuOptionSxProps,
+    OverflowMenuOptionProps,
+} from './constants';
 
 interface Iprops {
     onClick: () => void;
-    color?: ButtonProps['color'];
+    type?: OverflowMenuOptionProps['type'];
     startIcon?: React.ReactNode;
     endIcon?: React.ReactNode;
     keepOpenAfterClick?: boolean;
@@ -13,7 +17,7 @@ interface Iprops {
 }
 export function OverflowMenuOption({
     onClick,
-    color = 'primary',
+    type = 'primary',
     startIcon,
     endIcon,
     keepOpenAfterClick,
@@ -27,17 +31,11 @@ export function OverflowMenuOption({
             menuContext.close();
         }
     };
+
+    const sxProps = getOverflowMenuOptionSxProps({ type });
+
     return (
-        <MenuItem
-            onClick={handleClick}
-            sx={{
-                width: 180,
-                color: (theme) => theme.colors[color].main,
-                padding: 1.5,
-                '& .MuiSvgIcon-root': {
-                    fontSize: '20px',
-                },
-            }}>
+        <MenuItem onClick={handleClick} sx={sxProps}>
             <FluidContainer>
                 {startIcon && (
                     <Box
