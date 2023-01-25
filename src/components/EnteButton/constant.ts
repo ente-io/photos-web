@@ -3,7 +3,7 @@ import { SxProps, SystemStyleObject } from '@mui/system';
 import { EnteButtonProps } from '.';
 
 type ButtonVariantsProps = {
-    [key in EnteButtonProps['type']]:
+    [key in EnteButtonProps['variant']]:
         | Partial<
               {
                   [key in EnteButtonProps['state']]: SystemStyleObject<Theme>;
@@ -14,7 +14,7 @@ type ButtonVariantsProps = {
 
 type ButtonVariantsPropsOverrides = Partial<
     {
-        [key in EnteButtonProps['type'] | 'common']: Partial<
+        [key in EnteButtonProps['variant'] | 'common']: Partial<
             {
                 [key in
                     | EnteButtonProps['state']
@@ -176,23 +176,23 @@ const TRAILING_ICON_BUTTON_VARIANT_SX_PROPS_OVERRIDES: ButtonVariantsPropsOverri
 
 export const getButtonSxProps =
     (options: {
-        type: EnteButtonProps['type'];
+        variant: EnteButtonProps['variant'];
         state: EnteButtonProps['state'];
         size: EnteButtonProps['size'];
         trailingIcon: EnteButtonProps['trailingIcon'];
     }): SxProps<Theme> =>
     (theme) => {
-        const { type, state, size, trailingIcon } = options;
+        const { variant, state, size, trailingIcon } = options;
         const baseProps = BUTTON_VARIANT_SX_PROPS(theme);
         const largeButtonProps = LARGE_BUTTON_VARIANT_SX_PROPS_OVERRIDES(theme);
         const buttonVariantSxProps = {
-            ...baseProps[type][state],
-            ...baseProps[type].default,
+            ...baseProps[variant][state],
+            ...baseProps[variant].default,
             ...baseProps,
             ...(size === 'large'
                 ? {
-                      ...largeButtonProps[type][state],
-                      ...largeButtonProps[type].default,
+                      ...largeButtonProps[variant][state],
+                      ...largeButtonProps[variant].default,
                       ...largeButtonProps.common,
                   }
                 : undefined),
