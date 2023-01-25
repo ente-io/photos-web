@@ -21,7 +21,7 @@ export default function MappingEntryOptions({ confirmStopWatching }: Iprops) {
             ariaControls={'watch-mapping-option'}
             triggerButtonIcon={<MoreHorizIcon />}>
             <OverflowMenuOption
-                color="warning"
+                type="critical"
                 onClick={confirmStopWatching}
                 startIcon={<DoNotDisturbOutlinedIcon />}>
                 {constants.STOP_WATCHING}
