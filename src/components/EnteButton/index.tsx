@@ -2,8 +2,14 @@ import Button, { ButtonProps } from '@mui/material/Button';
 import { getButtonSxProps } from './constant';
 
 export interface EnteButtonProps extends Omit<ButtonProps, 'type' | 'size'> {
-    state: 'default' | 'hover' | 'pressed' | 'disabled' | 'loading' | 'success';
-    type:
+    state?:
+        | 'default'
+        | 'hover'
+        | 'pressed'
+        | 'disabled'
+        | 'loading'
+        | 'success';
+    type?:
         | 'primary'
         | 'secondary'
         | 'neutral'
@@ -11,12 +17,18 @@ export interface EnteButtonProps extends Omit<ButtonProps, 'type' | 'size'> {
         | 'critical'
         | 'tertiaryCritical';
 
-    size: 'small' | 'large';
+    size?: 'small' | 'large';
     trailingIcon?: boolean;
 }
 
 const EnteButton: React.FC<EnteButtonProps> = (props) => {
-    const { state, type, size, trailingIcon, ...otherProps } = props;
+    const {
+        state = 'default',
+        type = 'primary',
+        size = 'small',
+        trailingIcon = false,
+        ...otherProps
+    } = props;
 
     const buttonVariantSxProps = getButtonSxProps({
         size,

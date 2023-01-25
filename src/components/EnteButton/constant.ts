@@ -175,21 +175,14 @@ const TRAILING_ICON_BUTTON_VARIANT_SX_PROPS_OVERRIDES: ButtonVariantsPropsOverri
     };
 
 export const getButtonSxProps =
-    (
-        options: Partial<{
-            type: EnteButtonProps['type'];
-            state: EnteButtonProps['state'];
-            size: EnteButtonProps['size'];
-            trailingIcon: EnteButtonProps['trailingIcon'];
-        }>
-    ): SxProps<Theme> =>
+    (options: {
+        type: EnteButtonProps['type'];
+        state: EnteButtonProps['state'];
+        size: EnteButtonProps['size'];
+        trailingIcon: EnteButtonProps['trailingIcon'];
+    }): SxProps<Theme> =>
     (theme) => {
-        const {
-            type = 'primary',
-            state = 'default',
-            size = 'medium',
-            trailingIcon = false,
-        } = options;
+        const { type, state, size, trailingIcon } = options;
         const baseProps = BUTTON_VARIANT_SX_PROPS(theme);
         const largeButtonProps = LARGE_BUTTON_VARIANT_SX_PROPS_OVERRIDES(theme);
         const buttonVariantSxProps = {
