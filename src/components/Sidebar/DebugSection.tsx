@@ -63,8 +63,6 @@ export default function DebugSection() {
         }
     };
 
-    const label = { inputProps: { 'aria-label': 'Switch demo' } };
-
     return (
         <>
             <SidebarButton
@@ -95,7 +93,7 @@ export default function DebugSection() {
                 {constants.UI_UPDATES_DURING_UPLOAD}
                 <Switch
                     color="accent"
-                    {...label}
+                    {...{ inputProps: { 'aria-label': 'Switch demo' } }}
                     checked={disableUIUpdatesDuringUpload}
                     onChange={switchDisableUIUpdatesDuringUpload}
                 />
