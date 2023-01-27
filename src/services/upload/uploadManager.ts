@@ -41,6 +41,7 @@ import {
     getPublicCollectionUID,
 } from 'services/publicCollectionService';
 import { getDedicatedCryptoWorker } from 'utils/comlink/ComlinkCryptoWorker';
+import { getData, LS_KEYS } from 'utils/storage/localStorage';
 
 const MAX_CONCURRENT_UPLOADS = 4;
 const FILE_UPLOAD_COMPLETED = 100;
@@ -60,6 +61,7 @@ class UploadManager {
     private uploadInProgress: boolean;
     private publicUploadProps: PublicUploadProps;
     private uploaderName: string;
+    private disableUIUpdateDuringUpload: boolean;
 
     public async init(
         progressUpdater: ProgressUpdater,
@@ -109,6 +111,14 @@ class UploadManager {
         );
     }
 
+    private async updateDisableUIUpdatesDuringUpload() {
+        const disableUIUpdateDuringUploadStatus = getData(
+            LS_KEYS.DISABLE_UI_UPDATES_DURING_UPLOAD
+        );
+        const status = disableUIUpdateDuringUploadStatus?.value ?? false;
+        this.disableUIUpdateDuringUpload = status;
+    }
+
     public async queueFilesForUpload(
         filesWithCollectionToUploadIn: FileWithCollection[],
         collections: Collection[],
@@ -119,7 +129,9 @@ class UploadManager {
                 throw Error("can't run multiple uploads at once");
             }
             this.uploadInProgress = true;
+
             await this.updateExistingFilesAndCollections(collections);
+            await this.updateDisableUIUpdatesDuringUpload();
             this.uploaderName = uploaderName;
             addLogLine(
                 `received ${filesWithCollectionToUploadIn.length} files to upload`
@@ -412,6 +424,9 @@ class UploadManager {
     }
 
     private updateUIFiles(decryptedFile: EnteFile) {
+        if (this.disableUIUpdateDuringUpload) {
+            return;
+        }
         this.existingFiles.push(decryptedFile);
         this.existingFiles = sortFiles(this.existingFiles);
         this.setFiles(preservePhotoswipeProps(this.existingFiles));
