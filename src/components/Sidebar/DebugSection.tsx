@@ -96,7 +96,7 @@ export default function DebugSection() {
                 <Switch
                     color="accent"
                     {...label}
-                    value={disableUIUpdatesDuringUpload}
+                    checked={disableUIUpdatesDuringUpload}
                     onChange={switchDisableUIUpdatesDuringUpload}
                 />
             </SpaceBetweenFlex>
