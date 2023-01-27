@@ -116,6 +116,7 @@ class UploadManager {
             LS_KEYS.DISABLE_UI_UPDATES_DURING_UPLOAD
         );
         const status = disableUIUpdateDuringUploadStatus?.value ?? false;
+        addLogLine('disableUIUpdateDuringUploadStatus: ' + status);
         this.disableUIUpdateDuringUpload = status;
     }
 
