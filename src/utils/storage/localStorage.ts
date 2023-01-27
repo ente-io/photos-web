@@ -21,6 +21,7 @@ export enum LS_KEYS {
     THEME = 'theme',
     WAIT_TIME = 'waitTime',
     API_ENDPOINT = 'apiEndpoint',
+    DISABLE_UI_UPDATES_DURING_UPLOAD = 'disableUIUpdatesDuringUpload',
 }
 
 export const setData = (key: LS_KEYS, value: object) => {

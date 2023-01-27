@@ -894,6 +894,7 @@ const englishConstants = {
     ),
     ADD_X_PHOTOS: (x: number) => `Add ${x} ${x > 1 ? 'photos' : 'photo'}`,
     CHOSE_THEME: 'Choose theme',
+    UI_UPDATES_DURING_UPLOAD: 'Disable UI updates during upload',
 };
 
 export default englishConstants;

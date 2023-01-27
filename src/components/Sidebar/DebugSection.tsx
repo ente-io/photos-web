@@ -13,10 +13,20 @@ import {
     testZipFileReading,
     testZipWithRootFileReadingTest,
 } from '../../../tests/zip-file-reading.test';
+import { useLocalState } from 'hooks/useLocalState';
+import { LS_KEYS } from 'utils/storage/localStorage';
+import Switch from '@mui/material/Switch';
+import { SpaceBetweenFlex } from 'components/Container';
 
 export default function DebugSection() {
     const appContext = useContext(AppContext);
     const [appVersion, setAppVersion] = useState<string>(null);
+    const [disableUIUpdatesDuringUpload, setDisableUIUpdatesDuringUpload] =
+        useLocalState<boolean>(LS_KEYS.DISABLE_UI_UPDATES_DURING_UPLOAD, false);
+
+    const switchDisableUIUpdatesDuringUpload = () => {
+        setDisableUIUpdatesDuringUpload(!disableUIUpdatesDuringUpload);
+    };
 
     useEffect(() => {
         const main = async () => {
@@ -53,6 +63,8 @@ export default function DebugSection() {
         }
     };
 
+    const label = { inputProps: { 'aria-label': 'Switch demo' } };
+
     return (
         <>
             <SidebarButton
@@ -79,6 +91,15 @@ export default function DebugSection() {
                     </SidebarButton>
                 </>
             )}
+            <SpaceBetweenFlex sx={{ px: 1.5 }}>
+                {constants.UI_UPDATES_DURING_UPLOAD}
+                <Switch
+                    color="accent"
+                    {...label}
+                    value={disableUIUpdatesDuringUpload}
+                    onChange={switchDisableUIUpdatesDuringUpload}
+                />
+            </SpaceBetweenFlex>
         </>
     );
 }
