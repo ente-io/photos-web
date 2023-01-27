@@ -24,25 +24,25 @@ export function QuickOptions({
         <FlexWrapper sx={{ gap: '16px' }}>
             {!(
                 collectionSummaryType === CollectionSummaryType.trash ||
-                collectionSummaryType === CollectionSummaryType.favorites
+                collectionSummaryType === CollectionSummaryType.favorites ||
+                collectionSummaryType === CollectionSummaryType.incomingShare
             ) && (
                 <Tooltip
                     title={
+                        /*: collectionSummaryType ===
+                            CollectionSummaryType.incomingShare
+                          ? constants.SHARING_DETAILS*/
                         collectionSummaryType ===
                         CollectionSummaryType.outgoingShare
                             ? constants.MODIFY_SHARING
-                            : collectionSummaryType ===
-                              CollectionSummaryType.incomingShare
-                            ? constants.SHARING_DETAILS
                             : constants.SHARE_COLLECTION
                     }>
-                    <IconButton>
-                        <PeopleIcon
-                            onClick={handleCollectionAction(
-                                CollectionActions.SHOW_SHARE_DIALOG,
-                                false
-                            )}
-                        />
+                    <IconButton
+                        onClick={handleCollectionAction(
+                            CollectionActions.SHOW_SHARE_DIALOG,
+                            false
+                        )}>
+                        <PeopleIcon />
                     </IconButton>
                 </Tooltip>
             )}
@@ -54,25 +54,23 @@ export function QuickOptions({
                             ? constants.DOWNLOAD_FAVOURITES
                             : constants.DOWNLOAD_COLLECTION
                     }>
-                    <IconButton>
-                        <FileDownloadOutlinedIcon
-                            onClick={handleCollectionAction(
-                                CollectionActions.CONFIRM_DOWNLOAD,
-                                false
-                            )}
-                        />
+                    <IconButton
+                        onClick={handleCollectionAction(
+                            CollectionActions.CONFIRM_DOWNLOAD,
+                            false
+                        )}>
+                        <FileDownloadOutlinedIcon />
                     </IconButton>
                 </Tooltip>
             )}
             {collectionSummaryType === CollectionSummaryType.trash && (
                 <Tooltip title={constants.EMPTY_TRASH}>
-                    <IconButton>
-                        <DeleteOutlinedIcon
-                            onClick={handleCollectionAction(
-                                CollectionActions.CONFIRM_DELETE,
-                                false
-                            )}
-                        />
+                    <IconButton
+                        onClick={handleCollectionAction(
+                            CollectionActions.CONFIRM_EMPTY_TRASH,
+                            false
+                        )}>
+                        <DeleteOutlinedIcon />
                     </IconButton>
                 </Tooltip>
             )}
