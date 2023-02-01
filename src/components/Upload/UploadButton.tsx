@@ -1,9 +1,9 @@
 import React from 'react';
-import { ButtonProps, IconButton, styled } from '@mui/material';
+import { IconButton, styled } from '@mui/material';
 import FileUploadOutlinedIcon from '@mui/icons-material/FileUploadOutlined';
-import { Button } from '@mui/material';
 import constants from 'utils/strings/constants';
 import uploadManager from 'services/upload/uploadManager';
+import EnteButton, { EnteButtonProps } from 'components/EnteButton';
 
 const Wrapper = styled('div')<{ $disableShrink: boolean }>`
     display: flex;
@@ -29,14 +29,14 @@ const Wrapper = styled('div')<{ $disableShrink: boolean }>`
 interface Iprops {
     openUploader: () => void;
     text?: string;
-    color?: ButtonProps['color'];
+    variant?: EnteButtonProps['variant'];
     disableShrink?: boolean;
     icon?: JSX.Element;
 }
 function UploadButton({
     openUploader,
     text,
-    color,
+    variant,
     disableShrink,
     icon,
 }: Iprops) {
@@ -46,14 +46,14 @@ function UploadButton({
             style={{
                 cursor: !uploadManager.shouldAllowNewUpload() && 'not-allowed',
             }}>
-            <Button
+            <EnteButton
                 onClick={openUploader}
                 disabled={!uploadManager.shouldAllowNewUpload()}
                 className="desktop-button"
-                color={color ?? 'secondary'}
+                variant={variant ?? 'secondary'}
                 startIcon={icon ?? <FileUploadOutlinedIcon />}>
                 {text ?? constants.UPLOAD}
-            </Button>
+            </EnteButton>
 
             <IconButton
                 onClick={openUploader}

@@ -5,7 +5,8 @@ import { PAGES } from 'constants/pages';
 import router from 'next/router';
 import { disableTwoFactor } from 'services/userService';
 import { setData, LS_KEYS, getData } from 'utils/storage/localStorage';
-import { Button, Grid } from '@mui/material';
+import { Grid } from '@mui/material';
+import EnteButton from 'components/EnteButton';
 
 interface Iprops {
     closeDialog: () => void;
@@ -22,7 +23,7 @@ export default function TwoFactorModalManageSection(props: Iprops) {
             content: constants.DISABLE_TWO_FACTOR_MESSAGE,
             close: { text: constants.CANCEL },
             proceed: {
-                variant: 'danger',
+                variant: 'primary',
                 text: constants.DISABLE,
                 action: twoFactorDisable,
             },
@@ -52,7 +53,7 @@ export default function TwoFactorModalManageSection(props: Iprops) {
             content: constants.UPDATE_TWO_FACTOR_MESSAGE,
             close: { text: constants.CANCEL },
             proceed: {
-                variant: 'accent',
+                variant: 'primary',
                 text: constants.UPDATE,
                 action: reconfigureTwoFactor,
             },
@@ -76,12 +77,12 @@ export default function TwoFactorModalManageSection(props: Iprops) {
                     {constants.UPDATE_TWO_FACTOR_LABEL}
                 </Grid>
                 <Grid item sm={3} xs={12}>
-                    <Button
-                        color={'accent'}
+                    <EnteButton
+                        variant="primary"
                         onClick={warnTwoFactorReconfigure}
                         size="large">
                         {constants.RECONFIGURE}
-                    </Button>
+                    </EnteButton>
                 </Grid>
             </Grid>
             <Grid
@@ -94,12 +95,12 @@ export default function TwoFactorModalManageSection(props: Iprops) {
                 </Grid>
 
                 <Grid item sm={3} xs={12}>
-                    <Button
-                        color={'danger'}
+                    <EnteButton
+                        variant="primary"
                         onClick={warnTwoFactorDisable}
                         size="large">
                         {constants.DISABLE}
-                    </Button>
+                    </EnteButton>
                 </Grid>
             </Grid>
         </>

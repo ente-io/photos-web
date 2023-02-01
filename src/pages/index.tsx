@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import Carousel from 'react-bootstrap/Carousel';
-import { styled, Button, Typography, TypographyProps } from '@mui/material';
+import { styled, Typography, TypographyProps } from '@mui/material';
 import { AppContext } from './_app';
 import Login from 'components/Login';
 import { useRouter } from 'next/router';
@@ -17,6 +17,7 @@ import safeStorageService from 'services/electron/safeStorage';
 import { saveKeyInSessionStore } from 'utils/crypto';
 import { getKey, SESSION_KEYS } from 'utils/storage/sessionStorage';
 import { getAlbumsURL } from 'utils/common/apiUtil';
+import EnteButton from 'components/EnteButton';
 
 const Container = styled('div')`
     display: flex;
@@ -220,15 +221,15 @@ export default function LandingPage() {
                         </Carousel>
                     </SlideContainer>
                     <MobileBox>
-                        <Button
-                            color="accent"
+                        <EnteButton
+                            variant="primary"
                             size="large"
                             onClick={redirectToSignupPage}>
                             {constants.NEW_USER}
-                        </Button>
-                        <Button size="large" onClick={redirectToLoginPage}>
+                        </EnteButton>
+                        <EnteButton size="large" onClick={redirectToLoginPage}>
                             {constants.EXISTING_USER}
-                        </Button>
+                        </EnteButton>
                     </MobileBox>
                     <DesktopBox>
                         <SideBox>

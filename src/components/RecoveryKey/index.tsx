@@ -4,7 +4,6 @@ import { getRecoveryKey } from 'utils/crypto';
 import constants from 'utils/strings/constants';
 import CodeBlock from '../CodeBlock';
 import {
-    Button,
     Dialog,
     DialogActions,
     DialogContent,
@@ -14,6 +13,7 @@ import * as bip39 from 'bip39';
 import { DashedBorderWrapper } from './styledComponents';
 import { AppContext } from 'pages/_app';
 import DialogTitleWithCloseButton from 'components/DialogBox/TitleWithCloseButton';
+import EnteButton from 'components/EnteButton';
 
 // mobile client library only supports english.
 bip39.setDefaultWordlist('english');
@@ -72,12 +72,18 @@ function RecoveryKey({ somethingWentWrong, ...props }: Props) {
                 </DashedBorderWrapper>
             </DialogContent>
             <DialogActions>
-                <Button color="secondary" size="large" onClick={props.onHide}>
+                <EnteButton
+                    variant="secondary"
+                    size="large"
+                    onClick={props.onHide}>
                     {constants.SAVE_LATER}
-                </Button>
-                <Button color="accent" size="large" onClick={onSaveClick}>
+                </EnteButton>
+                <EnteButton
+                    variant="neutral"
+                    size="large"
+                    onClick={onSaveClick}>
                     {constants.SAVE}
-                </Button>
+                </EnteButton>
             </DialogActions>
         </Dialog>
     );

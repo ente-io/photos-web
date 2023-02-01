@@ -1,7 +1,7 @@
 import constants from 'utils/strings/constants';
 import DialogBox from './DialogBox';
 import React, { useEffect, useState } from 'react';
-import { ProgressBar, Button } from 'react-bootstrap';
+import { ProgressBar } from 'react-bootstrap';
 import { ComfySpan } from './ExportInProgress';
 import {
     getLargeThumbnailFiles,
@@ -9,6 +9,7 @@ import {
 } from 'services/migrateThumbnailService';
 import { getData, LS_KEYS, setData } from 'utils/storage/localStorage';
 import { logError } from 'utils/sentry';
+import EnteButton from './EnteButton';
 
 export type SetProgressTracker = React.Dispatch<
     React.SetStateAction<{
@@ -190,22 +191,18 @@ export default function FixLargeThumbnails(props: Props) {
                     }}>
                     {fixState === FIX_STATE.NOT_STARTED ||
                     fixState === FIX_STATE.FIX_LATER ? (
-                        <Button
-                            block
-                            variant={'outline-secondary'}
+                        <EnteButton
+                            variant="secondary"
                             onClick={() => {
                                 updateFixState(FIX_STATE.FIX_LATER);
                                 props.hide();
                             }}>
                             {constants.FIX_THUMBNAIL_LATER}
-                        </Button>
+                        </EnteButton>
                     ) : (
-                        <Button
-                            block
-                            variant={'outline-secondary'}
-                            onClick={props.hide}>
+                        <EnteButton variant="secondary" onClick={props.hide}>
                             {constants.CLOSE}
-                        </Button>
+                        </EnteButton>
                     )}
                     {(fixState === FIX_STATE.NOT_STARTED ||
                         fixState === FIX_STATE.FIX_LATER ||
@@ -213,12 +210,11 @@ export default function FixLargeThumbnails(props: Props) {
                         <>
                             <div style={{ width: '30px' }} />
 
-                            <Button
-                                block
-                                variant={'outline-success'}
+                            <EnteButton
+                                variant="primary"
                                 onClick={() => startFix()}>
                                 {constants.FIX_THUMBNAIL}
-                            </Button>
+                            </EnteButton>
                         </>
                     )}
                 </div>

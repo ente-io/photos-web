@@ -1,4 +1,4 @@
-import { ButtonProps } from '@mui/material';
+import { EnteButtonProps } from 'components/EnteButton';
 
 export interface DialogBoxAttributes {
     icon?: React.ReactNode;
@@ -8,13 +8,13 @@ export interface DialogBoxAttributes {
     content?: any;
     close?: {
         text?: string;
-        variant?: ButtonProps['color'];
+        variant?: EnteButtonProps['variant'];
         action?: () => void;
     };
     proceed?: {
         text: string;
         action: () => void;
-        variant: ButtonProps['color'];
+        variant: EnteButtonProps['variant'];
         disabled?: boolean;
     };
 }

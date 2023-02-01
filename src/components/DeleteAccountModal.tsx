@@ -1,12 +1,6 @@
 import NoAccountsIcon from '@mui/icons-material/NoAccountsOutlined';
 import TickIcon from '@mui/icons-material/Done';
-import {
-    Dialog,
-    DialogContent,
-    Typography,
-    Button,
-    Stack,
-} from '@mui/material';
+import { Dialog, DialogContent, Typography, Stack } from '@mui/material';
 import { AppContext } from 'pages/_app';
 import React, { useContext, useEffect, useState } from 'react';
 import { preloadImage, initiateEmail } from 'utils/common';
@@ -21,6 +15,7 @@ import {
 import AuthenticateUserModal from './AuthenticateUserModal';
 import { logError } from 'utils/sentry';
 import { decryptDeleteAccountChallenge } from 'utils/crypto';
+import EnteButton from './EnteButton';
 
 interface Iprops {
     onClose: () => void;
@@ -45,7 +40,7 @@ const DeleteAccountModal = ({ open, onClose }: Iprops) => {
     const somethingWentWrong = () =>
         setDialogMessage({
             title: constants.ERROR,
-            close: { variant: 'danger' },
+            close: { variant: 'critical' },
             content: constants.UNKNOWN_ERROR,
         });
 
@@ -73,7 +68,7 @@ const DeleteAccountModal = ({ open, onClose }: Iprops) => {
             proceed: {
                 text: constants.DELETE,
                 action: solveChallengeAndDeleteAccount,
-                variant: 'danger',
+                variant: 'critical',
             },
             close: { text: constants.CANCEL },
         });
@@ -88,7 +83,7 @@ const DeleteAccountModal = ({ open, onClose }: Iprops) => {
                 action: () => {
                     initiateEmail('account-deletion@ente.io');
                 },
-                variant: 'danger',
+                variant: 'critical',
             },
             close: { text: constants.CANCEL },
         });
@@ -135,21 +130,20 @@ const DeleteAccountModal = ({ open, onClose }: Iprops) => {
                     </Typography>
 
                     <Stack spacing={1} px={2} sx={{ width: '100%' }}>
-                        <Button
+                        <EnteButton
                             size="large"
-                            color="accent"
+                            variant="primary"
                             onClick={sendFeedbackMail}
                             startIcon={<TickIcon />}>
                             {constants.SEND_FEEDBACK}
-                        </Button>
-                        <Button
+                        </EnteButton>
+                        <EnteButton
                             size="large"
-                            variant="outlined"
-                            color="danger"
+                            variant="tertiaryCritical"
                             onClick={initiateDelete}
                             startIcon={<NoAccountsIcon />}>
                             {constants.DELETE_ACCOUNT}
-                        </Button>
+                        </EnteButton>
                     </Stack>
                 </DialogContent>
             </Dialog>

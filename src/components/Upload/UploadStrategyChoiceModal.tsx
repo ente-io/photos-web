@@ -1,8 +1,9 @@
-import { Button, Dialog, DialogContent, Typography } from '@mui/material';
+import { Dialog, DialogContent, Typography } from '@mui/material';
 import { CenteredFlex, SpaceBetweenFlex } from 'components/Container';
 import DialogTitleWithCloseButton, {
     dialogCloseHandler,
 } from 'components/DialogBox/TitleWithCloseButton';
+import EnteButton from 'components/EnteButton';
 import React from 'react';
 import constants from 'utils/strings/constants';
 
@@ -33,27 +34,25 @@ function UploadStrategyChoiceModal({
                     </Typography>
                 </CenteredFlex>
                 <SpaceBetweenFlex px={2}>
-                    <Button
-                        size="medium"
-                        color="accent"
+                    <EnteButton
+                        variant="primary"
                         onClick={() => {
                             props.onClose();
                             uploadToSingleCollection();
                         }}>
                         {constants.UPLOAD_STRATEGY_SINGLE_COLLECTION}
-                    </Button>
+                    </EnteButton>
 
                     <strong>{constants.OR}</strong>
 
-                    <Button
-                        size="medium"
-                        color="accent"
+                    <EnteButton
+                        variant="primary"
                         onClick={() => {
                             props.onClose();
                             uploadToMultipleCollection();
                         }}>
                         {constants.UPLOAD_STRATEGY_COLLECTION_PER_FOLDER}
-                    </Button>
+                    </EnteButton>
                 </SpaceBetweenFlex>
             </DialogContent>
         </Dialog>

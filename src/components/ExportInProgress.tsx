@@ -1,16 +1,11 @@
 import React from 'react';
 import { ExportProgress } from 'types/export';
-import {
-    Box,
-    Button,
-    DialogActions,
-    DialogContent,
-    styled,
-} from '@mui/material';
+import { Box, DialogActions, DialogContent, styled } from '@mui/material';
 import constants from 'utils/strings/constants';
 import { ExportStage } from 'constants/export';
 import VerticallyCentered, { FlexWrapper } from './Container';
 import { ProgressBar } from 'react-bootstrap';
+import EnteButton from './EnteButton';
 
 export const ComfySpan = styled('span')`
     word-spacing: 1rem;
@@ -60,26 +55,26 @@ export default function ExportInProgress(props: Props) {
             </DialogContent>
             <DialogActions>
                 {props.exportStage === ExportStage.PAUSED ? (
-                    <Button
+                    <EnteButton
                         size="large"
                         onClick={props.resumeExport}
-                        color="accent">
+                        variant="neutral">
                         {constants.RESUME}
-                    </Button>
+                    </EnteButton>
                 ) : (
-                    <Button
+                    <EnteButton
                         size="large"
                         onClick={props.pauseExport}
-                        color="primary">
+                        variant="neutral">
                         {constants.PAUSE}
-                    </Button>
+                    </EnteButton>
                 )}
-                <Button
+                <EnteButton
                     size="large"
                     onClick={props.cancelExport}
-                    color="secondary">
+                    variant="secondary">
                     {constants.CANCEL}
-                </Button>
+                </EnteButton>
             </DialogActions>
         </>
     );

@@ -5,7 +5,6 @@ import { ExportProgress, ExportStats } from 'types/export';
 import { getLocalFiles } from 'services/fileService';
 import { User } from 'types/user';
 import {
-    Button,
     Dialog,
     DialogContent,
     Divider,
@@ -32,6 +31,7 @@ import { OverflowMenuOption } from './OverflowMenu/option';
 import { convertBytesToHumanReadable } from 'utils/file/size';
 import { CustomError } from 'utils/error';
 import { getLocalUserDetails } from 'utils/user';
+import EnteButton from './EnteButton';
 
 const ExportFolderPathContainer = styled('span')`
     white-space: nowrap;
@@ -355,9 +355,11 @@ function ExportDirectory({ exportFolder, selectExportDirectory, exportStage }) {
             <Label width="30%">{constants.DESTINATION}</Label>
             <Value width="70%">
                 {!exportFolder ? (
-                    <Button color={'accent'} onClick={selectExportDirectory}>
+                    <EnteButton
+                        variant="neutral"
+                        onClick={selectExportDirectory}>
                         {constants.SELECT_FOLDER}
-                    </Button>
+                    </EnteButton>
                 ) : (
                     <>
                         <Tooltip title={exportFolder}>

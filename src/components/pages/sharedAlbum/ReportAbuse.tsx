@@ -1,6 +1,6 @@
 import React from 'react';
-import { Button } from 'react-bootstrap';
 import { styled } from '@mui/material';
+import EnteButton from 'components/EnteButton';
 const Container = styled('div')`
     position: fixed;
     bottom: 7%;
@@ -15,7 +15,7 @@ interface Iprops {
 export default function ReportAbuse(props: Iprops) {
     return (
         <Container>
-            <Button onClick={props.onClick}>report abuse?</Button>
+            <EnteButton onClick={props.onClick}>report abuse?</EnteButton>
         </Container>
     );
 }

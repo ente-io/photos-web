@@ -1,9 +1,12 @@
 import React, { FC } from 'react';
-import { Button, ButtonProps, Theme, TypographyVariant } from '@mui/material';
+import { Theme, TypographyVariant } from '@mui/material';
 import { FluidContainer } from 'components/Container';
 import { SystemStyleObject } from '@mui/system';
+import EnteButton, { EnteButtonProps } from 'components/EnteButton';
 
-type Iprops = ButtonProps<'button', { typographyVariant?: TypographyVariant }>;
+interface Iprops extends EnteButtonProps {
+    typographyVariant?: TypographyVariant;
+}
 
 const SidebarButton: FC<Iprops> = ({
     children,
@@ -13,8 +16,8 @@ const SidebarButton: FC<Iprops> = ({
 }) => {
     return (
         <>
-            <Button
-                variant="text"
+            <EnteButton
+                variant="tertiary"
                 size="large"
                 sx={(theme) =>
                     ({
@@ -26,7 +29,7 @@ const SidebarButton: FC<Iprops> = ({
                 }
                 {...props}>
                 <FluidContainer>{children}</FluidContainer>
-            </Button>
+            </EnteButton>
         </>
     );
 };

@@ -10,6 +10,9 @@ export const getTheme = (themeColor: THEME_COLOR) => {
         colors: palette,
         components,
         typography,
+        palette: {
+            mode: themeColor,
+        },
     });
     return theme;
 };

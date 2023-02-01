@@ -1,4 +1,4 @@
-import { Box, Button, Dialog, DialogContent, Typography } from '@mui/material';
+import { Box, Dialog, DialogContent, Typography } from '@mui/material';
 import VerticallyCentered, { FlexWrapper } from 'components/Container';
 import { AppContext } from 'pages/_app';
 import React, { useContext, useEffect } from 'react';
@@ -7,6 +7,7 @@ import { getFamilyPlanAdmin } from 'utils/billing';
 import { preloadImage } from 'utils/common';
 import constants from 'utils/strings/constants';
 import DialogTitleWithCloseButton from './DialogBox/TitleWithCloseButton';
+import EnteButton from './EnteButton';
 
 export function MemberSubscriptionManage({ open, userDetails, onClose }) {
     const { setDialogMessage, isMobile } = useContext(AppContext);
@@ -21,7 +22,7 @@ export function MemberSubscriptionManage({ open, userDetails, onClose }) {
         } catch (e) {
             setDialogMessage({
                 title: constants.ERROR,
-                close: { variant: 'danger' },
+                close: { variant: 'critical' },
                 content: constants.UNKNOWN_ERROR,
             });
         }
@@ -33,7 +34,7 @@ export function MemberSubscriptionManage({ open, userDetails, onClose }) {
             proceed: {
                 text: constants.LEAVE,
                 action: onLeaveFamilyClick,
-                variant: 'danger',
+                variant: 'critical',
             },
             close: {
                 text: constants.CANCEL,
@@ -77,13 +78,12 @@ export function MemberSubscriptionManage({ open, userDetails, onClose }) {
                                 /images/family-plan/3x.png 3x"
                     />
                     <FlexWrapper px={2}>
-                        <Button
+                        <EnteButton
                             size="large"
-                            variant="outlined"
-                            color="danger"
+                            variant="tertiaryCritical"
                             onClick={confirmLeaveFamily}>
                             {constants.LEAVE_FAMILY_PLAN}
-                        </Button>
+                        </EnteButton>
                     </FlexWrapper>
                 </VerticallyCentered>
             </DialogContent>

@@ -2,7 +2,6 @@ import React from 'react';
 import constants from 'utils/strings/constants';
 import {
     Breakpoint,
-    Button,
     DialogActions,
     DialogContent,
     DialogProps,
@@ -14,6 +13,7 @@ import DialogTitleWithCloseButton, {
 import DialogBoxBase from './base';
 import { DialogBoxAttributes } from 'types/dialogBox';
 import DialogIcon from './DialogIcon';
+import EnteButton from 'components/EnteButton';
 
 type IProps = React.PropsWithChildren<
     Omit<DialogProps, 'onClose' | 'maxSize'> & {
@@ -73,28 +73,30 @@ export default function DialogBox({
                 <DialogActions>
                     <>
                         {attributes.close && (
-                            <Button
+                            <EnteButton
                                 size="large"
-                                color={attributes.close?.variant ?? 'secondary'}
+                                variant={
+                                    attributes.close?.variant ?? 'secondary'
+                                }
                                 onClick={() => {
                                     attributes.close.action &&
                                         attributes.close?.action();
                                     onClose();
                                 }}>
                                 {attributes.close?.text ?? constants.OK}
-                            </Button>
+                            </EnteButton>
                         )}
                         {attributes.proceed && (
-                            <Button
+                            <EnteButton
                                 size="large"
-                                color={attributes.proceed?.variant}
+                                variant={attributes.proceed?.variant}
                                 onClick={() => {
                                     attributes.proceed.action();
                                     onClose();
                                 }}
                                 disabled={attributes.proceed.disabled}>
                                 {attributes.proceed.text}
-                            </Button>
+                            </EnteButton>
                         )}
                     </>
                 </DialogActions>

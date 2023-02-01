@@ -1,12 +1,12 @@
 import ChevronRight from '@mui/icons-material/ChevronRight';
-import { Button, ButtonProps } from '@mui/material';
 import { FluidContainer } from 'components/Container';
+import EnteButton, { EnteButtonProps } from 'components/EnteButton';
 import React from 'react';
 
-const ManageSubscriptionButton = ({ children, ...props }: ButtonProps) => (
-    <Button size="large" endIcon={<ChevronRight />} {...props}>
+const ManageSubscriptionButton = ({ children, ...props }: EnteButtonProps) => (
+    <EnteButton size="large" endIcon={<ChevronRight />} {...props}>
         <FluidContainer>{children}</FluidContainer>
-    </Button>
+    </EnteButton>
 );
 
 export default ManageSubscriptionButton;

@@ -1,8 +1,9 @@
 import { ENTE_WEBSITE_LINK } from 'constants/urls';
 import React, { useEffect, useState } from 'react';
-import { Button, styled } from '@mui/material';
+import { styled } from '@mui/material';
 import { getDeviceOS, OS } from 'utils/common/deviceDetection';
 import constants from 'utils/strings/constants';
+import EnteButton from 'components/EnteButton';
 
 export const NoStyleAnchor = styled('a')`
     color: inherit;
@@ -29,12 +30,12 @@ function GoToEnte() {
     };
 
     return (
-        <Button
-            color="accent"
+        <EnteButton
+            variant="primary"
             LinkComponent={NoStyleAnchor}
             href={ENTE_WEBSITE_LINK}>
             {getButtonText(os)}
-        </Button>
+        </EnteButton>
     );
 }
 

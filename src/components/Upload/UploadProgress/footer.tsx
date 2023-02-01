@@ -1,8 +1,9 @@
-import { Button, DialogActions } from '@mui/material';
+import { DialogActions } from '@mui/material';
 import { UPLOAD_STAGES, UPLOAD_RESULT } from 'constants/upload';
 import React, { useContext } from 'react';
 import constants from 'utils/strings/constants';
 import UploadProgressContext from 'contexts/uploadProgress';
+import EnteButton from 'components/EnteButton';
 
 export function UploadProgressFooter() {
     const { uploadStage, finishedUploads, retryFailed, onClose } = useContext(
@@ -14,13 +15,13 @@ export function UploadProgressFooter() {
             {uploadStage === UPLOAD_STAGES.FINISH &&
                 (finishedUploads?.get(UPLOAD_RESULT.FAILED)?.length > 0 ||
                 finishedUploads?.get(UPLOAD_RESULT.BLOCKED)?.length > 0 ? (
-                    <Button variant="contained" fullWidth onClick={retryFailed}>
+                    <EnteButton size="large" onClick={retryFailed}>
                         {constants.RETRY_FAILED}
-                    </Button>
+                    </EnteButton>
                 ) : (
-                    <Button variant="contained" fullWidth onClick={onClose}>
+                    <EnteButton size="large" onClick={onClose}>
                         {constants.CLOSE}
-                    </Button>
+                    </EnteButton>
                 ))}
         </DialogActions>
     );

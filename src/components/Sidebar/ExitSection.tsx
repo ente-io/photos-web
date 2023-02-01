@@ -19,7 +19,7 @@ export default function ExitSection() {
             proceed: {
                 text: constants.LOGOUT,
                 action: logoutUser,
-                variant: 'danger',
+                variant: 'critical',
             },
             close: { text: constants.CANCEL },
         });

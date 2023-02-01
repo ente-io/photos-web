@@ -1,6 +1,7 @@
-import { Button, DialogActions, DialogContent } from '@mui/material';
+import { DialogActions, DialogContent } from '@mui/material';
 import React from 'react';
 import constants from 'utils/strings/constants';
+import EnteButton from './EnteButton';
 
 interface Props {
     startExport: () => void;
@@ -9,9 +10,12 @@ export default function ExportInit({ startExport }: Props) {
     return (
         <DialogContent>
             <DialogActions>
-                <Button size="large" color="accent" onClick={startExport}>
+                <EnteButton
+                    size="large"
+                    variant="primary"
+                    onClick={startExport}>
                     {constants.START}
-                </Button>
+                </EnteButton>
             </DialogActions>
         </DialogContent>
     );

@@ -13,6 +13,7 @@ const ShortcutButton: FC<ButtonProps<'button', Iprops>> = ({
     count,
     ...props
 }) => {
+    return <></>;
     return (
         <SidebarButton
             variant="contained"

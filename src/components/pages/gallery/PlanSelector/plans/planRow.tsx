@@ -1,4 +1,4 @@
-import { Box, Button, ButtonProps, styled, Typography } from '@mui/material';
+import { Box, styled, Typography } from '@mui/material';
 import React from 'react';
 import {
     isUserSubscribedPlan,
@@ -12,6 +12,7 @@ import { PLAN_PERIOD } from 'constants/gallery';
 import Done from '@mui/icons-material/Done';
 import { Plan, Subscription } from 'types/billing';
 import { Badge } from 'components/Badge';
+import EnteButton, { EnteButtonProps } from 'components/EnteButton';
 
 interface Iprops {
     plan: Plan;
@@ -30,8 +31,8 @@ const TopAlignedFluidContainer = styled(FluidContainer)`
     align-items: flex-start;
 `;
 
-const DisabledPlanButton = styled((props: ButtonProps) => (
-    <Button disabled endIcon={<Done />} {...props} />
+const DisabledPlanButton = styled((props: EnteButtonProps) => (
+    <EnteButton disabled endIcon={<Done />} {...props} />
 ))(({ theme }) => ({
     '&.Mui-disabled': {
         backgroundColor: 'transparent',
@@ -39,8 +40,8 @@ const DisabledPlanButton = styled((props: ButtonProps) => (
     },
 }));
 
-const ActivePlanButton = styled((props: ButtonProps) => (
-    <Button color="accent" {...props} endIcon={<ArrowForward />} />
+const ActivePlanButton = styled((props: EnteButtonProps) => (
+    <EnteButton variant="primary" {...props} endIcon={<ArrowForward />} />
 ))(() => ({
     '.MuiButton-endIcon': {
         transition: 'transform .2s ease-in-out',

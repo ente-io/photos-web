@@ -1,15 +1,16 @@
 import Done from '@mui/icons-material/Done';
-import { Button, ButtonProps, CircularProgress } from '@mui/material';
+import { CircularProgress } from '@mui/material';
 import React, { FC } from 'react';
+import EnteButton, { EnteButtonProps } from './EnteButton';
 
-export interface SubmitButtonProps {
+export interface SubmitButtonProps extends EnteButtonProps {
     loading: boolean;
     buttonText: string;
 
     disabled?: boolean;
     success?: boolean;
 }
-const SubmitButton: FC<ButtonProps<'button', SubmitButtonProps>> = ({
+const SubmitButton: FC<SubmitButtonProps> = ({
     loading,
     buttonText,
     disabled,
@@ -18,10 +19,9 @@ const SubmitButton: FC<ButtonProps<'button', SubmitButtonProps>> = ({
     ...props
 }) => {
     return (
-        <Button
+        <EnteButton
             size="large"
-            variant="contained"
-            color="accent"
+            variant="neutral"
             type="submit"
             disabled={disabled || loading || success}
             sx={{
@@ -45,7 +45,7 @@ const SubmitButton: FC<ButtonProps<'button', SubmitButtonProps>> = ({
             ) : (
                 buttonText
             )}
-        </Button>
+        </EnteButton>
     );
 };
 

@@ -6,7 +6,8 @@ import SubmitButton from './SubmitButton';
 import TextField from '@mui/material/TextField';
 import ShowHidePassword from './Form/ShowHidePassword';
 import { FlexWrapper } from './Container';
-import { Button, FormHelperText } from '@mui/material';
+import { FormHelperText } from '@mui/material';
+import EnteButton from './EnteButton';
 
 interface formValues {
     inputValue: string;
@@ -135,10 +136,10 @@ export default function SingleInputForm(props: SingleInputFormProps) {
                             props.blockButton ? 'wrap-reverse' : 'nowrap'
                         }>
                         {props.secondaryButtonAction && (
-                            <Button
+                            <EnteButton
                                 onClick={props.secondaryButtonAction}
                                 size="large"
-                                color="secondary"
+                                variant="secondary"
                                 sx={{
                                     '&&&': {
                                         mt: !props.blockButton ? 2 : 0.5,
@@ -149,7 +150,7 @@ export default function SingleInputForm(props: SingleInputFormProps) {
                                 }}
                                 {...restSubmitButtonProps}>
                                 {constants.CANCEL}
-                            </Button>
+                            </EnteButton>
                         )}
                         <SubmitButton
                             sx={{

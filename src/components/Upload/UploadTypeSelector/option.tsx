@@ -1,18 +1,16 @@
 import React from 'react';
-import { Button, ButtonProps } from '@mui/material';
 import ChevronRight from '@mui/icons-material/ChevronRight';
 import { FluidContainer } from 'components/Container';
+import EnteButton, { EnteButtonProps } from 'components/EnteButton';
 
-type Iprops = ButtonProps<'button'>;
-
-export function UploadTypeOption({ children, ...props }: Iprops) {
+export function UploadTypeOption({ children, ...props }: EnteButtonProps) {
     return (
-        <Button
+        <EnteButton
             size="large"
-            color="secondary"
+            variant="secondary"
             endIcon={<ChevronRight />}
             {...props}>
             <FluidContainer>{children}</FluidContainer>
-        </Button>
+        </EnteButton>
     );
 }

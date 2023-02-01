@@ -1,9 +1,10 @@
-import { Button, DialogActions, DialogContent, Stack } from '@mui/material';
+import { DialogActions, DialogContent, Stack } from '@mui/material';
 import React from 'react';
 import { ExportStats } from 'types/export';
 import constants from 'utils/strings/constants';
 import { formatDateTime } from 'utils/time/format';
 import { FlexWrapper, Label, Value } from './Container';
+import EnteButton from './EnteButton';
 import { ComfySpan } from './ExportInProgress';
 
 interface Props {
@@ -52,23 +53,26 @@ export default function ExportFinished(props: Props) {
             </DialogContent>
             <DialogActions>
                 {props.exportStats.failed !== 0 ? (
-                    <Button
+                    <EnteButton
                         size="large"
-                        color="accent"
+                        variant="neutral"
                         onClick={props.retryFailed}>
                         {constants.RETRY_EXPORT_}
-                    </Button>
+                    </EnteButton>
                 ) : (
-                    <Button
+                    <EnteButton
                         size="large"
-                        color="primary"
+                        variant="neutral"
                         onClick={props.exportFiles}>
                         {constants.EXPORT_AGAIN}
-                    </Button>
+                    </EnteButton>
                 )}
-                <Button color="secondary" size="large" onClick={props.onHide}>
+                <EnteButton
+                    variant="secondary"
+                    size="large"
+                    onClick={props.onHide}>
                     {constants.CLOSE}
-                </Button>
+                </EnteButton>
             </DialogActions>
         </>
     );

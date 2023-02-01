@@ -1,6 +1,6 @@
 import { MappingList } from './mappingList';
 import React, { useContext, useEffect, useState } from 'react';
-import { Button, Dialog, DialogContent, Stack } from '@mui/material';
+import { Dialog, DialogContent, Stack } from '@mui/material';
 import watchFolderService from 'services/watchFolder/watchFolderService';
 import { WatchMapping } from 'types/watchFolder';
 import { AppContext } from 'pages/_app';
@@ -11,6 +11,7 @@ import { UPLOAD_STRATEGY } from 'constants/upload';
 import { getImportSuggestion } from 'utils/upload';
 import electronFSService from 'services/electron/fs';
 import { PICKED_UPLOAD_TYPE } from 'constants/upload';
+import EnteButton from 'components/EnteButton';
 
 interface Iprops {
     open: boolean;
@@ -120,9 +121,9 @@ export default function WatchFolder({ open, onClose }: Iprops) {
                             mappings={mappings}
                             handleRemoveWatchMapping={handleRemoveWatchMapping}
                         />
-                        <Button
-                            fullWidth
-                            color="accent"
+                        <EnteButton
+                            size="large"
+                            variant="primary"
                             onClick={handleAddFolderClick}>
                             <span>+</span>
                             <span
@@ -130,7 +131,7 @@ export default function WatchFolder({ open, onClose }: Iprops) {
                                     marginLeft: '8px',
                                 }}></span>
                             {constants.ADD_FOLDER}
-                        </Button>
+                        </EnteButton>
                     </Stack>
                 </DialogContent>
             </Dialog>

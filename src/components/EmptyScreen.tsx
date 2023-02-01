@@ -1,9 +1,10 @@
 import React, { useContext } from 'react';
-import { Button, styled, Typography } from '@mui/material';
+import { styled, Typography } from '@mui/material';
 import constants from 'utils/strings/constants';
 import { DeduplicateContext } from 'pages/deduplicate';
 import VerticallyCentered from './Container';
 import uploadManager from 'services/upload/uploadManager';
+import EnteButton from './EnteButton';
 
 const Wrapper = styled(VerticallyCentered)`
     & > svg {
@@ -41,13 +42,13 @@ export default function EmptyScreen({ openUploader }) {
                                 !uploadManager.shouldAllowNewUpload() &&
                                 'not-allowed',
                         }}>
-                        <Button
-                            color="accent"
+                        <EnteButton
+                            variant="primary"
                             onClick={openUploader}
                             disabled={!uploadManager.shouldAllowNewUpload()}
                             sx={{ mt: 4 }}>
                             {constants.UPLOAD_FIRST_PHOTO}
-                        </Button>
+                        </EnteButton>
                     </span>
                 </>
             )}
