@@ -93,7 +93,7 @@ export default function Collections(props: Iprops) {
                 />
             ),
             itemType: ITEM_TYPE.HEADER,
-            id: `${activeCollectionID}-${isInSearchMode}-${collectionSummary.fileCount}-${collectionSummary.name}-header}`,
+            id: `${activeCollectionID}-${isInSearchMode}-${collectionSummary.fileCount}-${collectionSummary.name}-header`,
             height: 68,
         });
     }, [collectionSummaries, activeCollectionID, isInSearchMode]);
