@@ -484,11 +484,15 @@ export function PhotoList({
             }
             return sum;
         })();
+        const itemHeight = Math.max(
+            height - photoFrameHeight - footerHeight,
+            0
+        );
         return {
             itemType: ITEM_TYPE.OTHER,
             item: <></>,
-            height: Math.max(height - photoFrameHeight - footerHeight, 0),
-            id: 'vacuum',
+            height: itemHeight,
+            id: `vacuum-${itemHeight}`,
         };
     };
 
@@ -622,11 +626,9 @@ export function PhotoList({
     const generateKey = (index) => {
         switch (timeStampList[index].itemType) {
             case ITEM_TYPE.FILE:
-                return `${timeStampList[index].items[0].id}-${
-                    timeStampList[index].items.slice(-1)[0].id
-                }`;
+                return `${timeStampList[index].items[0].id}-${timeStampList[index].items.length}`;
             default:
-                return `${timeStampList[index].id}-${index}`;
+                return `${timeStampList[index].id}`;
         }
     };
 
@@ -670,7 +672,11 @@ export function PhotoList({
                     let sum = 0;
                     for (let i = 0; i < listItem.groups.length - 1; i++) {
                         sum = sum + listItem.groups[i];
-                        ret.splice(sum, 0, <div />);
+                        ret.splice(
+                            sum,
+                            0,
+                            <div key={`${listItem.items[0].id}-${i}-gap`} />
+                        );
                         sum += 1;
                     }
                 }
