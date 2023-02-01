@@ -65,11 +65,11 @@ const getTemplateColumns = (
     groups?: number[]
 ): string => {
     if (groups) {
-        // need to confirm why this was there
-        // const sum = groups.reduce((acc, item) => acc + item, 0);
-        // if (sum < columns) {
-        //     groups[groups.length - 1] += columns - sum;
-        // }
+        // need to confirm why this is there
+        const sum = groups.reduce((acc, item) => acc + item, 0);
+        if (sum < columns) {
+            groups[groups.length - 1] += columns - sum;
+        }
         return groups
             .map(
                 (x) =>
@@ -431,7 +431,7 @@ export function PhotoList({
         );
     };
 
-    const getPhotoListHeader = (photoListHeader) => {
+    const getPhotoListHeader = (photoListHeader: TimeStampListItem) => {
         return {
             ...photoListHeader,
             item: (
@@ -442,7 +442,7 @@ export function PhotoList({
         };
     };
 
-    const getPhotoListFooter = (photoListFooter) => {
+    const getPhotoListFooter = (photoListFooter: TimeStampListItem) => {
         return {
             ...photoListFooter,
             item: (
@@ -453,7 +453,7 @@ export function PhotoList({
         };
     };
 
-    const getEmptyListItem = () => {
+    const getEmptyListItem = (): TimeStampListItem => {
         return {
             itemType: ITEM_TYPE.OTHER,
             item: (
@@ -465,7 +465,9 @@ export function PhotoList({
             height: height - 48,
         };
     };
-    const getVacuumItem = (timeStampList) => {
+    const getVacuumItem = (
+        timeStampList: TimeStampListItem[]
+    ): TimeStampListItem => {
         const footerHeight =
             publicCollectionGalleryContext.accessedThroughSharedURL
                 ? ALBUM_FOOTER_HEIGHT +
@@ -486,10 +488,11 @@ export function PhotoList({
             itemType: ITEM_TYPE.OTHER,
             item: <></>,
             height: Math.max(height - photoFrameHeight - footerHeight, 0),
+            id: 'vacuum',
         };
     };
 
-    const getAppDownloadFooter = () => {
+    const getAppDownloadFooter = (): TimeStampListItem => {
         return {
             itemType: ITEM_TYPE.MARKETING_FOOTER,
             height: FOOTER_HEIGHT,
@@ -500,6 +503,7 @@ export function PhotoList({
                     </Typography>
                 </FooterContainer>
             ),
+            id: 'app-download-footer',
         };
     };
 

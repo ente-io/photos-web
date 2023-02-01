@@ -204,6 +204,7 @@ export default function PublicCollectionGallery() {
                 ),
                 itemType: ITEM_TYPE.HEADER,
                 height: 68,
+                id: `collection-info-${publicCollection.name}-${publicFiles.length}`,
             });
     }, [publicCollection, publicFiles]);
 
@@ -222,6 +223,7 @@ export default function PublicCollectionGallery() {
                     </CenteredFlex>
                 ),
                 itemType: ITEM_TYPE.FOOTER,
+                id: 'upload-button',
                 height: 104,
             });
         } else {

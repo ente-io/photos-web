@@ -78,12 +78,11 @@ export default function Collections(props: Iprops) {
     );
 
     useEffect(() => {
+        const collectionSummary = collectionSummaries.get(activeCollectionID);
         setPhotoListHeader({
             item: (
                 <CollectionInfoWithOptions
-                    collectionSummary={collectionSummaries.get(
-                        activeCollectionID
-                    )}
+                    collectionSummary={collectionSummary}
                     activeCollection={activeCollection.current}
                     activeCollectionID={activeCollectionID}
                     setCollectionNamerAttributes={setCollectionNamerAttributes}
@@ -94,6 +93,7 @@ export default function Collections(props: Iprops) {
                 />
             ),
             itemType: ITEM_TYPE.HEADER,
+            id: `${activeCollectionID}-${isInSearchMode}-${collectionSummary.fileCount}-${collectionSummary.name}-header}`,
             height: 68,
         });
     }, [collectionSummaries, activeCollectionID, isInSearchMode]);
