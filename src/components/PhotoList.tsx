@@ -65,11 +65,6 @@ const getTemplateColumns = (
     groups?: number[]
 ): string => {
     if (groups) {
-        // need to confirm why this is there
-        const sum = groups.reduce((acc, item) => acc + item, 0);
-        if (sum < columns) {
-            groups[groups.length - 1] += columns - sum;
-        }
         return groups
             .map(
                 (x) =>
