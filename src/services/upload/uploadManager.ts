@@ -2,7 +2,6 @@ import { getLocalFiles } from '../fileService';
 import { SetFiles } from 'types/gallery';
 import {
     sortFiles,
-    preservePhotoswipeProps,
     decryptFile,
     getUserOwnedNonTrashedFiles,
 } from 'utils/file';
@@ -430,7 +429,7 @@ class UploadManager {
         }
         this.existingFiles.push(decryptedFile);
         this.existingFiles = sortFiles(this.existingFiles);
-        this.setFiles(preservePhotoswipeProps(this.existingFiles));
+        this.setFiles((files) => [...files, decryptedFile]);
     }
 
     private updateElectronRemainingFiles(
