@@ -44,7 +44,6 @@ import {
     downloadFiles,
     getNonTrashedFiles,
     getSelectedFiles,
-    getUserOwnedNonTrashedFiles,
     mergeMetadata,
     sortFiles,
 } from 'utils/file';
@@ -661,9 +660,6 @@ export default function Gallery() {
                     showUploadFilesDialog={openFileSelector}
                     showUploadDirsDialog={openFolderSelector}
                     showSessionExpiredMessage={showSessionExpiredMessage}
-                    existingUserOwnedNonTrashFiles={getUserOwnedNonTrashedFiles(
-                        files
-                    )}
                 />
                 <Sidebar
                     collectionSummaries={collectionSummaries}
