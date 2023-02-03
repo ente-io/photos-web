@@ -65,11 +65,6 @@ const getTemplateColumns = (
     groups?: number[]
 ): string => {
     if (groups) {
-        // need to confirm why this was there
-        // const sum = groups.reduce((acc, item) => acc + item, 0);
-        // if (sum < columns) {
-        //     groups[groups.length - 1] += columns - sum;
-        // }
         return groups
             .map(
                 (x) =>
@@ -163,7 +158,7 @@ interface Props {
     filteredData: EnteFile[];
     showAppDownloadBanner: boolean;
     getThumbnail: (
-        files: EnteFile[],
+        file: EnteFile,
         index: number,
         isScrolling?: boolean
     ) => JSX.Element;
@@ -431,7 +426,7 @@ export function PhotoList({
         );
     };
 
-    const getPhotoListHeader = (photoListHeader) => {
+    const getPhotoListHeader = (photoListHeader: TimeStampListItem) => {
         return {
             ...photoListHeader,
             item: (
@@ -442,7 +437,7 @@ export function PhotoList({
         };
     };
 
-    const getPhotoListFooter = (photoListFooter) => {
+    const getPhotoListFooter = (photoListFooter: TimeStampListItem) => {
         return {
             ...photoListFooter,
             item: (
@@ -453,7 +448,7 @@ export function PhotoList({
         };
     };
 
-    const getEmptyListItem = () => {
+    const getEmptyListItem = (): TimeStampListItem => {
         return {
             itemType: ITEM_TYPE.OTHER,
             item: (
@@ -465,7 +460,9 @@ export function PhotoList({
             height: height - 48,
         };
     };
-    const getVacuumItem = (timeStampList) => {
+    const getVacuumItem = (
+        timeStampList: TimeStampListItem[]
+    ): TimeStampListItem => {
         const footerHeight =
             publicCollectionGalleryContext.accessedThroughSharedURL
                 ? ALBUM_FOOTER_HEIGHT +
@@ -482,14 +479,19 @@ export function PhotoList({
             }
             return sum;
         })();
+        const itemHeight = Math.max(
+            height - photoFrameHeight - footerHeight,
+            0
+        );
         return {
             itemType: ITEM_TYPE.OTHER,
             item: <></>,
-            height: Math.max(height - photoFrameHeight - footerHeight, 0),
+            height: itemHeight,
+            id: `vacuum-${itemHeight}`,
         };
     };
 
-    const getAppDownloadFooter = () => {
+    const getAppDownloadFooter = (): TimeStampListItem => {
         return {
             itemType: ITEM_TYPE.MARKETING_FOOTER,
             height: FOOTER_HEIGHT,
@@ -500,6 +502,7 @@ export function PhotoList({
                     </Typography>
                 </FooterContainer>
             ),
+            id: 'app-download-footer',
         };
     };
 
@@ -618,11 +621,9 @@ export function PhotoList({
     const generateKey = (index) => {
         switch (timeStampList[index].itemType) {
             case ITEM_TYPE.FILE:
-                return `${timeStampList[index].items[0].id}-${
-                    timeStampList[index].items.slice(-1)[0].id
-                }`;
+                return `${timeStampList[index].items[0].id}-${timeStampList[index].items.length}`;
             default:
-                return `${timeStampList[index].id}-${index}`;
+                return `${timeStampList[index].id}`;
         }
     };
 
@@ -657,7 +658,7 @@ export function PhotoList({
             case ITEM_TYPE.FILE: {
                 const ret = listItem.items.map((item, idx) =>
                     getThumbnail(
-                        filteredData,
+                        item,
                         listItem.itemStartIndex + idx,
                         isScrolling
                     )
@@ -666,7 +667,11 @@ export function PhotoList({
                     let sum = 0;
                     for (let i = 0; i < listItem.groups.length - 1; i++) {
                         sum = sum + listItem.groups[i];
-                        ret.splice(sum, 0, <div />);
+                        ret.splice(
+                            sum,
+                            0,
+                            <div key={`${listItem.items[0].id}-${i}-gap`} />
+                        );
                         sum += 1;
                     }
                 }
