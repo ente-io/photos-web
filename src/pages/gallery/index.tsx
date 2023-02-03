@@ -44,6 +44,7 @@ import {
     downloadFiles,
     getNonTrashedFiles,
     getSelectedFiles,
+    getUserOwnedNonTrashedFiles,
     mergeMetadata,
     sortFiles,
 } from 'utils/file';
@@ -87,7 +88,7 @@ import FixCreationTime, {
 } from 'components/FixCreationTime';
 import { Collection, CollectionSummaries } from 'types/collection';
 import { EnteFile } from 'types/file';
-import { GalleryContextType, SelectedState, SetFiles } from 'types/gallery';
+import { GalleryContextType, SelectedState } from 'types/gallery';
 import { VISIBILITY_STATE } from 'types/magicMetadata';
 import Collections from 'components/Collections';
 import { GalleryNavbar } from 'components/pages/gallery/Navbar';
@@ -100,7 +101,6 @@ import { User } from 'types/user';
 import { getData, LS_KEYS } from 'utils/storage/localStorage';
 import { CenteredFlex } from 'components/Container';
 import { checkConnectivity } from 'utils/error/ui';
-import ElectronService from 'services/electron/common';
 
 export const DeadCenter = styled('div')`
     flex: 1;
@@ -125,57 +125,11 @@ export const GalleryContext = createContext<GalleryContextType>(
     defaultGalleryContext
 );
 
-type FilesFn = EnteFile[] | ((files: EnteFile[]) => EnteFile[]);
-
 export default function Gallery() {
     const router = useRouter();
     const [user, setUser] = useState(null);
     const [collections, setCollections] = useState<Collection[]>(null);
-    const [files, setFilesOriginal] = useState<EnteFile[]>(null);
-
-    const filesUpdateInProgress = useRef(false);
-    const filesCount = useRef(0);
-    const newerFilesFN = useRef<FilesFn>(null);
-
-    const setFilesOriginalWithReSyncIfRequired: SetFiles = (filesFn) => {
-        ElectronService.logRendererProcessMemoryUsage(
-            'memory before setFilesOriginal'
-        );
-        setFilesOriginal((currentFiles) => {
-            let newFiles: EnteFile[];
-            if (typeof filesFn === 'function') {
-                newFiles = filesFn(currentFiles);
-            } else {
-                newFiles = filesFn;
-            }
-            filesCount.current = newFiles?.length;
-            return newFiles;
-        });
-        filesUpdateInProgress.current = false;
-        if (newerFilesFN.current) {
-            const newerFiles = newerFilesFN.current;
-            setTimeout(() => setFiles(newerFiles), 0);
-            newerFilesFN.current = null;
-        }
-    };
-
-    const setFiles: SetFiles = async (filesFn) => {
-        if (filesUpdateInProgress.current) {
-            newerFilesFN.current = filesFn;
-            return;
-        }
-        filesUpdateInProgress.current = true;
-
-        if (!filesCount.current || filesCount.current < 5000) {
-            setFilesOriginalWithReSyncIfRequired(filesFn);
-        } else {
-            const waitTime = getData(LS_KEYS.WAIT_TIME) ?? 5000;
-            setTimeout(
-                () => setFilesOriginalWithReSyncIfRequired(filesFn),
-                waitTime
-            );
-        }
-    };
+    const [files, setFiles] = useState<EnteFile[]>(null);
 
     const [favItemIds, setFavItemIds] = useState<Set<number>>();
 
@@ -707,6 +661,9 @@ export default function Gallery() {
                     showUploadFilesDialog={openFileSelector}
                     showUploadDirsDialog={openFolderSelector}
                     showSessionExpiredMessage={showSessionExpiredMessage}
+                    existingUserOwnedNonTrashFiles={getUserOwnedNonTrashedFiles(
+                        files
+                    )}
                 />
                 <Sidebar
                     collectionSummaries={collectionSummaries}
