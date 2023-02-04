@@ -18,7 +18,7 @@ import { formatDateRelative } from 'utils/time/format';
 
 interface IProps {
     file: EnteFile;
-    updateURL: (url: string) => void;
+    updateURL: (id: number, url: string) => void;
     onClick: () => void;
     selectable: boolean;
     selected: boolean;
@@ -224,21 +224,23 @@ export default function PreviewCard(props: IProps) {
                     let url;
                     if (thumbs.has(file.id)) {
                         url = thumbs.get(file.id);
-                    } else if (
-                        publicCollectionGalleryContext.accessedThroughSharedURL
-                    ) {
-                        url =
-                            await PublicCollectionDownloadManager.getThumbnail(
-                                file,
-                                publicCollectionGalleryContext.token,
-                                publicCollectionGalleryContext.passwordToken
-                            );
                     } else {
-                        url = await DownloadManager.getThumbnail(file);
+                        if (
+                            publicCollectionGalleryContext.accessedThroughSharedURL
+                        ) {
+                            url =
+                                await PublicCollectionDownloadManager.getThumbnail(
+                                    file,
+                                    publicCollectionGalleryContext.token,
+                                    publicCollectionGalleryContext.passwordToken
+                                );
+                        } else {
+                            url = await DownloadManager.getThumbnail(file);
+                        }
+                        thumbs.set(file.id, url);
                     }
                     setImgSrc(url);
-                    thumbs.set(file.id, url);
-                    updateURL(url);
+                    updateURL(file.id, url);
                 } catch (e) {
                     logError(e, 'preview card useEffect failed');
                     // no-op
