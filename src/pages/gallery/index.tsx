@@ -60,18 +60,19 @@ import Uploader from 'components/Upload/Uploader';
 import {
     ALL_SECTION,
     ARCHIVE_SECTION,
+    CollectionSummaryType,
     CollectionType,
+    DUMMY_UNCATEGORIZED_SECTION,
     TRASH_SECTION,
+    UNCATEGORIZED_COLLECTION_NAME,
 } from 'constants/collection';
 import { AppContext } from 'pages/_app';
 import { CustomError, ServerErrorCodes } from 'utils/error';
 import { PAGES } from 'constants/pages';
 import {
     COLLECTION_OPS_TYPE,
-    isSharedCollection,
     handleCollectionOps,
     getSelectedCollection,
-    isFavoriteCollection,
     getArchivedCollections,
     hasNonSystemCollections,
 } from 'utils/collection';
@@ -135,6 +136,7 @@ export default function Gallery() {
     const [isFirstLoad, setIsFirstLoad] = useState(false);
     const [isFirstFetch, setIsFirstFetch] = useState(false);
     const [selected, setSelected] = useState<SelectedState>({
+        ownCount: 0,
         count: 0,
         collectionID: 0,
     });
@@ -283,6 +285,8 @@ export default function Gallery() {
                 collectionURL += constants.ARCHIVE;
             } else if (activeCollection === TRASH_SECTION) {
                 collectionURL += constants.TRASH;
+            } else if (activeCollection === DUMMY_UNCATEGORIZED_SECTION) {
+                collectionURL += UNCATEGORIZED_COLLECTION_NAME;
             } else {
                 collectionURL += activeCollection;
             }
@@ -363,7 +367,7 @@ export default function Gallery() {
         const archivedCollections = getArchivedCollections(collections);
         setArchivedCollections(archivedCollections);
 
-        const collectionSummaries = getCollectionSummaries(
+        const collectionSummaries = await getCollectionSummaries(
             user,
             collections,
             files,
@@ -373,7 +377,7 @@ export default function Gallery() {
     };
 
     const clearSelection = function () {
-        setSelected({ count: 0, collectionID: 0 });
+        setSelected({ ownCount: 0, count: 0, collectionID: 0 });
     };
 
     if (!files || !collectionSummaries) {
@@ -385,10 +389,19 @@ export default function Gallery() {
             try {
                 setCollectionSelectorView(false);
                 const selectedFiles = getSelectedFiles(selected, files);
+                const toProcessFiles =
+                    ops === COLLECTION_OPS_TYPE.REMOVE
+                        ? selectedFiles
+                        : selectedFiles.filter(
+                              (file) => file.ownerID === user.id
+                          );
+                if (toProcessFiles.length === 0) {
+                    return;
+                }
                 await handleCollectionOps(
                     ops,
                     collection,
-                    selectedFiles,
+                    toProcessFiles,
                     selected.collectionID
                 );
                 clearSelection();
@@ -679,10 +692,10 @@ export default function Gallery() {
                     deletedFileIds={deletedFileIds}
                     setDeletedFileIds={setDeletedFileIds}
                     activeCollection={activeCollection}
-                    isSharedCollection={isSharedCollection(
-                        activeCollection,
-                        collections
-                    )}
+                    isIncomingSharedCollection={
+                        collectionSummaries.get(activeCollection)?.type ===
+                        CollectionSummaryType.incomingShare
+                    }
                     enableDownload={true}
                     resetSearch={resetSearch}
                 />
@@ -726,12 +739,23 @@ export default function Gallery() {
                             fixTimeHelper={fixTimeHelper}
                             downloadHelper={downloadHelper}
                             count={selected.count}
+                            ownCount={selected.ownCount}
                             clearSelection={clearSelection}
                             activeCollection={activeCollection}
-                            isFavoriteCollection={isFavoriteCollection(
-                                activeCollection,
-                                collections
-                            )}
+                            isFavoriteCollection={
+                                collectionSummaries.get(activeCollection)
+                                    ?.type === CollectionSummaryType.favorites
+                            }
+                            isUncategorizedCollection={
+                                collectionSummaries.get(activeCollection)
+                                    ?.type ===
+                                CollectionSummaryType.uncategorized
+                            }
+                            isIncomingSharedCollection={
+                                collectionSummaries.get(activeCollection)
+                                    ?.type ===
+                                CollectionSummaryType.incomingShare
+                            }
                         />
                     )}
             </FullScreenDropZone>
