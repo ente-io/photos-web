@@ -23,6 +23,7 @@ import uploadManager from 'services/upload/uploadManager';
 import { addLocalLog, addLogLine } from 'utils/logging';
 import { getValidFilesToUpload } from 'utils/watch';
 import { groupFilesBasedOnCollectionID } from 'utils/file';
+import ElectronFSService from 'services/electron/fs';
 
 class watchFolderService {
     private electronAPIs: ElectronAPIs;
@@ -157,13 +158,17 @@ class watchFolderService {
     ): Promise<WatchMapping[]> {
         const notDeletedMappings = [];
         for (const mapping of mappings) {
-            const mappingExists = await this.electronAPIs.isFolder(
-                mapping.folderPath
-            );
-            if (!mappingExists) {
-                this.electronAPIs.removeWatchMapping(mapping.folderPath);
-            } else {
-                notDeletedMappings.push(mapping);
+            try {
+                const mappingExists = await ElectronFSService.isFolder(
+                    mapping.folderPath
+                );
+                if (!mappingExists) {
+                    this.electronAPIs.removeWatchMapping(mapping.folderPath);
+                } else {
+                    notDeletedMappings.push(mapping);
+                }
+            } catch (e) {
+                logError(e, 'error while filtering out deleted mappings');
             }
         }
         return notDeletedMappings;
@@ -639,15 +644,6 @@ class watchFolderService {
             this.eventQueue.shift();
         }
         return event;
-    }
-
-    async isFolder(folderPath: string) {
-        try {
-            const isFolder = await this.electronAPIs.isFolder(folderPath);
-            return isFolder;
-        } catch (e) {
-            logError(e, 'error while checking if folder exists');
-        }
     }
 
     pauseRunningSync() {

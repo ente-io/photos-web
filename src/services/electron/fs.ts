@@ -17,10 +17,10 @@ class ElectronFSService {
 
     async isFolder(folderPath: string) {
         try {
-            const isFolder = await this.electronAPIs.isFolder(folderPath);
-            return isFolder;
+            return await this.electronAPIs.isFolder(folderPath);
         } catch (e) {
             logError(e, 'error while checking if is Folder');
+            throw e;
         }
     }
 }
