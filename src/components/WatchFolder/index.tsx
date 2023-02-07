@@ -12,6 +12,7 @@ import { getImportSuggestion } from 'utils/upload';
 import electronFSService from 'services/electron/fs';
 import { PICKED_UPLOAD_TYPE } from 'constants/upload';
 import { addLogLine } from 'utils/logging';
+import { logError } from 'utils/sentry';
 
 interface Iprops {
     open: boolean;
@@ -42,9 +43,13 @@ export default function WatchFolder({ open, onClose }: Iprops) {
         for (let i = 0; i < folders.length; i++) {
             const folder: any = folders[i];
             const path = (folder.path as string).replace(/\\/g, '/');
-            if (await watchFolderService.isFolder(path)) {
-                addLogLine('Dropped folder: ' + path);
-                await addFolderForWatching(path);
+            try {
+                if (await electronFSService.isFolder(path)) {
+                    addLogLine('Dropped folder: ' + path);
+                    await addFolderForWatching(path);
+                }
+            } catch (e) {
+                logError(e, 'handle folder drop failed');
             }
         }
     };
