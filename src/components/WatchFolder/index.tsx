@@ -11,6 +11,7 @@ import { UPLOAD_STRATEGY } from 'constants/upload';
 import { getImportSuggestion } from 'utils/upload';
 import electronFSService from 'services/electron/fs';
 import { PICKED_UPLOAD_TYPE } from 'constants/upload';
+import { addLogLine } from 'utils/logging';
 
 interface Iprops {
     open: boolean;
@@ -42,6 +43,7 @@ export default function WatchFolder({ open, onClose }: Iprops) {
             const folder: any = folders[i];
             const path = (folder.path as string).replace(/\\/g, '/');
             if (await watchFolderService.isFolder(path)) {
+                addLogLine('Dropped folder: ' + path);
                 await addFolderForWatching(path);
             }
         }
@@ -67,6 +69,7 @@ export default function WatchFolder({ open, onClose }: Iprops) {
 
     const handleFolderSelection = async () => {
         const folderPath = await watchFolderService.selectFolder();
+        addLogLine('Selected folder: ' + folderPath);
         if (folderPath) {
             await addFolderForWatching(folderPath);
         }
