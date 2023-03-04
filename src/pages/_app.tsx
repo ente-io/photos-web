@@ -1,4 +1,10 @@
-import React, { createContext, useEffect, useRef, useState } from 'react';
+import React, {
+    createContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
 import AppNavbar from 'components/Navbar/app';
 import constants from 'utils/strings/constants';
 import { useRouter } from 'next/router';
@@ -26,7 +32,7 @@ import lightThemeOptions from 'themes/lightThemeOptions';
 import { CssBaseline, useMediaQuery } from '@mui/material';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import * as types from 'styled-components/cssprop'; // need to css prop on styled component
-import { SetDialogBoxAttributes, DialogBoxAttributes } from 'types/dialogBox';
+import { DialogBoxAttributes, ShowDialogBox } from 'types/dialogBox';
 import {
     getFamilyPortalRedirectURL,
     getRoadmapRedirectURL,
@@ -54,6 +60,7 @@ import { User } from 'types/user';
 import { SetTheme } from 'types/theme';
 import { useLocalState } from 'hooks/useLocalState';
 import { THEME_COLOR } from 'constants/theme';
+import MessageBox from 'hooks/useDialogBox';
 
 export const MessageContainer = styled('div')`
     background-color: #111;
@@ -80,7 +87,7 @@ type AppContextType = {
     startLoading: () => void;
     finishLoading: () => void;
     closeMessageDialog: () => void;
-    setDialogMessage: SetDialogBoxAttributes;
+    showDialogBox: ShowDialogBox;
     setNotificationAttributes: SetNotificationAttributes;
     isFolderSyncRunning: boolean;
     setIsFolderSyncRunning: (isRunning: boolean) => void;
@@ -136,6 +143,13 @@ export default function App({ Component, err }) {
     const [notificationAttributes, setNotificationAttributes] =
         useState<NotificationAttributes>(null);
     const [theme, setTheme] = useLocalState(LS_KEYS.THEME, THEME_COLOR.DARK);
+
+    const showMessageBox = useMemo<
+        (message: DialogBoxAttributes) => Promise<number>
+    >(() => {
+        const messageDialog = new MessageBox(setDialogMessage);
+        return messageDialog.show.bind(messageDialog);
+    }, []);
 
     useEffect(() => {
         HTTPService.getInterceptors().response.use(
@@ -381,7 +395,7 @@ export default function App({ Component, err }) {
                         startLoading,
                         finishLoading,
                         closeMessageDialog,
-                        setDialogMessage,
+                        showDialogBox: showMessageBox,
                         isFolderSyncRunning,
                         setIsFolderSyncRunning,
                         watchFolderView,

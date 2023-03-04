@@ -28,3 +28,7 @@ export interface DialogBoxAttributes {
 export type SetDialogBoxAttributes = React.Dispatch<
     React.SetStateAction<DialogBoxAttributes>
 >;
+
+export type ShowDialogBox = (
+    attributes: DialogBoxAttributes
+) => Promise<number>;
