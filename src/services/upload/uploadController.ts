@@ -1,5 +1,8 @@
 import { ICollectionNamer } from 'components/Collections/CollectionNamer';
-import { ICollectionSelector } from 'components/Collections/CollectionSelector';
+import {
+    CollectionSelectorAttributes,
+    ICollectionSelector,
+} from 'components/Collections/CollectionSelector';
 import { IUploadStrategyChoiceModal } from 'components/Upload/UploadStrategyChoiceModal';
 import { IUploadTypeSelector } from 'components/Upload/UploadTypeSelector';
 import { IUserNameInputDialog } from 'components/UserNameInputDialog';
@@ -10,6 +13,7 @@ import {
 } from 'constants/upload';
 import isElectron from 'is-electron';
 import { syncCollections, createAlbum } from 'services/collectionService';
+import importService from 'services/importService';
 
 import watchFolderService from 'services/watchFolder/watchFolderService';
 import { Collection } from 'types/collection';
@@ -30,7 +34,6 @@ import {
     filterOutSystemFiles,
     getImportSuggestion,
     groupFilesBasedOnParentFolder,
-    handleUpload,
 } from 'utils/upload';
 import { isCanvasBlocked } from 'utils/upload/isCanvasBlocked';
 import uiService from './uiService';
@@ -59,6 +62,9 @@ class UploadController {
     syncWithRemote: (force?: boolean, silent?: boolean) => Promise<void>;
     showUserFacingError: (error: string) => void;
     setLoading: (value: boolean) => void;
+    isPendingDesktopUpload: boolean;
+    pendingDesktopUploadCollectionName: string;
+    zipPaths: string[];
 
     init(
         uploadTypeSelector: IUploadTypeSelector,
@@ -103,31 +109,31 @@ class UploadController {
         });
         switch (pickedUploadType) {
             case PICKED_UPLOAD_TYPE.FILES:
-                handleUpload(PICKED_UPLOAD_TYPE.FILES);
+                this.handleUpload(PICKED_UPLOAD_TYPE.FILES);
                 break;
             case PICKED_UPLOAD_TYPE.FOLDERS:
-                handleUpload(PICKED_UPLOAD_TYPE.FOLDERS);
+                this.handleUpload(PICKED_UPLOAD_TYPE.FOLDERS);
                 break;
             case PICKED_UPLOAD_TYPE.ZIPS:
-                handleUpload(PICKED_UPLOAD_TYPE.ZIPS);
+                this.handleUpload(PICKED_UPLOAD_TYPE.ZIPS);
                 break;
             default:
                 break;
         }
     }
 
-    handleWebUpload = async (type: PICKED_UPLOAD_TYPE) => {
-        let files: File[];
-        if (type === PICKED_UPLOAD_TYPE.ZIPS) {
-            this.setDialogMessage(getDownloadAppMessage());
-            return;
+    resumeDesktopUpload = async (
+        type: PICKED_UPLOAD_TYPE,
+        electronFiles: ElectronFile[],
+        collectionName: string,
+        zipPaths?: string[]
+    ) => {
+        if (electronFiles && electronFiles?.length > 0) {
+            this.isPendingDesktopUpload = true;
+            this.pendingDesktopUploadCollectionName = collectionName;
+            this.zipPaths = zipPaths;
+            this.preprocessAndUploadFiles(electronFiles, type);
         }
-        if (type === PICKED_UPLOAD_TYPE.FILES) {
-            files = await this.openFileSelector();
-        } else {
-            files = await this.openFolderSelector();
-        }
-        this.preprocessAndUploadFiles(files, type);
     };
 
     preprocessAndUploadFiles = async (
@@ -191,18 +197,36 @@ class UploadController {
         this.setLoading(false);
     };
 
-    preCollectionCreationAction = async () => {
-        this.setShouldDisableDropzone(!uploadManager.shouldAllowNewUpload());
-        uiService.setUploadStage(UPLOAD_STAGES.START);
-        this.setUploadProgressView(true);
-    };
-
     handleCollectionCreationAndUpload = async (
         toUploadFiles: File[] | ElectronFile[],
         importSuggestion: ImportSuggestion,
         pickedUploadType: PICKED_UPLOAD_TYPE
     ) => {
         try {
+            if (this.isPendingDesktopUpload) {
+                this.isPendingDesktopUpload = false;
+                if (this.pendingDesktopUploadCollectionName) {
+                    addLogLine(
+                        `upload pending files to collection - ${this.pendingDesktopUploadCollectionName}`
+                    );
+                    this.uploadFilesToNewCollections(
+                        toUploadFiles,
+                        UPLOAD_STRATEGY.SINGLE_COLLECTION,
+                        this.pendingDesktopUploadCollectionName
+                    );
+                    this.pendingDesktopUploadCollectionName = null;
+                } else {
+                    addLogLine(
+                        `pending upload - strategy - "multiple collections" `
+                    );
+                    this.uploadFilesToNewCollections(
+                        toUploadFiles,
+                        UPLOAD_STRATEGY.COLLECTION_PER_FOLDER
+                    );
+                }
+                return;
+            }
+
             if (isElectron() && pickedUploadType === PICKED_UPLOAD_TYPE.ZIPS) {
                 addLogLine('uploading zip files');
                 this.uploadFilesToNewCollections(
@@ -215,45 +239,59 @@ class UploadController {
             if (this.isFirstUpload && !importSuggestion.rootFolderName) {
                 importSuggestion.rootFolderName = FIRST_ALBUM_NAME;
             }
-            let showNextModal = () => {};
+            let showNextModal: CollectionSelectorAttributes['showNextModal'];
             if (importSuggestion.hasNestedFolders) {
                 addLogLine(`nested folders detected`);
                 showNextModal = async () => {
                     const choice = await this.uploadStrategyChoiceModal.show();
-                    if (choice === UPLOAD_STRATEGY.COLLECTION_PER_FOLDER) {
-                        this.uploadFilesToNewCollections(
-                            toUploadFiles,
-                            UPLOAD_STRATEGY.COLLECTION_PER_FOLDER
-                        );
-                    } else if (choice === UPLOAD_STRATEGY.SINGLE_COLLECTION) {
-                        this.uploadFilesToNewCollections(
-                            toUploadFiles,
-                            UPLOAD_STRATEGY.SINGLE_COLLECTION,
-                            importSuggestion.rootFolderName
-                        );
-                    }
+                    return choice;
                 };
             } else {
-                showNextModal = () =>
-                    this.uploadToSingleNewCollection(
-                        toUploadFiles,
-                        importSuggestion.rootFolderName
-                    );
+                showNextModal = async () => {
+                    const collectionName = await this.collectionNamer.show({
+                        title: constants.CREATE_COLLECTION,
+                        buttonText: constants.CREATE,
+                        autoFilledName: null,
+                    });
+                    return collectionName;
+                };
             }
 
-            const collection = await this.collectionSelector.show({
+            const response = await this.collectionSelector.show({
                 title: constants.UPLOAD_TO_COLLECTION,
                 showNextModal,
             });
-            if (collection) {
-                addLogLine(
-                    `uploading files to an existing collection - ${collection.name} - ${collection.id}`
+            if (typeof response === 'string') {
+                addLogLine(`upload to single collection - "${response}"`);
+                this.uploadFilesToNewCollections(
+                    toUploadFiles,
+                    UPLOAD_STRATEGY.SINGLE_COLLECTION,
+                    response
                 );
-                this.uploadFilesToExistingCollection(toUploadFiles, collection);
+            } else if (
+                response === UPLOAD_STRATEGY.SINGLE_COLLECTION ||
+                response === UPLOAD_STRATEGY.COLLECTION_PER_FOLDER
+            ) {
+                this.uploadFilesToNewCollections(
+                    toUploadFiles,
+                    response,
+                    importSuggestion.rootFolderName
+                );
+            } else {
+                addLogLine(
+                    `uploading files to an existing collection - ${response.name} - ${response.id}`
+                );
+                this.uploadFilesToExistingCollection(toUploadFiles, response);
             }
         } catch (e) {
             logError(e, 'handleCollectionCreationAndUpload failed');
         }
+    };
+
+    preCollectionCreationAction = async () => {
+        this.setShouldDisableDropzone(!uploadManager.shouldAllowNewUpload());
+        uiService.setUploadStage(UPLOAD_STAGES.START);
+        this.setUploadProgressView(true);
     };
 
     uploadFilesToNewCollections = async (
@@ -328,29 +366,9 @@ class UploadController {
         }
     };
 
-    uploadToSingleNewCollection = async (
-        toUploadFiles: File[] | ElectronFile[],
-        collectionName: string
-    ) => {
-        if (!collectionName) {
-            collectionName = await this.collectionNamer.show({
-                title: constants.CREATE_COLLECTION,
-                buttonText: constants.CREATE,
-                autoFilledName: null,
-            });
-        }
-        addLogLine(`upload to single collection - "${collectionName}"`);
-        this.uploadFilesToNewCollections(
-            toUploadFiles,
-            UPLOAD_STRATEGY.SINGLE_COLLECTION,
-            collectionName
-        );
-    };
-
     uploadFilesToExistingCollection = async (
         toUploadFiles: File[] | ElectronFile[],
-        collection: Collection,
-        uploaderName?: string
+        collection: Collection
     ) => {
         try {
             addLogLine(
@@ -363,11 +381,9 @@ class UploadController {
                     localID: index,
                     collectionID: collection.id,
                 }));
-            this.waitInQueueAndUploadFiles(
-                filesWithCollectionToUpload,
-                [collection],
-                uploaderName
-            );
+            this.waitInQueueAndUploadFiles(filesWithCollectionToUpload, [
+                collection,
+            ]);
         } catch (e) {
             logError(e, 'Failed to upload files to existing collections');
         }
@@ -375,8 +391,7 @@ class UploadController {
 
     waitInQueueAndUploadFiles = (
         filesWithCollectionToUploadIn: FileWithCollection[],
-        collections: Collection[],
-        uploaderName?: string
+        collections: Collection[]
     ) => {
         const currentPromise = this.currentUploadPromise;
         this.currentUploadPromise = waitAndRun(
@@ -384,8 +399,7 @@ class UploadController {
             async () =>
                 await this.uploadFiles(
                     filesWithCollectionToUploadIn,
-                    collections,
-                    uploaderName
+                    collections
                 )
         );
     };
@@ -404,18 +418,32 @@ class UploadController {
 
     uploadFiles = async (
         filesWithCollectionToUploadIn: FileWithCollection[],
-        collections: Collection[],
-        uploaderName?: string
+        collections: Collection[]
     ) => {
         try {
             addLogLine('uploadFiles called');
             this.preUploadAction();
+            if (this.isPendingDesktopUpload) {
+                await importService.setToUploadCollection(collections);
+                if (this.zipPaths) {
+                    await importService.setToUploadFiles(
+                        PICKED_UPLOAD_TYPE.ZIPS,
+                        this.zipPaths
+                    );
+                    this.zipPaths = null;
+                }
+                await importService.setToUploadFiles(
+                    PICKED_UPLOAD_TYPE.FILES,
+                    filesWithCollectionToUploadIn.map(
+                        ({ file }) => (file as ElectronFile).path
+                    )
+                );
+            }
 
             const shouldCloseUploadProgress =
                 await uploadManager.queueFilesForUpload(
                     filesWithCollectionToUploadIn,
-                    collections,
-                    uploaderName
+                    collections
                 );
             if (shouldCloseUploadProgress) {
                 this.setUploadProgressView(false);
@@ -464,6 +492,49 @@ class UploadController {
 
     cancelUploads = () => {
         uploadManager.cancelRunningUpload();
+    };
+
+    private handleUpload = (type: PICKED_UPLOAD_TYPE) => () => {
+        if (isElectron() && importService.checkAllElectronAPIsExists()) {
+            this.handleDesktopUpload(type);
+        } else {
+            this.handleWebUpload(type);
+        }
+    };
+
+    private handleWebUpload = async (type: PICKED_UPLOAD_TYPE) => {
+        let files: File[];
+        if (type === PICKED_UPLOAD_TYPE.ZIPS) {
+            this.setDialogMessage(getDownloadAppMessage());
+            return;
+        }
+        if (type === PICKED_UPLOAD_TYPE.FILES) {
+            files = await this.openFileSelector();
+        } else {
+            files = await this.openFolderSelector();
+        }
+        this.preprocessAndUploadFiles(files, type);
+    };
+
+    private handleDesktopUpload = async (type: PICKED_UPLOAD_TYPE) => {
+        let files: ElectronFile[];
+        let zipPaths: string[];
+        if (type === PICKED_UPLOAD_TYPE.FILES) {
+            files = await importService.showUploadFilesDialog();
+        } else if (type === PICKED_UPLOAD_TYPE.FOLDERS) {
+            files = await importService.showUploadDirsDialog();
+        } else {
+            const response = await importService.showUploadZipDialog();
+            files = response.files;
+            zipPaths = response.zipPaths;
+        }
+        if (files?.length > 0) {
+            addLogLine(
+                ` desktop upload for type:${type} and fileCount: ${files?.length} requested`
+            );
+            this.zipPaths = zipPaths;
+            this.preprocessAndUploadFiles(files, type);
+        }
     };
 }
 
