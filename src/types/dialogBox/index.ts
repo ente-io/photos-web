@@ -28,20 +28,3 @@ export interface DialogBoxAttributes {
 export type SetDialogBoxAttributes = React.Dispatch<
     React.SetStateAction<DialogBoxAttributes>
 >;
-
-export interface DialogBoxAttributesV2 {
-    icon?: React.ReactNode;
-    title?: string;
-    staticBackdrop?: boolean;
-    nonClosable?: boolean;
-    content?: any;
-    buttons?: {
-        text: string;
-        variant: ButtonProps['color'];
-        onClick?: () => Promise<void> | void;
-    }[];
-}
-
-export type ShowDialogBox = (
-    dialogBoxAttributes: DialogBoxAttributesV2
-) => Promise<number>;

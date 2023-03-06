@@ -26,11 +26,7 @@ import lightThemeOptions from 'themes/lightThemeOptions';
 import { CssBaseline, useMediaQuery } from '@mui/material';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import * as types from 'styled-components/cssprop'; // need to css prop on styled component
-import {
-    DialogBoxAttributes,
-    SetDialogBoxAttributes,
-    ShowDialogBox,
-} from 'types/dialogBox';
+import { SetDialogBoxAttributes, DialogBoxAttributes } from 'types/dialogBox';
 import {
     getFamilyPortalRedirectURL,
     getRoadmapRedirectURL,
@@ -58,7 +54,6 @@ import { User } from 'types/user';
 import { SetTheme } from 'types/theme';
 import { useLocalState } from 'hooks/useLocalState';
 import { THEME_COLOR } from 'constants/theme';
-import useDialogBox from 'hooks/useDialogBox';
 
 export const MessageContainer = styled('div')`
     background-color: #111;
@@ -86,7 +81,6 @@ type AppContextType = {
     finishLoading: () => void;
     closeMessageDialog: () => void;
     setDialogMessage: SetDialogBoxAttributes;
-    showDialogBox: ShowDialogBox;
     setNotificationAttributes: SetNotificationAttributes;
     isFolderSyncRunning: boolean;
     setIsFolderSyncRunning: (isRunning: boolean) => void;
@@ -142,12 +136,6 @@ export default function App({ Component, err }) {
     const [notificationAttributes, setNotificationAttributes] =
         useState<NotificationAttributes>(null);
     const [theme, setTheme] = useLocalState(LS_KEYS.THEME, THEME_COLOR.DARK);
-    const {
-        dialogBoxView,
-        dialogBoxAttributes,
-        showDialogBox,
-        closeDialogBox,
-    } = useDialogBox();
 
     useEffect(() => {
         HTTPService.getInterceptors().response.use(
@@ -374,14 +362,6 @@ export default function App({ Component, err }) {
                     onClose={closeMessageDialog}
                     attributes={dialogMessage}
                 />
-                <DialogBox
-                    sx={{ zIndex: 1600 }}
-                    size="xs"
-                    open={dialogBoxView}
-                    onClose={closeDialogBox}
-                    attributes={dialogBoxAttributes}
-                />
-
                 <Notification
                     open={notificationView}
                     onClose={closeNotification}
@@ -402,7 +382,6 @@ export default function App({ Component, err }) {
                         finishLoading,
                         closeMessageDialog,
                         setDialogMessage,
-                        showDialogBox,
                         isFolderSyncRunning,
                         setIsFolderSyncRunning,
                         watchFolderView,
