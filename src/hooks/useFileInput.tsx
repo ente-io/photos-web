@@ -1,18 +1,21 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef } from 'react';
 
 export interface FileWithPath extends File {
     readonly path?: string;
 }
 
 export default function useFileInput({ directory }: { directory?: boolean }) {
-    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const inputRef = useRef<HTMLInputElement>();
+    const onSelect = useRef<(value: File[]) => void>();
 
     const openSelectorDialog = useCallback(() => {
-        if (inputRef.current) {
-            inputRef.current.value = null;
-            inputRef.current.click();
-        }
+        return new Promise<File[]>((resolve) => {
+            onSelect.current = resolve;
+            if (inputRef.current) {
+                inputRef.current.value = null;
+                inputRef.current.click();
+            }
+        });
     }, []);
 
     const handleChange: React.ChangeEventHandler<HTMLInputElement> = async (
@@ -22,7 +25,7 @@ export default function useFileInput({ directory }: { directory?: boolean }) {
             const files = [...event.target.files].map((file) =>
                 toFileWithPath(file)
             );
-            setSelectedFiles(files);
+            onSelect.current?.(files);
         }
     };
 
@@ -41,7 +44,6 @@ export default function useFileInput({ directory }: { directory?: boolean }) {
     return {
         getInputProps,
         open: openSelectorDialog,
-        selectedFiles: selectedFiles,
     };
 }
 
