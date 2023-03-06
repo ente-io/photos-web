@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef } from 'react';
+import React from 'react';
 import constants from 'utils/strings/constants';
 import { default as FileUploadIcon } from '@mui/icons-material/ImageOutlined';
 import { default as FolderUploadIcon } from '@mui/icons-material/PermMediaOutlined';
@@ -8,44 +8,25 @@ import DialogTitleWithCloseButton, {
     dialogCloseHandler,
 } from 'components/DialogBox/TitleWithCloseButton';
 import { Box, Dialog, Stack, Typography } from '@mui/material';
-import { PublicCollectionGalleryContext } from 'utils/publicCollectionGallery';
-import { isMobileOrTable } from 'utils/common/deviceDetection';
 import { UploadTypeSelectorIntent } from 'types/gallery';
-interface Iprops {
-    onClose: () => void;
-    show: boolean;
-    uploadFiles: () => void;
-    uploadFolders: () => void;
-    uploadGoogleTakeoutZips: () => void;
-    uploadTypeSelectorIntent: UploadTypeSelectorIntent;
-}
-export default function UploadTypeSelector({
-    onClose,
-    show,
-    uploadFiles,
-    uploadFolders,
-    uploadGoogleTakeoutZips,
-    uploadTypeSelectorIntent,
-}: Iprops) {
-    const publicCollectionGalleryContext = useContext(
-        PublicCollectionGalleryContext
-    );
-    const directlyShowUploadFiles = useRef(isMobileOrTable());
+import {
+    ImperativeDialog,
+    useImperativeDialog,
+} from 'hooks/useImperativeDialog';
+import { PICKED_UPLOAD_TYPE } from 'constants/upload';
 
-    useEffect(() => {
-        if (
-            show &&
-            directlyShowUploadFiles.current &&
-            publicCollectionGalleryContext.accessedThroughSharedURL
-        ) {
-            uploadFiles();
-            onClose();
-        }
-    }, [show]);
+export type IUploadTypeSelector = ImperativeDialog<
+    { intent: UploadTypeSelectorIntent },
+    PICKED_UPLOAD_TYPE
+>;
+
+function UploadTypeSelector(props: {}, ref: React.Ref<IUploadTypeSelector>) {
+    const { isOpen, onClickHandler, attributes, onClose } =
+        useImperativeDialog(ref);
 
     return (
         <Dialog
-            open={show}
+            open={isOpen}
             PaperProps={{
                 sx: (theme) => ({
                     maxWidth: '375px',
@@ -55,33 +36,30 @@ export default function UploadTypeSelector({
             }}
             onClose={dialogCloseHandler({ onClose })}>
             <DialogTitleWithCloseButton onClose={onClose}>
-                {uploadTypeSelectorIntent ===
-                UploadTypeSelectorIntent.collectPhotos
+                {attributes.intent === UploadTypeSelectorIntent.collectPhotos
                     ? constants.SELECT_PHOTOS
-                    : uploadTypeSelectorIntent ===
-                      UploadTypeSelectorIntent.import
+                    : attributes.intent === UploadTypeSelectorIntent.import
                     ? constants.IMPORT
                     : constants.UPLOAD}
             </DialogTitleWithCloseButton>
             <Box p={1.5} pt={0.5}>
                 <Stack spacing={0.5}>
-                    {uploadTypeSelectorIntent !==
-                        UploadTypeSelectorIntent.import && (
+                    {attributes.intent !== UploadTypeSelectorIntent.import && (
                         <UploadTypeOption
-                            onClick={uploadFiles}
+                            onClick={onClickHandler(PICKED_UPLOAD_TYPE.FILES)}
                             startIcon={<FileUploadIcon />}>
                             {constants.UPLOAD_FILES}
                         </UploadTypeOption>
                     )}
                     <UploadTypeOption
-                        onClick={uploadFolders}
+                        onClick={onClickHandler(PICKED_UPLOAD_TYPE.FOLDERS)}
                         startIcon={<FolderUploadIcon />}>
                         {constants.UPLOAD_DIRS}
                     </UploadTypeOption>
-                    {uploadTypeSelectorIntent !==
+                    {attributes.intent !==
                         UploadTypeSelectorIntent.collectPhotos && (
                         <UploadTypeOption
-                            onClick={uploadGoogleTakeoutZips}
+                            onClick={onClickHandler(PICKED_UPLOAD_TYPE.ZIPS)}
                             startIcon={<GoogleIcon />}>
                             {constants.UPLOAD_GOOGLE_TAKEOUT}
                         </UploadTypeOption>
@@ -94,3 +72,5 @@ export default function UploadTypeSelector({
         </Dialog>
     );
 }
+
+export default React.forwardRef(UploadTypeSelector);

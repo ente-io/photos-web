@@ -1,13 +1,16 @@
-import React from 'react';
+import React, { forwardRef, Ref } from 'react';
 import constants from 'utils/strings/constants';
 import SingleInputForm, {
     SingleInputFormProps,
 } from 'components/SingleInputForm';
 import DialogBoxBase from 'components/DialogBox/base';
 import { DialogContent, DialogTitle } from '@mui/material';
+import {
+    ImperativeDialog,
+    useImperativeDialog,
+} from 'hooks/useImperativeDialog';
 
 export interface CollectionNamerAttributes {
-    callback: (name: string) => void;
     title: string;
     autoFilledName: string;
     buttonText: string;
@@ -17,30 +20,28 @@ export type SetCollectionNamerAttributes = React.Dispatch<
     React.SetStateAction<CollectionNamerAttributes>
 >;
 
-interface Props {
-    show: boolean;
-    onHide: () => void;
-    attributes: CollectionNamerAttributes;
-}
+export type ICollectionNamer = ImperativeDialog<
+    CollectionNamerAttributes,
+    string
+>;
 
-export default function CollectionNamer({ attributes, ...props }: Props) {
-    if (!attributes) {
-        return <></>;
-    }
+function CollectionNamer(props: {}, ref: Ref<ICollectionNamer>) {
+    const { isOpen, onClose, onClickHandler, attributes } =
+        useImperativeDialog(ref);
+
     const onSubmit: SingleInputFormProps['callback'] = async (
         albumName,
         setFieldError
     ) => {
         try {
-            attributes.callback(albumName);
-            props.onHide();
+            onClickHandler(albumName)();
         } catch (e) {
             setFieldError(constants.UNKNOWN_ERROR);
         }
     };
 
     return (
-        <DialogBoxBase open={props.show} onClose={props.onHide}>
+        <DialogBoxBase open={isOpen} onClose={onClose}>
             <DialogTitle>{attributes.title}</DialogTitle>
             <DialogContent>
                 <SingleInputForm
@@ -50,9 +51,11 @@ export default function CollectionNamer({ attributes, ...props }: Props) {
                     placeholder={constants.ENTER_ALBUM_NAME}
                     initialValue={attributes.autoFilledName}
                     submitButtonProps={{ sx: { mt: 1, mb: 2 } }}
-                    secondaryButtonAction={props.onHide}
+                    secondaryButtonAction={onClose}
                 />
             </DialogContent>
         </DialogBoxBase>
     );
 }
+
+export default forwardRef(CollectionNamer);

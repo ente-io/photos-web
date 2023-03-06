@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo } from 'react';
+import React, { forwardRef, Ref, useContext, useEffect, useMemo } from 'react';
 import { Collection, CollectionSummaries } from 'types/collection';
 import DialogTitleWithCloseButton from 'components/DialogBox/TitleWithCloseButton';
 import { isUploadAllowedCollection } from 'utils/collection';
@@ -8,29 +8,36 @@ import { DialogContent } from '@mui/material';
 import { FlexWrapper } from 'components/Container';
 import CollectionSelectorCard from './CollectionCard';
 import AddCollectionButton from './AddCollectionButton';
+import {
+    ImperativeDialog,
+    useImperativeDialog,
+} from 'hooks/useImperativeDialog';
 
 export interface CollectionSelectorAttributes {
-    callback: (collection: Collection) => void;
     showNextModal: () => void;
     title: string;
     fromCollection?: number;
-    onCancel?: () => void;
 }
 
 interface Props {
-    open: boolean;
-    onClose: () => void;
-    attributes: CollectionSelectorAttributes;
     collections: Collection[];
     collectionSummaries: CollectionSummaries;
 }
-function CollectionSelector({
-    attributes,
-    collectionSummaries,
-    collections,
-    ...props
-}: Props) {
+
+export type ICollectionSelector = ImperativeDialog<
+    CollectionSelectorAttributes,
+    Collection
+>;
+
+function CollectionSelector(
+    { collectionSummaries, collections }: Props,
+    ref: Ref<ICollectionSelector>
+) {
     const appContext = useContext(AppContext);
+
+    const { isOpen, onClickHandler, onClose, attributes } =
+        useImperativeDialog(ref);
+
     const collectionToShow = useMemo(() => {
         const personalCollectionsOtherThanFrom = [
             ...collectionSummaries.values(),
@@ -43,14 +50,14 @@ function CollectionSelector({
     }, [collectionSummaries, attributes]);
 
     useEffect(() => {
-        if (!attributes || !props.open) {
+        if (!attributes || !isOpen) {
             return;
         }
         if (collectionToShow.length === 0) {
-            props.onClose();
+            onClose();
             attributes.showNextModal();
         }
-    }, [collectionToShow, attributes, props.open]);
+    }, [collectionToShow, attributes, isOpen]);
 
     if (!attributes) {
         return <></>;
@@ -58,22 +65,16 @@ function CollectionSelector({
 
     const handleCollectionClick = (collectionID: number) => {
         const collection = collections.find((c) => c.id === collectionID);
-        attributes.callback(collection);
-        props.onClose();
-    };
-
-    const onUserTriggeredClose = () => {
-        attributes.onCancel?.();
-        props.onClose();
+        onClickHandler(collection)();
     };
 
     return (
         <AllCollectionDialog
-            onClose={onUserTriggeredClose}
-            open={props.open}
+            onClose={onClose}
+            open={isOpen}
             position="center"
             fullScreen={appContext.isMobile}>
-            <DialogTitleWithCloseButton onClose={onUserTriggeredClose}>
+            <DialogTitleWithCloseButton onClose={onClose}>
                 {attributes.title}
             </DialogTitleWithCloseButton>
             <DialogContent>
@@ -94,4 +95,4 @@ function CollectionSelector({
     );
 }
 
-export default CollectionSelector;
+export default forwardRef(CollectionSelector);
