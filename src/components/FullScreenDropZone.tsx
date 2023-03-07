@@ -39,6 +39,7 @@ const Overlay = styled('div')`
 
 type Props = React.PropsWithChildren<{
     getDragAndDropRootProps: any;
+    getDragAndDropInputProps: any;
 }>;
 
 export default function FullScreenDropZone(props: Props) {
@@ -81,6 +82,7 @@ export default function FullScreenDropZone(props: Props) {
             {...props.getDragAndDropRootProps({
                 onDragEnter,
             })}>
+            <input {...props.getDragAndDropInputProps()} />
             {isDragActive && (
                 <Overlay onDrop={onDragLeave} onDragLeave={onDragLeave}>
                     <CloseButtonWrapper onClick={onDragLeave}>

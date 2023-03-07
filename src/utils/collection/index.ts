@@ -33,6 +33,7 @@ import {
 import { IsArchived, updateMagicMetadataProps } from 'utils/magicMetadata';
 import { getAlbumsURL } from 'utils/common/apiUtil';
 import bs58 from 'bs58';
+import { UPLOAD_STRATEGY } from 'constants/upload';
 
 export enum COLLECTION_OPS_TYPE {
     ADD,
@@ -261,5 +262,15 @@ export function isValidMoveTarget(
         !isCollectionHidden(targetCollection) &&
         !isQuickLinkCollection(targetCollection) &&
         !isIncomingShare(targetCollection, user)
+    );
+}
+
+export function isTypeCollection(
+    collection: Collection | string | UPLOAD_STRATEGY
+): collection is Collection {
+    return (
+        typeof collection !== 'string' &&
+        collection !== UPLOAD_STRATEGY.COLLECTION_PER_FOLDER &&
+        collection !== UPLOAD_STRATEGY.SINGLE_COLLECTION
     );
 }

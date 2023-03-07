@@ -1,8 +1,6 @@
 import React, { useContext } from 'react';
-import { SetCollectionSelectorAttributes } from 'types/gallery';
 import { FluidContainer } from 'components/Container';
 import constants from 'utils/strings/constants';
-import { COLLECTION_OPS_TYPE } from 'utils/collection';
 import {
     ALL_SECTION,
     ARCHIVE_SECTION,
@@ -23,13 +21,14 @@ import ArchiveIcon from '@mui/icons-material/ArchiveOutlined';
 import MoveIcon from '@mui/icons-material/ArrowForward';
 import RemoveIcon from '@mui/icons-material/RemoveCircleOutline';
 import { getTrashFilesMessage } from 'utils/ui';
+import { ICollectionSelector } from 'components/Collections/CollectionSelector';
 
 interface Props {
     addToCollectionHelper: (collection: Collection) => void;
     moveToCollectionHelper: (collection: Collection) => void;
     restoreToCollectionHelper: (collection: Collection) => void;
-    showCreateCollectionModal: (opsType: COLLECTION_OPS_TYPE) => () => void;
-    setCollectionSelectorAttributes: SetCollectionSelectorAttributes;
+    showCreateCollectionModal: () => Promise<Collection>;
+    collectionSelector: ICollectionSelector;
     deleteFileHelper: (permanent?: boolean) => void;
     removeFromCollectionHelper: () => void;
     fixTimeHelper: () => void;
@@ -53,7 +52,7 @@ const SelectedFileOptions = ({
     showCreateCollectionModal,
     removeFromCollectionHelper,
     fixTimeHelper,
-    setCollectionSelectorAttributes,
+    collectionSelector,
     deleteFileHelper,
     downloadHelper,
     count,
@@ -68,13 +67,14 @@ const SelectedFileOptions = ({
     isInSearchMode,
 }: Props) => {
     const { setDialogMessage } = useContext(AppContext);
-    const addToCollection = () =>
-        setCollectionSelectorAttributes({
-            callback: addToCollectionHelper,
-            showNextModal: showCreateCollectionModal(COLLECTION_OPS_TYPE.ADD),
+    const addToCollection = async () => {
+        const collection = (await collectionSelector.show({
+            showNextModal: showCreateCollectionModal,
             title: constants.ADD_TO_COLLECTION,
             fromCollection: activeCollection,
-        });
+        })) as Collection;
+        addToCollectionHelper(collection);
+    };
 
     const trashHandler = () =>
         setDialogMessage(getTrashFilesMessage(deleteFileHelper));
@@ -91,14 +91,14 @@ const SelectedFileOptions = ({
             close: { text: constants.CANCEL },
         });
 
-    const restoreHandler = () =>
-        setCollectionSelectorAttributes({
-            callback: restoreToCollectionHelper,
-            showNextModal: showCreateCollectionModal(
-                COLLECTION_OPS_TYPE.RESTORE
-            ),
-            title: constants.RESTORE_TO_COLLECTION,
-        });
+    const restoreHandler = async () => {
+        const collection = (await collectionSelector.show({
+            showNextModal: showCreateCollectionModal,
+            title: constants.ADD_TO_COLLECTION,
+            fromCollection: activeCollection,
+        })) as Collection;
+        restoreToCollectionHelper(collection);
+    };
 
     const removeFromCollectionHandler = () => {
         if (ownCount === count) {
@@ -128,13 +128,13 @@ const SelectedFileOptions = ({
         }
     };
 
-    const moveToCollection = () => {
-        setCollectionSelectorAttributes({
-            callback: moveToCollectionHelper,
-            showNextModal: showCreateCollectionModal(COLLECTION_OPS_TYPE.MOVE),
-            title: constants.MOVE_TO_COLLECTION,
+    const moveToCollection = async () => {
+        const collection = (await collectionSelector.show({
+            showNextModal: showCreateCollectionModal,
+            title: constants.ADD_TO_COLLECTION,
             fromCollection: activeCollection,
-        });
+        })) as Collection;
+        moveToCollectionHelper(collection);
     };
 
     return (

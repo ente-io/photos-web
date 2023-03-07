@@ -5,7 +5,7 @@ import AllCollections from 'components/Collections/AllCollections';
 import CollectionInfoWithOptions from 'components/Collections/CollectionInfoWithOptions';
 import { ALL_SECTION, COLLECTION_SORT_BY } from 'constants/collection';
 import CollectionShare from 'components/Collections/CollectionShare';
-import { SetCollectionNamerAttributes } from 'components/Collections/CollectionNamer';
+import { ICollectionNamer } from 'components/Collections/CollectionNamer';
 import { ITEM_TYPE, TimeStampListItem } from 'components/PhotoList';
 import {
     hasNonSystemCollections,
@@ -22,7 +22,7 @@ interface Iprops {
     setActiveCollectionID: (id?: number) => void;
     isInSearchMode: boolean;
     collectionSummaries: CollectionSummaries;
-    setCollectionNamerAttributes: SetCollectionNamerAttributes;
+    collectionNamer: ICollectionNamer;
     setPhotoListHeader: (value: TimeStampListItem) => void;
 }
 
@@ -33,7 +33,7 @@ export default function Collections(props: Iprops) {
         activeCollectionID,
         setActiveCollectionID,
         collectionSummaries,
-        setCollectionNamerAttributes,
+        collectionNamer,
         setPhotoListHeader,
     } = props;
 
@@ -86,7 +86,7 @@ export default function Collections(props: Iprops) {
                     )}
                     activeCollection={activeCollection.current}
                     activeCollectionID={activeCollectionID}
-                    setCollectionNamerAttributes={setCollectionNamerAttributes}
+                    collectionNamer={collectionNamer}
                     redirectToAll={() => setActiveCollectionID(ALL_SECTION)}
                     showCollectionShareModal={() =>
                         setCollectionShareModalView(true)

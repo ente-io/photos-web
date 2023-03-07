@@ -12,9 +12,12 @@ import {
     ImperativeDialog,
     useImperativeDialog,
 } from 'hooks/useImperativeDialog';
+import { CustomError } from 'utils/error';
+import { logError } from 'utils/sentry';
+import { UPLOAD_STRATEGY } from 'constants/upload';
 
 export interface CollectionSelectorAttributes {
-    showNextModal: () => void;
+    showNextModal: () => Promise<string | UPLOAD_STRATEGY | Collection>;
     title: string;
     fromCollection?: number;
 }
@@ -26,7 +29,7 @@ interface Props {
 
 export type ICollectionSelector = ImperativeDialog<
     CollectionSelectorAttributes,
-    Collection
+    string | Collection | UPLOAD_STRATEGY
 >;
 
 function CollectionSelector(
@@ -54,8 +57,7 @@ function CollectionSelector(
             return;
         }
         if (collectionToShow.length === 0) {
-            onClose();
-            attributes.showNextModal();
+            handleAddCollectionClick();
         }
     }, [collectionToShow, attributes, isOpen]);
 
@@ -66,6 +68,18 @@ function CollectionSelector(
     const handleCollectionClick = (collectionID: number) => {
         const collection = collections.find((c) => c.id === collectionID);
         onClickHandler(collection)();
+    };
+
+    const handleAddCollectionClick = async () => {
+        try {
+            const response = await attributes.showNextModal();
+            onClickHandler(response)();
+        } catch (e) {
+            if (e.message !== CustomError.REQUEST_CANCELLED) {
+                logError(e, 'handle add collection click failed');
+                throw e;
+            }
+        }
     };
 
     return (
@@ -80,7 +94,7 @@ function CollectionSelector(
             <DialogContent>
                 <FlexWrapper flexWrap="wrap" gap={0.5}>
                     <AddCollectionButton
-                        showNextModal={attributes.showNextModal}
+                        showNextModal={handleAddCollectionClick}
                     />
                     {collectionToShow.map((collectionSummary) => (
                         <CollectionSelectorCard

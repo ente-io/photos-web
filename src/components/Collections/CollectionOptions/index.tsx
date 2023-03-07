@@ -7,7 +7,7 @@ import {
     downloadAllCollectionFiles,
 } from 'utils/collection';
 import constants from 'utils/strings/constants';
-import { SetCollectionNamerAttributes } from '../CollectionNamer';
+import { ICollectionNamer } from '../CollectionNamer';
 import { Collection } from 'types/collection';
 import { IsArchived } from 'utils/magicMetadata';
 import { GalleryContext } from 'pages/gallery';
@@ -24,7 +24,7 @@ import MoreHoriz from '@mui/icons-material/MoreHoriz';
 import { HorizontalFlex } from 'components/Container';
 
 interface CollectionOptionsProps {
-    setCollectionNamerAttributes: SetCollectionNamerAttributes;
+    collectionNamer: ICollectionNamer;
     activeCollection: Collection;
     collectionSummaryType: CollectionSummaryType;
     showCollectionShareModal: () => void;
@@ -32,7 +32,6 @@ interface CollectionOptionsProps {
 }
 
 export enum CollectionActions {
-    SHOW_RENAME_DIALOG,
     RENAME,
     CONFIRM_DOWNLOAD,
     DOWNLOAD,
@@ -53,7 +52,7 @@ const CollectionOptions = (props: CollectionOptionsProps) => {
         activeCollection,
         collectionSummaryType,
         redirectToAll,
-        setCollectionNamerAttributes,
+        collectionNamer,
         showCollectionShareModal,
     } = props;
 
@@ -67,9 +66,6 @@ const CollectionOptions = (props: CollectionOptionsProps) => {
     ) => {
         let callback;
         switch (action) {
-            case CollectionActions.SHOW_RENAME_DIALOG:
-                callback = showRenameCollectionModal;
-                break;
             case CollectionActions.RENAME:
                 callback = renameCollection;
                 break;
@@ -135,12 +131,6 @@ const CollectionOptions = (props: CollectionOptionsProps) => {
         };
     };
 
-    const renameCollection = async (newName: string) => {
-        if (activeCollection.name !== newName) {
-            await CollectionAPI.renameCollection(activeCollection, newName);
-        }
-    };
-
     const deleteCollectionAlongWithFiles = async () => {
         await CollectionAPI.deleteCollection(activeCollection.id, false);
         redirectToAll();
@@ -174,13 +164,15 @@ const CollectionOptions = (props: CollectionOptionsProps) => {
         redirectToAll();
     };
 
-    const showRenameCollectionModal = () => {
-        setCollectionNamerAttributes({
+    const renameCollection = async () => {
+        const newName = await collectionNamer.show({
             title: constants.RENAME_COLLECTION,
             buttonText: constants.RENAME,
             autoFilledName: activeCollection.name,
-            callback: handleCollectionAction(CollectionActions.RENAME),
         });
+        if (activeCollection.name !== newName) {
+            await CollectionAPI.renameCollection(activeCollection, newName);
+        }
     };
 
     const confirmDeleteCollection = () => {

@@ -25,7 +25,7 @@ export function AlbumCollectionOption({
         <>
             <OverflowMenuOption
                 onClick={handleCollectionAction(
-                    CollectionActions.SHOW_RENAME_DIALOG,
+                    CollectionActions.RENAME,
                     false
                 )}
                 startIcon={<EditIcon />}>

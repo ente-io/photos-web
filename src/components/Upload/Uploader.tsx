@@ -14,10 +14,7 @@ import UploadProgress from './UploadProgress';
 import UploadStrategyChoiceModal, {
     IUploadStrategyChoiceModal,
 } from './UploadStrategyChoiceModal';
-import {
-    ICollectionNamer,
-    SetCollectionNamerAttributes,
-} from '../Collections/CollectionNamer';
+import { ICollectionNamer } from '../Collections/CollectionNamer';
 import { SetCollections, UploadTypeSelectorIntent } from 'types/gallery';
 import { GalleryContext } from 'pages/gallery';
 import { AppContext } from 'pages/_app';
@@ -51,16 +48,15 @@ import uploadController from 'services/upload/uploadController';
 
 interface Props {
     syncWithRemote: (force?: boolean, silent?: boolean) => Promise<void>;
-    setCollectionNamerAttributes?: SetCollectionNamerAttributes;
+    collectionNamer?: ICollectionNamer;
     setLoading: SetLoading;
     setShouldDisableDropzone: (value: boolean) => void;
     setFiles: SetFiles;
     setCollections?: SetCollections;
     isFirstUpload?: boolean;
     showSessionExpiredMessage: () => void;
-    collectionSelectorRef: React.RefObject<ICollectionSelector>;
+    collectionSelector?: ICollectionSelector;
     dragAndDropFiles: File[];
-    collectionNamerRef: React.RefObject<ICollectionNamer>;
 }
 
 export interface IUploader {
@@ -128,12 +124,12 @@ function Uploader(props: Props, ref: Ref<IUploader>) {
             openFolderSelector,
             appContext.setDialogMessage,
             userNameInputDialogRef.current,
-            props.collectionSelectorRef.current,
+            props.collectionSelector,
             uploadStrategyChoiceModalRef.current,
             props.setCollections,
             setUploadProgressView,
             props.setShouldDisableDropzone,
-            props.collectionNamerRef.current,
+            props.collectionNamer,
             props.syncWithRemote,
             showUserFacingError,
             props.setLoading

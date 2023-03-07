@@ -2,7 +2,7 @@ import { CollectionInfo } from './CollectionInfo';
 import React from 'react';
 import { Collection, CollectionSummary } from 'types/collection';
 import CollectionOptions from 'components/Collections/CollectionOptions';
-import { SetCollectionNamerAttributes } from 'components/Collections/CollectionNamer';
+import { ICollectionNamer } from 'components/Collections/CollectionNamer';
 import { SpaceBetweenFlex } from 'components/Container';
 import { CollectionInfoBarWrapper } from './styledComponents';
 import { shouldShowOptions } from 'utils/collection';
@@ -13,16 +13,8 @@ import PeopleIcon from '@mui/icons-material/People';
 import LinkIcon from '@mui/icons-material/Link';
 
 interface Iprops {
-    activeCollection: Collection;
     collectionSummary: CollectionSummary;
-    setCollectionNamerAttributes: SetCollectionNamerAttributes;
-    showCollectionShareModal: () => void;
-    redirectToAll: () => void;
-}
-
-interface Iprops {
-    collectionSummary: CollectionSummary;
-    setCollectionNamerAttributes: SetCollectionNamerAttributes;
+    collectionNamer: ICollectionNamer;
     activeCollection: Collection;
     activeCollectionID: number;
     showCollectionShareModal: () => void;
