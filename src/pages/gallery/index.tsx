@@ -19,7 +19,7 @@ import {
     syncCollections,
     getFavItemIds,
     getLocalCollections,
-    createCollection,
+    createAlbum,
     getCollectionSummaries,
 } from 'services/collectionService';
 import constants from 'utils/strings/constants';
@@ -49,19 +49,18 @@ import {
 } from 'utils/file';
 import SelectedFileOptions from 'components/pages/gallery/SelectedFileOptions';
 import CollectionSelector, {
-    CollectionSelectorAttributes,
+    ICollectionSelector,
 } from 'components/Collections/CollectionSelector';
 
 import CollectionNamer, {
-    CollectionNamerAttributes,
+    ICollectionNamer,
 } from 'components/Collections/CollectionNamer';
 import PlanSelector from 'components/pages/gallery/PlanSelector';
-import Uploader from 'components/Upload/Uploader';
+import Uploader, { IUploader } from 'components/Upload/Uploader';
 import {
     ALL_SECTION,
     ARCHIVE_SECTION,
     CollectionSummaryType,
-    CollectionType,
     DUMMY_UNCATEGORIZED_SECTION,
     TRASH_SECTION,
     UNCATEGORIZED_COLLECTION_NAME,
@@ -99,8 +98,6 @@ import { GalleryNavbar } from 'components/pages/gallery/Navbar';
 import { Search, SearchResultSummary, UpdateSearch } from 'types/search';
 import SearchResultInfo from 'components/Search/SearchResultInfo';
 import { ITEM_TYPE, TimeStampListItem } from 'components/PhotoList';
-import UploadInputs from 'components/UploadSelectorInputs';
-import useFileInput from 'hooks/useFileInput';
 import { User } from 'types/user';
 import { getData, LS_KEYS } from 'utils/storage/localStorage';
 import { CenteredFlex } from 'components/Container';
@@ -150,12 +147,6 @@ export default function Gallery() {
     });
     const [planModalView, setPlanModalView] = useState(false);
     const [blockingLoad, setBlockingLoad] = useState(false);
-    const [collectionSelectorAttributes, setCollectionSelectorAttributes] =
-        useState<CollectionSelectorAttributes>(null);
-    const [collectionSelectorView, setCollectionSelectorView] = useState(false);
-    const [collectionNamerAttributes, setCollectionNamerAttributes] =
-        useState<CollectionNamerAttributes>(null);
-    const [collectionNamerView, setCollectionNamerView] = useState(false);
     const [search, setSearch] = useState<Search>(null);
     const [shouldDisableDropzone, setShouldDisableDropzone] = useState(false);
 
@@ -167,20 +158,6 @@ export default function Gallery() {
         noClick: true,
         noKeyboard: true,
         disabled: shouldDisableDropzone,
-    });
-    const {
-        selectedFiles: webFileSelectorFiles,
-        open: openFileSelector,
-        getInputProps: getFileSelectorInputProps,
-    } = useFileInput({
-        directory: false,
-    });
-    const {
-        selectedFiles: webFolderSelectorFiles,
-        open: openFolderSelector,
-        getInputProps: getFolderSelectorInputProps,
-    } = useFileInput({
-        directory: true,
     });
 
     const [isInSearchMode, setIsInSearchMode] = useState(false);
@@ -205,13 +182,11 @@ export default function Gallery() {
 
     const showPlanSelectorModal = () => setPlanModalView(true);
 
-    const [uploadTypeSelectorView, setUploadTypeSelectorView] = useState(false);
-    const [uploadTypeSelectorIntent, setUploadTypeSelectorIntent] =
-        useState<UploadTypeSelectorIntent>(
-            UploadTypeSelectorIntent.normalUpload
-        );
-
     const [sidebarView, setSidebarView] = useState(false);
+
+    const UploaderRef = useRef<IUploader>(null);
+    const collectionSelectorRef = useRef<ICollectionSelector>(null);
+    const collectionNamerRef = useRef<ICollectionNamer>(null);
 
     const closeSidebar = () => setSidebarView(false);
     const openSidebar = () => setSidebarView(true);
@@ -281,13 +256,6 @@ export default function Gallery() {
         setDerivativeState(user, collections, files);
     }, [collections, files]);
 
-    useEffect(() => {
-        collectionSelectorAttributes && setCollectionSelectorView(true);
-    }, [collectionSelectorAttributes]);
-
-    useEffect(() => {
-        collectionNamerAttributes && setCollectionNamerView(true);
-    }, [collectionNamerAttributes]);
     useEffect(() => {
         fixCreationTimeAttributes && setFixCreationTimeView(true);
     }, [fixCreationTimeAttributes]);
@@ -410,7 +378,6 @@ export default function Gallery() {
         (ops: COLLECTION_OPS_TYPE) => async (collection: Collection) => {
             startLoading();
             try {
-                setCollectionSelectorView(false);
                 const selectedFiles = getSelectedFiles(selected, files);
                 const toProcessFiles =
                     ops === COLLECTION_OPS_TYPE.REMOVE
@@ -479,37 +446,14 @@ export default function Gallery() {
         }
     };
 
-    const showCreateCollectionModal = (ops: COLLECTION_OPS_TYPE) => {
-        const callback = async (collectionName: string) => {
-            try {
-                startLoading();
-                const collection = await createCollection(
-                    collectionName,
-                    CollectionType.album,
-                    collections
-                );
-                await collectionOpsHelper(ops)(collection);
-            } catch (e) {
-                logError(e, 'create and collection ops failed', { ops });
-                setDialogMessage({
-                    title: constants.ERROR,
-
-                    close: { variant: 'danger' },
-                    content: constants.UNKNOWN_ERROR,
-                });
-            } finally {
-                finishLoading();
-            }
-        };
-        return () =>
-            setCollectionNamerAttributes({
-                title: constants.CREATE_COLLECTION,
-                buttonText: constants.CREATE,
-                autoFilledName: '',
-                callback,
-            });
+    const showCreateCollectionModal = async () => {
+        const collectionName = await collectionNamerRef.current.show({
+            title: constants.CREATE_COLLECTION,
+            buttonText: constants.CREATE,
+            autoFilledName: '',
+        });
+        return await createAlbum(collectionName, collections);
     };
-
     const deleteFileHelper = async (permanent?: boolean) => {
         startLoading();
         try {
@@ -578,12 +522,10 @@ export default function Gallery() {
         if (!uploadManager.shouldAllowNewUpload()) {
             return;
         }
-        setUploadTypeSelectorView(true);
-        setUploadTypeSelectorIntent(intent);
-    };
-
-    const closeCollectionSelector = () => {
-        setCollectionSelectorView(false);
+        UploaderRef.current?.openUploader(
+            intent,
+            !hasNonSystemCollections(collectionSummaries)
+        );
     };
 
     return (
@@ -597,12 +539,8 @@ export default function Gallery() {
                 photoListHeader: photoListHeader,
             }}>
             <FullScreenDropZone
-                getDragAndDropRootProps={getDragAndDropRootProps}>
-                <UploadInputs
-                    getDragAndDropInputProps={getDragAndDropInputProps}
-                    getFileSelectorInputProps={getFileSelectorInputProps}
-                    getFolderSelectorInputProps={getFolderSelectorInputProps}
-                />
+                getDragAndDropRootProps={getDragAndDropRootProps}
+                getDragAndDropInputProps={getDragAndDropInputProps}>
                 {blockingLoad && (
                     <LoadingOverlay>
                         <EnteSpinner />
@@ -620,16 +558,10 @@ export default function Gallery() {
                     closeModal={() => setPlanModalView(false)}
                     setLoading={setBlockingLoad}
                 />
-                <CollectionNamer
-                    show={collectionNamerView}
-                    onHide={setCollectionNamerView.bind(null, false)}
-                    attributes={collectionNamerAttributes}
-                />
+                <CollectionNamer ref={collectionNamerRef} />
                 <CollectionSelector
-                    open={collectionSelectorView}
-                    onClose={closeCollectionSelector}
+                    ref={collectionSelectorRef}
                     collectionSummaries={collectionSummaries}
-                    attributes={collectionSelectorAttributes}
                     collections={collections}
                 />
                 <FixCreationTime
@@ -656,43 +588,20 @@ export default function Gallery() {
                     activeCollectionID={activeCollection}
                     setActiveCollectionID={setActiveCollection}
                     collectionSummaries={collectionSummaries}
-                    setCollectionNamerAttributes={setCollectionNamerAttributes}
+                    collectionNamer={collectionNamerRef.current}
                     setPhotoListHeader={setPhotoListHeader}
                 />
 
                 <Uploader
+                    ref={UploaderRef}
                     syncWithRemote={syncWithRemote}
-                    showCollectionSelector={setCollectionSelectorView.bind(
-                        null,
-                        true
-                    )}
-                    closeUploadTypeSelector={setUploadTypeSelectorView.bind(
-                        null,
-                        false
-                    )}
-                    setCollectionSelectorAttributes={
-                        setCollectionSelectorAttributes
-                    }
-                    closeCollectionSelector={setCollectionSelectorView.bind(
-                        null,
-                        false
-                    )}
-                    uploadTypeSelectorIntent={uploadTypeSelectorIntent}
                     setLoading={setBlockingLoad}
-                    setCollectionNamerAttributes={setCollectionNamerAttributes}
                     setShouldDisableDropzone={setShouldDisableDropzone}
                     setFiles={setFiles}
                     setCollections={setCollections}
-                    isFirstUpload={
-                        !hasNonSystemCollections(collectionSummaries)
-                    }
-                    webFileSelectorFiles={webFileSelectorFiles}
-                    webFolderSelectorFiles={webFolderSelectorFiles}
                     dragAndDropFiles={dragAndDropFiles}
-                    uploadTypeSelectorView={uploadTypeSelectorView}
-                    showUploadFilesDialog={openFileSelector}
-                    showUploadDirsDialog={openFolderSelector}
                     showSessionExpiredMessage={showSessionExpiredMessage}
+                    collectionSelector={collectionSelectorRef.current}
                 />
                 <Sidebar
                     collectionSummaries={collectionSummaries}
@@ -746,9 +655,7 @@ export default function Gallery() {
                             showCreateCollectionModal={
                                 showCreateCollectionModal
                             }
-                            setCollectionSelectorAttributes={
-                                setCollectionSelectorAttributes
-                            }
+                            collectionSelector={collectionSelectorRef.current}
                             deleteFileHelper={deleteFileHelper}
                             removeFromCollectionHelper={() =>
                                 collectionOpsHelper(COLLECTION_OPS_TYPE.REMOVE)(

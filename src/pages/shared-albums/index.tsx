@@ -40,14 +40,13 @@ import Typography from '@mui/material/Typography';
 import Uploader from 'components/Upload/Uploader';
 import { LoadingOverlay } from 'components/LoadingOverlay';
 import FullScreenDropZone from 'components/FullScreenDropZone';
-import useFileInput from 'hooks/useFileInput';
 import { useDropzone } from 'react-dropzone';
-import UploadSelectorInputs from 'components/UploadSelectorInputs';
 import { logoutUser } from 'services/userService';
 import UploadButton from 'components/Upload/UploadButton';
 import bs58 from 'bs58';
 import AddPhotoAlternateOutlined from '@mui/icons-material/AddPhotoAlternateOutlined';
 import ComlinkCryptoWorker from 'utils/comlink/ComlinkCryptoWorker';
+import uploadController from 'services/upload/uploadController';
 import { UploadTypeSelectorIntent } from 'types/gallery';
 
 const Loader = () => (
@@ -80,7 +79,6 @@ export default function PublicCollectionGallery() {
     const [photoListFooter, setPhotoListFooter] =
         useState<TimeStampListItem>(null);
 
-    const [uploadTypeSelectorView, setUploadTypeSelectorView] = useState(false);
     const [blockingLoad, setBlockingLoad] = useState(false);
     const [shouldDisableDropzone, setShouldDisableDropzone] = useState(false);
 
@@ -93,27 +91,17 @@ export default function PublicCollectionGallery() {
         noKeyboard: true,
         disabled: shouldDisableDropzone,
     });
-    const {
-        selectedFiles: webFileSelectorFiles,
-        open: openFileSelector,
-        getInputProps: getFileSelectorInputProps,
-    } = useFileInput({
-        directory: false,
-    });
-    const {
-        selectedFiles: webFolderSelectorFiles,
-        open: openFolderSelector,
-        getInputProps: getFolderSelectorInputProps,
-    } = useFileInput({
-        directory: true,
-    });
 
     const openUploader = () => {
-        setUploadTypeSelectorView(true);
-    };
-
-    const closeUploadTypeSelectorView = () => {
-        setUploadTypeSelectorView(false);
+        uploadController.openUploader(
+            UploadTypeSelectorIntent.collectPhotos,
+            false,
+            true,
+            {
+                collection: publicCollection,
+                token: token.current,
+            }
+        );
     };
 
     const showPublicLinkExpiredMessage = () =>
@@ -392,12 +380,8 @@ export default function PublicCollectionGallery() {
                 photoListFooter,
             }}>
             <FullScreenDropZone
-                getDragAndDropRootProps={getDragAndDropRootProps}>
-                <UploadSelectorInputs
-                    getDragAndDropInputProps={getDragAndDropInputProps}
-                    getFileSelectorInputProps={getFileSelectorInputProps}
-                    getFolderSelectorInputProps={getFolderSelectorInputProps}
-                />
+                getDragAndDropRootProps={getDragAndDropRootProps}
+                getDragAndDropInputProps={getDragAndDropInputProps}>
                 <SharedAlbumNavbar
                     showUploadButton={
                         publicCollection?.publicURLs?.[0]?.enableCollect
@@ -429,21 +413,11 @@ export default function PublicCollectionGallery() {
                 )}
                 <Uploader
                     syncWithRemote={syncWithRemote}
-                    uploadCollection={publicCollection}
                     setLoading={setBlockingLoad}
                     setShouldDisableDropzone={setShouldDisableDropzone}
                     setFiles={setPublicFiles}
-                    webFileSelectorFiles={webFileSelectorFiles}
-                    webFolderSelectorFiles={webFolderSelectorFiles}
                     dragAndDropFiles={dragAndDropFiles}
-                    uploadTypeSelectorView={uploadTypeSelectorView}
-                    closeUploadTypeSelector={closeUploadTypeSelectorView}
-                    showUploadFilesDialog={openFileSelector}
-                    showUploadDirsDialog={openFolderSelector}
                     showSessionExpiredMessage={showPublicLinkExpiredMessage}
-                    uploadTypeSelectorIntent={
-                        UploadTypeSelectorIntent.collectPhotos
-                    }
                 />
             </FullScreenDropZone>
         </PublicCollectionGalleryContext.Provider>
