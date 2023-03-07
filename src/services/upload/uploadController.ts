@@ -14,6 +14,10 @@ import {
 import isElectron from 'is-electron';
 import { syncCollections, createAlbum } from 'services/collectionService';
 import importService from 'services/importService';
+import {
+    getPublicCollectionUID,
+    getPublicCollectionUploaderName,
+} from 'services/publicCollectionService';
 
 import watchFolderService from 'services/watchFolder/watchFolderService';
 import { Collection } from 'types/collection';
@@ -48,10 +52,6 @@ class UploadController {
     setDialogMessage: (message: DialogBoxAttributes) => void;
     userNameInputDialog: IUserNameInputDialog;
     collectionSelector: ICollectionSelector;
-    publicProps: {
-        collection: Collection;
-        token: string;
-    };
     isFirstUpload: boolean;
     uploadStrategyChoiceModal: IUploadStrategyChoiceModal;
     setCollections: SetCollections;
@@ -65,6 +65,11 @@ class UploadController {
     isPendingDesktopUpload: boolean;
     pendingDesktopUploadCollectionName: string;
     zipPaths: string[];
+    isPublicUpload: boolean;
+    publicProps: {
+        collection: Collection;
+        token: string;
+    };
 
     init(
         uploadTypeSelector: IUploadTypeSelector,
@@ -100,9 +105,16 @@ class UploadController {
 
     async openUploader(
         uploadTypeSelectorIntent: UploadTypeSelectorIntent,
-        isFirstUpload?: boolean
+        isFirstUpload?: boolean,
+        isPublicUpload?: boolean,
+        publicProps?: {
+            collection: Collection;
+            token: string;
+        }
     ) {
         this.isFirstUpload = isFirstUpload;
+        this.isPublicUpload = isPublicUpload;
+        this.publicProps = publicProps;
 
         const pickedUploadType = await this.uploadTypeSelector.show({
             intent: uploadTypeSelectorIntent,
@@ -203,6 +215,24 @@ class UploadController {
         pickedUploadType: PICKED_UPLOAD_TYPE
     ) => {
         try {
+            let uploaderName: string;
+            if (this.isPublicUpload) {
+                addLogLine(
+                    `uploading files to public collection - ${this.publicProps.collection.name}  - ${this.publicProps.collection.id}`
+                );
+                uploaderName = await getPublicCollectionUploaderName(
+                    getPublicCollectionUID(this.publicProps.token)
+                );
+                uploaderName = await this.userNameInputDialog.show({
+                    uploaderName,
+                    toUploadFilesCount: toUploadFiles.length,
+                });
+                this.uploadFilesToExistingCollection(
+                    toUploadFiles,
+                    this.publicProps.collection,
+                    uploaderName
+                );
+            }
             if (this.isPendingDesktopUpload) {
                 this.isPendingDesktopUpload = false;
                 if (this.pendingDesktopUploadCollectionName) {
@@ -368,7 +398,8 @@ class UploadController {
 
     uploadFilesToExistingCollection = async (
         toUploadFiles: File[] | ElectronFile[],
-        collection: Collection
+        collection: Collection,
+        uploaderName?: string
     ) => {
         try {
             addLogLine(
@@ -381,9 +412,11 @@ class UploadController {
                     localID: index,
                     collectionID: collection.id,
                 }));
-            this.waitInQueueAndUploadFiles(filesWithCollectionToUpload, [
-                collection,
-            ]);
+            this.waitInQueueAndUploadFiles(
+                filesWithCollectionToUpload,
+                [collection],
+                uploaderName
+            );
         } catch (e) {
             logError(e, 'Failed to upload files to existing collections');
         }
@@ -391,7 +424,8 @@ class UploadController {
 
     waitInQueueAndUploadFiles = (
         filesWithCollectionToUploadIn: FileWithCollection[],
-        collections: Collection[]
+        collections: Collection[],
+        uploaderName?: string
     ) => {
         const currentPromise = this.currentUploadPromise;
         this.currentUploadPromise = waitAndRun(
@@ -399,7 +433,8 @@ class UploadController {
             async () =>
                 await this.uploadFiles(
                     filesWithCollectionToUploadIn,
-                    collections
+                    collections,
+                    uploaderName
                 )
         );
     };
@@ -418,7 +453,8 @@ class UploadController {
 
     uploadFiles = async (
         filesWithCollectionToUploadIn: FileWithCollection[],
-        collections: Collection[]
+        collections: Collection[],
+        uploaderName?: string
     ) => {
         try {
             addLogLine('uploadFiles called');
@@ -443,7 +479,8 @@ class UploadController {
             const shouldCloseUploadProgress =
                 await uploadManager.queueFilesForUpload(
                     filesWithCollectionToUploadIn,
-                    collections
+                    collections,
+                    uploaderName
                 );
             if (shouldCloseUploadProgress) {
                 this.setUploadProgressView(false);
