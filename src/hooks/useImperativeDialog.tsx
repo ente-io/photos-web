@@ -1,4 +1,5 @@
 import { Ref, useImperativeHandle, useRef, useState } from 'react';
+import { CustomError } from 'utils/error';
 
 export interface ImperativeDialog<S, T> {
     show: (attributes?: S) => Promise<T>;
@@ -7,14 +8,17 @@ export interface ImperativeDialog<S, T> {
 export function useImperativeDialog<S, T>(ref: Ref<ImperativeDialog<S, T>>) {
     const [isOpen, setIsOpen] = useState(false);
     const [attributes, setAttributes] = useState<S>(null);
-    const onClick = useRef<(value: T) => void>();
+    const onOptionClick = useRef<(value: T) => void>();
+    const onCloseClick = useRef<() => void>();
 
     useImperativeHandle(
         ref,
         () => ({
             show: (attributes: S) => {
-                return new Promise((resolve) => {
-                    onClick.current = resolve;
+                return new Promise((resolve, reject) => {
+                    onOptionClick.current = resolve;
+                    onCloseClick.current = () =>
+                        reject(Error(CustomError.REQUEST_CANCELLED));
                     setAttributes(attributes);
                     setIsOpen(true);
                 });
@@ -24,12 +28,12 @@ export function useImperativeDialog<S, T>(ref: Ref<ImperativeDialog<S, T>>) {
     );
 
     const onClickHandler = (value: T) => () => {
-        onClick.current?.(value);
+        onOptionClick.current?.(value);
         setIsOpen(false);
     };
 
     const onClose = () => {
-        onClick.current?.(null);
+        onCloseClick.current?.();
         setIsOpen(false);
     };
 
