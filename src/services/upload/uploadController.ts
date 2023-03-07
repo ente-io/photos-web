@@ -17,6 +17,7 @@ import importService from 'services/importService';
 import {
     getPublicCollectionUID,
     getPublicCollectionUploaderName,
+    savePublicCollectionUploaderName,
 } from 'services/publicCollectionService';
 
 import watchFolderService from 'services/watchFolder/watchFolderService';
@@ -87,9 +88,9 @@ class UploadController {
         showUserFacingError: (error: string) => void,
         setLoading: (value: boolean) => void
     ) {
+        this.uploadTypeSelector = uploadTypeSelector;
         this.openFileSelector = openFileSelector;
         this.openFolderSelector = openFolderSelector;
-        this.uploadTypeSelector = uploadTypeSelector;
         this.setDialogMessage = setDialogMessage;
         this.userNameInputDialog = userNameInputDialog;
         this.collectionSelector = collectionSelector;
@@ -146,6 +147,31 @@ class UploadController {
             this.zipPaths = zipPaths;
             this.preprocessAndUploadFiles(electronFiles, type);
         }
+    };
+
+    retryFailed = async () => {
+        try {
+            addLogLine('user retrying failed  upload');
+            const filesWithCollections =
+                uploadManager.getFailedFilesWithCollections();
+            const uploaderName = uploadManager.getUploaderName();
+            await this.preUploadAction();
+            await uploadManager.queueFilesForUpload(
+                filesWithCollections.files,
+                filesWithCollections.collections,
+                uploaderName
+            );
+        } catch (err) {
+            logError(err, 'retry failed files failed');
+            this.showUserFacingError(err.message);
+            this.setUploadProgressView(false);
+        } finally {
+            this.postUploadAction();
+        }
+    };
+
+    cancelUploads = () => {
+        uploadManager.cancelRunningUpload();
     };
 
     preprocessAndUploadFiles = async (
@@ -209,7 +235,7 @@ class UploadController {
         this.setLoading(false);
     };
 
-    handleCollectionCreationAndUpload = async (
+    private handleCollectionCreationAndUpload = async (
         toUploadFiles: File[] | ElectronFile[],
         importSuggestion: ImportSuggestion,
         pickedUploadType: PICKED_UPLOAD_TYPE
@@ -227,6 +253,10 @@ class UploadController {
                     uploaderName,
                     toUploadFilesCount: toUploadFiles.length,
                 });
+                savePublicCollectionUploaderName(
+                    getPublicCollectionUID(this.publicProps.token),
+                    uploaderName
+                );
                 this.uploadFilesToExistingCollection(
                     toUploadFiles,
                     this.publicProps.collection,
@@ -318,13 +348,13 @@ class UploadController {
         }
     };
 
-    preCollectionCreationAction = async () => {
+    private preCollectionCreationAction = async () => {
         this.setShouldDisableDropzone(!uploadManager.shouldAllowNewUpload());
         uiService.setUploadStage(UPLOAD_STAGES.START);
         this.setUploadProgressView(true);
     };
 
-    uploadFilesToNewCollections = async (
+    private uploadFilesToNewCollections = async (
         toUploadFiles: File[] | ElectronFile[],
         strategy: UPLOAD_STRATEGY,
         collectionName?: string
@@ -396,7 +426,7 @@ class UploadController {
         }
     };
 
-    uploadFilesToExistingCollection = async (
+    private uploadFilesToExistingCollection = async (
         toUploadFiles: File[] | ElectronFile[],
         collection: Collection,
         uploaderName?: string
@@ -422,7 +452,7 @@ class UploadController {
         }
     };
 
-    waitInQueueAndUploadFiles = (
+    private waitInQueueAndUploadFiles = (
         filesWithCollectionToUploadIn: FileWithCollection[],
         collections: Collection[],
         uploaderName?: string
@@ -439,19 +469,19 @@ class UploadController {
         );
     };
 
-    preUploadAction = async () => {
+    private preUploadAction = async () => {
         uploadManager.prepareForNewUpload();
         this.setUploadProgressView(true);
         await this.syncWithRemote(true, true);
     };
 
-    postUploadAction() {
+    private postUploadAction() {
         this.setShouldDisableDropzone(false);
         uploadManager.setUploadRunning(false);
         this.syncWithRemote();
     }
 
-    uploadFiles = async (
+    private uploadFiles = async (
         filesWithCollectionToUploadIn: FileWithCollection[],
         collections: Collection[],
         uploaderName?: string
@@ -504,31 +534,6 @@ class UploadController {
         } finally {
             this.postUploadAction();
         }
-    };
-
-    retryFailed = async () => {
-        try {
-            addLogLine('user retrying failed  upload');
-            const filesWithCollections =
-                uploadManager.getFailedFilesWithCollections();
-            const uploaderName = uploadManager.getUploaderName();
-            await this.preUploadAction();
-            await uploadManager.queueFilesForUpload(
-                filesWithCollections.files,
-                filesWithCollections.collections,
-                uploaderName
-            );
-        } catch (err) {
-            logError(err, 'retry failed files failed');
-            this.showUserFacingError(err.message);
-            this.setUploadProgressView(false);
-        } finally {
-            this.postUploadAction();
-        }
-    };
-
-    cancelUploads = () => {
-        uploadManager.cancelRunningUpload();
     };
 
     private handleUpload = (type: PICKED_UPLOAD_TYPE) => () => {
