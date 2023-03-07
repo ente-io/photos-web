@@ -18,11 +18,16 @@ import {
     diskFolderRemovedCallback,
 } from './watchFolderEventHandlers';
 import { getParentFolderName } from './utils';
-import { UPLOAD_RESULT, UPLOAD_STRATEGY } from 'constants/upload';
+import {
+    PICKED_UPLOAD_TYPE,
+    UPLOAD_RESULT,
+    UPLOAD_STRATEGY,
+} from 'constants/upload';
 import uploadManager from 'services/upload/uploadManager';
 import { addLocalLog, addLogLine } from 'utils/logging';
 import { getValidFilesToUpload } from 'utils/watch';
 import { groupFilesBasedOnCollectionID } from 'utils/file';
+import uploadController from 'services/upload/uploadController';
 
 class watchFolderService {
     private electronAPIs: ElectronAPIs;
@@ -36,8 +41,6 @@ class watchFolderService {
     private filePathToUploadedFileIDMap = new Map<string, EncryptedEnteFile>();
     private unUploadableFilePaths = new Set<string>();
     private isPaused = false;
-    private setElectronFiles: (files: ElectronFile[]) => void;
-    private setCollectionName: (collectionName: string) => void;
     private syncWithRemote: () => void;
     private setWatchFolderServiceIsRunning: (isRunning: boolean) => void;
 
@@ -56,15 +59,11 @@ class watchFolderService {
     }
 
     async init(
-        setElectronFiles: (files: ElectronFile[]) => void,
-        setCollectionName: (collectionName: string) => void,
         syncWithRemote: () => void,
         setWatchFolderServiceIsRunning: (isRunning: boolean) => void
     ) {
         if (this.allElectronAPIsExist) {
             try {
-                this.setElectronFiles = setElectronFiles;
-                this.setCollectionName = setCollectionName;
                 this.syncWithRemote = syncWithRemote;
                 this.setWatchFolderServiceIsRunning =
                     setWatchFolderServiceIsRunning;
@@ -284,9 +283,11 @@ class watchFolderService {
     private async processUploadEvent() {
         try {
             this.uploadRunning = true;
-
-            this.setCollectionName(this.currentEvent.collectionName);
-            this.setElectronFiles(this.currentEvent.files);
+            await uploadController.resumeDesktopUpload(
+                PICKED_UPLOAD_TYPE.FILES,
+                this.currentEvent.files,
+                this.currentEvent.collectionName
+            );
         } catch (e) {
             logError(e, 'error while running next upload');
         }

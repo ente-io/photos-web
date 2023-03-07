@@ -76,6 +76,10 @@ class UploadManager {
         return this.uploadInProgress;
     }
 
+    public setUploadRunning(uploadInProgress: boolean) {
+        this.uploadInProgress = uploadInProgress;
+    }
+
     private resetState() {
         this.filesToBeUploaded = [];
         this.remainingFiles = [];
