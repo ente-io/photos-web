@@ -5,12 +5,16 @@ import { EnteDrawer } from 'components/EnteDrawer';
 import MLSearchSettings from 'components/MachineLearning/MLSearchSettings';
 import MenuSectionTitle from 'components/Menu/MenuSectionTitle';
 import Titlebar from 'components/Titlebar';
+import { PAGES } from 'constants/pages';
+import { useRouter } from 'next/router';
 import { useState } from 'react';
 import constants from 'utils/strings/constants';
 import SidebarButton from './Button';
 
 export default function AdvancedSettings({ open, onClose, onRootClose }) {
     const [mlSearchSettingsView, setMlSearchSettingsView] = useState(false);
+
+    const router = useRouter();
 
     const openMlSearchSettings = () => setMlSearchSettingsView(true);
     const closeMlSearchSettings = () => setMlSearchSettingsView(false);
@@ -26,6 +30,10 @@ export default function AdvancedSettings({ open, onClose, onRootClose }) {
         } else {
             onClose();
         }
+    };
+
+    const openMLDebugPage = () => {
+        router.push(PAGES.ML_DEBUG);
     };
 
     return (
@@ -58,6 +66,13 @@ export default function AdvancedSettings({ open, onClose, onRootClose }) {
                                 {constants.ML_SEARCH}
                             </SidebarButton>
                         </Box>
+                        <SidebarButton
+                            variant="contained"
+                            color="secondary"
+                            endIcon={<ChevronRight />}
+                            onClick={openMLDebugPage}>
+                            {constants.ML_DEBUG}
+                        </SidebarButton>
                     </Stack>
                 </Box>
             </Stack>
