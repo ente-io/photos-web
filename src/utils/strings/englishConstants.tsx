@@ -7,6 +7,7 @@ import { SuggestionType } from 'types/search';
 import { formatNumberWithCommas } from '.';
 import { FACE_SEARCH_PRIVACY_POLICY_LINK } from 'constants/urls';
 import { EnteLogo } from 'components/EnteLogo';
+import { PasswordStrength } from 'constants/crypto';
 /**
  * Global English constants.
  */
@@ -422,7 +423,7 @@ const englishConstants = {
             case SuggestionType.THING:
                 return 'Content';
             case SuggestionType.FILE_CAPTION:
-                return 'Caption';
+                return 'Description';
         }
     },
     PHOTO_COUNT: (count: number) =>
@@ -998,6 +999,23 @@ const englishConstants = {
         'I understand, and wish to allow ente to process face geometry',
     LABS: 'Labs',
     YOURS: 'yours',
+    PASSPHRASE_STRENGTH: (strength: PasswordStrength) =>
+        `Password strength: ${
+            strength === PasswordStrength.STRONG
+                ? 'Strong'
+                : strength === PasswordStrength.MODERATE
+                ? 'Moderate'
+                : 'Weak'
+        }`,
+    PREFERENCES: 'Preferences',
+    LANGUAGE: 'Language',
+    EXPORT_DIRECTORY_DOES_NOT_EXIST: 'Invalid export directory',
+    EXPORT_DIRECTORY_DOES_NOT_EXIST_MESSAGE: () => (
+        <>
+            <p>The export directory you have selected does not exist.</p>
+            <p> Please select a valid directory.</p>
+        </>
+    ),
 };
 
 export default englishConstants;
