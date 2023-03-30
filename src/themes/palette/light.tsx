@@ -18,12 +18,12 @@ const lightThemePalette: PaletteOptions = {
     accent: {
         main: fixedColors.accent.A500,
         dark: fixedColors.accent.A700,
-        contrastText: darkThemeColors.text.base,
+        contrastText: lightThemeColors.text.base,
     },
     critical: {
         main: fixedColors.warning.A700,
         dark: fixedColors.warning.A800,
-        contrastText: darkThemeColors.text.base,
+        contrastText: lightThemeColors.text.base,
     },
     background: {
         default: lightThemeColors.background.base,

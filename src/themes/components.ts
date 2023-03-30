@@ -142,6 +142,9 @@ export const getComponents = (
         },
     },
     MuiSvgIcon: {
+        defaultProps: {
+            color: 'primary',
+        },
         styleOverrides: {
             root: ({ ownerState }) => {
                 switch (ownerState.color) {

@@ -17,17 +17,17 @@ export default function CollectionSort(props: CollectionSortProps) {
             ariaControls="collection-sort"
             triggerButtonIcon={<SortIcon />}
             menuPaperProps={{
-                sx: {
-                    backgroundColor: (theme) =>
+                sx: (theme) => ({
+                    backgroundColor:
                         props.nestedInDialog &&
                         theme.palette.background.elevated2,
-                },
+                }),
             }}
             triggerButtonProps={{
-                sx: {
-                    background: (theme) =>
+                sx: (theme) => ({
+                    backgroundColor:
                         !props.disableBG && theme.colors.fill.faint,
-                },
+                }),
             }}>
             <CollectionSortOptions {...props} />
         </OverflowMenu>
