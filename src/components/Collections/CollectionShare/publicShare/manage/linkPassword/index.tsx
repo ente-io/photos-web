@@ -1,10 +1,9 @@
-import { Box, Typography } from '@mui/material';
 import { AppContext } from 'pages/_app';
 import React, { useContext, useState } from 'react';
 import { PublicURL, Collection, UpdatePublicURL } from 'types/collection';
-import constants from 'utils/strings/constants';
 import { PublicLinkSetPassword } from './setPassword';
-import PublicShareSwitch from '../../switch';
+import { EnteMenuItem } from 'components/Menu/menuItem';
+import { t } from 'i18next';
 
 interface Iprops {
     publicShareProp: PublicURL;
@@ -32,11 +31,11 @@ export function ManageLinkPassword({
 
     const confirmDisablePublicUrlPassword = async () => {
         appContext.setDialogMessage({
-            title: constants.DISABLE_PASSWORD,
-            content: constants.DISABLE_PASSWORD_MESSAGE,
-            close: { text: constants.CANCEL },
+            title: t('DISABLE_PASSWORD'),
+            content: t('DISABLE_PASSWORD_MESSAGE'),
+            close: { text: t('CANCEL') },
             proceed: {
-                text: constants.DISABLE,
+                text: t('DISABLE'),
                 action: () =>
                     updatePublicShareURLHelper({
                         collectionID: collection.id,
@@ -49,16 +48,12 @@ export function ManageLinkPassword({
 
     return (
         <>
-            <Box>
-                <Typography mb={0.5}>
-                    {' '}
-                    {constants.LINK_PASSWORD_LOCK}
-                </Typography>
-                <PublicShareSwitch
-                    checked={!!publicShareProp?.passwordEnabled}
-                    onChange={handlePasswordChangeSetting}
-                />
-            </Box>
+            <EnteMenuItem
+                onClick={handlePasswordChangeSetting}
+                checked={!!publicShareProp?.passwordEnabled}
+                hasSwitch>
+                {t('LINK_PASSWORD_LOCK')}
+            </EnteMenuItem>
             <PublicLinkSetPassword
                 open={changePasswordView}
                 onClose={closeConfigurePassword}

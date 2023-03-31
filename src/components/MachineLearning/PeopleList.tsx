@@ -5,16 +5,16 @@ import {
     getPeopleList,
     getUnidentifiedFaces,
 } from 'utils/machineLearning';
-import styled from 'styled-components';
+import { styled } from '@mui/material';
 import { EnteFile } from 'types/file';
 import { ImageCacheView } from './ImageViews';
 import { CACHES } from 'constants/cache';
 import { Legend } from 'components/PhotoViewer/styledComponents/Legend';
-import constants from 'utils/strings/constants';
 import { addLogLine } from 'utils/logging';
 import { logError } from 'utils/sentry';
+import { t } from 'i18next';
 
-const FaceChipContainer = styled.div`
+const FaceChipContainer = styled('div')`
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -24,7 +24,7 @@ const FaceChipContainer = styled.div`
     overflow: auto;
 `;
 
-const FaceChip = styled.div<{ clickable?: boolean }>`
+const FaceChip = styled('div')<{ clickable?: boolean }>`
     width: 112px;
     height: 112px;
     margin: 5px;
@@ -103,7 +103,7 @@ export function PhotoPeopleList(props: PhotoPeopleListProps) {
 
     return (
         <div>
-            <Legend>{constants.PEOPLE}</Legend>
+            <Legend>{t('PEOPLE')}</Legend>
             <PeopleList people={people} onSelect={props.onSelect}></PeopleList>
         </div>
     );
@@ -165,7 +165,7 @@ export function UnidentifiedFaces(props: {
     return (
         <>
             <div>
-                <Legend>{constants.UNIDENTIFIED_FACES}</Legend>
+                <Legend>{t('UNIDENTIFIED_FACES')}</Legend>
             </div>
             <FaceChipContainer>
                 {faces &&

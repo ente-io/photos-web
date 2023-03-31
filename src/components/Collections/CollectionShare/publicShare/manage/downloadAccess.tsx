@@ -1,10 +1,9 @@
-import { Box, Typography } from '@mui/material';
+import { EnteMenuItem } from 'components/Menu/menuItem';
 import { AppContext } from 'pages/_app';
 import React, { useContext } from 'react';
+import { Trans } from 'react-i18next';
+import { t } from 'i18next';
 import { PublicURL, Collection, UpdatePublicURL } from 'types/collection';
-import constants from 'utils/strings/constants';
-import PublicShareSwitch from '../switch';
-
 interface Iprops {
     publicShareProp: PublicURL;
     collection: Collection;
@@ -31,11 +30,11 @@ export function ManageDownloadAccess({
 
     const disableFileDownload = () => {
         appContext.setDialogMessage({
-            title: constants.DISABLE_FILE_DOWNLOAD,
-            content: constants.DISABLE_FILE_DOWNLOAD_MESSAGE(),
-            close: { text: constants.CANCEL },
+            title: t('DISABLE_FILE_DOWNLOAD'),
+            content: <Trans i18nKey={'DISABLE_FILE_DOWNLOAD_MESSAGE'} />,
+            close: { text: t('CANCEL') },
             proceed: {
-                text: constants.DISABLE,
+                text: t('DISABLE'),
                 action: () =>
                     updatePublicShareURLHelper({
                         collectionID: collection.id,
@@ -46,12 +45,11 @@ export function ManageDownloadAccess({
         });
     };
     return (
-        <Box>
-            <Typography mb={0.5}>{constants.FILE_DOWNLOAD}</Typography>
-            <PublicShareSwitch
-                checked={publicShareProp?.enableDownload ?? true}
-                onChange={handleFileDownloadSetting}
-            />
-        </Box>
+        <EnteMenuItem
+            checked={publicShareProp?.enableDownload ?? true}
+            onClick={handleFileDownloadSetting}
+            hasSwitch>
+            {t('FILE_DOWNLOAD')}
+        </EnteMenuItem>
     );
 }

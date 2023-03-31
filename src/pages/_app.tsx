@@ -1,6 +1,7 @@
 import React, { createContext, useEffect, useRef, useState } from 'react';
 import AppNavbar from 'components/Navbar/app';
-import constants from 'utils/strings/constants';
+import { t } from 'i18next';
+
 import { useRouter } from 'next/router';
 import VerticallyCentered from 'components/Container';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -24,9 +25,11 @@ import { styled, ThemeProvider } from '@mui/material/styles';
 import darkThemeOptions from 'themes/darkThemeOptions';
 import lightThemeOptions from 'themes/lightThemeOptions';
 import { CssBaseline, useMediaQuery } from '@mui/material';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import * as types from 'styled-components/cssprop'; // need to css prop on styled component
-import { SetDialogBoxAttributes, DialogBoxAttributes } from 'types/dialogBox';
+import {
+    SetDialogBoxAttributes,
+    DialogBoxAttributes,
+    DialogBoxAttributesV2,
+} from 'types/dialogBox';
 import {
     getFamilyPortalRedirectURL,
     getRoadmapRedirectURL,
@@ -54,6 +57,11 @@ import { User } from 'types/user';
 import { SetTheme } from 'types/theme';
 import { useLocalState } from 'hooks/useLocalState';
 import { THEME_COLOR } from 'constants/theme';
+import { setupI18n } from 'i18n';
+import createEmotionCache from 'themes/createEmotionCache';
+import { CacheProvider, EmotionCache } from '@emotion/react';
+import { AppProps } from 'next/app';
+import DialogBoxV2 from 'components/DialogBoxV2';
 
 export const MessageContainer = styled('div')`
     background-color: #111;
@@ -92,6 +100,7 @@ type AppContextType = {
     theme: THEME_COLOR;
     setTheme: SetTheme;
     somethingWentWrong: () => void;
+    setDialogBoxAttributesV2: (attributes: DialogBoxAttributesV2) => void;
 };
 
 export enum FLASH_MESSAGE_TYPE {
@@ -111,8 +120,23 @@ const redirectMap = new Map([
     ['families', getFamilyPortalRedirectURL],
 ]);
 
-export default function App({ Component, err }) {
+const APP_TITLE = 'ente Photos';
+
+// Client-side cache, shared for the whole session of the user in the browser.
+const clientSideEmotionCache = createEmotionCache();
+
+export interface EnteAppProps extends AppProps {
+    emotionCache?: EmotionCache;
+}
+
+export default function App(props) {
+    const {
+        Component,
+        emotionCache = clientSideEmotionCache,
+        pageProps,
+    } = props;
     const router = useRouter();
+    const [isI18nReady, setIsI18nReady] = useState<boolean>(false);
     const [loading, setLoading] = useState(false);
     const [offline, setOffline] = useState(
         typeof window !== 'undefined' && !window.navigator.onLine
@@ -126,7 +150,11 @@ export default function App({ Component, err }) {
     const isLoadingBarRunning = useRef(false);
     const loadingBar = useRef(null);
     const [dialogMessage, setDialogMessage] = useState<DialogBoxAttributes>();
+    const [dialogBoxAttributeV2, setDialogBoxAttributesV2] =
+        useState<DialogBoxAttributesV2>();
+    useState<DialogBoxAttributes>(null);
     const [messageDialogView, setMessageDialogView] = useState(false);
+    const [dialogBoxV2View, setDialogBoxV2View] = useState(false);
     const [isFolderSyncRunning, setIsFolderSyncRunning] = useState(false);
     const [watchFolderView, setWatchFolderView] = useState(false);
     const [watchFolderFiles, setWatchFolderFiles] = useState<FileList>(null);
@@ -136,6 +164,10 @@ export default function App({ Component, err }) {
     const [notificationAttributes, setNotificationAttributes] =
         useState<NotificationAttributes>(null);
     const [theme, setTheme] = useLocalState(LS_KEYS.THEME, THEME_COLOR.DARK);
+
+    useEffect(() => {
+        setupI18n().finally(() => setIsI18nReady(true));
+    }, []);
 
     useEffect(() => {
         HTTPService.getInterceptors().response.use(
@@ -165,7 +197,7 @@ export default function App({ Component, err }) {
                     setNotificationAttributes({
                         endIcon: <ArrowForward />,
                         variant: 'secondary',
-                        message: constants.UPDATE_AVAILABLE,
+                        message: t('UPDATE_AVAILABLE'),
                         onClick: () =>
                             setDialogMessage(
                                 getUpdateAvailableForDownloadMessage(updateInfo)
@@ -203,17 +235,16 @@ export default function App({ Component, err }) {
     const resetSharedFiles = () => setSharedFiles(null);
 
     useEffect(() => {
-        if (process.env.NODE_ENV === 'production') {
+        if (isI18nReady) {
             console.log(
-                `%c${constants.CONSOLE_WARNING_STOP}`,
+                `%c${t('CONSOLE_WARNING_STOP')}`,
                 'color: red; font-size: 52px;'
             );
-            console.log(
-                `%c${constants.CONSOLE_WARNING_DESC}`,
-                'font-size: 20px;'
-            );
+            console.log(`%c${t('CONSOLE_WARNING_DESC')}`, 'font-size: 20px;');
         }
+    }, [isI18nReady]);
 
+    useEffect(() => {
         const redirectTo = async (redirect) => {
             if (
                 redirectMap.has(redirect) &&
@@ -274,6 +305,10 @@ export default function App({ Component, err }) {
     }, [dialogMessage]);
 
     useEffect(() => {
+        setDialogBoxV2View(true);
+    }, [dialogBoxV2View]);
+
+    useEffect(() => {
         setNotificationView(true);
     }, [notificationAttributes]);
 
@@ -306,18 +341,19 @@ export default function App({ Component, err }) {
     };
 
     const closeMessageDialog = () => setMessageDialogView(false);
+    const closeDialogBoxV2 = () => setDialogBoxV2View(false);
 
     const somethingWentWrong = () =>
         setDialogMessage({
-            title: constants.ERROR,
+            title: t('ERROR'),
             close: { variant: 'danger' },
-            content: constants.UNKNOWN_ERROR,
+            content: t('UNKNOWN_ERROR'),
         });
 
     return (
-        <>
+        <CacheProvider value={emotionCache}>
             <Head>
-                <title>{constants.TITLE}</title>
+                <title>{isI18nReady ? t('TITLE') : APP_TITLE}</title>
                 <meta
                     name="viewport"
                     content="initial-scale=1, width=device-width"
@@ -333,18 +369,20 @@ export default function App({ Component, err }) {
                 <CssBaseline enableColorScheme />
                 {showNavbar && <AppNavbar />}
                 <MessageContainer>
-                    {offline && constants.OFFLINE_MSG}
+                    {offline && t('OFFLINE_MSG')}
                 </MessageContainer>
                 {sharedFiles &&
                     (router.pathname === '/gallery' ? (
                         <MessageContainer>
-                            {constants.FILES_TO_BE_UPLOADED(sharedFiles.length)}
+                            {t('files_to_be_uploaded', {
+                                count: sharedFiles.length,
+                            })}
                         </MessageContainer>
                     ) : (
                         <MessageContainer>
-                            {constants.LOGIN_TO_UPLOAD_FILES(
-                                sharedFiles.length
-                            )}
+                            {t('login_to_upload_files', {
+                                count: sharedFiles.length,
+                            })}
                         </MessageContainer>
                     ))}
                 {flashMessage && (
@@ -361,6 +399,12 @@ export default function App({ Component, err }) {
                     open={messageDialogView}
                     onClose={closeMessageDialog}
                     attributes={dialogMessage}
+                />
+                <DialogBoxV2
+                    sx={{ zIndex: 1600 }}
+                    open={dialogBoxV2View}
+                    onClose={closeDialogBoxV2}
+                    attributes={dialogBoxAttributeV2}
                 />
                 <Notification
                     open={notificationView}
@@ -393,18 +437,19 @@ export default function App({ Component, err }) {
                         theme,
                         setTheme,
                         somethingWentWrong,
+                        setDialogBoxAttributesV2,
                     }}>
-                    {loading ? (
+                    {loading || !isI18nReady ? (
                         <VerticallyCentered>
                             <EnteSpinner>
                                 <span className="sr-only">Loading...</span>
                             </EnteSpinner>
                         </VerticallyCentered>
                     ) : (
-                        <Component err={err} setLoading={setLoading} />
+                        <Component setLoading={setLoading} {...pageProps} />
                     )}
                 </AppContext.Provider>
             </ThemeProvider>
-        </>
+        </CacheProvider>
     );
 }
