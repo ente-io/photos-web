@@ -11,7 +11,9 @@ interface Iprops {
 export function CollectionInfo({ name, fileCount, endIcon }: Iprops) {
     return (
         <div>
-            <Typography variant="h3">{name}</Typography>
+            <Typography variant="h3" color="text.base">
+                {name}
+            </Typography>
 
             <FlexWrapper>
                 <Typography variant="small" color="text.muted">
@@ -19,13 +21,13 @@ export function CollectionInfo({ name, fileCount, endIcon }: Iprops) {
                 </Typography>
                 {endIcon && (
                     <Box
-                        sx={{
+                        sx={(theme) => ({
                             svg: {
                                 fontSize: '17px',
-                                color: 'text.muted',
+                                color: theme.colors.stroke.faint,
                             },
-                        }}
-                        ml={1.5}>
+                        })}
+                        ml={'3px'}>
                         {endIcon}
                     </Box>
                 )}

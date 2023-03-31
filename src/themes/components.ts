@@ -20,6 +20,13 @@ export const getComponents = (
     MuiTypography: {
         defaultProps: {
             variant: 'body',
+            variantMapping: {
+                large: 'p',
+                body: 'p',
+                small: 'p',
+                mini: 'p',
+                tiny: 'p',
+            },
         },
     },
 
@@ -82,9 +89,11 @@ export const getComponents = (
     MuiButton: {
         defaultProps: {
             variant: 'contained',
+            color: 'primary',
         },
         styleOverrides: {
             root: {
+                boxShadow: 'none',
                 padding: '12px 16px',
                 borderRadius: '4px',
                 textTransform: 'none',
@@ -167,6 +176,9 @@ export const getComponents = (
     },
 
     MuiIconButton: {
+        defaultProps: {
+            color: 'primary',
+        },
         styleOverrides: {
             root: ({ ownerState }) => {
                 switch (ownerState.color) {

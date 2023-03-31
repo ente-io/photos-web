@@ -50,7 +50,13 @@ function CollectionCardText({ collectionName }) {
 function CollectionCardIcon({ collectionType }) {
     return (
         <CollectionBarTileIcon>
-            {collectionType === CollectionSummaryType.favorites && <Favorite />}
+            {collectionType === CollectionSummaryType.favorites && (
+                <Favorite
+                    sx={(theme) => ({
+                        color: theme.colors.white.base,
+                    })}
+                />
+            )}
             {collectionType === CollectionSummaryType.archived && (
                 <ArchiveIcon
                     sx={(theme) => ({
@@ -59,13 +65,25 @@ function CollectionCardIcon({ collectionType }) {
                 />
             )}
             {collectionType === CollectionSummaryType.outgoingShare && (
-                <PeopleIcon />
+                <PeopleIcon
+                    sx={(theme) => ({
+                        color: theme.colors.white.base,
+                    })}
+                />
             )}
             {collectionType === CollectionSummaryType.incomingShare && (
-                <PeopleIcon />
+                <PeopleIcon
+                    sx={(theme) => ({
+                        color: theme.colors.white.base,
+                    })}
+                />
             )}
             {collectionType === CollectionSummaryType.sharedOnlyViaLink && (
-                <LinkIcon />
+                <LinkIcon
+                    sx={(theme) => ({
+                        color: theme.colors.white.base,
+                    })}
+                />
             )}
         </CollectionBarTileIcon>
     );

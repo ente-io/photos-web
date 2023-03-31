@@ -8,7 +8,7 @@ const NavbarBase = styled(FlexWrapper)`
     left: 0;
     z-index: 1;
     border-bottom: 1px solid
-        ${({ theme }: { theme: Theme }) => theme.palette.divider};
+        ${({ theme }: { theme: Theme }) => theme.colors.stroke.faint};
     background-color: ${({ theme }: { theme: Theme }) =>
         theme.palette.background.base};
     margin-bottom: 16px;

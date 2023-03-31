@@ -14,11 +14,15 @@ interface Iprops {
 export function IndividualUsageSection({ usage, storage, fileCount }: Iprops) {
     return (
         <Box width="100%">
-            <Progressbar value={Math.min((usage * 100) / storage, 100)} />
+            <Progressbar
+                color={'primary'}
+                value={Math.min((usage * 100) / storage, 100)}
+            />
             <SpaceBetweenFlex
-                sx={{
+                sx={(theme) => ({
                     marginTop: 1.5,
-                }}>
+                    color: theme.colors.white.base,
+                })}>
                 <Typography variant="mini">{`${makeHumanReadableStorage(
                     storage - usage
                 )} ${t('FREE')}`}</Typography>

@@ -10,7 +10,7 @@ const RowContainer = styled(SpaceBetweenFlex)(
         padding: theme.spacing(1.5, 1),
         cursor: 'pointer',
         '&:hover .endIcon': {
-            backgroundColor: 'rgba(255,255,255,0.08)',
+            backgroundColor: theme.colors.stroke.fainter,
         },
     })
 );

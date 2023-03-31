@@ -52,7 +52,7 @@ export const ActiveIndicator = styled('div')`
     height: 3px;
     background-color: ${({ theme }: { theme: Theme }) =>
         theme.palette.primary.main};
-    margin-top: 18px;
+    margin-top: 19px;
     border-radius: 2px;
 `;
 

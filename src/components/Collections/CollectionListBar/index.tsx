@@ -62,7 +62,7 @@ export default function CollectionListBar(props: IProps) {
     return (
         <CollectionListBarWrapper>
             <SpaceBetweenFlex mb={1}>
-                <Typography>{t('ALBUMS')}</Typography>
+                <Typography color="text.muted">{t('ALBUMS')}</Typography>
                 {appContext.isMobile && (
                     <Box display="flex" alignItems={'center'} gap={1}>
                         <CollectionSort

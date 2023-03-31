@@ -15,17 +15,20 @@ export function FamilyUsageProgressBar({
     return (
         <Box position={'relative'} width="100%">
             <Progressbar
-                sx={{ backgroundColor: 'transparent' }}
+                sx={(theme) => ({
+                    zIndex: 1,
+                    backgroundColor: 'transparent',
+                    '.MuiLinearProgress-bar ': {
+                        backgroundColor: theme.colors.accent.A300,
+                        borderRadius: 0,
+                    },
+                })}
                 value={Math.min((userUsage * 100) / totalStorage, 100)}
             />
             <Progressbar
                 sx={{
                     position: 'absolute',
                     top: 0,
-                    zIndex: 1,
-                    '.MuiLinearProgress-bar ': {
-                        backgroundColor: 'text.muted',
-                    },
                     width: '100%',
                 }}
                 value={Math.min((totalUsage * 100) / totalStorage, 100)}

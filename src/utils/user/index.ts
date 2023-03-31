@@ -38,6 +38,8 @@ export const isInternalUser = () => {
     if (!userEmail) return false;
 
     return (
-        userEmail.endsWith('@ente.io') || userEmail === 'kr.anand619@gmail.com'
+        userEmail.endsWith('@ente.io') ||
+        userEmail === 'kr.anand619@gmail.com' ||
+        userEmail.endsWith('@abhinav.info')
     );
 };

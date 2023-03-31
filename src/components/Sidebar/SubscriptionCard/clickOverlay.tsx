@@ -8,7 +8,9 @@ export function ClickOverlay({ onClick }) {
                 onClick={onClick}
                 justifyContent={'flex-end'}
                 sx={{ cursor: 'pointer' }}>
-                <ChevronRightIcon />
+                <ChevronRightIcon
+                    sx={(theme) => ({ color: theme.colors.white.base })}
+                />
             </FlexWrapper>
         </Overlay>
     );

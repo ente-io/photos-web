@@ -19,7 +19,7 @@ export function FamilyUsageSection({
     totalStorage,
 }: Iprops) {
     return (
-        <Box width="100%">
+        <Box width="100%" sx={(theme) => ({ color: theme.colors.white.base })}>
             <FamilyUsageProgressBar
                 totalUsage={totalUsage}
                 userUsage={userUsage}
@@ -30,8 +30,14 @@ export function FamilyUsageSection({
                     marginTop: 1.5,
                 }}>
                 <Stack direction={'row'} spacing={1.5}>
-                    <Legend label={t('YOU')} color="text.base" />
-                    <Legend label={t('FAMILY')} color="text.muted" />
+                    <Legend
+                        label={t('YOU')}
+                        sx={(theme) => ({ color: theme.colors.accent.A300 })}
+                    />
+                    <Legend
+                        label={t('FAMILY')}
+                        sx={(theme) => ({ color: theme.colors.white.base })}
+                    />
                 </Stack>
                 <Typography variant="mini" fontWeight={'bold'}>
                     {t('photos_count', { count: fileCount ?? 0 })}

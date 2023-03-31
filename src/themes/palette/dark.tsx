@@ -41,6 +41,10 @@ const darkThemePalette: PaletteOptions = {
         faint: darkThemeColors.text.faint,
     },
     divider: darkThemeColors.stroke.faint,
+    common: {
+        white: fixedColors.white.base,
+        black: fixedColors.black,
+    },
 };
 
 export default darkThemePalette;

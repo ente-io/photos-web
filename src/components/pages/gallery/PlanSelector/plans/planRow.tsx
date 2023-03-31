@@ -28,9 +28,8 @@ interface Iprops {
     popular: boolean;
 }
 
-const PlanRowContainer = styled(FlexWrapper)(() => ({
-    background:
-        'linear-gradient(268.22deg, rgba(256, 256, 256, 0.08) -3.72%, rgba(256, 256, 256, 0) 85.73%)',
+const PlanRowContainer = styled(FlexWrapper)(({ theme }: { theme: Theme }) => ({
+    background: `linear-gradient(268.22deg, ${theme.colors.stroke.fainter} -3.72%, rgba(0, 0, 0, 0) 85.73%)`,
 }));
 
 const TopAlignedFluidContainer = styled(FluidContainer)`
@@ -47,7 +46,17 @@ const DisabledPlanButton = styled((props: ButtonProps) => (
 }));
 
 const ActivePlanButton = styled((props: ButtonProps) => (
-    <Button color="accent" {...props} endIcon={<ArrowForward />} />
+    <Button
+        color="accent"
+        {...props}
+        endIcon={
+            <ArrowForward
+                sx={(theme) => ({
+                    color: theme.colors.white.base,
+                })}
+            />
+        }
+    />
 ))(() => ({
     '.MuiButton-endIcon': {
         transition: 'transform .2s ease-in-out',
@@ -98,7 +107,11 @@ export function PlanRow({
                         <Typography fontWeight={'bold'} variant="large">
                             {plan.price}{' '}
                         </Typography>{' '}
-                        <Typography color="text.muted" variant="small">
+                        <Typography
+                            sx={(theme) => ({
+                                color: theme.colors.white.muted,
+                            })}
+                            variant="small">
                             {`/ ${
                                 plan.period === PLAN_PERIOD.MONTH
                                     ? t('MONTH_SHORT')
