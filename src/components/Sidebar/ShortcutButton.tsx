@@ -1,5 +1,5 @@
 import React, { FC } from 'react';
-import { Box, ButtonProps } from '@mui/material';
+import { ButtonProps, Typography } from '@mui/material';
 import SidebarButton from './Button';
 import { DotSeparator } from './styledComponents';
 
@@ -21,10 +21,10 @@ const ShortcutButton: FC<ButtonProps<'button', Iprops>> = ({
             {...props}>
             {label}
 
-            <Box sx={{ color: 'text.muted' }}>
+            <Typography sx={{ color: 'text.faint' }} variant="small">
                 <DotSeparator />
                 {count}
-            </Box>
+            </Typography>
         </SidebarButton>
     );
 };

@@ -92,15 +92,33 @@ export const getComponents = (
             color: 'primary',
         },
         styleOverrides: {
-            root: {
+            root: ({ ownerState }) => ({
+                boxSizing: 'border-box',
                 boxShadow: 'none',
                 padding: '12px 16px',
                 borderRadius: '4px',
+                height: '48px',
                 textTransform: 'none',
                 fontWeight: 'bold',
                 fontSize: typography.body.fontSize,
                 lineHeight: typography.body.lineHeight,
-            },
+                border: `1px solid transparent`,
+                ':hover': {
+                    boxShadow: 'none',
+                    border: `1px solid ${
+                        ownerState.color === 'primary'
+                            ? colors.stroke.base
+                            : ownerState.color === 'secondary'
+                            ? colors.stroke.fainter
+                            : ownerState.color === 'accent'
+                            ? colors.accent.A500
+                            : colors.warning.A500
+                    }`,
+                },
+                ':active': {
+                    boxShadow: 'none',
+                },
+            }),
             startIcon: {
                 marginRight: '12px',
                 '&& >svg': {

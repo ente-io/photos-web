@@ -13,7 +13,7 @@ export const DrawerSidebar = styled(EnteDrawer)(
 DrawerSidebar.defaultProps = { anchor: 'left' };
 
 export const DotSeparator = styled(CircleIcon)`
-    font-size: 4px;
+    font-size: 5px;
     margin: 0 ${({ theme }: { theme: Theme }) => theme.spacing(1)};
     color: inherit;
 `;
