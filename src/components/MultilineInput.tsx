@@ -46,7 +46,7 @@ export default function MultilineInput({
             <Typography
                 px={'8px'}
                 variant="small"
-                color="text.secondary"
+                color="text.muted"
                 {...messageProps}>
                 {message}
             </Typography>

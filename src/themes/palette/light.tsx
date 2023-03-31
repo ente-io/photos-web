@@ -28,11 +28,17 @@ const lightThemePalette: PaletteOptions = {
     background: {
         default: lightThemeColors.background.base,
         paper: lightThemeColors.background.elevated,
+        base: lightThemeColors.background.base,
+        elevated: lightThemeColors.background.elevated,
+        elevated2: lightThemeColors.background.elevated2,
     },
     text: {
         primary: lightThemeColors.text.base,
         secondary: lightThemeColors.text.muted,
         disabled: lightThemeColors.text.faint,
+        base: lightThemeColors.text.base,
+        muted: lightThemeColors.text.muted,
+        faint: lightThemeColors.text.faint,
     },
     divider: lightThemeColors.stroke.faint,
 };

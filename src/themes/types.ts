@@ -21,7 +21,15 @@ declare module '@mui/material/styles' {
     }
 
     interface TypeBackground {
+        base: string;
+        elevated: string;
         elevated2: string;
+    }
+
+    interface TypeText {
+        base: string;
+        muted: string;
+        faint: string;
     }
 
     interface TypographyVariants {

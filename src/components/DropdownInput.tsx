@@ -49,7 +49,7 @@ export default function DropdownInput<T extends string>({
                             '.MuiMenuItem-root ': {
                                 color: theme.colors.text.faint,
                             },
-                            '&& > .Mui-selected': {
+                            '&&& > .Mui-selected': {
                                 background: theme.palette.background.elevated2,
                                 color: theme.colors.text.base,
                             },
@@ -74,7 +74,7 @@ export default function DropdownInput<T extends string>({
                 })}
                 renderValue={(selected) => {
                     return !selected?.length ? (
-                        <Box color={'text.secondary'}>{placeholder ?? ''}</Box>
+                        <Box color={'text.muted'}>{placeholder ?? ''}</Box>
                     ) : (
                         options.find((o) => o.value === selected).label
                     );
@@ -101,7 +101,7 @@ export default function DropdownInput<T extends string>({
                 <Typography
                     variant="small"
                     px={'8px'}
-                    color={'text.secondary'}
+                    color={'text.muted'}
                     {...messageProps}>
                     {message}
                 </Typography>

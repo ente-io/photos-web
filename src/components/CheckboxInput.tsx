@@ -33,7 +33,7 @@ export function CheckboxInput({
                     />
                 }
                 label={
-                    <Typography color="text.secondary" {...labelProps}>
+                    <Typography color="text.muted" {...labelProps}>
                         {label}
                     </Typography>
                 }
