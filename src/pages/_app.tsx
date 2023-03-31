@@ -305,7 +305,7 @@ export default function App(props) {
 
     useEffect(() => {
         setDialogBoxV2View(true);
-    }, [dialogBoxV2View]);
+    }, [dialogBoxAttributeV2]);
 
     useEffect(() => {
         setNotificationView(true);
