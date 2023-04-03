@@ -1,4 +1,4 @@
-import { createFFmpeg, FFmpeg } from 'ffmpeg-wasm';
+import { createFFmpeg, FFmpeg } from '@ffmpeg/ffmpeg';
 import QueueProcessor from 'services/queueProcessor';
 import { getUint8ArrayView } from 'services/readerService';
 import { promiseWithTimeout } from 'utils/common';
@@ -20,7 +20,6 @@ export class WasmFFmpeg {
     constructor() {
         this.ffmpeg = createFFmpeg({
             corePath: '/js/ffmpeg/ffmpeg-core.js',
-            mt: false,
         });
 
         this.ready = this.init();
