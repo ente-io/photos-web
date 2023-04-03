@@ -3,9 +3,7 @@ import React from 'react';
 import { Collection } from 'types/collection';
 import { EnteDrawer } from 'components/EnteDrawer';
 import PublicShare from './publicShare';
-import WorkspacesIcon from '@mui/icons-material/Workspaces';
 import { t } from 'i18next';
-import MenuSectionTitle from 'components/Menu/MenuSectionTitle';
 import { DialogProps, Stack } from '@mui/material';
 import Titlebar from 'components/Titlebar';
 
@@ -45,12 +43,11 @@ function CollectionShare(props: Props) {
                         title={t('SHARE_COLLECTION')}
                         onRootClose={handleRootClose}
                     />
-                    <Stack py={'20px'} px={'8px'}>
-                        <MenuSectionTitle
-                            title={t('ADD_EMAIL_TITLE')}
-                            icon={<WorkspacesIcon />}
+                    <Stack spacing={'24px'} py={'20px'} px={'8px'}>
+                        <EmailShare
+                            collection={props.collection}
+                            onRootClose={handleRootClose}
                         />
-                        <EmailShare collection={props.collection} />
                         <PublicShare
                             collection={props.collection}
                             onRootClose={handleRootClose}
