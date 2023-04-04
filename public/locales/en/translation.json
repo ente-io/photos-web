@@ -479,6 +479,8 @@
     "COPY_LINK": "Copy link",
     "DONE": "Done",
     "ADD_EMAIL_TITLE": "Share with specific people",
+    "ADD_VIEWER": "Add viewer",
+    "ADD_COLLABORATOR": "Add collaborator",
     "LINK_SHARE_TITLE": "Or share a link",
     "REMOVE_LINK": "Remove link",
     "CREATE_PUBLIC_SHARING": "Create public link",
