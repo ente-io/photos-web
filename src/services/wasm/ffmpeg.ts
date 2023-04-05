@@ -19,7 +19,6 @@ export class WasmFFmpeg {
 
     constructor() {
         this.ffmpeg = createFFmpeg({
-            log: true,
             corePath: new URL(
                 '/js/ffmpeg/ffmpeg-core.js',
                 globalThis.location.href

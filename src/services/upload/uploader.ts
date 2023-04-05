@@ -121,7 +121,7 @@ export default async function uploader(
         const file = await UploadService.readAsset(fileTypeInfo, uploadAsset);
 
         if (file.hasStaticThumbnail) {
-            throw Error('upload failed');
+            metadata.hasStaticThumbnail = true;
         }
         let pubMagicMetadata: FilePublicMagicMetadata;
         if (uploaderName) {
