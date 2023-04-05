@@ -2,7 +2,3 @@
 	path = thirdparty/photoswipe
 	url = https://github.com/ente-io/PhotoSwipe.git
 	branch = master 
-[submodule "ffmpeg-wasm"]
-	path = thirdparty/ffmpeg-wasm
-	url = https://github.com/abhinavkgrd/ffmpeg.wasm.git
-	branch = single-thread
