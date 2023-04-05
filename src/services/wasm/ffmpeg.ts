@@ -19,7 +19,11 @@ export class WasmFFmpeg {
 
     constructor() {
         this.ffmpeg = createFFmpeg({
-            corePath: '/js/ffmpeg/ffmpeg-core.js',
+            log: true,
+            corePath: new URL(
+                '/js/ffmpeg/ffmpeg-core.js',
+                globalThis.location.href
+            ).href,
         });
 
         this.ready = this.init();
