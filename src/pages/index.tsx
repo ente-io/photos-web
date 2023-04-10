@@ -19,6 +19,7 @@ import { saveKeyInSessionStore } from 'utils/crypto';
 import { getKey, SESSION_KEYS } from 'utils/storage/sessionStorage';
 import { getAlbumsURL } from 'utils/common/apiUtil';
 import { Trans } from 'react-i18next';
+import VerticallyCentered from 'components/Container';
 
 const Container = styled('div')`
     display: flex;
@@ -171,78 +172,74 @@ export default function LandingPage() {
     const redirectToSignupPage = () => router.push(PAGES.SIGNUP);
     const redirectToLoginPage = () => router.push(PAGES.LOGIN);
 
+    if (!loading) {
+        return (
+            <VerticallyCentered>
+                <EnteSpinner />
+            </VerticallyCentered>
+        );
+    }
+
     return (
         <Container>
-            {loading ? (
-                <EnteSpinner />
-            ) : (
-                <>
-                    <SlideContainer>
-                        <EnteLogo height={24} sx={{ mb: 8 }} />
-                        <Carousel controls={false}>
-                            <Carousel.Item>
-                                <Img
-                                    src="/images/onboarding-lock/1x.png"
-                                    srcSet="/images/onboarding-lock/2x.png 2x,
+            <SlideContainer>
+                <EnteLogo height={24} sx={{ mb: 8 }} />
+                <Carousel controls={false}>
+                    <Carousel.Item>
+                        <Img
+                            src="/images/onboarding-lock/1x.png"
+                            srcSet="/images/onboarding-lock/2x.png 2x,
                                         /images/onboarding-lock/3x.png 3x"
-                                />
-                                <FeatureText>
-                                    <Trans i18nKey={'HERO_SLIDE_1_TITLE'} />
-                                </FeatureText>
-                                <TextContainer>
-                                    {t('HERO_SLIDE_1')}
-                                </TextContainer>
-                            </Carousel.Item>
-                            <Carousel.Item>
-                                <Img
-                                    src="/images/onboarding-safe/1x.png"
-                                    srcSet="/images/onboarding-safe/2x.png 2x,
+                        />
+                        <FeatureText>
+                            <Trans i18nKey={'HERO_SLIDE_1_TITLE'} />
+                        </FeatureText>
+                        <TextContainer>{t('HERO_SLIDE_1')}</TextContainer>
+                    </Carousel.Item>
+                    <Carousel.Item>
+                        <Img
+                            src="/images/onboarding-safe/1x.png"
+                            srcSet="/images/onboarding-safe/2x.png 2x,
                                         /images/onboarding-safe/3x.png 3x"
-                                />
-                                <FeatureText>
-                                    <Trans i18nKey={'HERO_SLIDE_2_TITLE'} />
-                                </FeatureText>
-                                <TextContainer>
-                                    {t('HERO_SLIDE_2')}
-                                </TextContainer>
-                            </Carousel.Item>
-                            <Carousel.Item>
-                                <Img
-                                    src="/images/onboarding-sync/1x.png"
-                                    srcSet="/images/onboarding-sync/2x.png 2x,
+                        />
+                        <FeatureText>
+                            <Trans i18nKey={'HERO_SLIDE_2_TITLE'} />
+                        </FeatureText>
+                        <TextContainer>{t('HERO_SLIDE_2')}</TextContainer>
+                    </Carousel.Item>
+                    <Carousel.Item>
+                        <Img
+                            src="/images/onboarding-sync/1x.png"
+                            srcSet="/images/onboarding-sync/2x.png 2x,
                                         /images/onboarding-sync/3x.png 3x"
-                                />
-                                <FeatureText>
-                                    <Trans i18nKey={'HERO_SLIDE_3_TITLE'} />
-                                </FeatureText>
-                                <TextContainer>
-                                    {t('HERO_SLIDE_3')}
-                                </TextContainer>
-                            </Carousel.Item>
-                        </Carousel>
-                    </SlideContainer>
-                    <MobileBox>
-                        <Button
-                            color="accent"
-                            size="large"
-                            onClick={redirectToSignupPage}>
-                            {t('NEW_USER')}
-                        </Button>
-                        <Button size="large" onClick={redirectToLoginPage}>
-                            {t('EXISTING_USER')}
-                        </Button>
-                    </MobileBox>
-                    <DesktopBox>
-                        <SideBox>
-                            {showLogin ? (
-                                <Login signUp={signUp} />
-                            ) : (
-                                <SignUp login={login} />
-                            )}
-                        </SideBox>
-                    </DesktopBox>
-                </>
-            )}
+                        />
+                        <FeatureText>
+                            <Trans i18nKey={'HERO_SLIDE_3_TITLE'} />
+                        </FeatureText>
+                        <TextContainer>{t('HERO_SLIDE_3')}</TextContainer>
+                    </Carousel.Item>
+                </Carousel>
+            </SlideContainer>
+            <MobileBox>
+                <Button
+                    color="accent"
+                    size="large"
+                    onClick={redirectToSignupPage}>
+                    {t('NEW_USER')}
+                </Button>
+                <Button size="large" onClick={redirectToLoginPage}>
+                    {t('EXISTING_USER')}
+                </Button>
+            </MobileBox>
+            <DesktopBox>
+                <SideBox>
+                    {showLogin ? (
+                        <Login signUp={signUp} />
+                    ) : (
+                        <SignUp login={login} />
+                    )}
+                </SideBox>
+            </DesktopBox>
         </Container>
     );
 }
