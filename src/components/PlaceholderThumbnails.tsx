@@ -1,18 +1,11 @@
 import PhotoOutlined from '@mui/icons-material/PhotoOutlined';
 import PlayCircleOutlineOutlined from '@mui/icons-material/PlayCircleOutlineOutlined';
-import { styled } from '@mui/material';
 import { FILE_TYPE } from 'constants/file';
-import { Overlay } from './Container';
+import { Overlay, CenteredOverlay } from './Container';
 
 interface Iprops {
     fileType: FILE_TYPE;
 }
-
-const CenteredOverlay = styled(Overlay)`
-    display: flex;
-    justify-content: center;
-    align-items: center;
-`;
 
 export const StaticThumbnail = (props: Iprops) => {
     return (

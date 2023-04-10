@@ -66,6 +66,12 @@ export const Overlay = styled(Box)`
     left: 0;
 `;
 
+export const CenteredOverlay = styled(Overlay)`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+`;
+
 export const IconButtonWithBG = styled(IconButton)(({ theme }) => ({
     backgroundColor: theme.palette.fill.dark,
 }));
