@@ -31,6 +31,7 @@ import VerticallyCentered from './Container';
 import { PasswordStrengthHint } from './PasswordStrength';
 import { Trans } from 'react-i18next';
 import { t } from 'i18next';
+import ShowHidePassword from './Form/ShowHidePassword';
 
 interface FormValues {
     email: string;
@@ -46,6 +47,17 @@ export default function SignUp(props: SignUpProps) {
     const router = useRouter();
     const [acceptTerms, setAcceptTerms] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+
+    const handleClickShowPassword = () => {
+        setShowPassword(!showPassword);
+    };
+
+    const handleMouseDownPassword = (
+        event: React.MouseEvent<HTMLButtonElement>
+    ) => {
+        event.preventDefault();
+    };
 
     const registerUser = async (
         { email, passphrase, confirm }: FormValues,
@@ -137,13 +149,26 @@ export default function SignUp(props: SignUpProps) {
                                 id="password"
                                 name="password"
                                 autoComplete="new-password"
-                                type="password"
+                                type={showPassword ? 'text' : 'password'}
                                 label={t('PASSPHRASE_HINT')}
                                 value={values.passphrase}
                                 onChange={handleChange('passphrase')}
                                 error={Boolean(errors.passphrase)}
                                 helperText={errors.passphrase}
                                 disabled={loading}
+                                InputProps={{
+                                    endAdornment: (
+                                        <ShowHidePassword
+                                            showPassword={showPassword}
+                                            handleClickShowPassword={
+                                                handleClickShowPassword
+                                            }
+                                            handleMouseDownPassword={
+                                                handleMouseDownPassword
+                                            }
+                                        />
+                                    ),
+                                }}
                             />
 
                             <TextField
@@ -165,7 +190,7 @@ export default function SignUp(props: SignUpProps) {
                             <FormGroup sx={{ width: '100%' }}>
                                 <FormControlLabel
                                     sx={{
-                                        color: 'text.secondary',
+                                        color: 'text.muted',
                                         ml: 0,
                                         mt: 2,
                                     }}
@@ -181,7 +206,7 @@ export default function SignUp(props: SignUpProps) {
                                         />
                                     }
                                     label={
-                                        <Typography variant="body2">
+                                        <Typography variant="small">
                                             <Trans
                                                 i18nKey={'TERMS_AND_CONDITIONS'}
                                                 components={{
@@ -218,8 +243,8 @@ export default function SignUp(props: SignUpProps) {
                                 <Typography
                                     mt={1}
                                     textAlign={'center'}
-                                    color="text.secondary"
-                                    variant="body2">
+                                    color="text.muted"
+                                    variant="small">
                                     {t('KEY_GENERATION_IN_PROGRESS_MESSAGE')}
                                 </Typography>
                             )}

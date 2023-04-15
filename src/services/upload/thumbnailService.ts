@@ -46,6 +46,8 @@ export async function generateThumbnail(
                         thumbnailSize: convertBytesToHumanReadable(
                             thumbnail.length
                         ),
+                        fileSize: convertBytesToHumanReadable(file.size),
+                        fileType: fileTypeInfo.exactType,
                     }
                 );
             }
@@ -171,7 +173,7 @@ async function generateVideoThumbnail(
         addLogLine(
             `ffmpeg thumbnail successfully generated ${getFileNameSize(file)}`
         );
-        return getUint8ArrayView(thumbnail);
+        return await getUint8ArrayView(thumbnail);
     } catch (e) {
         addLogLine(
             `ffmpeg thumbnail generated failed  ${getFileNameSize(

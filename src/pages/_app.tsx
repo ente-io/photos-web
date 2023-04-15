@@ -1,4 +1,10 @@
-import React, { createContext, useEffect, useRef, useState } from 'react';
+import React, {
+    createContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
 import AppNavbar from 'components/Navbar/app';
 import { t } from 'i18next';
 
@@ -11,7 +17,6 @@ import EnteSpinner from 'components/EnteSpinner';
 import { logError } from '../utils/sentry';
 import { getData, LS_KEYS } from 'utils/storage/localStorage';
 import HTTPService from 'services/HTTPService';
-import FlashMessageBar from 'components/FlashMessageBar';
 import Head from 'next/head';
 import { eventBus, Events } from 'services/events';
 import mlWorkManager from 'services/machineLearning/mlWorkManager';
@@ -22,8 +27,6 @@ import {
 import LoadingBar from 'react-top-loading-bar';
 import DialogBox from 'components/DialogBox';
 import { styled, ThemeProvider } from '@mui/material/styles';
-import darkThemeOptions from 'themes/darkThemeOptions';
-import lightThemeOptions from 'themes/lightThemeOptions';
 import { CssBaseline, useMediaQuery } from '@mui/material';
 import {
     SetDialogBoxAttributes,
@@ -62,6 +65,19 @@ import createEmotionCache from 'themes/createEmotionCache';
 import { CacheProvider, EmotionCache } from '@emotion/react';
 import { AppProps } from 'next/app';
 import DialogBoxV2 from 'components/DialogBoxV2';
+import { getTheme } from 'themes';
+import { PAGES } from 'constants/pages';
+import {
+    ALLOWED_APP_PAGES,
+    APPS,
+    CLIENT_PACKAGE_NAMES,
+    getAppNameAndTitle,
+} from 'constants/apps';
+
+const redirectMap = new Map([
+    ['roadmap', getRoadmapRedirectURL],
+    ['families', getFamilyPortalRedirectURL],
+]);
 
 export const MessageContainer = styled('div')`
     background-color: #111;
@@ -80,7 +96,6 @@ type AppContextType = {
     showNavBar: (show: boolean) => void;
     sharedFiles: File[];
     resetSharedFiles: () => void;
-    setDisappearingFlashMessage: (message: FlashMessage) => void;
     redirectURL: string;
     setRedirectURL: (url: string) => void;
     mlSearchEnabled: boolean;
@@ -97,30 +112,13 @@ type AppContextType = {
     watchFolderFiles: FileList;
     setWatchFolderFiles: (files: FileList) => void;
     isMobile: boolean;
-    theme: THEME_COLOR;
-    setTheme: SetTheme;
+    themeColor: THEME_COLOR;
+    setThemeColor: SetTheme;
     somethingWentWrong: () => void;
     setDialogBoxAttributesV2: (attributes: DialogBoxAttributesV2) => void;
 };
 
-export enum FLASH_MESSAGE_TYPE {
-    DANGER = 'danger',
-    INFO = 'info',
-    SUCCESS = 'success',
-    WARNING = 'warning',
-}
-export interface FlashMessage {
-    message: string;
-    type: FLASH_MESSAGE_TYPE;
-}
 export const AppContext = createContext<AppContextType>(null);
-
-const redirectMap = new Map([
-    ['roadmap', getRoadmapRedirectURL],
-    ['families', getFamilyPortalRedirectURL],
-]);
-
-const APP_TITLE = 'ente Photos';
 
 // Client-side cache, shared for the whole session of the user in the browser.
 const clientSideEmotionCache = createEmotionCache();
@@ -144,7 +142,6 @@ export default function App(props) {
     const [showNavbar, setShowNavBar] = useState(false);
     const [sharedFiles, setSharedFiles] = useState<File[]>(null);
     const [redirectName, setRedirectName] = useState<string>(null);
-    const [flashMessage, setFlashMessage] = useState<FlashMessage>(null);
     const [redirectURL, setRedirectURL] = useState(null);
     const [mlSearchEnabled, setMlSearchEnabled] = useState(false);
     const isLoadingBarRunning = useRef(false);
@@ -163,11 +160,27 @@ export default function App(props) {
     const closeNotification = () => setNotificationView(false);
     const [notificationAttributes, setNotificationAttributes] =
         useState<NotificationAttributes>(null);
-    const [theme, setTheme] = useLocalState(LS_KEYS.THEME, THEME_COLOR.DARK);
+    const [themeColor, setThemeColor] = useLocalState(
+        LS_KEYS.THEME,
+        THEME_COLOR.DARK
+    );
+
+    const { name: appName, title: appTitle } = useMemo(() => {
+        return getAppNameAndTitle();
+    }, []);
 
     useEffect(() => {
         setupI18n().finally(() => setIsI18nReady(true));
     }, []);
+
+    useEffect(() => {
+        if (!appName) {
+            return;
+        }
+        HTTPService.setHeaders({
+            'X-Client-Package': CLIENT_PACKAGE_NAMES.get(appName),
+        });
+    }, [appName]);
 
     useEffect(() => {
         HTTPService.getInterceptors().response.use(
@@ -210,6 +223,9 @@ export default function App(props) {
     }, []);
 
     useEffect(() => {
+        if (!isElectron()) {
+            return;
+        }
         const loadMlSearchState = async () => {
             try {
                 const mlSearchConfig = await getMLSearchConfig();
@@ -271,8 +287,23 @@ export default function App(props) {
         }
 
         router.events.on('routeChangeStart', (url: string) => {
-            if (window.location.pathname !== url.split('?')[0]) {
+            const newPathname = url.split('?')[0] as PAGES;
+            if (window.location.pathname !== newPathname) {
                 setLoading(true);
+            }
+
+            if (
+                appName === APPS.ALBUMS &&
+                ALLOWED_APP_PAGES.get(APPS.ALBUMS).indexOf(newPathname) === -1
+            ) {
+                router.replace(PAGES.SHARED_ALBUMS);
+                throw `Aborting route change, changing page ${newPathname} is not allowed for ${appName}`;
+            } else if (
+                appName === APPS.AUTH &&
+                ALLOWED_APP_PAGES.get(APPS.AUTH).indexOf(newPathname) === -1
+            ) {
+                router.replace(PAGES.AUTH);
+                throw `Aborting route change, changing page ${newPathname} is not allowed for ${appName}`;
             }
 
             if (redirectName) {
@@ -298,7 +329,7 @@ export default function App(props) {
             window.removeEventListener('online', setUserOnline);
             window.removeEventListener('offline', setUserOffline);
         };
-    }, [redirectName]);
+    }, [redirectName, appName]);
 
     useEffect(() => {
         setMessageDialogView(true);
@@ -313,10 +344,6 @@ export default function App(props) {
     }, [notificationAttributes]);
 
     const showNavBar = (show: boolean) => setShowNavBar(show);
-    const setDisappearingFlashMessage = (flashMessages: FlashMessage) => {
-        setFlashMessage(flashMessages);
-        setTimeout(() => setFlashMessage(null), 5000);
-    };
     const updateMlSearchEnabled = async (enabled: boolean) => {
         try {
             const mlSearchConfig = await getMLSearchConfig();
@@ -346,26 +373,23 @@ export default function App(props) {
     const somethingWentWrong = () =>
         setDialogMessage({
             title: t('ERROR'),
-            close: { variant: 'danger' },
+            close: { variant: 'critical' },
             content: t('UNKNOWN_ERROR'),
         });
 
     return (
         <CacheProvider value={emotionCache}>
             <Head>
-                <title>{isI18nReady ? t('TITLE') : APP_TITLE}</title>
+                <title>
+                    {isI18nReady ? t('TITLE', { context: appName }) : appTitle}
+                </title>
                 <meta
                     name="viewport"
                     content="initial-scale=1, width=device-width"
                 />
             </Head>
 
-            <ThemeProvider
-                theme={
-                    theme === THEME_COLOR.DARK
-                        ? darkThemeOptions
-                        : lightThemeOptions
-                }>
+            <ThemeProvider theme={getTheme(themeColor, appName)}>
                 <CssBaseline enableColorScheme />
                 {showNavbar && <AppNavbar />}
                 <MessageContainer>
@@ -385,12 +409,6 @@ export default function App(props) {
                             })}
                         </MessageContainer>
                     ))}
-                {flashMessage && (
-                    <FlashMessageBar
-                        flashMessage={flashMessage}
-                        onClose={() => setFlashMessage(null)}
-                    />
-                )}
                 <LoadingBar color="#51cd7c" ref={loadingBar} />
 
                 <DialogBox
@@ -419,7 +437,6 @@ export default function App(props) {
                         updateMlSearchEnabled,
                         sharedFiles,
                         resetSharedFiles,
-                        setDisappearingFlashMessage,
                         redirectURL,
                         setRedirectURL,
                         startLoading,
@@ -434,8 +451,8 @@ export default function App(props) {
                         setWatchFolderFiles,
                         isMobile,
                         setNotificationAttributes,
-                        theme,
-                        setTheme,
+                        themeColor,
+                        setThemeColor,
                         somethingWentWrong,
                         setDialogBoxAttributesV2,
                     }}>

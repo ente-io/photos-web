@@ -1,4 +1,3 @@
-import React from 'react';
 import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined';
 import { DialogBoxAttributes } from 'types/dialogBox';
 import { downloadApp } from 'utils/common';
@@ -33,7 +32,7 @@ export const getTrashFilesMessage = (
     proceed: {
         action: deleteFileHelper,
         text: t('MOVE_TO_TRASH'),
-        variant: 'danger',
+        variant: 'critical',
     },
     close: { text: t('CANCEL') },
 });
@@ -44,7 +43,7 @@ export const getTrashFileMessage = (deleteFileHelper): DialogBoxAttributes => ({
     proceed: {
         action: deleteFileHelper,
         text: t('MOVE_TO_TRASH'),
-        variant: 'danger',
+        variant: 'critical',
     },
     close: { text: t('CANCEL') },
 });

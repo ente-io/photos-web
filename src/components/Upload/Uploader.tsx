@@ -166,6 +166,9 @@ export default function Uploader(props: Props) {
             props.setFiles,
             publicCollectionGalleryContext
         );
+        if (uploadManager.isUploadRunning()) {
+            setUploadProgressView(true);
+        }
 
         if (isElectron() && ImportService.checkAllElectronAPIsExists()) {
             ImportService.getPendingUploads().then(
@@ -239,7 +242,7 @@ export default function Uploader(props: Props) {
                     appContext?.sharedFiles.length
                 }`
             );
-            if (uploadRunning.current) {
+            if (uploadManager.isUploadRunning()) {
                 if (watchFolderService.isUploadRunning()) {
                     addLogLine(
                         'watchFolder upload was running, pausing it to run user upload'
@@ -415,7 +418,7 @@ export default function Uploader(props: Props) {
                 appContext.setDialogMessage({
                     title: t('ERROR'),
 
-                    close: { variant: 'danger' },
+                    close: { variant: 'critical' },
                     content: t('CREATE_ALBUM_FAILED'),
                 });
                 throw e;
@@ -508,7 +511,6 @@ export default function Uploader(props: Props) {
             logError(err, 'failed to upload files');
             showUserFacingError(err.message);
             closeUploadProgress();
-            throw err;
         } finally {
             postUploadAction();
         }
@@ -542,7 +544,7 @@ export default function Uploader(props: Props) {
                 return props.showSessionExpiredMessage();
             case CustomError.SUBSCRIPTION_EXPIRED:
                 notification = {
-                    variant: 'danger',
+                    variant: 'critical',
                     subtext: t('SUBSCRIPTION_EXPIRED'),
                     message: t('RENEW_NOW'),
                     onClick: () => billingService.redirectToCustomerPortal(),
@@ -550,7 +552,7 @@ export default function Uploader(props: Props) {
                 break;
             case CustomError.STORAGE_QUOTA_EXCEEDED:
                 notification = {
-                    variant: 'danger',
+                    variant: 'critical',
                     subtext: t('STORAGE_QUOTA_EXCEEDED'),
                     message: t('UPGRADE_NOW'),
                     onClick: () => galleryContext.showPlanSelectorModal(),
@@ -559,7 +561,7 @@ export default function Uploader(props: Props) {
                 break;
             default:
                 notification = {
-                    variant: 'danger',
+                    variant: 'critical',
                     message: t('UNKNOWN_ERROR'),
                     onClick: () => null,
                 };
@@ -568,21 +570,17 @@ export default function Uploader(props: Props) {
     }
 
     const uploadToSingleNewCollection = (collectionName: string) => {
-        if (collectionName) {
-            addLogLine(`upload to single collection - "${collectionName}"`);
-            uploadFilesToNewCollections(
-                UPLOAD_STRATEGY.SINGLE_COLLECTION,
-                collectionName
-            );
-        } else {
-            showCollectionCreateModal();
-        }
+        uploadFilesToNewCollections(
+            UPLOAD_STRATEGY.SINGLE_COLLECTION,
+            collectionName
+        );
     };
-    const showCollectionCreateModal = () => {
+
+    const showCollectionCreateModal = (suggestedName: string) => {
         props.setCollectionNamerAttributes({
             title: t('CREATE_COLLECTION'),
             buttonText: t('CREATE'),
-            autoFilledName: null,
+            autoFilledName: suggestedName,
             callback: uploadToSingleNewCollection,
         });
     };
@@ -611,7 +609,8 @@ export default function Uploader(props: Props) {
                     addLogLine(
                         `upload pending files to collection - ${pendingDesktopUploadCollectionName.current}`
                     );
-                    uploadToSingleNewCollection(
+                    uploadFilesToNewCollections(
+                        UPLOAD_STRATEGY.SINGLE_COLLECTION,
                         pendingDesktopUploadCollectionName.current
                     );
                     pendingDesktopUploadCollectionName.current = null;
@@ -641,9 +640,7 @@ export default function Uploader(props: Props) {
                 showNextModal = () => setChoiceModalView(true);
             } else {
                 showNextModal = () =>
-                    uploadToSingleNewCollection(
-                        importSuggestion.rootFolderName
-                    );
+                    showCollectionCreateModal(importSuggestion.rootFolderName);
             }
             props.setCollectionSelectorAttributes({
                 callback: uploadFilesToExistingCollection,

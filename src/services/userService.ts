@@ -15,6 +15,7 @@ import {
     RecoveryKey,
     TwoFactorSecret,
     TwoFactorVerificationResponse,
+    TwoFactorRecoveryResponse,
     UserDetails,
     DeleteChallengeResponse,
     GetRemoteStoreValueResponse,
@@ -23,18 +24,23 @@ import { ServerErrorCodes } from 'utils/error';
 import isElectron from 'is-electron';
 import safeStorageService from './electron/safeStorage';
 import { deleteAllCache } from 'utils/storage/cache';
+import { B64EncryptionResult } from 'types/crypto';
 import { getLocalFamilyData, isPartOfFamily } from 'utils/user/family';
 import { AxiosResponse } from 'axios';
+import { APPS, getAppName } from 'constants/apps';
 
 const ENDPOINT = getEndpoint();
 
 const HAS_SET_KEYS = 'hasSetKeys';
 
-export const sendOtt = (email: string) =>
-    HTTPService.post(`${ENDPOINT}/users/ott`, {
+export const sendOtt = (email: string) => {
+    const appName = getAppName();
+    return HTTPService.post(`${ENDPOINT}/users/ott`, {
         email,
-        client: 'web',
+        client: appName === APPS.AUTH ? 'totp' : 'web',
     });
+};
+
 export const getPublicKey = async (email: string) => {
     const token = getToken();
 
@@ -165,16 +171,13 @@ export const clearFiles = async () => {
     await localForage.clear();
 };
 
-export const isTokenValid = async () => {
+export const isTokenValid = async (token: string) => {
     try {
-        if (!getToken()) {
-            return false;
-        }
         const resp = await HTTPService.get(
             `${ENDPOINT}/users/session-validity/v2`,
             null,
             {
-                'X-Auth-Token': getToken(),
+                'X-Auth-Token': token,
             }
         );
         try {
@@ -184,7 +187,7 @@ export const isTokenValid = async () => {
             if (!resp.data['hasSetKeys']) {
                 try {
                     await putAttributes(
-                        getToken(),
+                        token,
                         getData(LS_KEYS.ORIGINAL_KEY_ATTRIBUTES)
                     );
                 } catch (e) {
@@ -217,11 +220,18 @@ export const setupTwoFactor = async () => {
     return resp.data as TwoFactorSecret;
 };
 
-export const enableTwoFactor = async (code: string) => {
+export const enableTwoFactor = async (
+    code: string,
+    recoveryEncryptedTwoFactorSecret: B64EncryptionResult
+) => {
     await HTTPService.post(
         `${ENDPOINT}/users/two-factor/enable`,
         {
             code,
+            encryptedTwoFactorSecret:
+                recoveryEncryptedTwoFactorSecret.encryptedData,
+            twoFactorSecretDecryptionNonce:
+                recoveryEncryptedTwoFactorSecret.nonce,
         },
         null,
         {
@@ -239,6 +249,21 @@ export const verifyTwoFactor = async (code: string, sessionID: string) => {
         },
         null
     );
+    return resp.data as TwoFactorVerificationResponse;
+};
+
+export const recoverTwoFactor = async (sessionID: string) => {
+    const resp = await HTTPService.get(`${ENDPOINT}/users/two-factor/recover`, {
+        sessionID,
+    });
+    return resp.data as TwoFactorRecoveryResponse;
+};
+
+export const removeTwoFactor = async (sessionID: string, secret: string) => {
+    const resp = await HTTPService.post(`${ENDPOINT}/users/two-factor/remove`, {
+        sessionID,
+        secret,
+    });
     return resp.data as TwoFactorVerificationResponse;
 };
 

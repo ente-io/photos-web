@@ -5,9 +5,9 @@ import { FC } from 'react';
 const InvalidInputMessage: FC<TypographyProps> = (props) => {
     return (
         <Typography
-            variant="caption"
+            variant="mini"
             sx={{
-                color: (theme) => theme.palette.danger.main,
+                color: (theme) => theme.colors.danger.A700,
             }}
             {...props}>
             {props.children}

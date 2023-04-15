@@ -58,7 +58,7 @@ class UploadService {
 
     async setFileCount(fileCount: number) {
         this.pendingUploadCount = fileCount;
-        this.preFetchUploadURLs();
+        await this.preFetchUploadURLs();
     }
 
     setParsedMetadataJSONMap(parsedMetadataJSONMap: ParsedMetadataJSONMap) {
@@ -266,6 +266,18 @@ class UploadService {
                 this.pendingUploadCount,
                 this.uploadURLs
             );
+        }
+    }
+
+    async fetchMultipartUploadURLs(count: number) {
+        if (this.publicUploadProps.accessedThroughSharedURL) {
+            return await publicUploadHttpClient.fetchMultipartUploadURLs(
+                count,
+                this.publicUploadProps.token,
+                this.publicUploadProps.passwordToken
+            );
+        } else {
+            return await UploadHttpClient.fetchMultipartUploadURLs(count);
         }
     }
 }

@@ -2,8 +2,8 @@ import { styled } from '@mui/material';
 export const NotUploadSectionHeader = styled('div')(
     ({ theme }) => `
     text-align: center;
-    color: ${theme.palette.danger.main};
-    border-bottom: 1px solid ${theme.palette.danger.main};
+    color: ${theme.colors.danger.A700};
+    border-bottom: 1px solid ${theme.colors.danger.A700};
     margin:${theme.spacing(3, 2, 1)}
 `
 );
