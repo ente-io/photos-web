@@ -1,4 +1,4 @@
-import {} from './../Container';
+import {} from '../Container';
 import { Box } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import VerticallyCentered from 'components/Container';

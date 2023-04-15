@@ -11,7 +11,7 @@ import {
 import { t } from 'i18next';
 import { dialogCloseHandler } from 'components/DialogBox/TitleWithCloseButton';
 import { DialogBoxAttributesV2 } from 'types/dialogBox';
-import EnteButton from 'components/EnteButton';
+import {EnteButton} from 'ente-ui';
 
 type IProps = React.PropsWithChildren<
     Omit<DialogProps, 'onClose' | 'maxSize'> & {

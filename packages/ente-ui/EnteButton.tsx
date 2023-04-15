@@ -11,7 +11,7 @@ interface Iprops extends ButtonProps {
     success?: boolean;
 }
 
-export default function EnteButton({
+export function EnteButton({
     children,
     loading,
     success,
@@ -26,11 +26,11 @@ export default function EnteButton({
                 ...sx,
                 ...((loading || success) && {
                     '&.Mui-disabled': (theme) => ({
-                        backgroundColor: (
-                            theme.palette[props.color] as PaletteColor
-                        ).main,
-                        color: (theme.palette[props.color] as PaletteColor)
-                            .contrastText,
+                        // backgroundColor: (
+                        //     theme.palette[props.color] as PaletteColor
+                        // ).main,
+                        // color: (theme.palette[props.color] as PaletteColor)
+                        //     .contrastText,
                     }),
                 }),
             }}

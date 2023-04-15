@@ -19,7 +19,7 @@ import { Formik, FormikHelpers } from 'formik';
 import DropdownInput, { DropdownOption } from './DropdownInput';
 import MultilineInput from './MultilineInput';
 import { CheckboxInput } from './CheckboxInput';
-import EnteButton from './EnteButton';
+import { EnteButton } from 'ente-ui';
 
 interface Iprops {
     onClose: () => void;
