@@ -17,6 +17,7 @@ import Preferences from './Preferences';
 import { EnteMenuItem } from 'components/Menu/EnteMenuItem';
 import ThemeSwitcher from './ThemeSwitcher';
 import { THEME_COLOR } from 'constants/theme';
+import { LS_KEYS, setData } from 'utils/storage/localStorage';
 
 export default function UtilitySection({ closeSidebar }) {
     const router = useRouter();
@@ -53,6 +54,7 @@ export default function UtilitySection({ closeSidebar }) {
 
     const redirectToChangePasswordPage = () => {
         closeSidebar();
+        setData(LS_KEYS.HIDE_BACK_BUTTON, { value: false });
         router.push(PAGES.CHANGE_PASSWORD);
     };
 
