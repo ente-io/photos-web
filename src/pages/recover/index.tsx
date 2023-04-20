@@ -80,7 +80,7 @@ export default function Recover() {
             await saveKeyInSessionStore(SESSION_KEYS.ENCRYPTION_KEY, masterKey);
             await decryptAndStoreToken(masterKey);
 
-            setData(LS_KEYS.SHOW_BACK_BUTTON, { value: false });
+            setData(LS_KEYS.HIDE_BACK_BUTTON, { value: true });
             router.push(PAGES.CHANGE_PASSWORD);
         } catch (e) {
             logError(e, 'password recovery failed');

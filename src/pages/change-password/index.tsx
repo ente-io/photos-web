@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { t } from 'i18next';
 
 import { getData, LS_KEYS, setData } from 'utils/storage/localStorage';
@@ -37,6 +37,11 @@ export default function ChangePassword() {
             setToken(user.token);
         }
     }, []);
+
+    const hideBackButton = useMemo(
+        () => getData(LS_KEYS.HIDE_BACK_BUTTON)?.value,
+        []
+    );
 
     const onSubmit: SetPasswordFormProps['callback'] = async (
         passphrase,
@@ -79,7 +84,7 @@ export default function ChangePassword() {
     };
 
     const redirectToAppHome = () => {
-        setData(LS_KEYS.SHOW_BACK_BUTTON, { value: true });
+        setData(LS_KEYS.HIDE_BACK_BUTTON, { value: false });
         const appName = getAppName();
         if (appName === APPS.AUTH) {
             router.push(PAGES.AUTH);
@@ -97,7 +102,7 @@ export default function ChangePassword() {
                     callback={onSubmit}
                     buttonText={t('CHANGE_PASSWORD')}
                 />
-                {getData(LS_KEYS.SHOW_BACK_BUTTON)?.value && (
+                {!hideBackButton && (
                     <FormPaperFooter>
                         <LinkButton onClick={router.back}>
                             {t('GO_BACK')}

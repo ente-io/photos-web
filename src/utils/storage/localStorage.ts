@@ -10,7 +10,7 @@ export enum LS_KEYS {
     PLANS = 'plans',
     IS_FIRST_LOGIN = 'isFirstLogin',
     JUST_SIGNED_UP = 'justSignedUp',
-    SHOW_BACK_BUTTON = 'showBackButton',
+    HIDE_BACK_BUTTON = 'hideBackButton',
     EXPORT = 'export',
     AnonymizedUserID = 'anonymizedUserID',
     THUMBNAIL_FIX_STATE = 'thumbnailFixState',
