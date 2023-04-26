@@ -48,7 +48,7 @@ import {
     FileExportStats,
 } from 'types/export';
 import { User } from 'types/user';
-import { FILE_TYPE, TYPE_JPEG, TYPE_JPG } from 'constants/file';
+import { TYPE_JPEG, TYPE_JPG } from 'constants/file';
 import { ExportStage, RecordType } from 'constants/export';
 import { ElectronAPIs } from 'types/electron';
 import { CustomError } from 'utils/error';
@@ -540,16 +540,12 @@ class ExportService {
                 );
                 fileStream = updatedFileBlob.stream();
             }
-            if (file.metadata.fileType === FILE_TYPE.LIVE_PHOTO) {
-                await this.exportMotionPhoto(fileStream, file, collectionPath);
-            } else {
-                await this.saveMediaFile(
-                    collectionPath,
-                    fileSaveName,
-                    fileStream
-                );
-                await this.saveMetadataFile(collectionPath, fileSaveName, file);
-            }
+            // if (file.metadata.fileType === FILE_TYPE.LIVE_PHOTO) {
+            //     await this.exportMotionPhoto(fileStream, file, collectionPath);
+            // } else {
+            await this.saveMediaFile(collectionPath, fileSaveName, fileStream);
+            await this.saveMetadataFile(collectionPath, fileSaveName, file);
+            // }
         } catch (e) {
             logError(e, 'download and save failed');
             throw e;
