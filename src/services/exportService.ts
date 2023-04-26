@@ -519,8 +519,10 @@ class ExportService {
                 file.metadata.title,
                 file.id
             );
-            let fileStream = await retryAsyncFunction(() =>
-                downloadManager.downloadFile(file)
+            let fileStream = generateStreamFromArrayBuffer(
+                await retryAsyncFunction(() =>
+                    downloadManager.downloadThumb(file)
+                )
             );
             const fileType = getFileExtension(file.metadata.title);
             if (

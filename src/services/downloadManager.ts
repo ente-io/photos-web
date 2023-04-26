@@ -41,10 +41,6 @@ class DownloadManager {
     ) {
         try {
             addLogLine(`[${file.id}] [DownloadManager] getThumbnail called`);
-            const token = tokenOverride || getToken();
-            if (!token) {
-                return null;
-            }
             if (this.thumbnailObjectURLPromise.has(file.id)) {
                 addLogLine(
                     `[${file.id}] [DownloadManager] getThumbnail promise cache hit, returning existing promise`
@@ -72,8 +68,8 @@ class DownloadManager {
                         await this.thumbnailDownloadRequestsProcessor.queueUpRequest(
                             () =>
                                 this.downloadThumb(
-                                    token,
                                     file,
+                                    tokenOverride,
                                     usingWorker,
                                     timeout
                                 )
@@ -100,11 +96,12 @@ class DownloadManager {
     }
 
     downloadThumb = async (
-        token: string,
         file: EnteFile,
+        tokenOverride?: string,
         usingWorker?: Remote<DedicatedCryptoWorker>,
         timeout?: number
     ) => {
+        const token = tokenOverride || getToken();
         const resp = await HTTPService.get(
             getThumbnailURL(file.id),
             null,

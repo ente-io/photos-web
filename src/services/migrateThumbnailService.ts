@@ -45,7 +45,6 @@ export async function replaceThumbnail(
 ) {
     let completedWithError = false;
     try {
-        const token = getToken();
         const cryptoWorker = await ComlinkCryptoWorker.getInstance();
         const files = await getLocalFiles();
         const trash = await getLocalTrash();
@@ -72,7 +71,6 @@ export async function replaceThumbnail(
                     total: largeThumbnailFiles.length,
                 });
                 const originalThumbnail = await downloadManager.downloadThumb(
-                    token,
                     file
                 );
                 const dummyImageFile = new File(
