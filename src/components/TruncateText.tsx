@@ -1,4 +1,3 @@
-import Tooltip from '@mui/material/Tooltip';
 import React from 'react';
 import { Box, styled, Typography } from '@mui/material';
 
@@ -13,12 +12,10 @@ const Ellipse = styled(Typography)`
 
 export default function TruncateText({ text }) {
     return (
-        <Tooltip title={text}>
-            <Box height={'2.1em'} overflow="hidden">
-                <Ellipse variant="small" sx={{ wordBreak: 'break-word' }}>
-                    {text}
-                </Ellipse>
-            </Box>
-        </Tooltip>
+        <Box height={'2.1em'} overflow="hidden">
+            <Ellipse variant="small" sx={{ wordBreak: 'break-word' }}>
+                {text}
+            </Ellipse>
+        </Box>
     );
 }
