@@ -1,6 +1,6 @@
 import { Collection, CollectionSummaries } from 'types/collection';
 import CollectionListBar from 'components/Collections/CollectionListBar';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
 import AllCollections from 'components/Collections/AllCollections';
 import CollectionInfoWithOptions from 'components/Collections/CollectionInfoWithOptions';
 import { ALL_SECTION, COLLECTION_SORT_BY } from 'constants/collection';
@@ -26,7 +26,7 @@ interface Iprops {
     setPhotoListHeader: (value: TimeStampListItem) => void;
 }
 
-export default function Collections(props: Iprops) {
+const Collections = (props: Iprops) => {
     const {
         collections,
         isInSearchMode,
@@ -106,14 +106,20 @@ export default function Collections(props: Iprops) {
     const openAllCollections = () => setAllCollectionView(true);
     const closeCollectionShare = () => setCollectionShareModalView(false);
 
+    const toBeShownCollectionSummaries = useMemo(
+        () =>
+            sortedCollectionSummaries.filter((x) =>
+                shouldBeShownOnCollectionBar(x.type)
+            ),
+        [sortedCollectionSummaries]
+    );
+
     return (
         <>
             <CollectionListBar
                 activeCollection={activeCollectionID}
                 setActiveCollection={setActiveCollectionID}
-                collectionSummaries={sortedCollectionSummaries.filter((x) =>
-                    shouldBeShownOnCollectionBar(x.type)
-                )}
+                collectionSummaries={toBeShownCollectionSummaries}
                 showAllCollections={openAllCollections}
                 setCollectionSortBy={setCollectionSortBy}
                 collectionSortBy={collectionSortBy}
@@ -137,4 +143,6 @@ export default function Collections(props: Iprops) {
             />
         </>
     );
-}
+};
+
+export default memo(Collections);

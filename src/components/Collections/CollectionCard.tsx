@@ -6,12 +6,12 @@ import { EnteFile } from 'types/file';
 import { StaticThumbnail } from 'components/PlaceholderThumbnails';
 import { LoadingThumbnail } from 'components/PlaceholderThumbnails';
 
-export default function CollectionCard(props: {
+const CollectionCard = (props: {
     children?: any;
     latestFile: EnteFile;
     onClick: () => void;
     collectionTile: any;
-}) {
+}) => {
     const {
         latestFile: file,
         onClick,
@@ -47,4 +47,6 @@ export default function CollectionCard(props: {
             {children}
         </CustomCollectionTile>
     );
-}
+};
+
+export default React.memo(CollectionCard);

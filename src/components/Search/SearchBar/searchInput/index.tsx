@@ -35,7 +35,7 @@ interface Iprops {
     setActiveCollection: (id: number) => void;
 }
 
-export default function SearchInput(props: Iprops) {
+const SearchInput = (props: Iprops) => {
     const selectRef = useRef(null);
     const [value, setValue] = useState<SearchOption>(null);
     const appContext = useContext(AppContext);
@@ -160,4 +160,6 @@ export default function SearchInput(props: Iprops) {
             )}
         </SearchInputWrapper>
     );
-}
+};
+
+export default React.memo(SearchInput);

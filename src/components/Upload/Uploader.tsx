@@ -87,7 +87,7 @@ interface Props {
     uploadTypeSelectorIntent: UploadTypeSelectorIntent;
 }
 
-export default function Uploader(props: Props) {
+const Uploader = (props: Props) => {
     const appContext = useContext(AppContext);
     const galleryContext = useContext(GalleryContext);
     const publicCollectionGalleryContext = useContext(
@@ -775,4 +775,6 @@ export default function Uploader(props: Props) {
             />
         </>
     );
-}
+};
+
+export default React.memo(Uploader);
