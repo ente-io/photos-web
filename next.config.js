@@ -72,6 +72,14 @@ module.exports = (phase) =>
                 if (!isServer) {
                     config.resolve.fallback.fs = false;
                 }
+                //
+                // Use profiler-enabled React builds
+                //
+                // config.resolve.alias = {
+                //     ...config.resolve.alias,
+                //     'react-dom$': 'react-dom/profiling',
+                //     'scheduler/tracing': 'scheduler/tracing-profiling',
+                // };
                 return config;
             },
         }),
