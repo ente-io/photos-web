@@ -65,7 +65,6 @@ import {
     CollectionType,
     DUMMY_UNCATEGORIZED_SECTION,
     TRASH_SECTION,
-    UNCATEGORIZED_COLLECTION_NAME,
 } from 'constants/collection';
 import { AppContext } from 'pages/_app';
 import { CustomError, ServerErrorCodes } from 'utils/error';
@@ -110,6 +109,7 @@ import { SYNC_INTERVAL_IN_MICROSECONDS } from 'constants/gallery';
 import ElectronService from 'services/electron/common';
 import uploadManager from 'services/upload/uploadManager';
 import { getToken } from 'utils/common/key';
+import GalleryEmptyState from 'components/GalleryEmptyState';
 
 export const DeadCenter = styled('div')`
     flex: 1;
@@ -307,11 +307,11 @@ export default function Gallery() {
         if (activeCollection !== ALL_SECTION) {
             collectionURL += '?collection=';
             if (activeCollection === ARCHIVE_SECTION) {
-                collectionURL += t('ARCHIVE');
+                collectionURL += t('ARCHIVE_SECTION_NAME');
             } else if (activeCollection === TRASH_SECTION) {
                 collectionURL += t('TRASH');
             } else if (activeCollection === DUMMY_UNCATEGORIZED_SECTION) {
-                collectionURL += UNCATEGORIZED_COLLECTION_NAME;
+                collectionURL += t('UNCATEGORIZED');
             } else {
                 collectionURL += activeCollection;
             }
@@ -715,28 +715,32 @@ export default function Gallery() {
                     sidebarView={sidebarView}
                     closeSidebar={closeSidebar}
                 />
-                <PhotoFrame
-                    files={files}
-                    collections={collections}
-                    syncWithRemote={syncWithRemote}
-                    favItemIds={favItemIds}
-                    archivedCollections={archivedCollections}
-                    setSelected={setSelected}
-                    selected={selected}
-                    isFirstLoad={isFirstLoad}
-                    hasNoPersonalFiles={hasNoPersonalFiles}
-                    openUploader={openUploader}
-                    isInSearchMode={isInSearchMode}
-                    search={search}
-                    deletedFileIds={deletedFileIds}
-                    setDeletedFileIds={setDeletedFileIds}
-                    activeCollection={activeCollection}
-                    isIncomingSharedCollection={
-                        collectionSummaries.get(activeCollection)?.type ===
-                        CollectionSummaryType.incomingShare
-                    }
-                    enableDownload={true}
-                />
+                {!isInSearchMode &&
+                !isFirstLoad &&
+                hasNoPersonalFiles &&
+                activeCollection === ALL_SECTION ? (
+                    <GalleryEmptyState openUploader={openUploader} />
+                ) : (
+                    <PhotoFrame
+                        files={files}
+                        collections={collections}
+                        syncWithRemote={syncWithRemote}
+                        favItemIds={favItemIds}
+                        archivedCollections={archivedCollections}
+                        setSelected={setSelected}
+                        selected={selected}
+                        isInSearchMode={isInSearchMode}
+                        search={search}
+                        deletedFileIds={deletedFileIds}
+                        setDeletedFileIds={setDeletedFileIds}
+                        activeCollection={activeCollection}
+                        isIncomingSharedCollection={
+                            collectionSummaries.get(activeCollection)?.type ===
+                            CollectionSummaryType.incomingShare
+                        }
+                        enableDownload={true}
+                    />
+                )}
                 {selected.count > 0 &&
                     selected.collectionID === activeCollection && (
                         <SelectedFileOptions
