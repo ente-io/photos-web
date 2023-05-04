@@ -2372,11 +2372,7 @@ fastq@^1.6.0:
     reusify "^1.0.4"
 
 "ffmpeg-wasm@file:./apps/photos/thirdparty/ffmpeg-wasm":
-  version "0.10.1"
-  dependencies:
-    is-url "^1.2.4"
-    node-fetch "^2.6.1"
-    regenerator-runtime "^0.13.7"
+  version "0.0.0"
 
 file-entry-cache@^6.0.1:
   version "6.0.1"
@@ -3126,11 +3122,6 @@ is-unicode-supported@^0.1.0:
   resolved "https://registry.npmjs.org/is-unicode-supported/-/is-unicode-supported-0.1.0.tgz"
   integrity sha512-knxG2q4UC3u8stRGyAVJCOdxFmv5DZiRcdlIaAQXAbSfJya+OhopNotLQrstBhququ4ZpuKbDc/8S6mgXgPFPw==
 
-is-url@^1.2.4:
-  version "1.2.4"
-  resolved "https://registry.yarnpkg.com/is-url/-/is-url-1.2.4.tgz#04a4df46d28c4cff3d73d01ff06abeb318a1aa52"
-  integrity sha512-ITvGim8FhRiYe4IQ5uHSkj7pVaPDrCTkNd3yq3cV7iZAcJdHTUMPMEHcqSOy9xZ9qFenQCvi+2wjH9a1nXqHww==
-
 is-weakmap@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/is-weakmap/-/is-weakmap-2.0.1.tgz#5008b59bdc43b698201d18f62b37b2ca243e8cf2"
@@ -3594,13 +3585,6 @@ node-fetch@^2.6.0:
   resolved "https://registry.npmjs.org/node-fetch/-/node-fetch-2.6.2.tgz"
   integrity sha512-aLoxToI6RfZ+0NOjmWAgn9+LEd30YCkJKFSyWacNZdEKTit/ZMcKjGkTRo8uWEsnIb/hfKecNPEbln02PdWbcA==
 
-node-fetch@^2.6.1:
-  version "2.6.9"
-  resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.9.tgz#7c7f744b5cc6eb5fd404e0c7a9fec630a55657e6"
-  integrity sha512-DJm/CJkZkRjKKj4Zi4BsKVZh3ValV5IR5s7LVZnW+6YMh0W1BfNA8XSs6DLMGYlId5F3KnA70uu2qepcR08Qqg==
-  dependencies:
-    whatwg-url "^5.0.0"
-
 normalize-path@^3.0.0:
   version "3.0.0"
   resolved "https://registry.npmjs.org/normalize-path/-/normalize-path-3.0.0.tgz"
@@ -3861,7 +3845,7 @@ peek-readable@^4.0.1:
   integrity sha512-7qmhptnR0WMSpxT5rMHG9bW/mYSR1uqaPFj2MHvT+y/aOUu6msJijpKt5SkTDKySwg65OWG2JwTMBlgcbwMHrQ==
 
 "photoswipe@file:./apps/photos/thirdparty/photoswipe":
-  version "4.1.6"
+  version "0.0.0"
 
 picocolors@^1.0.0:
   version "1.0.0"
@@ -4221,7 +4205,7 @@ readable-web-to-node-stream@^3.0.0:
   dependencies:
     readable-stream "^3.6.0"
 
-regenerator-runtime@^0.13.11, regenerator-runtime@^0.13.7:
+regenerator-runtime@^0.13.11:
   version "0.13.11"
   resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.13.11.tgz#f6dca3e7ceec20590d07ada785636a90cdca17f9"
   integrity sha512-kY1AZVr2Ra+t+piVaJ4gxaFaReZVH40AKNo7UCX6W+dEwBo/2oZJzqfuN1qLq1oL45o56cPaTXELwrTh8Fpggg==
@@ -4807,6 +4791,48 @@ tsutils@^3.21.0:
   integrity sha512-mHKK3iUXL+3UF6xL5k0PEhKRUBKPBCv/+RkEOpjRWxxx27KKRBmmA60A9pgOUvMi8GKhRMPEmjBRPzs2W7O1OA==
   dependencies:
     tslib "^1.8.1"
+
+turbo-darwin-64@1.9.3:
+  version "1.9.3"
+  resolved "https://registry.yarnpkg.com/turbo-darwin-64/-/turbo-darwin-64-1.9.3.tgz#29470b902a1418dae8a88b2620caf917b27480bc"
+  integrity sha512-0dFc2cWXl82kRE4Z+QqPHhbEFEpUZho1msHXHWbz5+PqLxn8FY0lEVOHkq5tgKNNEd5KnGyj33gC/bHhpZOk5g==
+
+turbo-darwin-arm64@1.9.3:
+  version "1.9.3"
+  resolved "https://registry.yarnpkg.com/turbo-darwin-arm64/-/turbo-darwin-arm64-1.9.3.tgz#0eb404d6101ba69eab8522b16260a4eb50885e6c"
+  integrity sha512-1cYbjqLBA2zYE1nbf/qVnEkrHa4PkJJbLo7hnuMuGM0bPzh4+AnTNe98gELhqI1mkTWBu/XAEeF5u6dgz0jLNA==
+
+turbo-linux-64@1.9.3:
+  version "1.9.3"
+  resolved "https://registry.yarnpkg.com/turbo-linux-64/-/turbo-linux-64-1.9.3.tgz#dbce8fd50edee1319f17800ee38e7c4749ab0cb0"
+  integrity sha512-UuBPFefawEwpuxh5pM9Jqq3q4C8M0vYxVYlB3qea/nHQ80pxYq7ZcaLGEpb10SGnr3oMUUs1zZvkXWDNKCJb8Q==
+
+turbo-linux-arm64@1.9.3:
+  version "1.9.3"
+  resolved "https://registry.yarnpkg.com/turbo-linux-arm64/-/turbo-linux-arm64-1.9.3.tgz#636b77fde17c7a5cdef8a20616ff57f08c785345"
+  integrity sha512-vUrNGa3hyDtRh9W0MkO+l1dzP8Co2gKnOVmlJQW0hdpOlWlIh22nHNGGlICg+xFa2f9j4PbQlWTsc22c019s8Q==
+
+turbo-windows-64@1.9.3:
+  version "1.9.3"
+  resolved "https://registry.yarnpkg.com/turbo-windows-64/-/turbo-windows-64-1.9.3.tgz#c65625c222456161b0b4d000ec7f50e372332825"
+  integrity sha512-0BZ7YaHs6r+K4ksqWus1GKK3W45DuDqlmfjm/yuUbTEVc8szmMCs12vugU2Zi5GdrdJSYfoKfEJ/PeegSLIQGQ==
+
+turbo-windows-arm64@1.9.3:
+  version "1.9.3"
+  resolved "https://registry.yarnpkg.com/turbo-windows-arm64/-/turbo-windows-arm64-1.9.3.tgz#86e105692ad6ba935eff0284522bdf7728a2e517"
+  integrity sha512-QJUYLSsxdXOsR1TquiOmLdAgtYcQ/RuSRpScGvnZb1hY0oLc7JWU0llkYB81wVtWs469y8H9O0cxbKwCZGR4RQ==
+
+turbo@^1.9.3:
+  version "1.9.3"
+  resolved "https://registry.yarnpkg.com/turbo/-/turbo-1.9.3.tgz#911012624f647f98d9788a08e25b98e38cdd48b2"
+  integrity sha512-ID7mxmaLUPKG/hVkp+h0VuucB1U99RPCJD9cEuSEOdIPoSIuomcIClEJtKamUsdPLhLCud+BvapBNnhgh58Nzw==
+  optionalDependencies:
+    turbo-darwin-64 "1.9.3"
+    turbo-darwin-arm64 "1.9.3"
+    turbo-linux-64 "1.9.3"
+    turbo-linux-arm64 "1.9.3"
+    turbo-windows-64 "1.9.3"
+    turbo-windows-arm64 "1.9.3"
 
 type-check@^0.4.0, type-check@~0.4.0:
   version "0.4.0"

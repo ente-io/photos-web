@@ -1,0 +1,12 @@
+{
+    "name": "@ente/utils",
+    "private": true,
+    "version": "0.0.0",
+    "dependencies": {
+        "@ente/constants": "*",
+        "@ente/worker": "*"
+    },
+    "devDependencies": {
+        "@ente/tsconfig": "*"
+    }
+}

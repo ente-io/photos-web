@@ -1,14 +1,14 @@
-import { PAGES } from 'constants/pages';
-import { getEndpoint, getFamilyPortalURL } from 'utils/common/apiUtil';
-import { clearKeys } from 'utils/storage/sessionStorage';
+import { PAGES } from '@ente/constants/pages';
+import { getEndpoint, getFamilyPortalURL } from '@ente/utils/common/apiUtil';
+import { clearKeys } from '@ente/utils/storage/sessionStorage';
 import router from 'next/router';
-import { clearData, getData, LS_KEYS } from 'utils/storage/localStorage';
-import localForage from 'utils/storage/localForage';
-import { getToken } from 'utils/common/key';
-import HTTPService from './HTTPService';
-import { getRecoveryKey } from 'utils/crypto';
-import { logError } from 'utils/sentry';
-import { eventBus, Events } from '@ente/services/events';
+import { clearData, getData, LS_KEYS } from '@ente/utils/storage/localStorage';
+import localForage from '@ente/utils/storage/localForage';
+import { getToken } from '@ente/utils/common/key';
+import HTTPService from '../HTTPService';
+import { getRecoveryKey } from '@ente/utils/crypto';
+import { logError } from '@ente/utils/sentry';
+import { eventBus, Events } from '../events';
 import {
     KeyAttributes,
     UpdatedKey,
@@ -19,15 +19,15 @@ import {
     UserDetails,
     DeleteChallengeResponse,
     GetRemoteStoreValueResponse,
-} from 'types/user';
-import { ServerErrorCodes } from 'utils/error';
+} from '@ente/types/user';
+import { ServerErrorCodes } from '@ente/utils/error';
 import isElectron from 'is-electron';
-import safeStorageService from './electron/safeStorage';
-import { deleteAllCache } from 'utils/storage/cache';
-import { B64EncryptionResult } from 'types/crypto';
-import { getLocalFamilyData, isPartOfFamily } from 'utils/user/family';
+import safeStorageService from '../electron/safeStorage';
+import { deleteAllCache } from '@ente/utils/storage/cache';
+import { B64EncryptionResult } from '@ente/types/crypto';
+import { getLocalFamilyData, isPartOfFamily } from '@ente/utils/user/family';
 import { AxiosResponse } from 'axios';
-import { APPS, getAppName } from 'constants/apps';
+import { APPS, getAppName } from '@ente/constants/apps';
 
 const ENDPOINT = getEndpoint();
 

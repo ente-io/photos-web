@@ -54,7 +54,7 @@ import { ElectronAPIs } from 'types/electron';
 import { CustomError } from 'utils/error';
 import { addLogLine } from 'utils/logging';
 import { t } from 'i18next';
-import { eventBus, Events } from './events';
+import { eventBus, Events } from '@ente/services/events';
 import { getCollectionNameMap } from 'utils/collection';
 
 const EXPORT_RECORD_FILE_NAME = 'export_status.json';

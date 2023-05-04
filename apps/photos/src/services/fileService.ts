@@ -11,7 +11,7 @@ import {
     mergeMetadata,
     sortFiles,
 } from 'utils/file';
-import { eventBus, Events } from './events';
+import { eventBus, Events } from '@ente/services/events';
 import { EnteFile, EncryptedEnteFile, TrashRequest } from 'types/file';
 import { SetFiles } from 'types/gallery';
 import { BulkUpdateMagicMetadataRequest } from 'types/magicMetadata';

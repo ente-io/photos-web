@@ -1,14 +1,15 @@
 {
     "extends": "@ente/tsconfig/ente.json",
     "compilerOptions": {
-        "baseUrl": "./src"
+        "baseUrl": "."
     },
     "include": [
         "next-env.d.ts",
         "**/*.ts",
         "**/*.tsx",
         "**/*.js",
-        "../../packages/services/events/events.ts"
+        "src",
+        "Form"
     ],
     "exclude": ["node_modules", "out", ".next", "thirdparty"]
 }
