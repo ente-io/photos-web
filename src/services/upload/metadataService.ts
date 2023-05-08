@@ -1,6 +1,6 @@
 import { FILE_TYPE } from 'constants/file';
 import { logError } from 'utils/sentry';
-import { getEXIFTime, getParsedExifData } from './exifService';
+import { ParsedEXIFData, getParsedExifData } from './exifService';
 import {
     Metadata,
     ParsedMetadataJSON,
@@ -70,6 +70,7 @@ export async function extractMetadata(
     } else {
         dimensions = await getDimensions(receivedFile, fileTypeInfo);
     }
+
     const metadata: Metadata = {
         title: receivedFile.name,
         creationTime:
@@ -107,10 +108,11 @@ export async function getImageMetadata(
             fileTypeInfo,
             EXIF_TAGS_NEEDED
         );
+
         imageMetadata = {
             latitude: exifData.latitude,
             longitude: exifData.longitude,
-            creationTime: getEXIFTime(exifData),
+            creationTime: getBestPossibleCreationTime(exifData),
             w: exifData.imageWidth,
             h: exifData.imageHeight,
         };
@@ -222,4 +224,19 @@ export function extractDateFromFileName(filename: string): number {
 function convertSignalNameToFusedDateString(filename: string) {
     const dateStringParts = filename.split('-');
     return `${dateStringParts[1]}${dateStringParts[2]}${dateStringParts[3]}-${dateStringParts[4]}`;
+}
+
+export function getBestPossibleCreationTime(exifData: ParsedEXIFData): number {
+    if (!exifData) {
+        return null;
+    }
+    const dateTime =
+        exifData.dateTimeOriginal ??
+        exifData.dateCreated ??
+        exifData.createDate ??
+        exifData.modifyDate;
+    if (!dateTime) {
+        return null;
+    }
+    return getUnixTimeInMicroSeconds(dateTime);
 }

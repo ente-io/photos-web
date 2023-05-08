@@ -4,7 +4,6 @@ import exifr from 'exifr';
 import piexif from 'piexifjs';
 import { FileTypeInfo } from 'types/upload';
 import { logError } from 'utils/sentry';
-import { getUnixTimeInMicroSeconds } from 'utils/time';
 import { CustomError } from 'utils/error';
 
 const EXIFR_UNSUPPORTED_FILE_FORMAT_MESSAGE = 'Unknown file format';
@@ -291,7 +290,14 @@ export function parseEXIFLocation(
             gpsLongitude[2],
             gpsLongitudeRef
         );
-        return { latitude, longitude };
+        const parsedLocation = {
+            latitude,
+            longitude,
+        };
+        if (!isValidGeoLocation(parsedLocation)) {
+            throw Error(CustomError.NOT_A_LOCATION);
+        }
+        return parsedLocation;
     } catch (e) {
         logError(e, 'parseEXIFLocation failed', {
             gpsLatitude,
@@ -312,34 +318,6 @@ function convertDMSToDD(
     let dd = degrees + minutes / 60 + seconds / (60 * 60);
     if (direction === 'S' || direction === 'W') dd *= -1;
     return dd;
-}
-
-export function getEXIFLocation(exifData: ParsedEXIFData): GeoLocation {
-    if (
-        !exifData ||
-        !isValidGeoLocation({
-            latitude: exifData.latitude,
-            longitude: exifData.longitude,
-        })
-    ) {
-        return NULL_LOCATION;
-    }
-    return { latitude: exifData.latitude, longitude: exifData.longitude };
-}
-
-export function getEXIFTime(exifData: ParsedEXIFData): number {
-    if (!exifData) {
-        return null;
-    }
-    const dateTime =
-        exifData.dateTimeOriginal ??
-        exifData.dateCreated ??
-        exifData.createDate ??
-        exifData.modifyDate;
-    if (!dateTime) {
-        return null;
-    }
-    return getUnixTimeInMicroSeconds(dateTime);
 }
 
 export async function updateFileCreationDateInEXIF(
