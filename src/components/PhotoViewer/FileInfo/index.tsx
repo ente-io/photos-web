@@ -1,8 +1,11 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react';
+import React, { useContext, useMemo, useState } from 'react';
 import { RenderFileName } from './RenderFileName';
 import { RenderCreationTime } from './RenderCreationTime';
 import { Box, DialogProps, Link, Stack, styled } from '@mui/material';
-import { getEXIFLocation } from 'services/upload/exifService';
+import {
+    ParsedEXIFData,
+    isValidGeoLocation,
+} from 'services/upload/exifService';
 import { RenderCaption } from './RenderCaption';
 
 import CopyButton from 'components/CodeBlock/CopyButton';
@@ -32,6 +35,7 @@ import { ObjectLabelList } from 'components/MachineLearning/ObjectList';
 // import MLServiceFileInfoButton from 'components/MachineLearning/MLServiceFileInfoButton';
 import { AppContext } from 'pages/_app';
 import { t } from 'i18next';
+import { GeoLocation } from 'types/upload';
 
 export const FileInfoSidebar = styled((props: DialogProps) => (
     <EnteDrawer {...props} anchor="right" />
@@ -47,7 +51,7 @@ interface Iprops {
     showInfo: boolean;
     handleCloseInfo: () => void;
     file: EnteFile;
-    exif: any;
+    parsedExifData: ParsedEXIFData;
     scheduleUpdate: () => void;
     refreshPhotoswipe: () => void;
     fileToCollectionsMap: Map<number, number[]>;
@@ -55,16 +59,28 @@ interface Iprops {
     isTrashCollection: boolean;
 }
 
+function renderFNumber(fNumber: number) {
+    return fNumber && `f/${fNumber}`;
+}
+
+function renderExposureTime(exposureTime: number) {
+    return exposureTime && `1/${Math.round(1 / exposureTime)}`;
+}
+
+function renderISO(iso: number) {
+    return iso && `ISO ${iso}`;
+}
+
 function BasicDeviceCamera({
     parsedExifData,
 }: {
-    parsedExifData: Record<string, any>;
+    parsedExifData: ParsedEXIFData;
 }) {
     return (
         <FlexWrapper gap={1}>
-            <Box>{parsedExifData['fNumber']}</Box>
-            <Box>{parsedExifData['exposureTime']}</Box>
-            <Box>{parsedExifData['ISO']}</Box>
+            <Box>{renderFNumber(parsedExifData.fNumber)}</Box>
+            <Box>{renderExposureTime(parsedExifData.exposureTime)}</Box>
+            <Box>{renderISO(parsedExifData.iso)}</Box>
         </FlexWrapper>
     );
 }
@@ -81,7 +97,7 @@ export function FileInfo({
     showInfo,
     handleCloseInfo,
     file,
-    exif,
+    parsedExifData,
     scheduleUpdate,
     refreshPhotoswipe,
     fileToCollectionsMap,
@@ -89,7 +105,6 @@ export function FileInfo({
     isTrashCollection,
 }: Iprops) {
     const appContext = useContext(AppContext);
-    const [parsedExifData, setParsedExifData] = useState<Record<string, any>>();
     const [showExif, setShowExif] = useState(false);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [updateMLDataIndex, setUpdateMLDataIndex] = useState(0);
@@ -98,68 +113,26 @@ export function FileInfo({
     const closeExif = () => setShowExif(false);
 
     const location = useMemo(() => {
-        if (file && file.metadata) {
-            if (
-                (file.metadata.latitude || file.metadata.latitude === 0) &&
-                !(file.metadata.longitude === 0 && file.metadata.latitude === 0)
-            ) {
-                return {
-                    latitude: file.metadata.latitude,
-                    longitude: file.metadata.longitude,
-                };
+        if (file) {
+            const location: GeoLocation = {
+                latitude: file.metadata.latitude,
+                longitude: file.metadata.longitude,
+            };
+            if (isValidGeoLocation(location)) {
+                return location;
             }
-        }
-        if (exif) {
-            const exifLocation = getEXIFLocation(exif);
-            if (
-                (exifLocation.latitude || exifLocation.latitude === 0) &&
-                !(exifLocation.longitude === 0 && exifLocation.latitude === 0)
-            ) {
-                return exifLocation;
+        } else if (parsedExifData) {
+            const location = {
+                latitude: parsedExifData.latitude,
+                longitude: parsedExifData.longitude,
+            };
+            if (isValidGeoLocation(location)) {
+                return location;
             }
+        } else {
+            return null;
         }
-        return null;
-    }, [file, exif]);
-
-    useEffect(() => {
-        if (!exif) {
-            setParsedExifData({});
-            return;
-        }
-        const parsedExifData = {};
-        if (exif['fNumber']) {
-            parsedExifData['fNumber'] = `f/${Math.ceil(exif['FNumber'])}`;
-        } else if (exif['ApertureValue'] && exif['FocalLength']) {
-            parsedExifData['fNumber'] = `f/${Math.ceil(
-                exif['FocalLength'] / exif['ApertureValue']
-            )}`;
-        }
-        const imageWidth = exif['ImageWidth'] ?? exif['ExifImageWidth'];
-        const imageHeight = exif['ImageHeight'] ?? exif['ExifImageHeight'];
-        if (imageWidth && imageHeight) {
-            parsedExifData['resolution'] = `${imageWidth} x ${imageHeight}`;
-            const megaPixels = Math.round((imageWidth * imageHeight) / 1000000);
-            if (megaPixels) {
-                parsedExifData['megaPixels'] = `${Math.round(
-                    (imageWidth * imageHeight) / 1000000
-                )}MP`;
-            }
-        }
-        if (exif['Make'] && exif['Model']) {
-            parsedExifData[
-                'takenOnDevice'
-            ] = `${exif['Make']} ${exif['Model']}`;
-        }
-        if (exif['ExposureTime']) {
-            parsedExifData['exposureTime'] = `1/${
-                1 / parseFloat(exif['ExposureTime'])
-            }`;
-        }
-        if (exif['ISO']) {
-            parsedExifData['ISO'] = `ISO${exif['ISO']}`;
-        }
-        setParsedExifData(parsedExifData);
-    }, [exif]);
+    }, [file, parsedExifData]);
 
     if (!file) {
         return <></>;
@@ -188,10 +161,10 @@ export function FileInfo({
                     file={file}
                     scheduleUpdate={scheduleUpdate}
                 />
-                {parsedExifData && parsedExifData['takenOnDevice'] && (
+                {parsedExifData && parsedExifData.takenOnDevice && (
                     <InfoItem
                         icon={<CameraOutlined />}
-                        title={parsedExifData['takenOnDevice']}
+                        title={parsedExifData.takenOnDevice}
                         caption={
                             <BasicDeviceCamera
                                 parsedExifData={parsedExifData}
@@ -226,9 +199,9 @@ export function FileInfo({
                     icon={<TextSnippetOutlined />}
                     title={t('DETAILS')}
                     caption={
-                        typeof exif === 'undefined' ? (
+                        typeof parsedExifData === 'undefined' ? (
                             <EnteSpinner size={11.33} />
-                        ) : exif !== null ? (
+                        ) : parsedExifData !== null ? (
                             <LinkButton
                                 onClick={openExif}
                                 sx={{
@@ -297,7 +270,7 @@ export function FileInfo({
                 )}
             </Stack>
             <ExifData
-                exif={exif}
+                exif={parsedExifData}
                 open={showExif}
                 onClose={closeExif}
                 onInfoClose={handleCloseInfo}

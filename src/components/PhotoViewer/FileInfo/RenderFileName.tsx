@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { updateFilePublicMagicMetadata } from 'services/fileService';
 import { EnteFile } from 'types/file';
 import {
@@ -15,6 +15,8 @@ import Box from '@mui/material/Box';
 import { FileNameEditDialog } from './FileNameEditDialog';
 import VideocamOutlined from '@mui/icons-material/VideocamOutlined';
 import PhotoOutlined from '@mui/icons-material/PhotoOutlined';
+import { ParsedEXIFData } from 'services/upload/exifService';
+import { Dimensions } from 'types/file/browserFile';
 
 const getFileTitle = (filename, extension) => {
     if (extension) {
@@ -24,21 +26,50 @@ const getFileTitle = (filename, extension) => {
     }
 };
 
-const getCaption = (file: EnteFile, parsedExifData) => {
-    const megaPixels = parsedExifData?.['megaPixels'];
-    const resolution = parsedExifData?.['resolution'];
-    const fileSize = file.info?.fileSize;
+export const getMegaPixels = (dimensions: Dimensions) =>
+    `${Math.round((dimensions.width * dimensions.height) / 1000000)}MP`;
 
-    const captionParts = [];
-    if (megaPixels) {
-        captionParts.push(megaPixels);
-    }
-    if (resolution) {
-        captionParts.push(resolution);
-    }
-    if (fileSize) {
-        captionParts.push(makeHumanReadableStorage(fileSize));
-    }
+export const getResolution = (dimensions: Dimensions) =>
+    `${dimensions.width} x ${dimensions.height}`;
+
+const getCaption = (file: EnteFile, parsedExifData: ParsedEXIFData) => {
+    const captionParts = useMemo(() => {
+        let megaPixels: string;
+        let resolution: string;
+        if (file && file.metadata && file.metadata.w && file.metadata.h) {
+            const dimensions = {
+                width: file.metadata.w,
+                height: file.metadata.h,
+            };
+            megaPixels = getMegaPixels(dimensions);
+            resolution = getResolution(dimensions);
+        } else if (
+            parsedExifData &&
+            parsedExifData.imageHeight &&
+            parsedExifData.imageWidth
+        ) {
+            const dimensions = {
+                width: parsedExifData.imageWidth,
+                height: parsedExifData.imageHeight,
+            };
+            megaPixels = getMegaPixels(dimensions);
+            resolution = getResolution(dimensions);
+        }
+        const fileSize = file?.info?.fileSize;
+
+        const captionParts = [];
+        if (megaPixels) {
+            captionParts.push(megaPixels);
+        }
+        if (resolution) {
+            captionParts.push(resolution);
+        }
+        if (fileSize) {
+            captionParts.push(makeHumanReadableStorage(fileSize));
+        }
+        return captionParts;
+    }, [parsedExifData, file]);
+
     return (
         <FlexWrapper gap={1}>
             {captionParts.map((caption) => (

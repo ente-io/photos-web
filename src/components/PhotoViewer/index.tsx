@@ -40,7 +40,7 @@ import { addLocalLog } from 'utils/logging';
 import ContentCopy from '@mui/icons-material/ContentCopy';
 import ChevronLeft from '@mui/icons-material/ChevronLeft';
 import { t } from 'i18next';
-import { getParsedExifData } from 'services/upload/exifService';
+import { ParsedEXIFData, getParsedExifData } from 'services/upload/exifService';
 import { getFileType } from 'services/typeDetectionService';
 
 interface PhotoswipeFullscreenAPI {
@@ -86,8 +86,7 @@ function PhotoViewer(props: Iprops) {
     const { isOpen, items, isSourceLoaded } = props;
     const [isFav, setIsFav] = useState(false);
     const [showInfo, setShowInfo] = useState(false);
-    const [exif, setExif] =
-        useState<{ key: string; value: Record<string, any> }>();
+    const [exif, setExif] = useState<{ key: string; value: ParsedEXIFData }>();
     const exifCopy = useRef(null);
     const [livePhotoBtnOptions, setLivePhotoBtnOptions] = useState(
         defaultLivePhotoDefaultOptions
@@ -669,7 +668,7 @@ function PhotoViewer(props: Iprops) {
                 showInfo={showInfo}
                 handleCloseInfo={handleCloseInfo}
                 file={photoSwipe?.currItem as EnteFile}
-                exif={exif?.value}
+                parsedExifData={exif?.value}
                 scheduleUpdate={scheduleUpdate}
                 refreshPhotoswipe={refreshPhotoswipe}
                 fileToCollectionsMap={props.fileToCollectionsMap}

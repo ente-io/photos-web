@@ -1,5 +1,5 @@
 import { EXIFLESS_FORMATS, NULL_LOCATION } from 'constants/upload';
-import { Location } from 'types/upload';
+import { GeoLocation } from 'types/upload';
 import exifr from 'exifr';
 import piexif from 'piexifjs';
 import { FileTypeInfo } from 'types/upload';
@@ -9,14 +9,20 @@ import { CustomError } from 'utils/error';
 
 const EXIFR_UNSUPPORTED_FILE_FORMAT_MESSAGE = 'Unknown file format';
 
-type ParsedEXIFData = Record<string, any> &
+export type ParsedEXIFData = Record<string, any> &
     Partial<{
-        DateTimeOriginal: Date;
-        CreateDate: Date;
-        ModifyDate: Date;
-        DateCreated: Date;
+        dateTimeOriginal: Date;
+        createDate: Date;
+        modifyDate: Date;
+        dateCreated: Date;
         latitude: number;
         longitude: number;
+        imageWidth: number;
+        imageHeight: number;
+        fNumber: number;
+        takenOnDevice: string;
+        exposureTime: number;
+        iso: number;
     }>;
 
 type RawEXIFData = Record<string, any> &
@@ -29,6 +35,19 @@ type RawEXIFData = Record<string, any> &
         GPSLongitude: number[];
         GPSLatitudeRef: string;
         GPSLongitudeRef: string;
+        ImageWidth: number;
+        ImageHeight: number;
+        ExifImageWidth: number;
+        ExifImageHeight: number;
+        resolution: string;
+        megaPixels: string;
+        FNumber: number;
+        ApertureValue: number;
+        FocalLength: number;
+        Make: string;
+        Model: string;
+        ExposureTime: number;
+        ISO: number;
     }>;
 
 export async function getParsedExifData(
@@ -76,31 +95,113 @@ function parseExifData(exifData: RawEXIFData): ParsedEXIFData {
     if (!exifData) {
         return null;
     }
-    const { DateTimeOriginal, CreateDate, ModifyDate, DateCreated, ...rest } =
-        exifData;
+
+    const {
+        DateTimeOriginal,
+        CreateDate,
+        ModifyDate,
+        DateCreated,
+        ImageHeight,
+        ImageWidth,
+        ExifImageHeight,
+        ExifImageWidth,
+        GPSLatitude,
+        GPSLatitudeRef,
+        GPSLongitude,
+        GPSLongitudeRef,
+        FNumber,
+        ApertureValue,
+        FocalLength,
+        Make,
+        Model,
+        ExposureTime,
+        ISO,
+        ...rest
+    } = exifData;
     const parsedExif: ParsedEXIFData = { ...rest };
     if (DateTimeOriginal) {
-        parsedExif.DateTimeOriginal = parseEXIFDate(exifData.DateTimeOriginal);
+        parsedExif.dateTimeOriginal = parseEXIFDate(DateTimeOriginal);
     }
     if (CreateDate) {
-        parsedExif.CreateDate = parseEXIFDate(exifData.CreateDate);
+        parsedExif.createDate = parseEXIFDate(CreateDate);
     }
     if (ModifyDate) {
-        parsedExif.ModifyDate = parseEXIFDate(exifData.ModifyDate);
+        parsedExif.modifyDate = parseEXIFDate(ModifyDate);
     }
     if (DateCreated) {
-        parsedExif.DateCreated = parseEXIFDate(exifData.DateCreated);
+        parsedExif.dateCreated = parseEXIFDate(DateCreated);
     }
-    if (exifData.GPSLatitude && exifData.GPSLongitude) {
+    if (GPSLatitude && GPSLongitude) {
         const parsedLocation = parseEXIFLocation(
-            exifData.GPSLatitude,
-            exifData.GPSLatitudeRef,
-            exifData.GPSLongitude,
-            exifData.GPSLongitudeRef
+            GPSLatitude,
+            GPSLatitudeRef,
+            GPSLongitude,
+            GPSLongitudeRef
         );
         parsedExif.latitude = parsedLocation.latitude;
         parsedExif.longitude = parsedLocation.longitude;
     }
+    if (ImageWidth && ImageHeight) {
+        if (typeof ImageWidth === 'number' && typeof ImageHeight === 'number') {
+            parsedExif.imageWidth = ImageWidth;
+            parsedExif.imageHeight = ImageHeight;
+        } else {
+            logError(
+                new Error('ImageWidth or ImageHeight is not a number'),
+                'Image dimension parsing failed',
+                {
+                    ImageWidth,
+                    ImageHeight,
+                }
+            );
+        }
+    } else if (ExifImageWidth && ExifImageHeight) {
+        if (
+            typeof ExifImageWidth === 'number' &&
+            typeof ExifImageHeight === 'number'
+        ) {
+            parsedExif.imageWidth = ExifImageWidth;
+            parsedExif.imageHeight = ExifImageHeight;
+        } else {
+            logError(
+                new Error('ExifImageWidth or ExifImageHeight is not a number'),
+                'Image dimension parsing failed',
+                {
+                    ExifImageWidth,
+                    ExifImageHeight,
+                }
+            );
+        }
+    }
+    if (FNumber) {
+        parsedExif.fNumber = FNumber;
+    } else if (ApertureValue && FocalLength) {
+        if (
+            typeof ApertureValue === 'number' &&
+            typeof FocalLength === 'number'
+        ) {
+            parsedExif.fNumber = Math.ceil(FocalLength / ApertureValue);
+        } else {
+            logError(
+                new Error('ApertureValue or FocalLength is not a number'),
+                'FNumber parsing failed',
+                {
+                    ApertureValue,
+                    FocalLength,
+                }
+            );
+        }
+    }
+    if (Make && Model) {
+        parsedExif.takenOnDevice = `${Make} ${Model}`;
+    }
+    if (ExposureTime) {
+        parsedExif.exposureTime = ExposureTime;
+    }
+    if (ISO) {
+        parsedExif.iso = ISO;
+    }
+
     return parsedExif;
 }
 
@@ -215,8 +316,14 @@ function convertDMSToDD(
     return dd;
 }
 
-export function getEXIFLocation(exifData: ParsedEXIFData): Location {
-    if (!exifData || (!exifData.latitude && exifData.latitude !== 0)) {
+export function getEXIFLocation(exifData: ParsedEXIFData): GeoLocation {
+    if (
+        !exifData ||
+        !isValidGeoLocation({
+            latitude: exifData.latitude,
+            longitude: exifData.longitude,
+        })
+    ) {
         return NULL_LOCATION;
     }
     return { latitude: exifData.latitude, longitude: exifData.longitude };
@@ -227,10 +334,10 @@ export function getEXIFTime(exifData: ParsedEXIFData): number {
         return null;
     }
     const dateTime =
-        exifData.DateTimeOriginal ??
-        exifData.DateCreated ??
-        exifData.CreateDate ??
-        exifData.ModifyDate;
+        exifData.dateTimeOriginal ??
+        exifData.dateCreated ??
+        exifData.createDate ??
+        exifData.modifyDate;
     if (!dateTime) {
         return null;
     }
@@ -299,4 +406,12 @@ function convertToExifDateFormat(date: Date) {
     return `${date.getFullYear()}:${
         date.getMonth() + 1
     }:${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+}
+
+export function isValidGeoLocation(location: GeoLocation) {
+    return (
+        (location.latitude || location.latitude === 0) &&
+        (location.longitude || location.longitude === 0) &&
+        !(location.longitude === 0 && location.latitude === 0)
+    );
 }

@@ -7,6 +7,7 @@ import { Box } from '@mui/system';
 import CopyButton from 'components/CodeBlock/CopyButton';
 import { formatDateTimeFull } from 'utils/time/format';
 import { t } from 'i18next';
+import { ParsedEXIFData } from 'services/upload/exifService';
 
 const ExifItem = styled(Box)`
     padding-left: 8px;
@@ -16,7 +17,7 @@ const ExifItem = styled(Box)`
     gap: 4px;
 `;
 
-function parseExifValue(value: any) {
+function formatExifData(value: any) {
     switch (typeof value) {
         case 'string':
         case 'number':
@@ -33,7 +34,7 @@ function parseExifValue(value: any) {
     }
 }
 export function ExifData(props: {
-    exif: any;
+    exif: ParsedEXIFData;
     open: boolean;
     onClose: () => void;
     filename: string;
@@ -81,7 +82,7 @@ export function ExifData(props: {
                                         whiteSpace: 'nowrap',
                                         overflow: 'hidden',
                                     }}>
-                                    {parseExifValue(value)}
+                                    {formatExifData(value)}
                                 </Typography>
                             </ExifItem>
                         ) : (
