@@ -13,6 +13,7 @@ export const ServerErrorCodes = {
 
 export const CustomError = {
     THUMBNAIL_GENERATION_FAILED: 'thumbnail generation failed',
+    EXTRACT_DIMENSION_FAILED: 'failed to extract dimension',
     VIDEO_PLAYBACK_FAILED: 'video playback failed',
     ETAG_MISSING: 'no header/etag present in response body',
     KEY_MISSING: 'encrypted key missing from localStorage',

@@ -4,6 +4,7 @@ import { encodeLivePhoto } from 'services/livePhotoService';
 import { getFileType } from 'services/typeDetectionService';
 import {
     ElectronFile,
+    FileInMemory,
     FileTypeInfo,
     FileWithCollection,
     LivePhotoAssets,
@@ -85,7 +86,7 @@ export function getLivePhotoName(livePhotoAssets: LivePhotoAssets) {
 export async function readLivePhoto(
     fileTypeInfo: FileTypeInfo,
     livePhotoAssets: LivePhotoAssets
-) {
+): Promise<FileInMemory> {
     const { thumbnail, hasStaticThumbnail } = await generateThumbnail(
         livePhotoAssets.image,
         {

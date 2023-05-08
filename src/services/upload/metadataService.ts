@@ -1,10 +1,10 @@
 import { FILE_TYPE } from 'constants/file';
 import { logError } from 'utils/sentry';
-import { getEXIFLocation, getEXIFTime, getParsedExifData } from './exifService';
+import { getEXIFTime, getParsedExifData } from './exifService';
 import {
     Metadata,
     ParsedMetadataJSON,
-    Location,
+    GeoLocation,
     FileTypeInfo,
     ParsedExtractedMetadata,
     ElectronFile,
@@ -19,6 +19,8 @@ import {
 import { getFileHash } from './hashService';
 import { Remote } from 'comlink';
 import { DedicatedCryptoWorker } from 'worker/crypto.worker';
+import { Dimensions } from 'types/file/browserFile';
+import { getDimensions } from './aspectRatioService';
 
 interface ParsedMetadataJSONWithTitle {
     title: string;
@@ -40,6 +42,10 @@ const EXIF_TAGS_NEEDED = [
     'GPSLatitudeRef',
     'GPSLongitudeRef',
     'DateCreated',
+    'ExifImageWidth',
+    'ExifImageHeight',
+    'ImageWidth',
+    'ImageHeight',
 ];
 
 export async function extractMetadata(
@@ -55,6 +61,15 @@ export async function extractMetadata(
     }
     const fileHash = await getFileHash(worker, receivedFile);
 
+    let dimensions: Dimensions;
+    if (extractedMetadata.w && extractedMetadata.h) {
+        dimensions = {
+            width: extractedMetadata.w,
+            height: extractedMetadata.h,
+        };
+    } else {
+        dimensions = await getDimensions(receivedFile, fileTypeInfo);
+    }
     const metadata: Metadata = {
         title: receivedFile.name,
         creationTime:
@@ -62,10 +77,12 @@ export async function extractMetadata(
             extractDateFromFileName(receivedFile.name) ??
             receivedFile.lastModified * 1000,
         modificationTime: receivedFile.lastModified * 1000,
-        latitude: extractedMetadata.location.latitude,
-        longitude: extractedMetadata.location.longitude,
+        latitude: extractedMetadata.latitude,
+        longitude: extractedMetadata.longitude,
         fileType: fileTypeInfo.fileType,
         hash: fileHash,
+        w: dimensions.width,
+        h: dimensions.height,
     };
     return metadata;
 }
@@ -91,8 +108,11 @@ export async function getImageMetadata(
             EXIF_TAGS_NEEDED
         );
         imageMetadata = {
-            location: getEXIFLocation(exifData),
+            latitude: exifData.latitude,
+            longitude: exifData.longitude,
             creationTime: getEXIFTime(exifData),
+            w: exifData.imageWidth,
+            h: exifData.imageHeight,
         };
     } catch (e) {
         logError(e, 'getExifData failed');
@@ -143,7 +163,7 @@ export async function parseMetadataJSON(receivedFile: File | ElectronFile) {
             parsedMetadataJSON.modificationTime =
                 metadataJSON['modificationTime']['timestamp'] * 1000000;
         }
-        let locationData: Location = NULL_LOCATION;
+        let locationData: GeoLocation = NULL_LOCATION;
         if (
             metadataJSON['geoData'] &&
             (metadataJSON['geoData']['latitude'] !== 0.0 ||

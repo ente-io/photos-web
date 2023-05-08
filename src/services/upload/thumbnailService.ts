@@ -10,6 +10,7 @@ import { ElectronFile, FileTypeInfo } from 'types/upload';
 import { getUint8ArrayView } from '../readerService';
 import { getFileNameSize, addLogLine } from 'utils/logging';
 import HeicConversionService from 'services/heicConversionService';
+import { Dimensions } from 'types/file/browserFile';
 
 const MAX_THUMBNAIL_DIMENSION = 720;
 const MIN_COMPRESSION_PERCENTAGE_SIZE_DIFF = 10;
@@ -18,11 +19,6 @@ const MIN_QUALITY = 0.5;
 const MAX_QUALITY = 0.7;
 
 const WAIT_TIME_THUMBNAIL_GENERATION = 30 * 1000;
-
-interface Dimension {
-    width: number;
-    height: number;
-}
 
 export async function generateThumbnail(
     file: File | ElectronFile,
@@ -122,22 +118,22 @@ export async function generateImageThumbnailUsingCanvas(
         image.onload = () => {
             try {
                 URL.revokeObjectURL(imageURL);
-                const imageDimension = {
+                const imageDimensions = {
                     width: image.width,
                     height: image.height,
                 };
-                const thumbnailDimension = calculateThumbnailDimension(
-                    imageDimension,
+                const thumbnailDimensions = calculateThumbnailDimensions(
+                    imageDimensions,
                     MAX_THUMBNAIL_DIMENSION
                 );
-                canvas.width = thumbnailDimension.width;
-                canvas.height = thumbnailDimension.height;
+                canvas.width = thumbnailDimensions.width;
+                canvas.height = thumbnailDimensions.height;
                 canvasCTX.drawImage(
                     image,
                     0,
                     0,
-                    thumbnailDimension.width,
-                    thumbnailDimension.height
+                    thumbnailDimensions.width,
+                    thumbnailDimensions.height
                 );
                 image = null;
                 clearTimeout(timeout);
@@ -208,22 +204,22 @@ export async function generateVideoThumbnailUsingCanvas(
                 if (!video) {
                     throw Error('video load failed');
                 }
-                const videoDimension = {
+                const videoDimensions = {
                     width: video.videoWidth,
                     height: video.videoHeight,
                 };
-                const thumbnailDimension = calculateThumbnailDimension(
-                    videoDimension,
+                const thumbnailDimensions = calculateThumbnailDimensions(
+                    videoDimensions,
                     MAX_THUMBNAIL_DIMENSION
                 );
-                canvas.width = thumbnailDimension.width;
-                canvas.height = thumbnailDimension.height;
+                canvas.width = thumbnailDimensions.width;
+                canvas.height = thumbnailDimensions.height;
                 canvasCTX.drawImage(
                     video,
                     0,
                     0,
-                    thumbnailDimension.width,
-                    thumbnailDimension.height
+                    thumbnailDimensions.width,
+                    thumbnailDimensions.height
                 );
                 video = null;
                 clearTimeout(timeout);
@@ -284,10 +280,10 @@ function percentageSizeDiff(
 
 // method to calculate new size of image for limiting it to maximum width and height, maintaining aspect ratio
 // returns {0,0} for invalid inputs
-function calculateThumbnailDimension(
-    originalDimension: Dimension,
+function calculateThumbnailDimensions(
+    originalDimension: Dimensions,
     maxDimension: number
-): Dimension {
+): Dimensions {
     if (originalDimension.height === 0 || originalDimension.width === 0) {
         return { width: 0, height: 0 };
     }

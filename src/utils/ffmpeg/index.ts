@@ -34,10 +34,11 @@ export function parseFFmpegExtractedMetadata(encodedMetadata: Uint8Array) {
     );
     const parsedMetadata: ParsedExtractedMetadata = {
         creationTime,
-        location: {
-            latitude: location.latitude,
-            longitude: location.longitude,
-        },
+        latitude: location.latitude,
+        longitude: location.longitude,
+        // Video metadata does not contain width and height
+        w: null,
+        h: null,
     };
     return parsedMetadata;
 }

@@ -2,8 +2,8 @@ import { ENCRYPTION_CHUNK_SIZE } from 'constants/crypto';
 import { FILE_TYPE } from 'constants/file';
 import {
     FileTypeInfo,
+    GeoLocation,
     ImportSuggestion,
-    Location,
     ParsedExtractedMetadata,
 } from 'types/upload';
 
@@ -32,7 +32,7 @@ export const FILE_CHUNKS_COMBINED_FOR_A_UPLOAD_PART = Math.floor(
 
 export const RANDOM_PERCENTAGE_PROGRESS_FOR_PUT = () => 90 + 10 * Math.random();
 
-export const NULL_LOCATION: Location = { latitude: null, longitude: null };
+export const NULL_LOCATION: GeoLocation = { latitude: null, longitude: null };
 
 export enum UPLOAD_STAGES {
     START,
@@ -72,8 +72,11 @@ export const MAX_FILE_SIZE_SUPPORTED = 4 * 1024 * 1024 * 1024; // 4 GB
 export const LIVE_PHOTO_ASSET_SIZE_LIMIT = 20 * 1024 * 1024; // 20MB
 
 export const NULL_EXTRACTED_METADATA: ParsedExtractedMetadata = {
-    location: NULL_LOCATION,
+    longitude: null,
+    latitude: null,
     creationTime: null,
+    w: null,
+    h: null,
 };
 
 export const A_SEC_IN_MICROSECONDS = 1e6;

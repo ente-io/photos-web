@@ -27,9 +27,11 @@ export interface Metadata {
     hash?: string;
     imageHash?: string;
     videoHash?: string;
+    w?: number;
+    h?: number;
 }
 
-export interface Location {
+export interface GeoLocation {
     latitude: number;
     longitude: number;
 }
@@ -135,8 +137,11 @@ export interface UploadFile extends BackupedFile {
 }
 
 export interface ParsedExtractedMetadata {
-    location: Location;
+    longitude: number;
+    latitude: number;
     creationTime: number;
+    w: number;
+    h: number;
 }
 
 // This is used to prompt the user the make upload strategy choice
