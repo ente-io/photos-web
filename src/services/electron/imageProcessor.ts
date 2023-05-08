@@ -87,7 +87,7 @@ class ElectronImageProcessorService {
     async extractImageDimensions(file: File | ElectronFile) {
         try {
             if (!this.electronAPIs?.extractImageDimensions) {
-                throw new Error('getImageDimensions API not available');
+                throw new Error('extractImageDimensions API not available');
             }
             const dimensions = await this.electronAPIs.extractImageDimensions(
                 file
