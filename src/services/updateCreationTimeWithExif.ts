@@ -54,11 +54,11 @@ export async function updateCreationTimeWithExif(
                     );
                     if (fixOption === FIX_OPTIONS.DATE_TIME_ORIGINAL) {
                         correctCreationTime = getUnixTimeInMicroSeconds(
-                            exifData?.DateTimeOriginal ?? exifData?.DateCreated
+                            exifData?.dateTimeOriginal ?? exifData?.dateCreated
                         );
                     } else {
                         correctCreationTime = getUnixTimeInMicroSeconds(
-                            exifData?.CreateDate
+                            exifData?.createDate
                         );
                     }
                 }
