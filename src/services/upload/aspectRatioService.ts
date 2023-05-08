@@ -10,7 +10,7 @@ import { ElectronFile, FileTypeInfo } from 'types/upload';
 // import { getUint8ArrayView } from '../readerService';
 import { getFileNameSize, addLogLine } from 'utils/logging';
 import HeicConversionService from 'services/heicConversionService';
-import { Dimensions } from 'types/file/browserFile';
+import { Dimensions } from 'types/upload';
 
 const WAIT_TIME_ASPECT_RATIO_EXTRACTION = 30 * 1000;
 

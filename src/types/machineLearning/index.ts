@@ -12,7 +12,7 @@ import PQueue from 'p-queue';
 // import { Point as D3Point, RawNodeDatum } from 'react-d3-tree/lib/types/common';
 import { EnteFile } from 'types/file';
 import { Config } from 'types/common/config';
-import { Dimensions } from 'types/file/browserFile';
+import { Dimensions } from 'types/image';
 import { Box, Point } from '../../../thirdparty/face-api/classes';
 
 export interface MLSyncResult {

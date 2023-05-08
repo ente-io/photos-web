@@ -19,7 +19,7 @@ import {
 import { getFileHash } from './hashService';
 import { Remote } from 'comlink';
 import { DedicatedCryptoWorker } from 'worker/crypto.worker';
-import { Dimensions } from 'types/file/browserFile';
+import { Dimensions } from 'types/upload';
 import { getDimensions } from './aspectRatioService';
 
 interface ParsedMetadataJSONWithTitle {

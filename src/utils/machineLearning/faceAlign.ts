@@ -16,7 +16,7 @@ import {
     ARCFACE_LANDMARKS_FACE_SIZE,
 } from 'types/machineLearning/archface';
 import { Box, Point } from '../../../thirdparty/face-api/classes';
-import { Dimensions } from 'types/file/browserFile';
+import { Dimensions } from 'types/image';
 
 export function normalizeLandmarks(
     landmarks: Array<[number, number]>,

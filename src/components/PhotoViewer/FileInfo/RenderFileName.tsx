@@ -16,7 +16,7 @@ import { FileNameEditDialog } from './FileNameEditDialog';
 import VideocamOutlined from '@mui/icons-material/VideocamOutlined';
 import PhotoOutlined from '@mui/icons-material/PhotoOutlined';
 import { ParsedEXIFData } from 'services/upload/exifService';
-import { Dimensions } from 'types/file/browserFile';
+import { Dimensions } from 'types/upload';
 
 const getFileTitle = (filename, extension) => {
     if (extension) {

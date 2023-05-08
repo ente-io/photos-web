@@ -10,7 +10,7 @@ import { ElectronFile, FileTypeInfo } from 'types/upload';
 import { getUint8ArrayView } from '../readerService';
 import { getFileNameSize, addLogLine } from 'utils/logging';
 import HeicConversionService from 'services/heicConversionService';
-import { Dimensions } from 'types/file/browserFile';
+import { Dimensions } from 'types/upload';
 
 const MAX_THUMBNAIL_DIMENSION = 720;
 const MIN_COMPRESSION_PERCENTAGE_SIZE_DIFF = 10;
