@@ -39,8 +39,6 @@ type RawEXIFData = Record<string, any> &
         ImageHeight: number;
         ExifImageWidth: number;
         ExifImageHeight: number;
-        resolution: string;
-        megaPixels: string;
         FNumber: number;
         ApertureValue: number;
         FocalLength: number;
