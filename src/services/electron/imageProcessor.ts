@@ -83,6 +83,26 @@ class ElectronImageProcessorService {
             throw e;
         }
     }
+
+    async extractImageDimensions(file: File | ElectronFile) {
+        try {
+            if (!this.electronAPIs?.extractImageDimensions) {
+                throw new Error('getImageDimensions API not available');
+            }
+            const dimensions = await this.electronAPIs.extractImageDimensions(
+                file
+            );
+            return dimensions;
+        } catch (e) {
+            if (
+                e.message !==
+                CustomError.WINDOWS_NATIVE_IMAGE_PROCESSING_NOT_SUPPORTED
+            ) {
+                logError(e, 'failed to get image dimensions natively');
+            }
+            throw e;
+        }
+    }
 }
 
 export default new ElectronImageProcessorService();

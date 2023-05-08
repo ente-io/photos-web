@@ -1,4 +1,5 @@
 import { LimitedCache } from 'types/cache';
+import { Dimensions } from 'types/image';
 import { ElectronFile } from 'types/upload';
 import { WatchMapping } from 'types/watchFolder';
 
@@ -90,4 +91,7 @@ export interface ElectronAPIs {
     logRendererProcessMemoryUsage: (message: string) => Promise<void>;
     registerForegroundEventListener: (onForeground: () => void) => void;
     openDirectory: (dirPath: string) => Promise<void>;
+    extractImageDimensions: (
+        inputFile: File | ElectronFile
+    ) => Promise<Dimensions>;
 }

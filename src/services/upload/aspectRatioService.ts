@@ -3,7 +3,7 @@ import { CustomError, errorWithContext } from 'utils/error';
 import { logError } from 'utils/sentry';
 // import { BLACK_THUMBNAIL_BASE64 } from 'constants/upload';
 // import * as FFmpegService from 'services/ffmpeg/ffmpegService';
-// import ElectronImageProcessorService from 'services/electron/imageProcessor';
+import ElectronImageProcessorService from 'services/electron/imageProcessor';
 // import { convertBytesToHumanReadable } from 'utils/file/size';
 import { isExactTypeHEIC } from 'utils/file';
 import { ElectronFile, FileTypeInfo } from 'types/upload';
@@ -37,22 +37,20 @@ async function getImageDimensions(
     file: File | ElectronFile,
     fileTypeInfo: FileTypeInfo
 ) {
-    // if (ElectronImageProcessorService.generateImageThumbnailAPIExists()) {
-    //     try {
-    //         return await ElectronImageProcessorService.generateImageThumbnail(
-    //             file,
-    //             MAX_THUMBNAIL_DIMENSION,
-    //             MAX_THUMBNAIL_SIZE
-    //         );
-    //     } catch (e) {
-    //         return await generateImageThumbnailUsingCanvas(file, fileTypeInfo);
-    //     }
-    // } else {
-    return await extractImageDimension(file, fileTypeInfo);
-    // }
+    if (ElectronImageProcessorService.generateImageThumbnailAPIExists()) {
+        try {
+            return await ElectronImageProcessorService.extractImageDimensions(
+                file
+            );
+        } catch (e) {
+            return await extractImageDimensionUsingCanvas(file, fileTypeInfo);
+        }
+    } else {
+        return await extractImageDimensionUsingCanvas(file, fileTypeInfo);
+    }
 }
 
-export async function extractImageDimension(
+export async function extractImageDimensionUsingCanvas(
     file: File | ElectronFile,
     fileTypeInfo: FileTypeInfo
 ): Promise<Dimensions> {
@@ -117,7 +115,7 @@ async function getVideoDimensions(
     //     fileFormat: fileTypeInfo.exactType,
     // });
     try {
-        return await extractVideoDimension(file);
+        return await extractVideoDimensionUsingCanvas(file);
     } catch (e) {
         logError(e, 'failed to generate thumbnail using canvas', {
             fileFormat: fileTypeInfo.exactType,
@@ -127,7 +125,7 @@ async function getVideoDimensions(
     // return thumbnail;
 }
 
-export async function extractVideoDimension(
+export async function extractVideoDimensionUsingCanvas(
     file: File | ElectronFile
 ): Promise<Dimensions> {
     let timeout = null;
