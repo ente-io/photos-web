@@ -9,7 +9,7 @@ import PQueue from 'p-queue';
 import DownloadManager from 'services/downloadManager';
 import { getLocalFiles } from 'services/fileService';
 import { EnteFile } from 'types/file';
-import { Dimensions } from 'types/image';
+import { Dimensions } from 'types/file/browserFile';
 import {
     RealWorldObject,
     AlignedFace,

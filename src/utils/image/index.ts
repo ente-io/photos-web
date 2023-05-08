@@ -1,6 +1,6 @@
 // these utils only work in env where OffscreenCanvas is available
 
-import { BlobOptions, Dimensions } from 'types/image';
+import { BlobOptions, Dimensions } from 'types/file/browserFile';
 import { enlargeBox } from 'utils/machineLearning';
 import { Box } from '../../../thirdparty/face-api/classes';
 

@@ -1,7 +1,7 @@
 import { CACHES } from 'constants/cache';
 import { CacheStorageService } from 'services/cache/cacheStorageService';
 import { compose, Matrix, scale, translate } from 'transformation-matrix';
-import { BlobOptions, Dimensions } from 'types/image';
+import { BlobOptions, Dimensions } from 'types/file/browserFile';
 import {
     AlignedFace,
     FaceCropConfig,
