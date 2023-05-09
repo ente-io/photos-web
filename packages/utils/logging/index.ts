@@ -1,16 +1,16 @@
-import { ElectronFile } from 'types/upload';
-import { convertBytesToHumanReadable } from 'utils/file/size';
-import { formatDateTimeShort } from 'utils/time/format';
-import { isDEVSentryENV } from 'constants/sentry';
+import { ElectronFile } from '@ente/types/upload';
+import { convertBytesToHumanReadable } from '@ente/utils/file/size';
+import { formatDateTimeShort } from '@ente/utils/time/format';
+import { isDEVSentryENV } from '@ente/constants/sentry';
 import isElectron from 'is-electron';
-import ElectronService from 'services/electron/common';
-import { logError } from 'utils/sentry';
+import ElectronService from '@ente/services/electron/common';
+import { logError } from '@ente/utils/sentry';
 import {
     getData,
     LS_KEYS,
     removeData,
     setData,
-} from 'utils/storage/localStorage';
+} from '@ente/utils/storage/localStorage';
 
 export const MAX_LOG_SIZE = 5 * 1024 * 1024; // 5MB
 export const MAX_LOG_LINES = 1000;

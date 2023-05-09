@@ -1,7 +1,7 @@
 import isElectron from 'is-electron';
-import { UserDetails } from 'types/user';
+import { UserDetails } from '@ente/types/user';
 import { getData, LS_KEYS, setData } from '../storage/localStorage';
-import ElectronService from 'services/electron/common';
+import ElectronService from '@ente/services/electron/common';
 
 export function makeID(length) {
     let result = '';

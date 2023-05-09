@@ -17,7 +17,7 @@ class ComlinkCryptoWorker {
 export const getDedicatedCryptoWorker = () => {
     const cryptoComlinkWorker = new ComlinkWorker<typeof DedicatedCryptoWorker>(
         'ente-crypto-worker',
-        new Worker(new URL('worker/crypto.worker.ts', import.meta.url))
+        new Worker(new URL('@ente/worker/crypto.worker.ts', import.meta.url))
     );
     return cryptoComlinkWorker;
 };

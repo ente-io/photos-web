@@ -1,7 +1,7 @@
-import { LimitedCacheStorage } from 'types/cache/index';
-import { ElectronCacheStorage } from 'services/electron/cache';
-import { runningInElectron, runningInWorker } from 'utils/common';
-import { WorkerElectronCacheStorageService } from 'services/workerElectronCache/service';
+import { LimitedCacheStorage } from '@ente/types/cache/index';
+import { ElectronCacheStorage } from '@ente/services/electron/cache';
+import { runningInElectron, runningInWorker } from '@ente/utils/common';
+import { WorkerElectronCacheStorageService } from '@ente/services/workerElectronCache/service';
 
 class cacheStorageFactory {
     workerElectronCacheStorageServiceInstance: WorkerElectronCacheStorageService;
