@@ -75,8 +75,8 @@ export const NULL_EXTRACTED_METADATA: ParsedExtractedMetadata = {
     longitude: null,
     latitude: null,
     creationTime: null,
-    w: null,
-    h: null,
+    width: null,
+    height: null,
 };
 
 export const A_SEC_IN_MICROSECONDS = 1e6;

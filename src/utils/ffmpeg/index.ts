@@ -37,8 +37,8 @@ export function parseFFmpegExtractedMetadata(encodedMetadata: Uint8Array) {
         latitude: location.latitude,
         longitude: location.longitude,
         // Video metadata does not contain width and height
-        w: null,
-        h: null,
+        width: null,
+        height: null,
     };
     return parsedMetadata;
 }

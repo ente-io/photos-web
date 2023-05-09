@@ -1,13 +1,10 @@
 import { FILE_TYPE } from 'constants/file';
 import { CustomError, errorWithContext } from 'utils/error';
 import { logError } from 'utils/sentry';
-// import { BLACK_THUMBNAIL_BASE64 } from 'constants/upload';
 import * as FFmpegService from 'services/ffmpeg/ffmpegService';
 import ElectronImageProcessorService from 'services/electron/imageProcessor';
-// import { convertBytesToHumanReadable } from 'utils/file/size';
 import { isExactTypeHEIC } from 'utils/file';
 import { ElectronFile, FileTypeInfo } from 'types/upload';
-// import { getUint8ArrayView } from '../readerService';
 import { getFileNameSize, addLogLine } from 'utils/logging';
 import HeicConversionService from 'services/heicConversionService';
 import { Dimensions } from 'types/upload';

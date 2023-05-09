@@ -62,10 +62,10 @@ export async function extractMetadata(
     const fileHash = await getFileHash(worker, receivedFile);
 
     let dimensions: Dimensions;
-    if (extractedMetadata.w && extractedMetadata.h) {
+    if (extractedMetadata.width && extractedMetadata.height) {
         dimensions = {
-            width: extractedMetadata.w,
-            height: extractedMetadata.h,
+            width: extractedMetadata.width,
+            height: extractedMetadata.height,
         };
     } else {
         dimensions = await getDimensions(receivedFile, fileTypeInfo);
@@ -113,8 +113,8 @@ export async function getImageMetadata(
             latitude: exifData.latitude,
             longitude: exifData.longitude,
             creationTime: getBestPossibleCreationTime(exifData),
-            w: exifData.imageWidth,
-            h: exifData.imageHeight,
+            width: exifData.imageWidth,
+            height: exifData.imageHeight,
         };
     } catch (e) {
         logError(e, 'getExifData failed');

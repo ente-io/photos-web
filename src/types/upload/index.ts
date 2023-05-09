@@ -145,8 +145,8 @@ export interface ParsedExtractedMetadata {
     longitude: number;
     latitude: number;
     creationTime: number;
-    w: number;
-    h: number;
+    width: number;
+    height: number;
 }
 
 // This is used to prompt the user the make upload strategy choice
