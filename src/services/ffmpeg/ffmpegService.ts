@@ -97,3 +97,35 @@ export async function convertToMP4(file: File | ElectronFile) {
         throw e;
     }
 }
+
+export async function extractVideoDimension(file: File | ElectronFile) {
+    try {
+        const ffmpegClient = await ffmpegFactory.getFFmpegClient();
+        const metadata = await ffmpegClient.run(
+            [
+                FFMPEG_PLACEHOLDER,
+                '-i',
+                INPUT_PATH_PLACEHOLDER,
+                '-f',
+                'null',
+                '-',
+            ],
+            file
+        );
+        const metadataString = new TextDecoder('utf-8').decode(
+            new Uint8Array(await metadata.arrayBuffer())
+        );
+        const dimensionRegex = /Stream #0:0.*Video:.*\s(\d+)x(\d+)/;
+        const match = metadataString.match(dimensionRegex);
+        if (match) {
+            return {
+                width: parseInt(match[1]),
+                height: parseInt(match[2]),
+            };
+        }
+        throw new Error('failed to extract video dimension');
+    } catch (e) {
+        logError(e, 'ffmpeg extractVideoDimension failed');
+        throw e;
+    }
+}

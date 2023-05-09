@@ -2,7 +2,7 @@ import { FILE_TYPE } from 'constants/file';
 import { CustomError, errorWithContext } from 'utils/error';
 import { logError } from 'utils/sentry';
 // import { BLACK_THUMBNAIL_BASE64 } from 'constants/upload';
-// import * as FFmpegService from 'services/ffmpeg/ffmpegService';
+import * as FFmpegService from 'services/ffmpeg/ffmpegService';
 import ElectronImageProcessorService from 'services/electron/imageProcessor';
 // import { convertBytesToHumanReadable } from 'utils/file/size';
 import { isExactTypeHEIC } from 'utils/file';
@@ -95,34 +95,25 @@ async function getVideoDimensions(
     file: File | ElectronFile,
     fileTypeInfo: FileTypeInfo
 ) {
-    // try {
-    //     addLogLine(
-    //         `ffmpeg generateThumbnail called for ${getFileNameSize(file)}`
-    //     );
-
-    //     const thumbnail = await FFmpegService.generateVideoThumbnail(file);
-    //     addLogLine(
-    //         `ffmpeg thumbnail successfully generated ${getFileNameSize(file)}`
-    //     );
-    //     return await getUint8ArrayView(thumbnail);
-    // } catch (e) {
-    // addLogLine(
-    //     `ffmpeg thumbnail generated failed  ${getFileNameSize(
-    //         file
-    //     )} error: ${e.message}`
-    // );
-    // logError(e, 'failed to generate thumbnail using ffmpeg', {
-    //     fileFormat: fileTypeInfo.exactType,
-    // });
     try {
-        return await extractVideoDimensionUsingCanvas(file);
+        addLogLine(`extracting video dimension for ${getFileNameSize(file)}`);
+
+        const dimension = await FFmpegService.extractVideoDimension(file);
+        addLogLine(
+            `video dimension successfully extracted ${getFileNameSize(file)}`
+        );
+        return dimension;
     } catch (e) {
-        logError(e, 'failed to generate thumbnail using canvas', {
+        addLogLine(
+            `ffmpeg dimension extraction failed  ${getFileNameSize(
+                file
+            )} error: ${e.message}`
+        );
+        logError(e, 'failed to extract dimension using ffmpeg', {
             fileFormat: fileTypeInfo.exactType,
         });
+        return await extractVideoDimensionUsingCanvas(file);
     }
-    // }
-    // return thumbnail;
 }
 
 export async function extractVideoDimensionUsingCanvas(
