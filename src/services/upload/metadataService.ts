@@ -112,11 +112,11 @@ export async function getImageMetadata(
         );
 
         imageMetadata = {
-            latitude: exifData.latitude,
-            longitude: exifData.longitude,
+            latitude: exifData?.latitude,
+            longitude: exifData?.longitude,
             creationTime: getBestPossibleCreationTime(exifData),
-            width: exifData.imageWidth,
-            height: exifData.imageHeight,
+            width: exifData?.imageWidth,
+            height: exifData?.imageHeight,
         };
     } catch (e) {
         logError(e, 'getExifData failed');
