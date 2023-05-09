@@ -304,7 +304,6 @@ export default function PreviewCard(props: IProps) {
 
     return (
         <Cont
-            key={`thumb-${file.id}-${props.showPlaceholder}`}
             onClick={handleClick}
             onMouseEnter={handleHover}
             disabled={!file?.msrc && !imgSrc}

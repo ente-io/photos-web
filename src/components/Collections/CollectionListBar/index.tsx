@@ -37,7 +37,7 @@ const createItemData = memoize((items, activeCollection, clickHandler) => ({
     clickHandler,
 }));
 
-const CollectionCardContainer = React.memo(({ data, index, style }: any) => {
+const CollectionCardRenderer = React.memo(({ data, index, style }: any) => {
     const { items, activeCollection, clickHandler } = data;
     const item = items[index];
 
@@ -146,7 +146,7 @@ const CollectionListBar = (props: IProps) => {
                                     height={height}
                                     itemCount={collectionSummaries.length}
                                     itemSize={CollectionListBarCardWidth}>
-                                    {CollectionCardContainer}
+                                    {CollectionCardRenderer}
                                 </List>
                             )}
                         </AutoSizer>

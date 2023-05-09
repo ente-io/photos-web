@@ -18,7 +18,7 @@ interface Iprops {
     collectionSummaryType: CollectionSummaryType;
 }
 
-export function QuickOptions({
+function QuickOptions({
     handleCollectionAction,
     collectionSummaryType,
 }: Iprops) {
@@ -44,3 +44,5 @@ export function QuickOptions({
         </FlexWrapper>
     );
 }
+
+export default React.memo(QuickOptions);

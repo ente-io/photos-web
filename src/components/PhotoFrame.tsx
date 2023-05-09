@@ -683,4 +683,4 @@ const PhotoFrame = ({
     );
 };
 
-export default PhotoFrame;
+export default React.memo(PhotoFrame);

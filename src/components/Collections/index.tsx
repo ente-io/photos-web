@@ -79,6 +79,7 @@ const Collections = (props: Iprops) => {
 
     useEffect(() => {
         setPhotoListHeader({
+            id: 'collection-info',
             item: (
                 <CollectionInfoWithOptions
                     collectionSummary={collectionSummaries.get(

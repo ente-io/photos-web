@@ -160,6 +160,217 @@ const NothingContainer = styled(ListItemContainer)`
     justify-content: center;
 `;
 
+const isSameDay = (first, second) => {
+    return (
+        first.getFullYear() === second.getFullYear() &&
+        first.getMonth() === second.getMonth() &&
+        first.getDate() === second.getDate()
+    );
+};
+
+const getItemSize = (timeStampList, listItemHeight) => (index) => {
+    switch (timeStampList[index].itemType) {
+        case ITEM_TYPE.TIME:
+            return DATE_CONTAINER_HEIGHT;
+        case ITEM_TYPE.SIZE_AND_COUNT:
+            return SIZE_AND_COUNT_CONTAINER_HEIGHT;
+        case ITEM_TYPE.FILE:
+            return listItemHeight;
+        default:
+            return timeStampList[index].height;
+    }
+};
+
+const generateKey = (timeStampList) => (index) => {
+    switch (timeStampList[index].itemType) {
+        case ITEM_TYPE.FILE:
+            return `${timeStampList[index].items[0].id}-${
+                timeStampList[index].items.slice(-1)[0].id
+            }`;
+        default:
+            return `${timeStampList[index].id}`;
+    }
+};
+
+const getPhotoListHeader = (photoListHeader, columns) => {
+    return {
+        ...photoListHeader,
+        item: (
+            <ListItemContainer span={columns}>
+                {photoListHeader.item}
+            </ListItemContainer>
+        ),
+    };
+};
+
+const getPhotoListFooter = (photoListFooter, columns) => {
+    return {
+        ...photoListFooter,
+        id: 'photo-list-footer',
+        item: (
+            <ListItemContainer span={columns}>
+                {photoListFooter.item}
+            </ListItemContainer>
+        ),
+    };
+};
+
+const getEmptyListItem = (columns, height) => {
+    return {
+        itemType: ITEM_TYPE.OTHER,
+        item: (
+            <NothingContainer span={columns}>
+                <div>{t('NOTHING_HERE')}</div>
+            </NothingContainer>
+        ),
+        id: 'empty-list-banner',
+        height: height - 48,
+    };
+};
+const getVacuumItem = (
+    timeStampList,
+    publicCollectionGalleryContext,
+    listItemHeight,
+    height
+) => {
+    const footerHeight = publicCollectionGalleryContext.accessedThroughSharedURL
+        ? ALBUM_FOOTER_HEIGHT +
+          (publicCollectionGalleryContext.photoListFooter?.height ?? 0)
+        : FOOTER_HEIGHT;
+    const photoFrameHeight = (() => {
+        let sum = 0;
+        const getCurrentItemSize = getItemSize(timeStampList, listItemHeight);
+        for (let i = 0; i < timeStampList.length; i++) {
+            sum += getCurrentItemSize(i);
+            if (height - sum <= footerHeight) {
+                break;
+            }
+        }
+        return sum;
+    })();
+    return {
+        itemType: ITEM_TYPE.OTHER,
+        item: <></>,
+        id: 'vacuum-item',
+        height: Math.max(height - photoFrameHeight - footerHeight, 0),
+    };
+};
+
+const getAppDownloadFooter = (columns) => {
+    return {
+        itemType: ITEM_TYPE.MARKETING_FOOTER,
+        height: FOOTER_HEIGHT,
+        id: 'app-download-footer',
+        item: (
+            <FooterContainer span={columns}>
+                <Typography variant="small">
+                    <Trans
+                        i18nKey={'INSTALL_MOBILE_APP'}
+                        components={{
+                            a: (
+                                <Link
+                                    href="https://play.google.com/store/apps/details?id=io.ente.photos"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                />
+                            ),
+                            b: (
+                                <Link
+                                    href="https://apps.apple.com/in/app/ente-photos/id1542026904"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                />
+                            ),
+                        }}
+                    />
+                </Typography>
+            </FooterContainer>
+        ),
+    };
+};
+
+const getAlbumsFooter = (columns) => {
+    return {
+        itemType: ITEM_TYPE.MARKETING_FOOTER,
+        height: ALBUM_FOOTER_HEIGHT,
+        id: 'albums-footer',
+        item: (
+            <AlbumFooterContainer span={columns}>
+                <Typography variant="small">
+                    {t('SHARED_USING')}{' '}
+                    <Link target="_blank" href={ENTE_WEBSITE_LINK}>
+                        {t('ENTE_IO')}
+                    </Link>
+                </Typography>
+            </AlbumFooterContainer>
+        ),
+    };
+};
+
+const RenderListItem = React.memo(
+    ({
+        getThumbnail,
+        columns,
+        listItem,
+        isScrolling,
+    }: {
+        getThumbnail;
+        columns;
+        listItem: TimeStampListItem;
+        isScrolling: boolean;
+    }) => {
+        switch (listItem.itemType) {
+            case ITEM_TYPE.TIME:
+                return listItem.dates ? (
+                    listItem.dates
+                        .map((item) => [
+                            <DateContainer key={item.date} span={item.span}>
+                                {item.date}
+                            </DateContainer>,
+                            <div key={`${item.date}-gap`} />,
+                        ])
+                        .flat()
+                ) : (
+                    <DateContainer span={columns}>
+                        {listItem.date}
+                    </DateContainer>
+                );
+            case ITEM_TYPE.SIZE_AND_COUNT:
+                return (
+                    <SizeAndCountContainer span={columns}>
+                        {listItem.fileCount} {t('FILES')},{' '}
+                        {convertBytesToHumanReadable(listItem.fileSize || 0)}{' '}
+                        {t('EACH')}
+                    </SizeAndCountContainer>
+                );
+            case ITEM_TYPE.FILE: {
+                const ret = listItem.items.map((item, idx) =>
+                    getThumbnail(
+                        item,
+                        listItem.itemStartIndex + idx,
+                        isScrolling
+                    )
+                );
+                if (listItem.groups) {
+                    let sum = 0;
+                    for (let i = 0; i < listItem.groups.length - 1; i++) {
+                        sum = sum + listItem.groups[i];
+                        ret.splice(
+                            sum,
+                            0,
+                            <div key={`${listItem.items[0].id}-gap-${i}`} />
+                        );
+                        sum += 1;
+                    }
+                }
+                return ret;
+            }
+            default:
+                return listItem.item;
+        }
+    }
+);
+
 interface Props {
     height: number;
     width: number;
@@ -219,12 +430,13 @@ export function PhotoList({
 
             if (galleryContext.photoListHeader) {
                 timeStampList.push(
-                    getPhotoListHeader(galleryContext.photoListHeader)
+                    getPhotoListHeader(galleryContext.photoListHeader, columns)
                 );
             } else if (publicCollectionGalleryContext.photoListHeader) {
                 timeStampList.push(
                     getPhotoListHeader(
-                        publicCollectionGalleryContext.photoListHeader
+                        publicCollectionGalleryContext.photoListHeader,
+                        columns
                     )
                 );
             }
@@ -232,27 +444,35 @@ export function PhotoList({
                 skipMerge = true;
                 groupByFileSize(timeStampList);
             } else {
-                groupByTime(t, timeStampList);
+                groupByTime(timeStampList);
             }
 
             if (!skipMerge) {
                 timeStampList = mergeTimeStampList(timeStampList, columns);
             }
             if (timeStampList.length === 1) {
-                timeStampList.push(getEmptyListItem(t));
+                timeStampList.push(getEmptyListItem(columns, height));
             }
-            timeStampList.push(getVacuumItem(timeStampList));
+            timeStampList.push(
+                getVacuumItem(
+                    timeStampList,
+                    publicCollectionGalleryContext,
+                    listItemHeight,
+                    height
+                )
+            );
             if (publicCollectionGalleryContext.accessedThroughSharedURL) {
                 if (publicCollectionGalleryContext.photoListFooter) {
                     timeStampList.push(
                         getPhotoListFooter(
-                            publicCollectionGalleryContext.photoListFooter
+                            publicCollectionGalleryContext.photoListFooter,
+                            columns
                         )
                     );
                 }
-                timeStampList.push(getAlbumsFooter(t));
+                timeStampList.push(getAlbumsFooter(columns));
             } else if (showAppDownloadBanner) {
-                timeStampList.push(getAppDownloadFooter());
+                timeStampList.push(getAppDownloadFooter(columns));
             }
 
             setTimeStampList(timeStampList);
@@ -283,13 +503,14 @@ export function PhotoList({
             }
             if (galleryContext.photoListHeader) {
                 return [
-                    getPhotoListHeader(galleryContext.photoListHeader),
+                    getPhotoListHeader(galleryContext.photoListHeader, columns),
                     ...timeStampList,
                 ];
             } else if (publicCollectionGalleryContext.photoListHeader) {
                 return [
                     getPhotoListHeader(
-                        publicCollectionGalleryContext.photoListHeader
+                        publicCollectionGalleryContext.photoListHeader,
+                        columns
                     ),
                     ...timeStampList,
                 ];
@@ -317,13 +538,14 @@ export function PhotoList({
                     return [
                         ...timeStampList,
                         getPhotoListFooter(
-                            publicCollectionGalleryContext.photoListFooter
+                            publicCollectionGalleryContext.photoListFooter,
+                            columns
                         ),
-                        getAlbumsFooter(t),
+                        getAlbumsFooter(columns),
                     ];
                 }
             } else if (showAppDownloadBanner) {
-                return [...timeStampList, getAppDownloadFooter()];
+                return [...timeStampList, getAppDownloadFooter(columns)];
             } else {
                 return timeStampList;
             }
@@ -378,7 +600,7 @@ export function PhotoList({
         }
     };
 
-    const groupByTime = (t, timeStampList: TimeStampListItem[]) => {
+    const groupByTime = (timeStampList: TimeStampListItem[]) => {
         let listItemIndex = 0;
         let currentDate;
         filteredData.forEach((item, index) => {
@@ -423,120 +645,6 @@ export function PhotoList({
         });
     };
 
-    const isSameDay = (first, second) => {
-        return (
-            first.getFullYear() === second.getFullYear() &&
-            first.getMonth() === second.getMonth() &&
-            first.getDate() === second.getDate()
-        );
-    };
-
-    const getPhotoListHeader = (photoListHeader) => {
-        return {
-            ...photoListHeader,
-            item: (
-                <ListItemContainer span={columns}>
-                    {photoListHeader.item}
-                </ListItemContainer>
-            ),
-        };
-    };
-
-    const getPhotoListFooter = (photoListFooter) => {
-        return {
-            ...photoListFooter,
-            item: (
-                <ListItemContainer span={columns}>
-                    {photoListFooter.item}
-                </ListItemContainer>
-            ),
-        };
-    };
-
-    const getEmptyListItem = (t) => {
-        return {
-            itemType: ITEM_TYPE.OTHER,
-            item: (
-                <NothingContainer span={columns}>
-                    <div>{t('NOTHING_HERE')}</div>
-                </NothingContainer>
-            ),
-            id: 'empty-list-banner',
-            height: height - 48,
-        };
-    };
-    const getVacuumItem = (timeStampList) => {
-        const footerHeight =
-            publicCollectionGalleryContext.accessedThroughSharedURL
-                ? ALBUM_FOOTER_HEIGHT +
-                  (publicCollectionGalleryContext.photoListFooter?.height ?? 0)
-                : FOOTER_HEIGHT;
-        const photoFrameHeight = (() => {
-            let sum = 0;
-            const getCurrentItemSize = getItemSize(timeStampList);
-            for (let i = 0; i < timeStampList.length; i++) {
-                sum += getCurrentItemSize(i);
-                if (height - sum <= footerHeight) {
-                    break;
-                }
-            }
-            return sum;
-        })();
-        return {
-            itemType: ITEM_TYPE.OTHER,
-            item: <></>,
-            height: Math.max(height - photoFrameHeight - footerHeight, 0),
-        };
-    };
-
-    const getAppDownloadFooter = () => {
-        return {
-            itemType: ITEM_TYPE.MARKETING_FOOTER,
-            height: FOOTER_HEIGHT,
-            item: (
-                <FooterContainer span={columns}>
-                    <Typography variant="small">
-                        <Trans
-                            i18nKey={'INSTALL_MOBILE_APP'}
-                            components={{
-                                a: (
-                                    <Link
-                                        href="https://play.google.com/store/apps/details?id=io.ente.photos"
-                                        target="_blank"
-                                        rel="noreferrer"
-                                    />
-                                ),
-                                b: (
-                                    <Link
-                                        href="https://apps.apple.com/in/app/ente-photos/id1542026904"
-                                        target="_blank"
-                                        rel="noreferrer"
-                                    />
-                                ),
-                            }}
-                        />
-                    </Typography>
-                </FooterContainer>
-            ),
-        };
-    };
-
-    const getAlbumsFooter = (t) => {
-        return {
-            itemType: ITEM_TYPE.MARKETING_FOOTER,
-            height: ALBUM_FOOTER_HEIGHT,
-            item: (
-                <AlbumFooterContainer span={columns}>
-                    <Typography variant="small">
-                        {t('SHARED_USING')}{' '}
-                        <Link target="_blank" href={ENTE_WEBSITE_LINK}>
-                            {t('ENTE_IO')}
-                        </Link>
-                    </Typography>
-                </AlbumFooterContainer>
-            ),
-        };
-    };
     /**
      * Checks and merge multiple dates into a single row.
      *
@@ -620,86 +728,6 @@ export function PhotoList({
         return newList;
     };
 
-    const getItemSize = (timeStampList) => (index) => {
-        switch (timeStampList[index].itemType) {
-            case ITEM_TYPE.TIME:
-                return DATE_CONTAINER_HEIGHT;
-            case ITEM_TYPE.SIZE_AND_COUNT:
-                return SIZE_AND_COUNT_CONTAINER_HEIGHT;
-            case ITEM_TYPE.FILE:
-                return listItemHeight;
-            default:
-                return timeStampList[index].height;
-        }
-    };
-
-    const generateKey = (index) => {
-        switch (timeStampList[index].itemType) {
-            case ITEM_TYPE.FILE:
-                return `${timeStampList[index].items[0].id}-${
-                    timeStampList[index].items.slice(-1)[0].id
-                }`;
-            default:
-                return `${timeStampList[index].id}-${index}`;
-        }
-    };
-
-    const renderListItem = (
-        t,
-        listItem: TimeStampListItem,
-        isScrolling: boolean
-    ) => {
-        switch (listItem.itemType) {
-            case ITEM_TYPE.TIME:
-                return listItem.dates ? (
-                    listItem.dates
-                        .map((item) => [
-                            <DateContainer key={item.date} span={item.span}>
-                                {item.date}
-                            </DateContainer>,
-                            <div key={`${item.date}-gap`} />,
-                        ])
-                        .flat()
-                ) : (
-                    <DateContainer span={columns}>
-                        {listItem.date}
-                    </DateContainer>
-                );
-            case ITEM_TYPE.SIZE_AND_COUNT:
-                return (
-                    <SizeAndCountContainer span={columns}>
-                        {listItem.fileCount} {t('FILES')},{' '}
-                        {convertBytesToHumanReadable(listItem.fileSize || 0)}{' '}
-                        {t('EACH')}
-                    </SizeAndCountContainer>
-                );
-            case ITEM_TYPE.FILE: {
-                const ret = listItem.items.map((item, idx) =>
-                    getThumbnail(
-                        item,
-                        listItem.itemStartIndex + idx,
-                        isScrolling
-                    )
-                );
-                if (listItem.groups) {
-                    let sum = 0;
-                    for (let i = 0; i < listItem.groups.length - 1; i++) {
-                        sum = sum + listItem.groups[i];
-                        ret.splice(
-                            sum,
-                            0,
-                            <div key={`${listItem.items[0].id}-gap-${i}`} />
-                        );
-                        sum += 1;
-                    }
-                }
-                return ret;
-            }
-            default:
-                return listItem.item;
-        }
-    };
-
     if (!timeStampList?.length) {
         return <></>;
     }
@@ -708,11 +736,11 @@ export function PhotoList({
         <List
             key={`${activeCollection}`}
             ref={listRef}
-            itemSize={getItemSize(timeStampList)}
+            itemSize={getItemSize(timeStampList, listItemHeight)}
             height={height}
             width={width}
             itemCount={timeStampList.length}
-            itemKey={generateKey}
+            itemKey={generateKey(timeStampList)}
             overscanCount={3}
             useIsScrolling>
             {({ index, style, isScrolling }) => (
@@ -721,7 +749,12 @@ export function PhotoList({
                         columns={columns}
                         shrinkRatio={shrinkRatio}
                         groups={timeStampList[index].groups}>
-                        {renderListItem(t, timeStampList[index], isScrolling)}
+                        <RenderListItem
+                            getThumbnail={getThumbnail}
+                            columns={columns}
+                            listItem={timeStampList[index]}
+                            isScrolling={isScrolling}
+                        />
                     </ListContainer>
                 </ListItem>
             )}

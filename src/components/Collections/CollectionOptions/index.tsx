@@ -18,7 +18,7 @@ import { CollectionSummaryType } from 'constants/collection';
 import { TrashCollectionOption } from './TrashCollectionOption';
 import { SharedCollectionOption } from './SharedCollectionOption';
 import { OnlyDownloadCollectionOption } from './OnlyDownloadCollectionOption';
-import { QuickOptions } from './QuickOptions';
+import QuickOptions from './QuickOptions';
 import MoreHoriz from '@mui/icons-material/MoreHoriz';
 import { HorizontalFlex } from 'components/Container';
 import { Trans } from 'react-i18next';
@@ -303,4 +303,4 @@ const CollectionOptions = (props: CollectionOptionsProps) => {
     );
 };
 
-export default CollectionOptions;
+export default React.memo(CollectionOptions);

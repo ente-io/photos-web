@@ -208,6 +208,7 @@ export default function PublicCollectionGallery() {
     useEffect(() => {
         if (publicCollection?.publicURLs?.[0]?.enableCollect) {
             setPhotoListFooter({
+                id: 'shared-album-footer',
                 item: (
                     <CenteredFlex sx={{ marginTop: '56px' }}>
                         <UploadButton

@@ -105,7 +105,7 @@ import { User } from 'types/user';
 import { getData, LS_KEYS } from 'utils/storage/localStorage';
 import { CenteredFlex } from 'components/Container';
 import { checkConnectivity } from 'utils/common';
-import { SYNC_INTERVAL_IN_MICROSECONDS } from 'constants/gallery';
+// import { SYNC_INTERVAL_IN_MICROSECONDS } from 'constants/gallery';
 import ElectronService from 'services/electron/common';
 import uploadManager from 'services/upload/uploadManager';
 import { getToken } from 'utils/common/key';
@@ -267,12 +267,12 @@ export default function Gallery() {
             setIsFirstLoad(false);
             setJustSignedUp(false);
             setIsFirstFetch(false);
-            syncInterval.current = setInterval(() => {
-                syncWithRemote(false, true);
-            }, SYNC_INTERVAL_IN_MICROSECONDS);
-            ElectronService.registerForegroundEventListener(() => {
-                syncWithRemote(false, true);
-            });
+            // syncInterval.current = setInterval(() => {
+            //     syncWithRemote(false, true);
+            // }, SYNC_INTERVAL_IN_MICROSECONDS);
+            // ElectronService.registerForegroundEventListener(() => {
+            //     syncWithRemote(false, true);
+            // });
         };
         main();
         return () => {
@@ -335,6 +335,7 @@ export default function Gallery() {
         if (isInSearchMode && searchResultSummary) {
             setPhotoListHeader({
                 height: 104,
+                id: 'search-result-info',
                 item: (
                     <SearchResultInfo
                         searchResultSummary={searchResultSummary}
@@ -610,7 +611,7 @@ export default function Gallery() {
                 setActiveCollection,
                 syncWithRemote,
                 setBlockingLoad,
-                photoListHeader: photoListHeader,
+                photoListHeader,
             }}>
             <FullScreenDropZone
                 getDragAndDropRootProps={getDragAndDropRootProps}>

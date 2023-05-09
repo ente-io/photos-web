@@ -75,11 +75,11 @@ module.exports = (phase) =>
                 //
                 // Use profiler-enabled React builds
                 //
-                // config.resolve.alias = {
-                //     ...config.resolve.alias,
-                //     'react-dom$': 'react-dom/profiling',
-                //     'scheduler/tracing': 'scheduler/tracing-profiling',
-                // };
+                config.resolve.alias = {
+                    ...config.resolve.alias,
+                    'react-dom$': 'react-dom/profiling',
+                    'scheduler/tracing': 'scheduler/tracing-profiling',
+                };
                 return config;
             },
         }),
