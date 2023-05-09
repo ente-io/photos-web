@@ -38,6 +38,8 @@ type RawEXIFData = Record<string, any> &
         ImageHeight: number;
         ExifImageWidth: number;
         ExifImageHeight: number;
+        PixelXDimension: number;
+        PixelYDimension: number;
         FNumber: number;
         ApertureValue: number;
         FocalLength: number;
@@ -113,6 +115,8 @@ function parseExifData(exifData: RawEXIFData): ParsedEXIFData {
         Model,
         ExposureTime,
         ISO,
+        PixelXDimension,
+        PixelYDimension,
         ...rest
     } = exifData;
     const parsedExif: ParsedEXIFData = { ...rest };
@@ -166,6 +170,23 @@ function parseExifData(exifData: RawEXIFData): ParsedEXIFData {
                 {
                     ExifImageWidth,
                     ExifImageHeight,
+                }
+            );
+        }
+    } else if (PixelXDimension && PixelYDimension) {
+        if (
+            typeof PixelXDimension === 'number' &&
+            typeof PixelYDimension === 'number'
+        ) {
+            parsedExif.imageWidth = PixelXDimension;
+            parsedExif.imageHeight = PixelYDimension;
+        } else {
+            logError(
+                new Error('PixelXDimension or PixelYDimension is not a number'),
+                'Image dimension parsing failed',
+                {
+                    PixelXDimension,
+                    PixelYDimension,
                 }
             );
         }
