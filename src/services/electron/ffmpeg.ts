@@ -13,7 +13,7 @@ export class ElectronFFmpeg implements IFFmpeg {
     async run(
         cmd: string[],
         inputFile: ElectronFile | File,
-        outputFilename: string
+        outputFilename?: string
     ) {
         if (this.electronAPIs?.runFFmpegCmd) {
             return this.electronAPIs.runFFmpegCmd(

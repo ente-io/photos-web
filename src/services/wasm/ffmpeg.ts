@@ -16,6 +16,7 @@ export class WasmFFmpeg {
     private ffmpeg: FFmpeg;
     private ready: Promise<void> = null;
     private ffmpegTaskQueue = new QueueProcessor<File>(1);
+    private executionLogs: string[] = [];
 
     constructor() {
         this.ffmpeg = createFFmpeg({
@@ -32,7 +33,7 @@ export class WasmFFmpeg {
         }
     }
 
-    async run(cmd: string[], inputFile: File, outputFileName: string) {
+    async run(cmd: string[], inputFile: File, outputFileName?: string) {
         const response = this.ffmpegTaskQueue.queueUpRequest(() =>
             promiseWithTimeout<File>(
                 this.execute(cmd, inputFile, outputFileName),
@@ -50,7 +51,7 @@ export class WasmFFmpeg {
     private async execute(
         cmd: string[],
         inputFile: File,
-        outputFileName: string
+        outputFileName?: string
     ) {
         let tempInputFilePath: string;
         let tempOutputFilePath: string;
@@ -64,25 +65,37 @@ export class WasmFFmpeg {
                 tempInputFilePath,
                 await getUint8ArrayView(inputFile)
             );
-            tempOutputFilePath = `${generateTempName(10, outputFileName)}`;
+            if (outputFileName) {
+                tempOutputFilePath = `${generateTempName(10, outputFileName)}`;
+            }
 
             cmd = cmd.map((cmdPart) => {
                 if (cmdPart === FFMPEG_PLACEHOLDER) {
                     return '';
                 } else if (cmdPart === INPUT_PATH_PLACEHOLDER) {
                     return tempInputFilePath;
-                } else if (cmdPart === OUTPUT_PATH_PLACEHOLDER) {
+                } else if (
+                    cmdPart === OUTPUT_PATH_PLACEHOLDER &&
+                    tempOutputFilePath
+                ) {
                     return tempOutputFilePath;
                 } else {
                     return cmdPart;
                 }
             });
             addLogLine(`${cmd}`);
+            this.executionLogs = [];
             await this.ffmpeg.run(...cmd);
-            return new File(
-                [this.ffmpeg.FS('readFile', tempOutputFilePath)],
-                outputFileName
-            );
+            if (outputFileName) {
+                return new File(
+                    [this.ffmpeg.FS('readFile', tempOutputFilePath)],
+                    outputFileName
+                );
+            } else {
+                const logs = [...this.executionLogs];
+                this.executionLogs = [];
+                return new File([logs.join('\n')], 'logs.txt');
+            }
         } finally {
             try {
                 this.ffmpeg.FS('unlink', tempInputFilePath);
@@ -90,7 +103,9 @@ export class WasmFFmpeg {
                 logError(e, 'unlink input file failed');
             }
             try {
-                this.ffmpeg.FS('unlink', tempOutputFilePath);
+                if (tempOutputFilePath) {
+                    this.ffmpeg.FS('unlink', tempOutputFilePath);
+                }
             } catch (e) {
                 logError(e, 'unlink output file failed');
             }

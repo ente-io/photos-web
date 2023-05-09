@@ -7,7 +7,7 @@ export interface IFFmpeg {
     run: (
         cmd: string[],
         inputFile: File | ElectronFile,
-        outputFilename: string
+        outputFilename?: string
     ) => Promise<File | ElectronFile>;
 }
 

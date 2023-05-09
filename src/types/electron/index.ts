@@ -80,7 +80,7 @@ export interface ElectronAPIs {
     runFFmpegCmd: (
         cmd: string[],
         inputFile: File | ElectronFile,
-        outputFileName: string
+        outputFileName?: string
     ) => Promise<File>;
     muteUpdateNotification: (version: string) => void;
     generateImageThumbnail: (
