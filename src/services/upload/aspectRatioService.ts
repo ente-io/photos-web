@@ -93,11 +93,11 @@ async function getVideoDimensions(
     fileTypeInfo: FileTypeInfo
 ) {
     try {
-        addLogLine(`extracting video dimension for ${getFileNameSize(file)}`);
+        addLogLine(`ffmpeg extracting dimension for ${getFileNameSize(file)}`);
 
         const dimension = await FFmpegService.extractVideoDimension(file);
         addLogLine(
-            `video dimension successfully extracted ${getFileNameSize(file)}`
+            `ffmpeg dimension successfully extracted ${getFileNameSize(file)}`
         );
         return dimension;
     } catch (e) {

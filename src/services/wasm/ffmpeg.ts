@@ -22,6 +22,10 @@ export class WasmFFmpeg {
         this.ffmpeg = createFFmpeg({
             corePath: '/js/ffmpeg/ffmpeg-core.js',
             mt: false,
+            logger: (log) => {
+                this.executionLogs.push(log.message);
+            },
+            log: true,
         });
 
         this.ready = this.init();
@@ -93,7 +97,6 @@ export class WasmFFmpeg {
                 );
             } else {
                 const logs = [...this.executionLogs];
-                this.executionLogs = [];
                 return new File([logs.join('\n')], 'logs.txt');
             }
         } finally {
