@@ -62,8 +62,15 @@ We maintain a public roadmap, that's driven by our community @ [roadmap.ente.io]
 
 If you like this project, please consider upgrading to a paid subscription.
 
-If you would like to motivate us to keep building, you can do so by
-[starring](https://github.com/ente-io/photos-web/stargazers) this project.
+And [star this repo](https://github.com/ente-io/photos-web/stargazers)!
+
+<br/>
+
+## 🌍 Translate
+[![Crowdin](https://badges.crowdin.net/ente-photos-web/localized.svg)](https://crowdin.com/project/ente-photos-web)
+
+If you're interested in helping out with translation, please visit our [Crowdin project](https://crowdin.com/project/ente-photos-web) to get started. Thank you for your support.
+
 
 <br/>
 
