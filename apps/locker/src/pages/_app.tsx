@@ -30,9 +30,11 @@ const App = ({ Component, pageProps }: AppProps) => {
                     content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
                 />
             </Head>
-            <ThemeProvider theme={getTheme('dark', 'ente Locker')}>
-                <Component {...pageProps} />
-            </ThemeProvider>
+            <div className={inter.className} style={{ display: 'contents' }}>
+                <ThemeProvider theme={getTheme('dark', 'ente Locker')}>
+                    <Component {...pageProps} />
+                </ThemeProvider>
+            </div>
         </>
     );
 };

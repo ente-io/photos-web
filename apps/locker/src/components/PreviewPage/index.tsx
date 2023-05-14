@@ -18,17 +18,22 @@ export const PreviewContext = createContext<{
     setPageNumber: Dispatch<SetStateAction<number>>;
     url: string;
     setUrl: Dispatch<SetStateAction<string>>;
+    totalPages: number;
+    setTotalPages: Dispatch<SetStateAction<number>>;
 }>({
     pageNumber: 1,
     setPageNumber: (value: SetStateAction<number>) => {},
     url: '',
     setUrl: (value: SetStateAction<string>) => {},
+    totalPages: 0,
+    setTotalPages: (value: SetStateAction<number>) => {},
 });
 
 const PreviewPage = () => {
     const [fileUuid, setFileUuid] = useState<string | null>(null);
 
     const [pageNumber, setPageNumber] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
     const [url, setUrl] = useState<string>('');
 
     const extractFileUuid = async () => {
@@ -62,9 +67,23 @@ const PreviewPage = () => {
                         setPageNumber,
                         url,
                         setUrl,
+                        totalPages,
+                        setTotalPages,
                     }}>
                     <PreviewBanner />
-                    {fileUuid && <PDFViewer pdfUrl={url} />}
+                    <div
+                        style={{
+                            padding: '1rem',
+                            boxSizing: 'border-box',
+                        }}>
+                        <p
+                            style={{
+                                color: 'white',
+                            }}>
+                            Page <b>{pageNumber}</b> of <b>{totalPages}</b>
+                        </p>
+                        {fileUuid && <PDFViewer pdfUrl={url} />}
+                    </div>
                 </PreviewContext.Provider>
             </div>
         </>

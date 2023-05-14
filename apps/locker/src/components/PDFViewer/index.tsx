@@ -2,17 +2,16 @@
 import styles from './styles.module.scss';
 import React, { useContext, useEffect, useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
-import EnteButton from '../ui/EnteButton';
 import { PreviewContext } from '../PreviewPage';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
 const PDFViewer = ({ pdfUrl }: { pdfUrl: string }) => {
-    function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
-        // setNumPages(numPages);
-    }
+    const { pageNumber, setTotalPages } = useContext(PreviewContext);
 
-    const { pageNumber } = useContext(PreviewContext);
+    function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
+        setTotalPages(numPages);
+    }
 
     const [width, setWidth] = useState(0);
     const [height, setHeight] = useState(0);
@@ -22,6 +21,8 @@ const PDFViewer = ({ pdfUrl }: { pdfUrl: string }) => {
             setWidth(window.innerWidth);
             setHeight(window.innerHeight);
         };
+
+        updateWindowDimensions();
 
         window.addEventListener('resize', updateWindowDimensions);
 
