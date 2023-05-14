@@ -11,29 +11,29 @@ const PDFViewer = dynamic(() => import('@/components/PDFViewer'), {
 
 import { useEffect, useState } from 'react';
 
-import { SetStateAction, createContext, Dispatch } from 'react';
+// import { SetStateAction, createContext, Dispatch } from 'react';
 
-export const PreviewContext = createContext<{
-    pageNumber: number;
-    setPageNumber: Dispatch<SetStateAction<number>>;
-    url: string;
-    setUrl: Dispatch<SetStateAction<string>>;
-    totalPages: number;
-    setTotalPages: Dispatch<SetStateAction<number>>;
-}>({
-    pageNumber: 1,
-    setPageNumber: (value: SetStateAction<number>) => {},
-    url: '',
-    setUrl: (value: SetStateAction<string>) => {},
-    totalPages: 0,
-    setTotalPages: (value: SetStateAction<number>) => {},
-});
+// export const PreviewContext = createContext<{
+//     pageNumber: number;
+//     setPageNumber: Dispatch<SetStateAction<number>>;
+//     url: string;
+//     setUrl: Dispatch<SetStateAction<string>>;
+//     totalPages: number;
+//     setTotalPages: Dispatch<SetStateAction<number>>;
+// }>({
+//     pageNumber: 1,
+//     setPageNumber: (value: SetStateAction<number>) => {},
+//     url: '',
+//     setUrl: (value: SetStateAction<string>) => {},
+//     totalPages: 0,
+//     setTotalPages: (value: SetStateAction<number>) => {},
+// });
 
 const PreviewPage = () => {
     const [fileUuid, setFileUuid] = useState<string | null>(null);
 
-    const [pageNumber, setPageNumber] = useState(1);
-    const [totalPages, setTotalPages] = useState(0);
+    // const [pageNumber, setPageNumber] = useState(1);
+    // const [totalPages, setTotalPages] = useState(0);
     const [url, setUrl] = useState<string>('');
 
     const extractFileUuid = async () => {
@@ -61,7 +61,7 @@ const PreviewPage = () => {
     return (
         <>
             <div className={styles.wrapper}>
-                <PreviewContext.Provider
+                {/* <PreviewContext.Provider
                     value={{
                         pageNumber,
                         setPageNumber,
@@ -69,22 +69,23 @@ const PreviewPage = () => {
                         setUrl,
                         totalPages,
                         setTotalPages,
+                    }}> */}
+                <PreviewBanner />
+                <div
+                    style={{
+                        padding: '1rem',
+                        boxSizing: 'border-box',
+                        display: 'contents',
                     }}>
-                    <PreviewBanner />
-                    <div
-                        style={{
-                            padding: '1rem',
-                            boxSizing: 'border-box',
-                        }}>
-                        <p
+                    {/* <p
                             style={{
                                 color: 'white',
                             }}>
                             Page <b>{pageNumber}</b> of <b>{totalPages}</b>
-                        </p>
-                        {fileUuid && <PDFViewer pdfUrl={url} />}
-                    </div>
-                </PreviewContext.Provider>
+                        </p> */}
+                    {fileUuid && <PDFViewer pdfUrl={url} />}
+                </div>
+                {/* </PreviewContext.Provider> */}
             </div>
         </>
     );
