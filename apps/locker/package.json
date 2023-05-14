@@ -9,17 +9,23 @@
         "lint": "next lint"
     },
     "dependencies": {
+        "@mui/icons-material": "^5.11.16",
+        "@mui/material": "^5.13.0",
         "@types/node": "20.1.4",
         "@types/react": "18.2.6",
         "@types/react-dom": "18.2.4",
+        "canvas": "^2.11.2",
         "eslint": "8.40.0",
         "eslint-config-next": "13.4.2",
+        "file-loader": "^6.2.0",
         "next": "13.4.2",
         "react": "18.2.0",
         "react-dom": "18.2.0",
+        "react-pdf": "^6.2.2",
         "typescript": "5.0.4"
     },
     "devDependencies": {
+        "@types/react-pdf": "^6.2.0",
         "sass": "^1.62.1",
         "sass-loader": "^13.2.2"
     }

@@ -3,11 +3,20 @@
 import PreviewBanner from '@/app/components/PreviewBanner';
 
 import styles from './styles.module.scss';
-import PDFViewer from '@/app/components/PreviewBanner/PDFViewer';
+import dynamic from 'next/dynamic';
+
+const PDFViewer = dynamic(() => import('@/app/components/PDFViewer'), {
+    ssr: false,
+});
+
 import { useEffect, useState } from 'react';
+import { PreviewContext } from '../PreviewContext';
 
 const PreviewPage = () => {
     const [fileUuid, setFileUuid] = useState<string | null>(null);
+
+    const [pageNumber, setPageNumber] = useState(1);
+    const [url, setUrl] = useState<string>('');
 
     const extractFileUuid = async () => {
         // get it from the query params
@@ -23,6 +32,7 @@ const PreviewPage = () => {
 
         if (res.ok) {
             setFileUuid(data);
+            setUrl(`${process.env.NEXT_PUBLIC_BUCKET_URL}/${data}`);
         }
     };
 
@@ -33,12 +43,16 @@ const PreviewPage = () => {
     return (
         <>
             <div className={styles.wrapper}>
-                <PreviewBanner />
-                {fileUuid && (
-                    <PDFViewer
-                        pdfUrl={`${process.env.NEXT_PUBLIC_BUCKET_URL}/${fileUuid}`}
-                    />
-                )}
+                <PreviewContext.Provider
+                    value={{
+                        pageNumber,
+                        setPageNumber,
+                        url,
+                        setUrl,
+                    }}>
+                    <PreviewBanner />
+                    {fileUuid && <PDFViewer pdfUrl={url} />}
+                </PreviewContext.Provider>
             </div>
         </>
     );
