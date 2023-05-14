@@ -14,6 +14,7 @@ const nextConfig = {
 
         return config;
     },
+    appDir: false,
 };
 
 module.exports = nextConfig;

@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import LandingPage from './components/LandingPage';
-import PreviewPage from './components/PreviewPage';
+import LandingPage from '@/components/LandingPage';
+import PreviewPage from '@/components/PreviewPage';
 
 const Page = () => {
     const [pageState, setPageState] = useState<string | null>('landing');

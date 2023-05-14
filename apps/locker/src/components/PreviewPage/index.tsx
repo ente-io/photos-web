@@ -1,16 +1,29 @@
 'use client';
 
-import PreviewBanner from '@/app/components/PreviewBanner';
+import PreviewBanner from '@/components/PreviewBanner';
 
 import styles from './styles.module.scss';
 import dynamic from 'next/dynamic';
 
-const PDFViewer = dynamic(() => import('@/app/components/PDFViewer'), {
+const PDFViewer = dynamic(() => import('@/components/PDFViewer'), {
     ssr: false,
 });
 
 import { useEffect, useState } from 'react';
-import { PreviewContext } from '../PreviewContext';
+
+import { SetStateAction, createContext, Dispatch } from 'react';
+
+export const PreviewContext = createContext<{
+    pageNumber: number;
+    setPageNumber: Dispatch<SetStateAction<number>>;
+    url: string;
+    setUrl: Dispatch<SetStateAction<string>>;
+}>({
+    pageNumber: 1,
+    setPageNumber: (value: SetStateAction<number>) => {},
+    url: '',
+    setUrl: (value: SetStateAction<string>) => {},
+});
 
 const PreviewPage = () => {
     const [fileUuid, setFileUuid] = useState<string | null>(null);

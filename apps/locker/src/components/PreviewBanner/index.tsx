@@ -1,9 +1,13 @@
+'use client';
 import Link from 'next/link';
 import styles from './styles.module.scss';
 import Image from 'next/image';
 import { useContext } from 'react';
-import { PreviewContext } from '../PreviewContext';
-
+import { IconButton } from '@mui/material';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import DownloadIcon from '@mui/icons-material/Download';
+import { PreviewContext } from '../PreviewPage';
 const PreviewBanner = () => {
     const { pageNumber, setPageNumber, url } = useContext(PreviewContext);
 
@@ -23,24 +27,27 @@ const PreviewBanner = () => {
                     </div>
                 </div>
                 <div className={styles.right}>
-                    <button
+                    <IconButton
+                        onClick={() => {
+                            setPageNumber(pageNumber - 1);
+                        }}
+                        color="primary">
+                        <ChevronLeftIcon />
+                    </IconButton>
+                    <IconButton
                         onClick={() => {
                             setPageNumber(pageNumber + 1);
-                        }}>
-                        {'<'}
-                    </button>
-                    <button
+                        }}
+                        color="primary">
+                        <ChevronRightIcon />
+                    </IconButton>
+                    <IconButton
                         onClick={() => {
-                            setPageNumber(pageNumber + 1);
-                        }}>
-                        {'>'}
-                    </button>
-                    <button
-                        onClick={() => {
-                            window.open(url, '_blank');
-                        }}>
-                        Download
-                    </button>
+                            window.open(url);
+                        }}
+                        color="primary">
+                        <DownloadIcon />
+                    </IconButton>
                 </div>
             </div>
         </>

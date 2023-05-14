@@ -1,7 +1,9 @@
+'use client';
+
 import React, { useContext, useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import EnteButton from '../ui/EnteButton';
-import { PreviewContext } from '../PreviewContext';
+import { PreviewContext } from '../PreviewPage';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
