@@ -67,6 +67,7 @@ export const Overlay = styled(Box)`
 `;
 
 export const IconButtonWithBG = styled(IconButton)(({ theme }) => ({
+    // @ts-ignore
     backgroundColor: theme.colors.fill.faint,
 }));
 

@@ -3,7 +3,8 @@
     "version": "0.0.0",
     "private": true,
     "dependencies": {
-        "@ente/constants": "*"
+        "@ente/constants": "*",
+        "@mui/material": "^5.12.3"
     },
     "devDependencies": {
         "@ente/tsconfig": "*"

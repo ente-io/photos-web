@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, createContext } from 'react';
 import { useRouter } from 'next/router';
 import EnteSpinner from '@ente/ui/EnteSpinner';
 // import { AppContext } from 'pages/_app';
@@ -29,13 +29,7 @@ export default function Home() {
         // router.push(PAGES.SIGNUP);
     };
 
-    return loading ? (
-        <VerticallyCentered>
-            <EnteSpinner>
-                <span className="sr-only">Loading...</span>
-            </EnteSpinner>
-        </VerticallyCentered>
-    ) : (
+    return (
         <FormContainer>
             <FormPaper>
                 <Login signUp={register} />
