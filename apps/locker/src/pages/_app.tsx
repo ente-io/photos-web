@@ -31,7 +31,7 @@ const App = ({ Component, pageProps }: AppProps) => {
                 />
             </Head>
             <div className={inter.className} style={{ display: 'contents' }}>
-                <ThemeProvider theme={getTheme('dark', 'ente Locker')}>
+                <ThemeProvider theme={getTheme('dark')}>
                     <Component {...pageProps} />
                 </ThemeProvider>
             </div>
