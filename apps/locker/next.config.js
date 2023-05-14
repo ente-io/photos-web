@@ -15,6 +15,9 @@ const nextConfig = {
         return config;
     },
     appDir: false,
+    images: {
+        unoptimized: true,
+    },
 };
 
 module.exports = nextConfig;
