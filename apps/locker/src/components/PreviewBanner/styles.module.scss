@@ -1,6 +1,6 @@
 .banner {
     width: 100%;
-    background-color: black;
+    background-color: #161616;
     color: white;
     display: flex;
     justify-content: space-between;
@@ -10,12 +10,10 @@
     @media only screen and (max-width: 800px) {
         flex-direction: column;
         align-items: center;
-        gap: 1rem;
     }
 
     .left {
         display: flex;
-        gap: 1rem;
         align-items: center;
     }
 }
