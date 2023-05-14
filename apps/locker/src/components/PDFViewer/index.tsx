@@ -1,7 +1,7 @@
 'use client';
 import styles from './styles.module.scss';
-import React, { useContext, useEffect, useState } from 'react';
-import { Document, Page, pdfjs } from 'react-pdf';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
+import { Document, Outline, Page, pdfjs } from 'react-pdf';
 import { PreviewContext } from '../PreviewPage';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
@@ -10,8 +10,11 @@ import CircularProgress from '@mui/material/CircularProgress';
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
 const PDFViewer = ({ pdfUrl }: { pdfUrl: string }) => {
-    console.log('URL is ' + pdfUrl);
-    const { pageNumber, setTotalPages } = useContext(PreviewContext);
+    const url = useMemo(() => {
+        return pdfUrl;
+    }, []);
+    const { pageNumber, setPageNumber } = useContext(PreviewContext);
+    const { totalPages, setTotalPages } = useContext(PreviewContext);
     const { hasRendered, setHasRendered } = useContext(PreviewContext);
 
     function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
@@ -61,10 +64,9 @@ const PDFViewer = ({ pdfUrl }: { pdfUrl: string }) => {
                 }}>
                 {/* @ts-ignore */}
                 <Document
-                    file={pdfUrl}
+                    file={url}
                     onLoadSuccess={onDocumentLoadSuccess}
                     className={styles.viewerCanvas}>
-                    {/* @ts-ignore */}
                     <Page
                         pageNumber={pageNumber}
                         width={width}
