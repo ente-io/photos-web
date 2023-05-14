@@ -78,22 +78,6 @@ const PreviewPage = () => {
                         setHasRendered,
                     }}>
                     <PreviewBanner />
-                    {hasRendered ? (
-                        <div
-                            style={{
-                                padding: '1rem',
-                                boxSizing: 'border-box',
-                            }}>
-                            <p
-                                style={{
-                                    color: 'white',
-                                }}>
-                                Page <b>{pageNumber}</b> of <b>{totalPages}</b>
-                            </p>
-                        </div>
-                    ) : (
-                        <></>
-                    )}
                     {fileUuid && <PDFViewer pdfUrl={url} />}
                 </PreviewContext.Provider>
             </div>

@@ -9,7 +9,8 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import DownloadIcon from '@mui/icons-material/Download';
 import { PreviewContext } from '../PreviewPage';
 const PreviewBanner = () => {
-    const { pageNumber, setPageNumber, url } = useContext(PreviewContext);
+    const { pageNumber, setPageNumber, totalPages, hasRendered, url } =
+        useContext(PreviewContext);
 
     return (
         <>
@@ -27,27 +28,41 @@ const PreviewBanner = () => {
                     </div>
                 </div>
                 <div className={styles.right}>
-                    <IconButton
-                        onClick={() => {
-                            setPageNumber(pageNumber - 1);
-                        }}
-                        color="primary">
-                        <ChevronLeftIcon />
-                    </IconButton>
-                    <IconButton
-                        onClick={() => {
-                            setPageNumber(pageNumber + 1);
-                        }}
-                        color="primary">
-                        <ChevronRightIcon />
-                    </IconButton>
-                    <IconButton
-                        onClick={() => {
-                            window.open(url);
-                        }}
-                        color="primary">
-                        <DownloadIcon />
-                    </IconButton>
+                    {hasRendered ? (
+                        <div>
+                            <IconButton
+                                onClick={() => {
+                                    setPageNumber(pageNumber - 1);
+                                }}
+                                color="primary">
+                                <ChevronLeftIcon />
+                            </IconButton>
+                            <span
+                                style={{
+                                    color: 'white',
+                                }}>
+                                <b>{pageNumber}</b> of <b>{totalPages}</b>
+                            </span>
+
+                            <IconButton
+                                onClick={() => {
+                                    setPageNumber(pageNumber + 1);
+                                }}
+                                color="primary">
+                                <ChevronRightIcon />
+                            </IconButton>
+
+                            <IconButton
+                                onClick={() => {
+                                    window.open(url);
+                                }}
+                                color="primary">
+                                <DownloadIcon />
+                            </IconButton>
+                        </div>
+                    ) : (
+                        <></>
+                    )}
                 </div>
             </div>
         </>
