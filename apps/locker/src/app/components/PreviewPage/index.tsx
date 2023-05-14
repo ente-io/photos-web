@@ -6,16 +6,23 @@ import styles from './styles.module.scss';
 import PDFViewer from '@/app/components/PreviewBanner/PDFViewer';
 import { useEffect, useState } from 'react';
 
-const Page = () => {
+const PreviewPage = () => {
     const [fileUuid, setFileUuid] = useState<string | null>(null);
 
-    const extractFileUuid = () => {
+    const extractFileUuid = async () => {
         // get it from the query params
         const urlParams = new URLSearchParams(window.location.search);
-        const fileUuid = urlParams.get('file');
+        const kvUuid = urlParams.get('id');
 
-        if (fileUuid) {
-            setFileUuid(fileUuid);
+        // get actual s3 id from worker
+        const res = await fetch(
+            `${process.env.NEXT_PUBLIC_WORKER_URL}/mapping/${kvUuid}`
+        );
+
+        const data = await res.text();
+
+        if (res.ok) {
+            setFileUuid(data);
         }
     };
 
@@ -37,4 +44,4 @@ const Page = () => {
     );
 };
 
-export default Page;
+export default PreviewPage;
