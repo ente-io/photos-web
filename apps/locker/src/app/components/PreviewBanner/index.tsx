@@ -1,4 +1,4 @@
-import PDFViewer from './PDFViewer';
+import Link from 'next/link';
 import styles from './styles.module.scss';
 import Image from 'next/image';
 
@@ -8,12 +8,14 @@ const PreviewBanner = () => {
             <div className={styles.banner}>
                 <div className={styles.left}>
                     <div className={styles.logo}>
-                        <Image
-                            src="/ente.svg"
-                            alt="Ente"
-                            width={50}
-                            height={50}
-                        />
+                        <Link href="/">
+                            <Image
+                                src="/locker.svg"
+                                alt="ente Locker logo"
+                                width={200}
+                                height={50}
+                            />
+                        </Link>
                     </div>
                 </div>
             </div>
