@@ -20,6 +20,8 @@ export const PreviewContext = createContext<{
     setUrl: Dispatch<SetStateAction<string>>;
     totalPages: number;
     setTotalPages: Dispatch<SetStateAction<number>>;
+    hasRendered: boolean;
+    setHasRendered: Dispatch<SetStateAction<boolean>>;
 }>({
     pageNumber: 1,
     setPageNumber: (value: SetStateAction<number>) => {},
@@ -27,6 +29,8 @@ export const PreviewContext = createContext<{
     setUrl: (value: SetStateAction<string>) => {},
     totalPages: 0,
     setTotalPages: (value: SetStateAction<number>) => {},
+    hasRendered: false,
+    setHasRendered: (value: SetStateAction<boolean>) => {},
 });
 
 const PreviewPage = () => {
@@ -34,6 +38,7 @@ const PreviewPage = () => {
 
     const [pageNumber, setPageNumber] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
+    const [hasRendered, setHasRendered] = useState(false);
     const [url, setUrl] = useState<string>('');
 
     const extractFileUuid = async () => {
@@ -69,21 +74,27 @@ const PreviewPage = () => {
                         setUrl,
                         totalPages,
                         setTotalPages,
+                        hasRendered,
+                        setHasRendered,
                     }}>
                     <PreviewBanner />
-                    <div
-                        style={{
-                            padding: '1rem',
-                            boxSizing: 'border-box',
-                        }}>
-                        <p
+                    {hasRendered ? (
+                        <div
                             style={{
-                                color: 'white',
+                                padding: '1rem',
+                                boxSizing: 'border-box',
                             }}>
-                            Page <b>{pageNumber}</b> of <b>{totalPages}</b>
-                        </p>
-                        {fileUuid && <PDFViewer pdfUrl={url} />}
-                    </div>
+                            <p
+                                style={{
+                                    color: 'white',
+                                }}>
+                                Page <b>{pageNumber}</b> of <b>{totalPages}</b>
+                            </p>
+                        </div>
+                    ) : (
+                        <></>
+                    )}
+                    {fileUuid && <PDFViewer pdfUrl={url} />}
                 </PreviewContext.Provider>
             </div>
         </>
