@@ -41,6 +41,14 @@ const PreviewPage = () => {
     const [hasRendered, setHasRendered] = useState(false);
     const [url, setUrl] = useState<string>('');
 
+    const handleKeyPress = (event: any) => {
+        if (event.code == 'ArrowLeft' && pageNumber > 1) {
+            setPageNumber(pageNumber - 1);
+        } else if (event.code == 'ArrowRight' && pageNumber < totalPages) {
+            setPageNumber(pageNumber + 1);
+        }
+    };
+
     const extractFileUuid = async () => {
         // get it from the query params
         const urlParams = new URLSearchParams(window.location.search);
@@ -65,7 +73,10 @@ const PreviewPage = () => {
 
     return (
         <>
-            <div className={styles.wrapper}>
+            <div
+                className={styles.wrapper}
+                onKeyDown={handleKeyPress}
+                tabIndex={0}>
                 <PreviewContext.Provider
                     value={{
                         pageNumber,
