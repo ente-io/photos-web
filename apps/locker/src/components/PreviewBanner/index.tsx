@@ -9,7 +9,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import DownloadIcon from '@mui/icons-material/Download';
 import { PreviewContext } from '../PreviewPage';
 const PreviewBanner = () => {
-    const { pageNumber, setPageNumber, totalPages, hasRendered, url } =
+    const { pageNumber, setPageNumber, totalPages, hasRendered, pdfData } =
         useContext(PreviewContext);
 
     return (
@@ -54,7 +54,8 @@ const PreviewBanner = () => {
 
                             <IconButton
                                 onClick={() => {
-                                    window.open(url);
+                                    // TODO
+                                    // window.open(url);
                                 }}
                                 color="primary">
                                 <DownloadIcon />

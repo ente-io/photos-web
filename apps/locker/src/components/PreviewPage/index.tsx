@@ -12,12 +12,13 @@ const PDFViewer = dynamic(() => import('@/components/PDFViewer'), {
 import { useEffect, useState } from 'react';
 
 import { SetStateAction, createContext, Dispatch } from 'react';
+import CircularProgress from '@mui/material/CircularProgress';
 
 export const PreviewContext = createContext<{
     pageNumber: number;
     setPageNumber: Dispatch<SetStateAction<number>>;
-    url: string;
-    setUrl: Dispatch<SetStateAction<string>>;
+    pdfData: Uint8Array;
+    setPdfData: Dispatch<SetStateAction<Uint8Array>>;
     totalPages: number;
     setTotalPages: Dispatch<SetStateAction<number>>;
     hasRendered: boolean;
@@ -25,8 +26,8 @@ export const PreviewContext = createContext<{
 }>({
     pageNumber: 1,
     setPageNumber: (value: SetStateAction<number>) => {},
-    url: '',
-    setUrl: (value: SetStateAction<string>) => {},
+    pdfData: new Uint8Array(),
+    setPdfData: (value: SetStateAction<Uint8Array>) => {},
     totalPages: 0,
     setTotalPages: (value: SetStateAction<number>) => {},
     hasRendered: false,
@@ -39,7 +40,7 @@ const PreviewPage = () => {
     const [pageNumber, setPageNumber] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
     const [hasRendered, setHasRendered] = useState(false);
-    const [url, setUrl] = useState<string>('');
+    const [pdfData, setPdfData] = useState<Uint8Array>(new Uint8Array());
 
     const handleKeyPress = (event: any) => {
         if (event.code == 'ArrowLeft' && pageNumber > 1) {
@@ -63,7 +64,10 @@ const PreviewPage = () => {
 
         if (res.ok) {
             setFileUuid(data);
-            setUrl(`${process.env.NEXT_PUBLIC_BUCKET_URL}/${data}`);
+            const fetchedData = await fetch(
+                `${process.env.NEXT_PUBLIC_BUCKET_URL}/${data}`
+            );
+            setPdfData(new Uint8Array(await fetchedData.arrayBuffer()));
         }
     };
 
@@ -81,15 +85,31 @@ const PreviewPage = () => {
                     value={{
                         pageNumber,
                         setPageNumber,
-                        url,
-                        setUrl,
+                        pdfData,
+                        setPdfData,
                         totalPages,
                         setTotalPages,
                         hasRendered,
                         setHasRendered,
                     }}>
                     <PreviewBanner />
-                    {fileUuid && <PDFViewer pdfUrl={url} />}
+
+                    {hasRendered ? (
+                        <div></div>
+                    ) : (
+                        <>
+                            <div
+                                style={{
+                                    padding: '10rem',
+                                    textAlign: 'center',
+                                }}>
+                                <CircularProgress />
+                            </div>
+                        </>
+                    )}
+                    {fileUuid && pdfData.length > 0 && (
+                        <PDFViewer pdfData={pdfData} />
+                    )}
                 </PreviewContext.Provider>
             </div>
         </>

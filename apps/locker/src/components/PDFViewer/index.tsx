@@ -1,17 +1,16 @@
 'use client';
 import styles from './styles.module.scss';
 import React, { useContext, useEffect, useMemo, useState } from 'react';
-import { Document, Outline, Page, pdfjs } from 'react-pdf';
+import { Document, Page, pdfjs } from 'react-pdf';
 import { PreviewContext } from '../PreviewPage';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
-import CircularProgress from '@mui/material/CircularProgress';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
-const PDFViewer = React.memo(({ pdfUrl }: { pdfUrl: string }) => {
-    const url = useMemo(() => {
-        return pdfUrl;
+const PDFViewer = ({ pdfData }: { pdfData: Uint8Array }) => {
+    const data = useMemo(() => {
+        return new File([pdfData], "data");
     }, []);
     const { pageNumber, setPageNumber } = useContext(PreviewContext);
     const { totalPages, setTotalPages } = useContext(PreviewContext);
@@ -44,19 +43,6 @@ const PDFViewer = React.memo(({ pdfUrl }: { pdfUrl: string }) => {
 
     return (
         <>
-            {hasRendered ? (
-                <div></div>
-            ) : (
-                <>
-                    <div
-                        style={{
-                            padding: '10rem',
-                            textAlign: 'center',
-                        }}>
-                        <CircularProgress />
-                    </div>
-                </>
-            )}
             <div
                 style={{
                     width: hasRendered ? '100%' : '0%',
@@ -64,7 +50,7 @@ const PDFViewer = React.memo(({ pdfUrl }: { pdfUrl: string }) => {
                 }}>
                 {/* @ts-ignore */}
                 <Document
-                    file={url}
+                    file={data}
                     onLoadSuccess={onDocumentLoadSuccess}
                     className={styles.viewerCanvas}>
                     {/* @ts-ignore */}
@@ -78,6 +64,6 @@ const PDFViewer = React.memo(({ pdfUrl }: { pdfUrl: string }) => {
             </div>
         </>
     );
-});
+};
 
 export default PDFViewer;
