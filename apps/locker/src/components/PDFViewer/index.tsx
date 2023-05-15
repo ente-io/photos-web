@@ -9,7 +9,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
-const PDFViewer = ({ pdfUrl }: { pdfUrl: string }) => {
+const PDFViewer = React.memo(({ pdfUrl }: { pdfUrl: string }) => {
     const url = useMemo(() => {
         return pdfUrl;
     }, []);
@@ -78,6 +78,6 @@ const PDFViewer = ({ pdfUrl }: { pdfUrl: string }) => {
             </div>
         </>
     );
-};
+});
 
 export default PDFViewer;
