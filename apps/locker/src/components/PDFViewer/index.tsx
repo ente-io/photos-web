@@ -67,6 +67,7 @@ const PDFViewer = ({ pdfUrl }: { pdfUrl: string }) => {
                     file={url}
                     onLoadSuccess={onDocumentLoadSuccess}
                     className={styles.viewerCanvas}>
+                    {/* @ts-ignore */}
                     <Page
                         pageNumber={pageNumber}
                         width={width}
