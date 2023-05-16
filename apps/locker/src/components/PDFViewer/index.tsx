@@ -1,53 +1,68 @@
 'use client';
-// import styles from './styles.module.scss';
-// import React, { useContext, useEffect, useState } from 'react';
-// import { Document, Page, pdfjs } from 'react-pdf';
-// import { PreviewContext } from '../PreviewPage';
+import styles from './styles.module.scss';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
+import { Document, Page, pdfjs } from 'react-pdf';
+import { PreviewContext } from '../PreviewPage';
+import 'react-pdf/dist/esm/Page/TextLayer.css';
+import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 
-// pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
-const PDFViewer = ({ pdfUrl }: { pdfUrl: string }) => {
-    // const { pageNumber, setTotalPages } = useContext(PreviewContext);
+const PDFViewer = ({ pdfData }: { pdfData: Uint8Array }) => {
+    const data = useMemo(() => {
+        return new File([pdfData], "data");
+    }, []);
+    const { pageNumber, setPageNumber } = useContext(PreviewContext);
+    const { totalPages, setTotalPages } = useContext(PreviewContext);
+    const { hasRendered, setHasRendered } = useContext(PreviewContext);
 
-    // function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
-    //     setTotalPages(numPages);
-    // }
+    function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
+        setTotalPages(numPages);
+    }
 
-    // const [width, setWidth] = useState(0);
-    // const [height, setHeight] = useState(0);
+    function onPageRenderSuccess() {
+        setHasRendered(true);
+    }
 
-    // useEffect(() => {
-    //     const updateWindowDimensions = () => {
-    //         setWidth(window.innerWidth);
-    //         setHeight(window.innerHeight);
-    //     };
+    const [width, setWidth] = useState(0);
+    const [height, setHeight] = useState(0);
 
-    //     updateWindowDimensions();
+    useEffect(() => {
+        const updateWindowDimensions = () => {
+            setWidth(window.innerWidth);
+            setHeight(window.innerHeight);
+        };
 
-    //     window.addEventListener('resize', updateWindowDimensions);
+        updateWindowDimensions();
 
-    //     return () =>
-    //         window.removeEventListener('resize', updateWindowDimensions);
-    // }, []);
+        window.addEventListener('resize', updateWindowDimensions);
+
+        return () =>
+            window.removeEventListener('resize', updateWindowDimensions);
+    }, []);
 
     return (
-        <div
-            style={{
-                width: '100%',
-                height: '100%',
-                contain: 'content',
-            }}>
-            {/* <Document
-                file={pdfUrl}
-                onLoadSuccess={onDocumentLoadSuccess}
-                className={styles.viewerCanvas}>
-                <Page pageNumber={pageNumber} width={width} height={height} />
-            </Document> */}
-            <iframe
-                src={pdfUrl}
-                style={{ width: '100%', height: '100%', border: 'none' }}
-            />
-        </div>
+        <>
+            <div
+                style={{
+                    width: hasRendered ? '100%' : '0%',
+                    contain: 'content',
+                }}>
+                {/* @ts-ignore */}
+                <Document
+                    file={data}
+                    onLoadSuccess={onDocumentLoadSuccess}
+                    className={styles.viewerCanvas}>
+                    {/* @ts-ignore */}
+                    <Page
+                        pageNumber={pageNumber}
+                        width={width}
+                        height={height}
+                        onRenderSuccess={onPageRenderSuccess}
+                    />
+                </Document>
+            </div>
+        </>
     );
 };
 
