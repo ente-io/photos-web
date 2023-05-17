@@ -10,17 +10,28 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/$
 
 const PDFViewer = ({ pdfData }: { pdfData: Uint8Array }) => {
     const data = useMemo(() => {
-        return new File([pdfData], "data");
+        return new File([pdfData], 'data');
     }, []);
     const { pageNumber, setPageNumber } = useContext(PreviewContext);
     const { totalPages, setTotalPages } = useContext(PreviewContext);
     const { hasRendered, setHasRendered } = useContext(PreviewContext);
 
+    const [originalWidth, setOriginalWidth] = useState(0);
+    const [originalHeight, setOriginalHeight] = useState(0);
+
     function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
         setTotalPages(numPages);
     }
 
-    function onPageRenderSuccess() {
+    function onPageRenderSuccess({
+        originalWidth,
+        originalHeight,
+    }: {
+        originalWidth: number;
+        originalHeight: number;
+    }) {
+        setOriginalWidth(originalWidth);
+        setOriginalHeight(originalHeight);
         setHasRendered(true);
     }
 
@@ -29,14 +40,32 @@ const PDFViewer = ({ pdfData }: { pdfData: Uint8Array }) => {
 
     useEffect(() => {
         const updateWindowDimensions = () => {
-            setWidth(window.innerWidth);
-            setHeight(window.innerHeight);
+            if (!originalWidth || !originalHeight) {
+                return;
+            }
+
+            // if the width of the window is greater than the width of the PDF, set the width of the PDF to the width of the window
+            if (window.innerWidth > originalWidth) {
+                setWidth(originalWidth);
+            } else {
+                setWidth(window.innerWidth);
+            }
+
+            // if the height of the window is greater than the height of the PDF, set the height of the PDF to the height of the window
+            if (window.innerHeight > originalHeight) {
+                setHeight(originalHeight);
+            } else {
+                setHeight(window.innerHeight);
+            }
         };
 
+        // call the function to update window dimensions
         updateWindowDimensions();
 
+        // add event listener to window to call updateWindowDimensions when window is resized
         window.addEventListener('resize', updateWindowDimensions);
 
+        // remove event listener when component is unmounted
         return () =>
             window.removeEventListener('resize', updateWindowDimensions);
     }, []);
@@ -46,7 +75,10 @@ const PDFViewer = ({ pdfData }: { pdfData: Uint8Array }) => {
             <div
                 style={{
                     width: hasRendered ? '100%' : '0%',
-                    contain: 'content',
+                    height: hasRendered ? '100%' : '0%',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
                 }}>
                 {/* @ts-ignore */}
                 <Document
