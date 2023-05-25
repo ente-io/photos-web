@@ -77,6 +77,7 @@
     "DOWNLOAD_OPTION": "下载 (D)",
     "DOWNLOAD_FAVORITES": "下载收藏",
     "DOWNLOAD_UNCATEGORIZED": "下载未分类的",
+    "DOWNLOAD_HIDDEN": "",
     "COPY_OPTION": "复制为 PNG (Ctrl/Cmd - C)",
     "TOGGLE_FULLSCREEN": "切换至全屏 (F)",
     "ZOOM_IN_OUT": "放大/缩小",
@@ -290,7 +291,7 @@
     "UPLOAD_TO_COLLECTION": "上传至相册",
     "UNCATEGORIZED": "未分类的",
     "ARCHIVE": "存档",
-    "FAVORITES": "",
+    "FAVORITES": "收藏",
     "ARCHIVE_COLLECTION": "存档相册",
     "ARCHIVE_SECTION_NAME": "存档",
     "ALL_SECTION_NAME": "全部",
@@ -490,6 +491,7 @@
     "PUBLIC_COLLECT_SUBTEXT": "允许具有链接的人也将照片添加到共享相册。",
     "STOP_EXPORT": "停止",
     "EXPORT_PROGRESS": "<a>{{progress.success}} / {{progress.total}}</a> 个文件已导出",
+    "MIGRATING_EXPORT": "",
     "EXPORT_NOTIFICATION": {
         "START": "导出已开始",
         "IN_PROGRESS": "导出已在进行中",
@@ -517,5 +519,9 @@
     "RECOVER_TWO_FACTOR": "恢复双因素认证",
     "at": "在",
     "AUTH_NEXT": "下一个",
-    "AUTH_DOWNLOAD_MOBILE_APP": "下载我们的移动应用程序来管理您的密钥"
+    "AUTH_DOWNLOAD_MOBILE_APP": "下载我们的移动应用程序来管理您的密钥",
+    "HIDDEN": "",
+    "HIDE": "",
+    "UNHIDE": "",
+    "UNHIDE_TO_COLLECTION": ""
 }

@@ -39,6 +39,7 @@ import {
     ALL_SECTION,
     CollectionSummaryType,
     DUMMY_UNCATEGORIZED_SECTION,
+    HIDDEN_SECTION,
 } from 'constants/collection';
 import {
     NEW_COLLECTION_MAGIC_METADATA,
@@ -48,24 +49,29 @@ import {
 import { IsArchived, updateMagicMetadataProps } from 'utils/magicMetadata';
 import { User } from 'types/user';
 import {
-    getNonHiddenCollections,
     isQuickLinkCollection,
     isOutgoingShare,
     isIncomingShare,
     isSharedOnlyViaLink,
     isValidMoveTarget,
+    isHiddenCollection,
+    isValidReplacementAlbum,
+    getNonHiddenCollections,
 } from 'utils/collection';
 import ComlinkCryptoWorker from 'utils/comlink/ComlinkCryptoWorker';
 import { getLocalFiles } from './fileService';
 import { REQUEST_BATCH_SIZE } from 'constants/api';
 import { batch } from 'utils/common';
 import { t } from 'i18next';
+import { EncryptedMagicMetadata } from 'types/magicMetadata';
+import { VISIBILITY_STATE } from 'types/magicMetadata';
 
 const ENDPOINT = getEndpoint();
 const COLLECTION_TABLE = 'collections';
 const COLLECTION_UPDATION_TIME = 'collection-updation-time';
 
 const UNCATEGORIZED_COLLECTION_NAME = 'Uncategorized';
+const HIDDEN_COLLECTION_NAME = '.hidden';
 const FAVORITE_COLLECTION_NAME = 'Favorites';
 
 export const getCollectionLastSyncTime = async (collection: Collection) =>
@@ -173,10 +179,12 @@ const getCollections = async (
     }
 };
 
-export const getLocalCollections = async (): Promise<Collection[]> => {
+export const getLocalCollections = async (
+    includeHidden = false
+): Promise<Collection[]> => {
     const collections: Collection[] =
         (await localForage.getItem(COLLECTION_TABLE)) ?? [];
-    return getNonHiddenCollections(collections);
+    return includeHidden ? collections : getNonHiddenCollections(collections);
 };
 
 export const getCollectionUpdationTime = async (): Promise<number> =>
@@ -223,7 +231,7 @@ export const syncCollections = async () => {
 
     await localForage.setItem(COLLECTION_TABLE, collections);
     await localForage.setItem(COLLECTION_UPDATION_TIME, updationTime);
-    return getNonHiddenCollections(collections);
+    return collections;
 };
 
 export const getCollection = async (
@@ -259,19 +267,12 @@ export const getCollectionLatestFiles = (
     const latestFiles = new Map<number, EnteFile>();
 
     files.forEach((file) => {
-        if (!latestFiles.has(file.collectionID) && !file.isTrashed) {
+        if (!latestFiles.has(file.collectionID)) {
             latestFiles.set(file.collectionID, file);
-        }
-        if (!latestFiles.has(ARCHIVE_SECTION) && IsArchived(file)) {
-            latestFiles.set(ARCHIVE_SECTION, file);
-        }
-        if (!latestFiles.has(TRASH_SECTION) && file.isTrashed) {
-            latestFiles.set(TRASH_SECTION, file);
         }
         if (
             !latestFiles.has(ALL_SECTION) &&
             !IsArchived(file) &&
-            !file.isTrashed &&
             file.ownerID === user.id &&
             !archivedCollections.has(file.collectionID)
         ) {
@@ -296,23 +297,26 @@ export const getFavItemIds = async (
 
 export const createAlbum = async (
     albumName: string,
-    existingCollection?: Collection[]
-) => createCollection(albumName, CollectionType.album, existingCollection);
+    existingCollections?: Collection[]
+) => {
+    if (!existingCollections) {
+        existingCollections = await syncCollections();
+    }
+    const user: User = getData(LS_KEYS.USER);
+    for (const collection of existingCollections) {
+        if (isValidReplacementAlbum(collection, user, albumName)) {
+            return collection;
+        }
+    }
+    return createCollection(albumName, CollectionType.album);
+};
 
-export const createCollection = async (
+const createCollection = async (
     collectionName: string,
     type: CollectionType,
-    existingCollections?: Collection[]
+    magicMetadataProps?: CollectionMagicMetadataProps
 ): Promise<Collection> => {
     try {
-        if (!existingCollections) {
-            existingCollections = await syncCollections();
-        }
-        for (const collection of existingCollections) {
-            if (collection.name === collectionName) {
-                return collection;
-            }
-        }
         const cryptoWorker = await ComlinkCryptoWorker.getInstance();
         const encryptionKey = await getActualKey();
         const token = getToken();
@@ -321,6 +325,25 @@ export const createCollection = async (
             await cryptoWorker.encryptToB64(collectionKey, encryptionKey);
         const { encryptedData: encryptedName, nonce: nameDecryptionNonce } =
             await cryptoWorker.encryptUTF8(collectionName, collectionKey);
+        let encryptedMagicMetadata: EncryptedMagicMetadata;
+        if (magicMetadataProps) {
+            const magicMetadata = await updateMagicMetadataProps(
+                NEW_COLLECTION_MAGIC_METADATA,
+                null,
+                magicMetadataProps
+            );
+            const { file: encryptedMagicMetadataProps } =
+                await cryptoWorker.encryptMetadata(
+                    magicMetadataProps,
+                    collectionKey
+                );
+
+            encryptedMagicMetadata = {
+                ...magicMetadata,
+                data: encryptedMagicMetadataProps.encryptedData,
+                header: encryptedMagicMetadataProps.decryptionHeader,
+            };
+        }
         const newCollection: EncryptedCollection = {
             id: null,
             owner: null,
@@ -333,7 +356,7 @@ export const createCollection = async (
             sharees: null,
             updationTime: null,
             isDeleted: false,
-            magicMetadata: null,
+            magicMetadata: encryptedMagicMetadata,
         };
         const createdCollection = await postCollection(newCollection, token);
         const decryptedCreatedCollection = await getCollectionWithSecrets(
@@ -364,19 +387,15 @@ const postCollection = async (
     }
 };
 
+export const createFavoritesCollection = () => {
+    return createCollection(FAVORITE_COLLECTION_NAME, CollectionType.favorites);
+};
+
 export const addToFavorites = async (file: EnteFile) => {
     try {
         let favCollection = await getFavCollection();
         if (!favCollection) {
-            favCollection = await createCollection(
-                FAVORITE_COLLECTION_NAME,
-                CollectionType.favorites
-            );
-            const localCollections = await getLocalCollections();
-            await localForage.setItem(COLLECTION_TABLE, [
-                ...localCollections,
-                favCollection,
-            ]);
+            favCollection = await createFavoritesCollection();
         }
         await addToCollection(favCollection, [file]);
     } catch (e) {
@@ -456,8 +475,8 @@ export const restoreToCollection = async (
     }
 };
 export const moveToCollection = async (
-    toCollection: Collection,
     fromCollectionID: number,
+    toCollection: Collection,
     files: EnteFile[]
 ) => {
     try {
@@ -577,8 +596,8 @@ export const removeUserFiles = async (
                 continue;
             }
             await moveToCollection(
-                targetCollection,
                 sourceCollectionID,
+                targetCollection,
                 toMoveFiles
             );
         }
@@ -594,8 +613,8 @@ export const removeUserFiles = async (
             uncategorizedCollection = await createUnCategorizedCollection();
         }
         await moveToCollection(
-            uncategorizedCollection,
             sourceCollectionID,
+            uncategorizedCollection,
             leftFiles
         );
     } catch (e) {
@@ -719,7 +738,7 @@ export const renameCollection = async (
     newCollectionName: string
 ) => {
     if (isQuickLinkCollection(collection)) {
-        // Convert quick link collction to normal collection on rename
+        // Convert quick link collection to normal collection on rename
         await updateCollectionSubType(collection, SUB_TYPE.DEFAULT);
     }
     const token = getToken();
@@ -887,7 +906,6 @@ export const getFavCollection = async () => {
             return collection;
         }
     }
-    return null;
 };
 
 export const getNonEmptyCollections = (
@@ -896,9 +914,7 @@ export const getNonEmptyCollections = (
 ) => {
     const nonEmptyCollectionsIds = new Set<number>();
     for (const file of files) {
-        if (!file.isTrashed) {
-            nonEmptyCollectionsIds.add(file.collectionID);
-        }
+        nonEmptyCollectionsIds.add(file.collectionID);
     }
     return collections.filter((collection) =>
         nonEmptyCollectionsIds.has(collection.id)
@@ -949,6 +965,8 @@ export async function getCollectionSummaries(
     user: User,
     collections: Collection[],
     files: EnteFile[],
+    trashedFiles: EnteFile[],
+    hiddenFiles: EnteFile[],
     archivedCollections: Set<number>
 ): Promise<CollectionSummaries> {
     const collectionSummaries: CollectionSummaries = new Map();
@@ -959,6 +977,8 @@ export async function getCollectionSummaries(
     );
     const collectionFilesCount = getCollectionsFileCount(
         files,
+        trashedFiles,
+        hiddenFiles,
         archivedCollections
     );
 
@@ -981,6 +1001,8 @@ export async function getCollectionSummaries(
                     ? CollectionSummaryType.sharedOnlyViaLink
                     : IsArchived(collection)
                     ? CollectionSummaryType.archived
+                    : isHiddenCollection(collection)
+                    ? CollectionSummaryType.hidden
                     : CollectionSummaryType[collection.type],
             });
         }
@@ -1026,11 +1048,21 @@ export async function getCollectionSummaries(
         )
     );
 
+    collectionSummaries.set(
+        HIDDEN_SECTION,
+        getHiddenCollectionSummaries(
+            collectionFilesCount,
+            collectionLatestFiles
+        )
+    );
+
     return collectionSummaries;
 }
 
 function getCollectionsFileCount(
     files: EnteFile[],
+    trashedFiles: EnteFile[],
+    hiddenFiles: EnteFile[],
     archivedCollections: Set<number>
 ): CollectionFilesCount {
     const collectionIDToFileMap = groupFilesBasedOnCollectionID(files);
@@ -1039,24 +1071,21 @@ function getCollectionsFileCount(
         collectionFilesCount.set(id, files.length);
     }
     const user: User = getData(LS_KEYS.USER);
-    const uniqueTrashedFileIDs = new Set<number>();
     const uniqueArchivedFileIDs = new Set<number>();
     const uniqueAllSectionFileIDs = new Set<number>();
     for (const file of files) {
         if (isSharedFile(user, file)) {
             continue;
-        }
-        if (file.isTrashed) {
-            uniqueTrashedFileIDs.add(file.id);
         } else if (IsArchived(file)) {
             uniqueArchivedFileIDs.add(file.id);
         } else if (!archivedCollections.has(file.collectionID)) {
             uniqueAllSectionFileIDs.add(file.id);
         }
     }
-    collectionFilesCount.set(TRASH_SECTION, uniqueTrashedFileIDs.size);
+    collectionFilesCount.set(TRASH_SECTION, trashedFiles?.length ?? 0);
     collectionFilesCount.set(ARCHIVE_SECTION, uniqueArchivedFileIDs.size);
     collectionFilesCount.set(ALL_SECTION, uniqueAllSectionFileIDs.size);
+    collectionFilesCount.set(HIDDEN_SECTION, hiddenFiles?.length ?? 0);
     return collectionFilesCount;
 }
 
@@ -1076,7 +1105,7 @@ function getAllCollectionSummaries(
 
 function getDummyUncategorizedCollectionSummaries(): CollectionSummary {
     return {
-        id: ALL_SECTION,
+        id: DUMMY_UNCATEGORIZED_SECTION,
         name: t('UNCATEGORIZED'),
         type: CollectionSummaryType.uncategorized,
         latestFile: null,
@@ -1085,6 +1114,19 @@ function getDummyUncategorizedCollectionSummaries(): CollectionSummary {
     };
 }
 
+function getHiddenCollectionSummaries(
+    collectionFilesCount: CollectionFilesCount,
+    collectionsLatestFile: CollectionLatestFiles
+): CollectionSummary {
+    return {
+        id: HIDDEN_SECTION,
+        name: t('HIDDEN'),
+        type: CollectionSummaryType.hidden,
+        latestFile: collectionsLatestFile.get(HIDDEN_SECTION),
+        fileCount: collectionFilesCount.get(HIDDEN_SECTION) ?? 0,
+        updationTime: collectionsLatestFile.get(HIDDEN_SECTION)?.updationTime,
+    };
+}
 function getArchivedCollectionSummaries(
     collectionFilesCount: CollectionFilesCount,
     collectionsLatestFile: CollectionLatestFiles
@@ -1126,9 +1168,64 @@ export async function getUncategorizedCollection(
     return uncategorizedCollection;
 }
 
-export async function createUnCategorizedCollection() {
+export function createUnCategorizedCollection() {
     return createCollection(
         UNCATEGORIZED_COLLECTION_NAME,
         CollectionType.uncategorized
     );
+}
+
+export async function getHiddenCollection(): Promise<Collection> {
+    const collections = await getLocalCollections(true);
+    const hiddenCollection = collections.find((collection) =>
+        isHiddenCollection(collection)
+    );
+
+    return hiddenCollection;
+}
+
+export function createHiddenCollection() {
+    return createCollection(HIDDEN_COLLECTION_NAME, CollectionType.album, {
+        subType: SUB_TYPE.DEFAULT_HIDDEN,
+        visibility: VISIBILITY_STATE.HIDDEN,
+    });
+}
+
+export async function moveToHiddenCollection(files: EnteFile[]) {
+    try {
+        let hiddenCollection = await getHiddenCollection();
+        if (!hiddenCollection) {
+            hiddenCollection = await createHiddenCollection();
+        }
+        const groupiedFiles = groupFilesBasedOnCollectionID(files);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        for (const [collectionID, files] of groupiedFiles.entries()) {
+            if (collectionID === hiddenCollection.id) {
+                continue;
+            }
+            await moveToCollection(collectionID, hiddenCollection, files);
+        }
+    } catch (e) {
+        logError(e, 'move to hidden collection failed ');
+        throw e;
+    }
+}
+
+export async function unhideToCollection(
+    collection: Collection,
+    files: EnteFile[]
+) {
+    try {
+        const groupiedFiles = groupFilesBasedOnCollectionID(files);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        for (const [collectionID, files] of groupiedFiles.entries()) {
+            if (collectionID === collection.id) {
+                continue;
+            }
+            await moveToCollection(collectionID, collection, files);
+        }
+    } catch (e) {
+        logError(e, 'unhide to collection failed ');
+        throw e;
+    }
 }

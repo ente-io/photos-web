@@ -1,7 +1,8 @@
-import React, {
+import {
     createContext,
     useContext,
     useEffect,
+    useMemo,
     useRef,
     useState,
 } from 'react';
@@ -13,14 +14,17 @@ import {
     updateFileMagicMetadata,
     trashFiles,
     deleteFromTrash,
+    getLocalHiddenFiles,
+    syncHiddenFiles,
 } from 'services/fileService';
 import { styled, Typography } from '@mui/material';
 import {
     syncCollections,
     getFavItemIds,
     getLocalCollections,
-    createCollection,
+    createAlbum,
     getCollectionSummaries,
+    moveToHiddenCollection,
 } from 'services/collectionService';
 import { t } from 'i18next';
 
@@ -35,16 +39,18 @@ import {
     setIsFirstLogin,
     setJustSignedUp,
 } from 'utils/storage';
-import { isTokenValid, logoutUser, validateKey } from 'services/userService';
+import { isTokenValid, validateKey } from 'services/userService';
 import { useDropzone } from 'react-dropzone';
 import EnteSpinner from 'components/EnteSpinner';
 import { LoadingOverlay } from 'components/LoadingOverlay';
 import PhotoFrame from 'components/PhotoFrame';
 import {
     changeFilesVisibility,
+    constructFileToCollectionMap,
     downloadFiles,
-    getNonTrashedFiles,
     getSelectedFiles,
+    getUniqueFiles,
+    isSharedFile,
     mergeMetadata,
     sortFiles,
 } from 'utils/file';
@@ -62,7 +68,7 @@ import {
     ALL_SECTION,
     ARCHIVE_SECTION,
     CollectionSummaryType,
-    CollectionType,
+    HIDDEN_SECTION,
     DUMMY_UNCATEGORIZED_SECTION,
     TRASH_SECTION,
 } from 'constants/collection';
@@ -75,13 +81,11 @@ import {
     getSelectedCollection,
     getArchivedCollections,
     hasNonSystemCollections,
+    splitNormalAndHiddenCollections,
+    constructCollectionNameMap,
 } from 'utils/collection';
 import { logError } from 'utils/sentry';
-import {
-    getLocalTrash,
-    getTrashedFiles,
-    syncTrash,
-} from 'services/trashService';
+import { getLocalTrashedFiles, syncTrash } from 'services/trashService';
 
 import FixCreationTime, {
     FixCreationTimeAttributes,
@@ -111,6 +115,11 @@ import uploadManager from 'services/upload/uploadManager';
 import { getToken } from 'utils/common/key';
 import ExportModal from 'components/ExportModal';
 import GalleryEmptyState from 'components/GalleryEmptyState';
+import AuthenticateUserModal from 'components/AuthenticateUserModal';
+import useMemoSingleThreaded from 'hooks/useMemoSingleThreaded';
+import { IsArchived } from 'utils/magicMetadata';
+import { isSameDayAnyYear, isInsideBox } from 'utils/search';
+import { getSessionExpiredMessage } from 'utils/ui';
 
 export const DeadCenter = styled('div')`
     flex: 1;
@@ -130,6 +139,8 @@ const defaultGalleryContext: GalleryContextType = {
     setBlockingLoad: () => null,
     photoListHeader: null,
     openExportModal: () => null,
+    authenticateUser: () => null,
+    user: null,
 };
 
 export const GalleryContext = createContext<GalleryContextType>(
@@ -141,6 +152,8 @@ export default function Gallery() {
     const [user, setUser] = useState(null);
     const [collections, setCollections] = useState<Collection[]>(null);
     const [files, setFiles] = useState<EnteFile[]>(null);
+    const [hiddenFiles, setHiddenFiles] = useState<EnteFile[]>(null);
+    const [trashedFiles, setTrashedFiles] = useState<EnteFile[]>(null);
 
     const [favItemIds, setFavItemIds] = useState<Set<number>>();
 
@@ -196,6 +209,9 @@ export default function Gallery() {
     const [deletedFileIds, setDeletedFileIds] = useState<Set<number>>(
         new Set<number>()
     );
+    const [hiddenFileIds, setHiddenFileIds] = useState<Set<number>>(
+        new Set<number>()
+    );
     const { startLoading, finishLoading, setDialogMessage, ...appContext } =
         useContext(AppContext);
     const [collectionSummaries, setCollectionSummaries] =
@@ -225,18 +241,17 @@ export default function Gallery() {
 
     const [exportModalView, setExportModalView] = useState(false);
 
-    const showSessionExpiredMessage = () =>
-        setDialogMessage({
-            title: t('SESSION_EXPIRED'),
-            content: t('SESSION_EXPIRED_MESSAGE'),
+    const [authenticateUserModalView, setAuthenticateUserModalView] =
+        useState(false);
 
-            nonClosable: true,
-            proceed: {
-                text: t('LOGIN'),
-                action: logoutUser,
-                variant: 'accent',
-            },
-        });
+    const onAuthenticateCallback = useRef<() => void>();
+
+    const authenticateUser = (callback: () => void) => {
+        onAuthenticateCallback.current = callback;
+        setAuthenticateUserModalView(true);
+    };
+    const closeAuthenticateUserModal = () =>
+        setAuthenticateUserModalView(false);
 
     useEffect(() => {
         appContext.showNavBar(true);
@@ -260,12 +275,17 @@ export default function Gallery() {
             }
             setIsFirstLogin(false);
             const user = getData(LS_KEYS.USER);
-            let files = mergeMetadata(await getLocalFiles());
+            const files = sortFiles(mergeMetadata(await getLocalFiles()));
+            const hiddenFiles = sortFiles(
+                mergeMetadata(await getLocalHiddenFiles())
+            );
             const collections = await getLocalCollections();
-            const trash = await getLocalTrash();
-            files = [...files, ...getTrashedFiles(trash)];
+            const trashedFiles = await getLocalTrashedFiles();
+
             setUser(user);
-            setFiles(sortFiles(files));
+            setFiles(files);
+            setTrashedFiles(trashedFiles);
+            setHiddenFiles(hiddenFiles);
             setCollections(collections);
             await syncWithRemote(true);
             setIsFirstLoad(false);
@@ -286,11 +306,11 @@ export default function Gallery() {
     }, []);
 
     useEffect(() => {
-        if (!user || !files || !collections) {
+        if (!user || !files || !collections || !hiddenFiles || !trashedFiles) {
             return;
         }
-        setDerivativeState(user, collections, files);
-    }, [collections, files]);
+        setDerivativeState(user, collections, files, trashedFiles, hiddenFiles);
+    }, [collections, files, hiddenFiles, trashedFiles, user]);
 
     useEffect(() => {
         collectionSelectorAttributes && setCollectionSelectorView(true);
@@ -316,6 +336,8 @@ export default function Gallery() {
                 collectionURL += t('TRASH');
             } else if (activeCollection === DUMMY_UNCATEGORIZED_SECTION) {
                 collectionURL += t('UNCATEGORIZED');
+            } else if (activeCollection === HIDDEN_SECTION) {
+                collectionURL += t('HIDDEN');
             } else {
                 collectionURL += activeCollection;
             }
@@ -349,6 +371,153 @@ export default function Gallery() {
         }
     }, [isInSearchMode, searchResultSummary]);
 
+    const filteredData = useMemoSingleThreaded((): EnteFile[] => {
+        if (
+            !files ||
+            !user ||
+            !trashedFiles ||
+            !hiddenFiles ||
+            !archivedCollections
+        ) {
+            return;
+        }
+
+        if (activeCollection === HIDDEN_SECTION && !isInSearchMode) {
+            return getUniqueFiles([
+                ...hiddenFiles,
+                ...files.filter((file) => hiddenFileIds?.has(file.id)),
+            ]);
+        }
+
+        if (activeCollection === TRASH_SECTION && !isInSearchMode) {
+            return getUniqueFiles([
+                ...trashedFiles,
+                ...files.filter((file) => deletedFileIds?.has(file.id)),
+            ]);
+        }
+
+        return getUniqueFiles(
+            files.filter((item) => {
+                if (deletedFileIds?.has(item.id)) {
+                    return false;
+                }
+
+                if (hiddenFileIds?.has(item.id)) {
+                    return false;
+                }
+
+                // shared files can only be seen in their respective collection and not searchable
+                if (isSharedFile(user, item)) {
+                    if (activeCollection === item.collectionID) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+
+                // SEARCH MODE
+                if (isInSearchMode) {
+                    if (
+                        search?.date &&
+                        !isSameDayAnyYear(search.date)(
+                            new Date(item.metadata.creationTime / 1000)
+                        )
+                    ) {
+                        return false;
+                    }
+                    if (
+                        search?.location &&
+                        !isInsideBox(
+                            {
+                                latitude: item.metadata.latitude,
+                                longitude: item.metadata.longitude,
+                            },
+                            search.location
+                        )
+                    ) {
+                        return false;
+                    }
+                    if (
+                        search?.person &&
+                        search.person.files.indexOf(item.id) === -1
+                    ) {
+                        return false;
+                    }
+                    if (
+                        search?.thing &&
+                        search.thing.files.indexOf(item.id) === -1
+                    ) {
+                        return false;
+                    }
+                    if (
+                        search?.text &&
+                        search.text.files.indexOf(item.id) === -1
+                    ) {
+                        return false;
+                    }
+                    if (search?.files && search.files.indexOf(item.id) === -1) {
+                        return false;
+                    }
+                    return true;
+                }
+
+                // archived collections files can only be seen in their respective collection
+                if (archivedCollections.has(item.collectionID)) {
+                    if (activeCollection === item.collectionID) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+
+                // Archived files can only be seen in archive section or their respective collection
+                if (IsArchived(item)) {
+                    if (
+                        activeCollection === ARCHIVE_SECTION ||
+                        activeCollection === item.collectionID
+                    ) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+
+                // ALL SECTION - show all files
+                if (activeCollection === ALL_SECTION) {
+                    return true;
+                }
+
+                // COLLECTION SECTION - show files in the active collection
+                if (activeCollection === item.collectionID) {
+                    return true;
+                } else {
+                    return false;
+                }
+            })
+        );
+    }, [
+        files,
+        trashedFiles,
+        hiddenFiles,
+        deletedFileIds,
+        hiddenFileIds,
+        search,
+        activeCollection,
+        archivedCollections,
+    ]);
+
+    const fileToCollectionsMap = useMemoSingleThreaded(() => {
+        return constructFileToCollectionMap(files);
+    }, [files]);
+
+    const collectionNameMap = useMemo(() => {
+        return constructCollectionNameMap(collections);
+    }, [collections]);
+
+    const showSessionExpiredMessage = () => {
+        setDialogMessage(getSessionExpiredMessage());
+    };
+
     const syncWithRemote = async (force = false, silent = false) => {
         if (syncInProgress.current && !force) {
             resync.current = { force, silent };
@@ -367,9 +536,12 @@ export default function Gallery() {
             }
             !silent && startLoading();
             const collections = await syncCollections();
-            setCollections(collections);
-            const files = await syncFiles(collections, setFiles);
-            await syncTrash(collections, files, setFiles);
+            const { normalCollections, hiddenCollections } =
+                await splitNormalAndHiddenCollections(collections);
+            setCollections(normalCollections);
+            await syncFiles(normalCollections, setFiles);
+            await syncHiddenFiles(hiddenCollections, setHiddenFiles);
+            await syncTrash(collections, setTrashedFiles);
         } catch (e) {
             switch (e.message) {
                 case ServerErrorCodes.SESSION_EXPIRED:
@@ -386,6 +558,7 @@ export default function Gallery() {
             }
         } finally {
             setDeletedFileIds(new Set());
+            setHiddenFileIds(new Set());
             !silent && finishLoading();
         }
         syncInProgress.current = false;
@@ -399,7 +572,9 @@ export default function Gallery() {
     const setDerivativeState = async (
         user: User,
         collections: Collection[],
-        files: EnteFile[]
+        files: EnteFile[],
+        trashedFiles: EnteFile[],
+        hiddenFiles: EnteFile[]
     ) => {
         const favItemIds = await getFavItemIds(files);
         setFavItemIds(favItemIds);
@@ -410,6 +585,8 @@ export default function Gallery() {
             user,
             collections,
             files,
+            trashedFiles,
+            hiddenFiles,
             archivedCollections
         );
         setCollectionSummaries(collectionSummaries);
@@ -423,15 +600,16 @@ export default function Gallery() {
         setSelected({ ownCount: 0, count: 0, collectionID: 0 });
     };
 
-    if (!files || !collectionSummaries) {
+    if (!collectionSummaries || !filteredData) {
         return <div />;
     }
+
     const collectionOpsHelper =
         (ops: COLLECTION_OPS_TYPE) => async (collection: Collection) => {
             startLoading();
             try {
                 setCollectionSelectorView(false);
-                const selectedFiles = getSelectedFiles(selected, files);
+                const selectedFiles = getSelectedFiles(selected, filteredData);
                 const toProcessFiles =
                     ops === COLLECTION_OPS_TYPE.REMOVE
                         ? selectedFiles
@@ -468,9 +646,9 @@ export default function Gallery() {
     ) => {
         startLoading();
         try {
+            const selectedFiles = getSelectedFiles(selected, filteredData);
             const updatedFiles = await changeFilesVisibility(
-                files,
-                selected,
+                selectedFiles,
                 visibility
             );
             await updateFileMagicMetadata(updatedFiles);
@@ -503,9 +681,8 @@ export default function Gallery() {
         const callback = async (collectionName: string) => {
             try {
                 startLoading();
-                const collection = await createCollection(
+                const collection = await createAlbum(
                     collectionName,
-                    CollectionType.album,
                     collections
                 );
                 await collectionOpsHelper(ops)(collection);
@@ -533,7 +710,7 @@ export default function Gallery() {
     const deleteFileHelper = async (permanent?: boolean) => {
         startLoading();
         try {
-            const selectedFiles = getSelectedFiles(selected, files);
+            const selectedFiles = getSelectedFiles(selected, filteredData);
             setDeletedFileIds((deletedFileIds) => {
                 selectedFiles.forEach((file) => deletedFileIds.add(file.id));
                 return new Set(deletedFileIds);
@@ -545,6 +722,41 @@ export default function Gallery() {
             }
             clearSelection();
         } catch (e) {
+            setDeletedFileIds(new Set());
+            switch (e.status?.toString()) {
+                case ServerErrorCodes.FORBIDDEN:
+                    setDialogMessage({
+                        title: t('ERROR'),
+
+                        close: { variant: 'critical' },
+                        content: t('NOT_FILE_OWNER'),
+                    });
+            }
+            setDialogMessage({
+                title: t('ERROR'),
+
+                close: { variant: 'critical' },
+                content: t('UNKNOWN_ERROR'),
+            });
+        } finally {
+            await syncWithRemote(false, true);
+            finishLoading();
+        }
+    };
+
+    const hideFilesHelper = async () => {
+        startLoading();
+        try {
+            // passing files here instead of filteredData because we want to move all files copies to hidden collection
+            const selectedFiles = getSelectedFiles(selected, files);
+            setHiddenFileIds((hiddenFileIds) => {
+                selectedFiles.forEach((file) => hiddenFileIds.add(file.id));
+                return new Set(hiddenFileIds);
+            });
+            await moveToHiddenCollection(selectedFiles);
+            clearSelection();
+        } catch (e) {
+            setHiddenFileIds(new Set());
             switch (e.status?.toString()) {
                 case ServerErrorCodes.FORBIDDEN:
                     setDialogMessage({
@@ -581,13 +793,13 @@ export default function Gallery() {
     };
 
     const fixTimeHelper = async () => {
-        const selectedFiles = getSelectedFiles(selected, files);
+        const selectedFiles = getSelectedFiles(selected, filteredData);
         setFixCreationTimeAttributes({ files: selectedFiles });
         clearSelection();
     };
 
     const downloadHelper = async () => {
-        const selectedFiles = getSelectedFiles(selected, files);
+        const selectedFiles = getSelectedFiles(selected, filteredData);
         clearSelection();
         startLoading();
         await downloadFiles(selectedFiles);
@@ -624,6 +836,8 @@ export default function Gallery() {
                 setBlockingLoad,
                 photoListHeader,
                 openExportModal,
+                authenticateUser,
+                user,
             }}>
             <FullScreenDropZone
                 getDragAndDropRootProps={getDragAndDropRootProps}>
@@ -674,7 +888,7 @@ export default function Gallery() {
                     openUploader={openUploader}
                     isInSearchMode={isInSearchMode}
                     collections={collections}
-                    files={getNonTrashedFiles(files)}
+                    files={files}
                     setActiveCollection={setActiveCollection}
                     updateSearch={updateSearch}
                 />
@@ -735,15 +949,11 @@ export default function Gallery() {
                     <GalleryEmptyState openUploader={openUploader} />
                 ) : (
                     <PhotoFrame
-                        files={files}
-                        collections={collections}
+                        files={filteredData}
                         syncWithRemote={syncWithRemote}
                         favItemIds={favItemIds}
-                        archivedCollections={archivedCollections}
                         setSelected={setSelected}
                         selected={selected}
-                        isInSearchMode={isInSearchMode}
-                        search={search}
                         deletedFileIds={deletedFileIds}
                         setDeletedFileIds={setDeletedFileIds}
                         activeCollection={activeCollection}
@@ -752,6 +962,11 @@ export default function Gallery() {
                             CollectionSummaryType.incomingShare
                         }
                         enableDownload={true}
+                        fileToCollectionsMap={fileToCollectionsMap}
+                        collectionNameMap={collectionNameMap}
+                        showAppDownloadBanner={
+                            files.length < 30 && !isInSearchMode
+                        }
                     />
                 )}
                 {selected.count > 0 &&
@@ -776,6 +991,9 @@ export default function Gallery() {
                             restoreToCollectionHelper={collectionOpsHelper(
                                 COLLECTION_OPS_TYPE.RESTORE
                             )}
+                            unhideToCollectionHelper={collectionOpsHelper(
+                                COLLECTION_OPS_TYPE.UNHIDE
+                            )}
                             showCreateCollectionModal={
                                 showCreateCollectionModal
                             }
@@ -783,6 +1001,7 @@ export default function Gallery() {
                                 setCollectionSelectorAttributes
                             }
                             deleteFileHelper={deleteFileHelper}
+                            hideFilesHelper={hideFilesHelper}
                             removeFromCollectionHelper={() =>
                                 collectionOpsHelper(COLLECTION_OPS_TYPE.REMOVE)(
                                     getSelectedCollection(
@@ -815,6 +1034,11 @@ export default function Gallery() {
                         />
                     )}
                 <ExportModal show={exportModalView} onHide={closeExportModal} />
+                <AuthenticateUserModal
+                    open={authenticateUserModalView}
+                    onClose={closeAuthenticateUserModal}
+                    onAuthenticate={onAuthenticateCallback.current}
+                />
             </FullScreenDropZone>
         </GalleryContext.Provider>
     );
