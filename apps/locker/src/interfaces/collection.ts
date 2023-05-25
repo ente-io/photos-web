@@ -1,4 +1,6 @@
-import { User } from './user';
+import { CollectionType } from '@/constants/collection';
+import { User } from '../services/user';
+import { EncryptedMagicMetadata } from './magicMetadata';
 
 export interface EncryptedCollection {
     id: number;
@@ -9,13 +11,13 @@ export interface EncryptedCollection {
     keyDecryptionNonce: string;
     encryptedName: string;
     nameDecryptionNonce: string;
-    // type: CollectionType;
+    type: CollectionType;
     attributes: collectionAttributes;
     sharees: User[];
     publicURLs?: PublicURL[];
     updationTime: number;
     isDeleted: boolean;
-    // magicMetadata: EncryptedMagicMetadata;
+    magicMetadata: EncryptedMagicMetadata;
     app: 'locker' | 'photos';
 }
 
@@ -30,6 +32,7 @@ export interface Collection
     > {
     key: string;
     name: string;
+    type: CollectionType;
     magicMetadata: CollectionMagicMetadata;
 }
 
