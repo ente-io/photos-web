@@ -24,6 +24,7 @@ export interface EncryptedCollection {
     updationTime: number;
     isDeleted: boolean;
     magicMetadata: EncryptedMagicMetadata;
+    app: 'locker' | 'photos';
 }
 
 export interface Collection

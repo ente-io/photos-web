@@ -38,7 +38,7 @@ import {
     SUB_TYPE,
     NEW_COLLECTION_MAGIC_METADATA,
 } from '@/interfaces/magicMetadata';
-import { getPublicKey } from '@/interfaces/userService';
+import { getPublicKey } from '@/services/userService';
 import { batch } from '@/utils/common';
 import { CustomError } from '@/utils/error';
 import {
@@ -48,7 +48,7 @@ import {
 } from '@/utils/file';
 import { IsArchived, updateMagicMetadataProps } from '@/utils/magicMetadata';
 import { getLocalFiles } from './fileService';
-import { User } from './user';
+import { User } from '@/interfaces/user';
 import {
     ALL_SECTION,
     ARCHIVE_SECTION,
@@ -752,6 +752,7 @@ const updateCollectionSubType = async (
     const updatedCollection = {
         ...collection,
         magicMetadata: await updateMagicMetadataProps(
+            // @ts-ignore
             collection.magicMetadata ?? NEW_COLLECTION_MAGIC_METADATA,
             collection.key,
             updatedMagicMetadataProps

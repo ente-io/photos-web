@@ -7,25 +7,35 @@ import FolderDeleteIcon from '@mui/icons-material/FolderDelete';
 import SettingsIcon from '@mui/icons-material/Settings';
 import HTTPService from '@/services/HTTPService';
 import { getToken } from '@/utils/key';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { Collection, CollectionSummaries } from '@/interfaces/collection';
+import {
+    createUnCategorizedCollection,
+    getCollectionSummaries,
+    getUncategorizedCollection,
+    syncCollections,
+} from '@/services/collectionService';
+import { LS_KEYS, getData } from '@/utils/storage/localStorage';
+import { User } from '@/interfaces/user';
 
 const borderProperty = '1px solid #414141';
 
 const Locker = () => {
-    const fetchCollections = async () => {
-        const res = await HTTPService.get(
-            `${process.env.NEXT_PUBLIC_API_URL}/collections`,
-            {},
-            {
-                'X-Auth-Token': getToken(),
-            }
-        );
-
-        const data = res.data;
-    };
+    const [collections, setCollections] = useState<Collection[]>([]);
 
     useEffect(() => {
-        fetchCollections();
+        const init = async () => {
+            setCollections(await syncCollections());
+
+            let uncategorizedCollection = await getUncategorizedCollection();
+            if (!uncategorizedCollection) {
+                uncategorizedCollection = await createUnCategorizedCollection();
+            }
+
+            setCollections(await syncCollections());
+        };
+
+        init();
     }, []);
 
     return (
@@ -67,16 +77,19 @@ const Locker = () => {
                             display: 'flex',
                             flexDirection: 'column',
                         }}>
-                        <Button
-                            variant="text"
-                            sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.5rem',
-                            }}>
-                            <FolderIcon />
-                            <Typography>Files</Typography>
-                        </Button>
+                        {collections.map((collection) => (
+                            <Button
+                                key={collection.id}
+                                variant="text"
+                                sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                }}>
+                                <FolderIcon />
+                                <Typography>{collection.name}</Typography>
+                            </Button>
+                        ))}
                         <Button
                             variant="text"
                             sx={{

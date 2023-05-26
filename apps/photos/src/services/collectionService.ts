@@ -334,6 +334,7 @@ export const createCollection = async (
             updationTime: null,
             isDeleted: false,
             magicMetadata: null,
+            app: 'locker',
         };
         const createdCollection = await postCollection(newCollection, token);
         const decryptedCreatedCollection = await getCollectionWithSecrets(

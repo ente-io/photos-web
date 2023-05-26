@@ -7,16 +7,16 @@ import {
     updateCollectionMagicMetadata,
 } from '@/services/collectionService';
 import { downloadFiles } from '@/utils/file';
-import { EnteFile } from 'types/file';
+import { EnteFile } from '@/interfaces/file';
 import { CustomError, ServerErrorCodes } from 'utils/error';
-import { User } from 'types/user';
+import { User } from '@/interfaces/user';
 import { getData, LS_KEYS } from 'utils/storage/localStorage';
 import { logError } from 'utils/sentry';
 import {
     Collection,
     CollectionMagicMetadataProps,
     CollectionSummaries,
-} from 'types/collection';
+} from '@/interfaces/collection';
 import {
     CollectionSummaryType,
     HIDE_FROM_COLLECTION_BAR_TYPES,
@@ -29,11 +29,12 @@ import {
     NEW_COLLECTION_MAGIC_METADATA,
     SUB_TYPE,
     VISIBILITY_STATE,
-} from 'types/magicMetadata';
+} from '@/interfaces/magicMetadata';
 import { IsArchived, updateMagicMetadataProps } from 'utils/magicMetadata';
 import { getAlbumsURL } from 'utils/common/apiUtil';
 import bs58 from 'bs58';
 import { t } from 'i18next';
+import { getLocalFiles } from '@/services/fileService';
 
 export enum COLLECTION_OPS_TYPE {
     ADD,
