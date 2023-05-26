@@ -143,6 +143,7 @@ const getCollections = async (
             `${ENDPOINT}/collections`,
             {
                 sinceTime,
+                app: 'locker',
             },
             { 'X-Auth-Token': token }
         );
@@ -356,7 +357,9 @@ const postCollection = async (
         const response = await HTTPService.post(
             `${ENDPOINT}/collections`,
             collectionData,
-            null,
+            {
+                app: 'locker',
+            },
             { 'X-Auth-Token': token }
         );
         return response.data.collection;

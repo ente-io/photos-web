@@ -32,6 +32,8 @@ const Locker = () => {
                 uncategorizedCollection = await createUnCategorizedCollection();
             }
 
+            console.log(uncategorizedCollection);
+
             setCollections(await syncCollections());
         };
 
