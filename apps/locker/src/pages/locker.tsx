@@ -1,27 +1,35 @@
-import { Box, Button, Container, IconButton, Typography } from '@mui/material';
-import Link from 'next/link';
-import Image from 'next/image';
+import { Box, Button, Typography } from '@mui/material';
 
 import FolderIcon from '@mui/icons-material/Folder';
 import FolderDeleteIcon from '@mui/icons-material/FolderDelete';
 import SettingsIcon from '@mui/icons-material/Settings';
-import HTTPService from '@/services/HTTPService';
-import { getToken } from '@/utils/key';
-import { useEffect, useState } from 'react';
-import { Collection, CollectionSummaries } from '@/interfaces/collection';
+import {
+    Dispatch,
+    SetStateAction,
+    createContext,
+    useEffect,
+    useState,
+} from 'react';
+import { Collection } from '@/interfaces/collection';
 import {
     createUnCategorizedCollection,
-    getCollectionSummaries,
     getUncategorizedCollection,
     syncCollections,
 } from '@/services/collectionService';
-import { LS_KEYS, getData } from '@/utils/storage/localStorage';
-import { User } from '@/interfaces/user';
+import { borderProperty } from '@/constants/ui/locker/border';
+import NavBar from '@/components/pages/locker/NavBar';
 
-const borderProperty = '1px solid #414141';
+interface lockerDashboardContextProps {
+    currentCollection: Collection;
+    setCurrentCollection: Dispatch<SetStateAction<Collection>>;
+}
+
+const LockerDashboardContext = createContext({} as lockerDashboardContextProps);
 
 const Locker = () => {
     const [collections, setCollections] = useState<Collection[]>([]);
+
+    const [currentCollection, setCurrentCollection] = useState<Collection>();
 
     useEffect(() => {
         const init = async () => {
@@ -32,9 +40,9 @@ const Locker = () => {
                 uncategorizedCollection = await createUnCategorizedCollection();
             }
 
-            console.log(uncategorizedCollection);
-
             setCollections(await syncCollections());
+
+            // set the current collection to uncategorized
         };
 
         init();
@@ -42,84 +50,85 @@ const Locker = () => {
 
     return (
         <>
-            <Box
-                sx={{
-                    height: '100vh',
-                    width: '100vw',
-                    display: 'flex',
-                    flexDirection: 'column',
+            <LockerDashboardContext.Provider
+                value={{
+                    currentCollection,
+                    setCurrentCollection,
                 }}>
                 <Box
                     sx={{
-                        padding: '1rem',
-                        borderBottom: borderProperty,
-                    }}>
-                    <Link href="/locker">
-                        <Image
-                            src="/locker.svg"
-                            alt="ente Locker logo"
-                            width={200}
-                            height={50}
-                        />
-                    </Link>
-                </Box>
-                <Box
-                    sx={{
-                        width: '100%',
-                        height: '100%',
+                        height: '100vh',
+                        width: '100vw',
                         display: 'flex',
+                        flexDirection: 'column',
                     }}>
+                    <NavBar />
                     <Box
                         sx={{
+                            width: '100%',
                             height: '100%',
-                            borderRight: borderProperty,
-                            width: 'fit-content',
-                            padding: '1rem',
-                            boxSizing: 'border-box',
                             display: 'flex',
-                            flexDirection: 'column',
                         }}>
-                        {collections.map((collection) => (
+                        <Box
+                            sx={{
+                                height: '100%',
+                                borderRight: borderProperty,
+                                width: 'fit-content',
+                                padding: '1rem',
+                                boxSizing: 'border-box',
+                                display: 'flex',
+                                flexDirection: 'column',
+                            }}>
+                            {collections.map((collection) => (
+                                <Button
+                                    key={collection.id}
+                                    variant="text"
+                                    sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        color:
+                                            currentCollection?.id ===
+                                            collection.id
+                                                ? '#fff'
+                                                : '#2AB954',
+                                    }}
+                                    onClick={() => {
+                                        setCurrentCollection(collection);
+                                    }}>
+                                    <FolderIcon />
+                                    <Typography>{collection.name}</Typography>
+                                </Button>
+                            ))}
                             <Button
-                                key={collection.id}
                                 variant="text"
                                 sx={{
                                     display: 'flex',
                                     alignItems: 'center',
                                     gap: '0.5rem',
                                 }}>
-                                <FolderIcon />
-                                <Typography>{collection.name}</Typography>
+                                <FolderDeleteIcon />
+                                <Typography>Trash</Typography>
                             </Button>
-                        ))}
-                        <Button
-                            variant="text"
-                            sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.5rem',
-                            }}>
-                            <FolderDeleteIcon />
-                            <Typography>Trash</Typography>
-                        </Button>
-                        <Box
-                            sx={{
-                                height: '100%',
-                            }}
-                        />
-                        <Button
-                            variant="text"
-                            sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.5rem',
-                            }}>
-                            <SettingsIcon />
-                            <Typography>Settings</Typography>
-                        </Button>
+                            <Box
+                                sx={{
+                                    height: '100%',
+                                }}
+                            />
+                            <Button
+                                variant="text"
+                                sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                }}>
+                                <SettingsIcon />
+                                <Typography>Settings</Typography>
+                            </Button>
+                        </Box>
                     </Box>
                 </Box>
-            </Box>
+            </LockerDashboardContext.Provider>
         </>
     );
 };
