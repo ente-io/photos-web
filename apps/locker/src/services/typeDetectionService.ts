@@ -1,5 +1,5 @@
 import { FILE_TYPE } from '@/constants/file';
-import { ElectronFile, FileTypeInfo } from '@/interfaces/upload';
+import { FileTypeInfo } from '@/interfaces/upload';
 import {
     FILE_TYPE_LIB_MISSED_FORMATS,
     KNOWN_NON_MEDIA_FORMATS,
@@ -10,7 +10,7 @@ import { logError } from '@/utils/sentry';
 import { getUint8ArrayView } from './readerService';
 import FileType, { FileTypeResult } from 'file-type';
 import { getFileSize } from './upload/fileService';
-import { convertBytesToHumanReadable } from 'utils/file/size';
+import { convertBytesToHumanReadable } from '@/utils/file/size';
 
 const TYPE_VIDEO = 'video';
 const TYPE_IMAGE = 'image';
@@ -21,11 +21,11 @@ export async function getFileType(receivedFile: File): Promise<FileTypeInfo> {
         let fileType: FILE_TYPE;
         let typeResult: FileTypeResult;
 
-        if (receivedFile instanceof File) {
-            typeResult = await extractFileType(receivedFile);
-        } else {
-            typeResult = await extractElectronFileType(receivedFile);
-        }
+        // if (receivedFile instanceof File) {
+        typeResult = await extractFileType(receivedFile);
+        // } else {
+        //     typeResult = await extractElectronFileType(receivedFile);
+        // }
 
         const mimTypeParts: string[] = typeResult.mime?.split('/');
 
@@ -77,14 +77,6 @@ export async function getFileType(receivedFile: File): Promise<FileTypeInfo> {
 async function extractFileType(file: File) {
     const fileBlobChunk = file.slice(0, CHUNK_SIZE_FOR_TYPE_DETECTION);
     const fileDataChunk = await getUint8ArrayView(fileBlobChunk);
-    return getFileTypeFromBuffer(fileDataChunk);
-}
-
-async function extractElectronFileType(file: ElectronFile) {
-    const stream = await file.stream();
-    const reader = stream.getReader();
-    const { value: fileDataChunk } = await reader.read();
-    await reader.cancel();
     return getFileTypeFromBuffer(fileDataChunk);
 }
 

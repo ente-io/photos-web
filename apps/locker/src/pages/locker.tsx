@@ -18,10 +18,14 @@ import {
 } from '@/services/collectionService';
 import { borderProperty } from '@/constants/ui/locker/border';
 import NavBar from '@/components/pages/locker/NavBar';
+import { syncFiles } from '@/services/fileService';
+import { EnteFile } from '@/interfaces/file';
 
 interface lockerDashboardContextProps {
     currentCollection: Collection;
     setCurrentCollection: Dispatch<SetStateAction<Collection>>;
+    files: EnteFile[];
+    setFiles: Dispatch<SetStateAction<EnteFile[]>>;
 }
 
 const LockerDashboardContext = createContext({} as lockerDashboardContextProps);
@@ -30,6 +34,7 @@ const Locker = () => {
     const [collections, setCollections] = useState<Collection[]>([]);
 
     const [currentCollection, setCurrentCollection] = useState<Collection>();
+    const [files, setFiles] = useState<EnteFile[]>([]);
 
     useEffect(() => {
         const init = async () => {
@@ -43,10 +48,16 @@ const Locker = () => {
             setCollections(await syncCollections());
 
             // set the current collection to uncategorized
+            setCurrentCollection(uncategorizedCollection);
         };
 
         init();
     }, []);
+
+    useEffect(() => {
+        if (!currentCollection) return;
+        syncFiles([currentCollection], setFiles);
+    }, [currentCollection]);
 
     return (
         <>
@@ -54,6 +65,8 @@ const Locker = () => {
                 value={{
                     currentCollection,
                     setCurrentCollection,
+                    files,
+                    setFiles,
                 }}>
                 <Box
                     sx={{
@@ -125,6 +138,17 @@ const Locker = () => {
                                 <SettingsIcon />
                                 <Typography>Settings</Typography>
                             </Button>
+                        </Box>
+                        <Box>
+                            {currentCollection && files.length > 0 && (
+                                <Typography>
+                                    {files.map((file) => (
+                                        <Typography key={file.id}>
+                                            {file.title}
+                                        </Typography>
+                                    ))}
+                                </Typography>
+                            )}
                         </Box>
                     </Box>
                 </Box>

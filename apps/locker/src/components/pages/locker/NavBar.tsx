@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { borderProperty } from '@/constants/ui/locker/border';
 import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
+import FileUploadIcon from '@mui/icons-material/FileUpload';
 
 const NavBar = () => {
     return (
@@ -25,6 +26,9 @@ const NavBar = () => {
                 <Box>
                     <IconButton>
                         <CreateNewFolderIcon />
+                    </IconButton>
+                    <IconButton>
+                        <FileUploadIcon />
                     </IconButton>
                 </Box>
             </Box>
