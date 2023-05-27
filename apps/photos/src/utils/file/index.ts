@@ -31,8 +31,12 @@ import { addLogLine } from 'utils/logging';
 import { CustomError } from 'utils/error';
 import { convertBytesToHumanReadable } from './size';
 import ComlinkCryptoWorker from 'utils/comlink/ComlinkCryptoWorker';
+import { sleep } from 'utils/common';
 
 const WAIT_TIME_IMAGE_CONVERSION = 30 * 1000;
+
+const FALSE_ALARM_APPEND_FAILED_ERROR =
+    "Failed to execute 'appendBuffer' on 'SourceBuffer': This SourceBuffer is still processing an 'appendBuffer' or 'remove' operation.";
 
 export function downloadAsFile(filename: string, content: string) {
     const file = new Blob([content], {
@@ -350,75 +354,67 @@ async function getStreamableVideo(transcodedVideo: {
         const source = new MediaSource();
         console.log('source', source);
         source.addEventListener('sourceopen', async () => {
-            if (!source.sourceBuffers.length) {
-                const sourceBuffer = source.addSourceBuffer(
-                    'video/mp4; codecs="avc1.64001E,mp4a.40.2"'
-                );
-                console.log('sourceBuffer', sourceBuffer);
+            const sourceBuffer = source.addSourceBuffer(
+                'video/mp4; codecs="avc1.64001E,mp4a.40.2"'
+            );
+            console.log('sourceBuffer', sourceBuffer);
 
-                const reader = transcodedVideo.stream.getReader();
-
-                let chunk = await reader.read();
-                while (!chunk.done) {
-                    console.log(
-                        'got chunk',
-                        convertBytesToHumanReadable(chunk.value.length),
-                        'duration',
-                        transcodedVideo.durationRef.duration
-                    );
-                    console.log(
-                        'got chunk',
-                        chunk.done,
-                        convertBytesToHumanReadable(chunk.value.length)
-                    );
-                    if (chunk.value) {
-                        while (sourceBuffer.updating) {
-                            console.log('waiting for update to finish');
-                            // wait for previous update to finish
-                            await new Promise((resolve) =>
-                                setTimeout(resolve, 100)
-                            );
-                        }
-                        source.duration = transcodedVideo.durationRef.duration;
-
-                        // detect if the buffer is full
-
-                        const appendWasSuccessful = () => {
-                            try {
-                                sourceBuffer.appendBuffer(chunk.value);
-                                return true;
-                            } catch (e) {
-                                console.log(e);
-                                return false;
-                            }
-                        };
-                        while (!appendWasSuccessful()) {
-                            // compute the time of video that is buffered
-                            const bufferedTime =
-                                sourceBuffer.buffered.end(
-                                    sourceBuffer.buffered.length - 1
-                                ) - sourceBuffer.buffered.start(0);
-                            console.log('bufferedTime', bufferedTime);
-                            await new Promise((resolve) =>
-                                setTimeout(resolve, (bufferedTime - 1) * 1000)
-                            );
-                        }
-                    }
-                    chunk = await reader.read();
+            const waitForUpdateEnd = async () => {
+                if (!sourceBuffer.updating) {
+                    return Promise.resolve();
                 }
-                sourceBuffer.addEventListener('updateend', function () {
-                    if (
-                        !sourceBuffer.updating &&
-                        source.readyState === 'open'
-                    ) {
-                        source.endOfStream();
+                while (sourceBuffer.updating) {
+                    await sleep(100);
+                }
+            };
+
+            const attemptToAppend = (
+                chunkData: Uint8Array,
+                duration: number
+            ) => {
+                try {
+                    source.duration = duration;
+                    sourceBuffer.appendBuffer(chunkData);
+                    return true;
+                } catch (e) {
+                    if (e.message === FALSE_ALARM_APPEND_FAILED_ERROR) {
+                        return true;
                     }
-                });
+                    addLogLine(
+                        'attemptToAppend failed with error ' + e.message
+                    );
+                    return false;
+                }
+            };
+
+            const reader = transcodedVideo.stream.getReader();
+
+            let chunk = await reader.read();
+            while (!chunk.done) {
+                console.log(
+                    'got chunk',
+                    convertBytesToHumanReadable(chunk.value.length),
+                    'duration',
+                    transcodedVideo.durationRef.duration
+                );
+                await waitForUpdateEnd();
+                while (
+                    !attemptToAppend(
+                        chunk.value,
+                        transcodedVideo.durationRef.duration
+                    )
+                ) {
+                    await sleep(100);
+                }
+                chunk = await reader.read();
             }
+            await waitForUpdateEnd();
+            source.endOfStream();
         });
         return URL.createObjectURL(source);
     } catch (e) {
-        console.log('getRenderableVideo error', e);
+        logError(e, 'failed to get streamable video');
+        throw e;
     }
 }
 
