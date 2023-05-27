@@ -2,7 +2,7 @@ import { EnteFile } from '@/interfaces/file';
 import { handleUploadError, CustomError } from 'utils/error';
 import { logError } from 'utils/sentry';
 import { findMatchingExistingFiles } from '@/utils/upload';
-import UIService from './uiService';
+import UIService from './upload/uiService';
 import UploadService from './upload/uploadService';
 import { UPLOAD_RESULT, MAX_FILE_SIZE_SUPPORTED } from 'constants/upload';
 import {
@@ -16,7 +16,7 @@ import { addLocalLog, addLogLine } from '@/utils/logging';
 import { convertBytesToHumanReadable } from '@/utils/file/size';
 import { sleep } from '@/utils/common';
 import { addToCollection } from 'services/collectionService';
-import uploadCancelService from './uploadCancelService';
+import uploadCancelService from './upload/uploadCancelService';
 import { Remote } from 'comlink';
 import { DedicatedCryptoWorker } from 'worker/crypto.worker';
 import uploadService from './upload/uploadService';
@@ -130,9 +130,9 @@ export default async function uploader(
         // Read the file and create a file object with metadata
         addLogLine(`reading asset ${fileNameSize}`);
         const file = await UploadService.readAsset(fileTypeInfo, uploadAsset);
-        if (file.hasStaticThumbnail) {
-            metadata.hasStaticThumbnail = true;
-        }
+        // if (file.hasStaticThumbnail) {
+        //     metadata.hasStaticThumbnail = true;
+        // }
         let pubMagicMetadata: FilePublicMagicMetadata;
         if (uploaderName) {
             pubMagicMetadata = await uploadService.constructPublicMagicMetadata(
@@ -142,7 +142,7 @@ export default async function uploader(
         const fileWithMetadata: FileWithMetadata = {
             localID,
             filedata: file.filedata,
-            thumbnail: file.thumbnail,
+            // thumbnail: file.thumbnail,
             metadata,
             pubMagicMetadata,
         };
