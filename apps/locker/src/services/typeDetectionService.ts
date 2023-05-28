@@ -40,7 +40,10 @@ export async function getFileType(receivedFile: File): Promise<FileTypeInfo> {
                 fileType = FILE_TYPE.VIDEO;
                 break;
             default:
-                throw Error(CustomError.UNSUPPORTED_FILE_FORMAT);
+                fileType = FILE_TYPE.OTHERS;
+                break;
+            // default:
+            //     throw Error(CustomError.UNSUPPORTED_FILE_FORMAT);
         }
         return {
             fileType,
@@ -63,14 +66,19 @@ export async function getFileType(receivedFile: File): Promise<FileTypeInfo> {
             });
             return formatMissedByTypeDetection;
         }
-        if (KNOWN_NON_MEDIA_FORMATS.includes(fileFormat)) {
-            throw Error(CustomError.UNSUPPORTED_FILE_FORMAT);
-        }
+        // if (KNOWN_NON_MEDIA_FORMATS.includes(fileFormat)) {
+        //     throw Error(CustomError.UNSUPPORTED_FILE_FORMAT);
+        // }
         logError(e, 'type detection failed', {
             fileFormat,
             fileSize,
         });
-        throw Error(CustomError.TYPE_DETECTION_FAILED(fileFormat));
+        return {
+            fileType: FILE_TYPE.OTHERS,
+            exactType: fileFormat,
+            mimeType: 'application/octet-stream',
+        };
+        // throw Error(CustomError.TYPE_DETECTION_FAILED(fileFormat));
     }
 }
 

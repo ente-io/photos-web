@@ -4,8 +4,101 @@ import Image from 'next/image';
 import { borderProperty } from '@/constants/ui/locker/border';
 import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
+import { useContext, useEffect, useRef, useState } from 'react';
+import uploadManager from '@/services/uploadManager';
+import {
+    InProgressUpload,
+    SegregatedFinishedUploads,
+    UploadCounter,
+    UploadFileNames,
+} from '@/interfaces/upload/ui';
+import { UPLOAD_STAGES } from '@/constants/upload';
+import { LockerDashboardContext } from '@/pages/locker';
+import { FileWithCollection } from '@/interfaces/upload';
+import { addLogLine } from '@/utils/logging';
 
 const NavBar = () => {
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const [file, setFile] = useState<File | null>(null);
+
+    const [percentComplete, setPercentComplete] = useState(0);
+    const [uploadCounter, setUploadCounter] = useState({} as UploadCounter);
+    const [inProgressUploads, setInProgressUploads] = useState<
+        InProgressUpload[]
+    >([]);
+    const [finishedUploads, setFinishedUploads] = useState(
+        {} as SegregatedFinishedUploads
+    );
+    const [uploadStage, setUploadStage] = useState<UPLOAD_STAGES>(
+        UPLOAD_STAGES.START
+    );
+    const [uploadFileNames, setUploadFileNames] = useState(
+        {} as UploadFileNames
+    );
+    const [hasLivePhotos, setHasLivePhotos] = useState(false);
+    const [files, setFiles] = useState([]);
+
+    const { currentCollection } = useContext(LockerDashboardContext);
+
+    const localIDCounter = useRef(0);
+
+    const initUploadManager = async () => {
+        // Initialize the upload manager
+        await uploadManager.init(
+            {
+                setPercentComplete,
+                setUploadCounter,
+                setInProgressUploads,
+                setFinishedUploads,
+                setUploadStage,
+                setUploadFilenames: setUploadFileNames,
+                setHasLivePhotos,
+            },
+            setFiles,
+            {
+                token: null,
+                passwordToken: null,
+                accessedThroughSharedURL: false,
+                // photoListHeader: null,
+                // photoListFooter: null,
+            }
+        );
+    };
+
+    const handleFileUpload = async () => {
+        uploadManager.prepareForNewUpload();
+
+        if (!currentCollection) {
+            addLogLine('No collection selected');
+            return;
+        }
+
+        const localID = localIDCounter.current++;
+
+        // Add files to be uploaded
+        const fileWithCollection: FileWithCollection = {
+            file,
+            collection: currentCollection,
+            localID,
+            collectionID: currentCollection.id,
+        };
+        await uploadManager.queueFilesForUpload(
+            [fileWithCollection],
+            [currentCollection]
+        );
+    };
+
+    useEffect(() => {
+        initUploadManager();
+    }, []);
+
+    useEffect(() => {
+        if (!file) return;
+        addLogLine(`File selected`);
+        handleFileUpload();
+    }, [file, currentCollection]);
+
     return (
         <>
             <Box
@@ -27,11 +120,24 @@ const NavBar = () => {
                     <IconButton>
                         <CreateNewFolderIcon />
                     </IconButton>
-                    <IconButton>
+                    <IconButton
+                        onClick={() => {
+                            fileInputRef.current?.click();
+                        }}>
                         <FileUploadIcon />
                     </IconButton>
                 </Box>
             </Box>
+            <input
+                ref={fileInputRef}
+                type="file"
+                style={{
+                    display: 'none',
+                }}
+                onChange={(e) => {
+                    setFile(e.target.files[0]);
+                }}
+            />
         </>
     );
 };

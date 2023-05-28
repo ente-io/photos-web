@@ -145,31 +145,31 @@ class UploadManager {
                     this.parsedMetadataJSONMap
                 );
             }
-            // if (mediaFiles.length) {
-            //     addLogLine(`clusterLivePhotoFiles started`);
-            //     const analysedMediaFiles =
-            //         await UploadService.clusterLivePhotoFiles(mediaFiles);
-            //     addLogLine(`clusterLivePhotoFiles ended`);
-            //     addLogLine(
-            //         `got live photos: ${
-            //             mediaFiles.length !== analysedMediaFiles.length
-            //         }`
-            //     );
-            //     uiService.setFilenames(
-            //         new Map<number, string>(
-            //             analysedMediaFiles.map((mediaFile) => [
-            //                 mediaFile.localID,
-            //                 UploadService.getAssetName(mediaFile),
-            //             ])
-            //         )
-            //     );
+            if (mediaFiles.length) {
+                addLogLine(`clusterLivePhotoFiles started`);
+                const analysedMediaFiles =
+                    await UploadService.clusterLivePhotoFiles(mediaFiles);
+                addLogLine(`clusterLivePhotoFiles ended`);
+                addLogLine(
+                    `got live photos: ${
+                        mediaFiles.length !== analysedMediaFiles.length
+                    }`
+                );
+                uiService.setFilenames(
+                    new Map<number, string>(
+                        analysedMediaFiles.map((mediaFile) => [
+                            mediaFile.localID,
+                            UploadService.getAssetName(mediaFile),
+                        ])
+                    )
+                );
 
-            //     UIService.setHasLivePhoto(
-            //         mediaFiles.length !== analysedMediaFiles.length
-            //     );
+                UIService.setHasLivePhoto(
+                    mediaFiles.length !== analysedMediaFiles.length
+                );
 
-            //     await this.uploadMediaFiles(analysedMediaFiles);
-            // }
+                await this.uploadMediaFiles(analysedMediaFiles);
+            }
         } catch (e) {
             if (e.message === CustomError.UPLOAD_CANCELLED) {
                 // if (isElectron()) {

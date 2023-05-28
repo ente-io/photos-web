@@ -1,6 +1,7 @@
 import {
     MULTIPART_PART_SIZE,
     FILE_READER_CHUNK_SIZE,
+    NULL_EXTRACTED_METADATA,
 } from '@/constants/upload';
 import { EncryptedMagicMetadata } from '@/interfaces/magicMetadata';
 import {
@@ -11,6 +12,7 @@ import {
     DataStream,
     Metadata,
     ParsedMetadataJSONMap,
+    ParsedExtractedMetadata,
 } from '@/interfaces/upload';
 import { addLogLine, getFileNameSize } from '@/utils/logging';
 import { logError } from '@/utils/sentry';
@@ -20,6 +22,7 @@ import { getFileStream, getUint8ArrayView } from '../readerService';
 import { encryptFiledata } from './encryptionService';
 import { extractMetadata, getMetadataJSONMapKey } from './metadataService';
 import { splitFilenameAndExtension } from '@/utils/file';
+import { generateThumbnail } from './thumbnailService';
 
 export function getFileSize(file: File) {
     return file.size;
@@ -40,10 +43,10 @@ export async function encryptFile(
             file.filedata
         );
 
-        // const { file: encryptedThumbnail } = await worker.encryptThumbnail(
-        //     file.thumbnail,
-        //     fileKey
-        // );
+        const { file: encryptedThumbnail } = await worker.encryptThumbnail(
+            file.thumbnail,
+            fileKey
+        );
         const { file: encryptedMetadata } = await worker.encryptMetadata(
             file.metadata,
             fileKey
@@ -69,7 +72,7 @@ export async function encryptFile(
         const result: EncryptedFile = {
             file: {
                 file: encryptedFiledata,
-                // thumbnail: encryptedThumbnail,
+                thumbnail: encryptedThumbnail,
                 metadata: encryptedMetadata,
                 pubMagicMetadata: encryptedPubMagicMetadata,
                 localID: file.localID,
@@ -87,10 +90,10 @@ export async function readFile(
     fileTypeInfo: FileTypeInfo,
     rawFile: File
 ): Promise<FileInMemory> {
-    // const { thumbnail, hasStaticThumbnail } = await generateThumbnail(
-    //     rawFile,
-    //     fileTypeInfo
-    // );
+    const { thumbnail, hasStaticThumbnail } = await generateThumbnail(
+        rawFile,
+        fileTypeInfo
+    );
     addLogLine(`reading file data ${getFileNameSize(rawFile)} `);
     let filedata: Uint8Array | DataStream;
     // if (!(rawFile instanceof File)) {
@@ -113,8 +116,8 @@ export async function readFile(
 
     return {
         filedata,
-        // thumbnail,
-        // hasStaticThumbnail,
+        thumbnail,
+        hasStaticThumbnail,
     };
 }
 
@@ -130,11 +133,15 @@ export async function extractFileMetadata(
         parsedMetadataJSONMap.get(
             getMetadataJSONMapKey(collectionID, originalName)
         ) ?? {};
-    const extractedMetadata: Metadata = await extractMetadata(
+    const extractedMetadata: Metadata | null = await extractMetadata(
         worker,
         rawFile,
         fileTypeInfo
     );
+
+    if (!extractedMetadata) {
+        return null;
+    }
 
     for (const [key, value] of Object.entries(googleMetadata)) {
         if (!value) {

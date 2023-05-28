@@ -28,12 +28,16 @@ interface lockerDashboardContextProps {
     setFiles: Dispatch<SetStateAction<EnteFile[]>>;
 }
 
-const LockerDashboardContext = createContext({} as lockerDashboardContextProps);
+export const LockerDashboardContext =
+    createContext<lockerDashboardContextProps>(
+        {} as lockerDashboardContextProps
+    );
 
 const Locker = () => {
     const [collections, setCollections] = useState<Collection[]>([]);
 
-    const [currentCollection, setCurrentCollection] = useState<Collection>();
+    const [currentCollection, setCurrentCollection] =
+        useState<Collection | null>(null);
     const [files, setFiles] = useState<EnteFile[]>([]);
 
     useEffect(() => {
@@ -48,7 +52,7 @@ const Locker = () => {
             setCollections(await syncCollections());
 
             // set the current collection to uncategorized
-            setCurrentCollection(uncategorizedCollection);
+            // setCurrentCollection(uncategorizedCollection);
         };
 
         init();
@@ -92,27 +96,35 @@ const Locker = () => {
                                 display: 'flex',
                                 flexDirection: 'column',
                             }}>
-                            {collections.map((collection) => (
-                                <Button
-                                    key={collection.id}
-                                    variant="text"
-                                    sx={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '0.5rem',
-                                        color:
-                                            currentCollection?.id ===
-                                            collection.id
-                                                ? '#fff'
-                                                : '#2AB954',
-                                    }}
-                                    onClick={() => {
-                                        setCurrentCollection(collection);
-                                    }}>
-                                    <FolderIcon />
-                                    <Typography>{collection.name}</Typography>
-                                </Button>
-                            ))}
+                            {collections.length > 0 && (
+                                <>
+                                    {collections.map((collection) => (
+                                        <Button
+                                            key={collection.id}
+                                            variant="text"
+                                            sx={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.5rem',
+                                                color:
+                                                    currentCollection?.id ===
+                                                    collection.id
+                                                        ? '#2AB954'
+                                                        : '#fff',
+                                            }}
+                                            onClick={() => {
+                                                setCurrentCollection(
+                                                    collection
+                                                );
+                                            }}>
+                                            <FolderIcon />
+                                            <Typography>
+                                                {collection.name}
+                                            </Typography>
+                                        </Button>
+                                    ))}
+                                </>
+                            )}
                             <Button
                                 variant="text"
                                 sx={{

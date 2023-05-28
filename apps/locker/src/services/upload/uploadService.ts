@@ -1,9 +1,9 @@
 import { Collection } from '@/interfaces/collection';
-import { logError } from 'utils/sentry';
+import { logError } from '@/utils/sentry';
 import UploadHttpClient from './uploadHttpClient';
 import { extractFileMetadata, getFilename } from './fileService';
 import { getFileType } from '../typeDetectionService';
-import { CustomError, handleUploadError } from 'utils/error';
+import { CustomError, handleUploadError } from '@/utils/error';
 import {
     BackupedFile,
     EncryptedFile,
@@ -20,24 +20,25 @@ import {
     UploadFile,
     UploadURL,
 } from '@/interfaces/upload';
-// import {
-//     clusterLivePhotoFiles,
-//     extractLivePhotoMetadata,
-//     getLivePhotoFileType,
-//     getLivePhotoName,
-//     getLivePhotoSize,
-//     readLivePhoto,
-// } from './livePhotoService';
+import {
+    clusterLivePhotoFiles,
+    extractLivePhotoMetadata,
+    getLivePhotoFileType,
+    getLivePhotoName,
+    getLivePhotoSize,
+    readLivePhoto,
+} from './livePhotoService';
 import { encryptFile, getFileSize, readFile } from './fileService';
 import { uploadStreamUsingMultipart } from './multiPartUploadService';
 import UIService from './uiService';
-import { USE_CF_PROXY } from 'constants/upload';
+import { USE_CF_PROXY } from '@/constants/upload';
 import { Remote } from 'comlink';
-import { DedicatedCryptoWorker } from 'worker/crypto.worker';
+import { DedicatedCryptoWorker } from '@/worker/crypto.worker';
 import publicUploadHttpClient from './publicUploadHttpClient';
 import { constructPublicMagicMetadata } from './magicMetadataService';
 import { FilePublicMagicMetadataProps } from '@/interfaces/magicMetadata';
 import { B64EncryptionResult } from '@/interfaces/crypto';
+import { addLogLine } from '@/utils/logging';
 
 class UploadService {
     private uploadURLs: UploadURL[] = [];
@@ -113,34 +114,34 @@ class UploadService {
         { isLivePhoto, file, livePhotoAssets }: UploadAsset,
         collectionID: number,
         fileTypeInfo: FileTypeInfo
-    ): Promise<Metadata> {
-        // return isLivePhoto
-        //     ? extractLivePhotoMetadata(
-        //           worker,
-        //           this.parsedMetadataJSONMap,
-        //           collectionID,
-        //           fileTypeInfo,
-        //           livePhotoAssets
-        //       )
-        //     : await extractFileMetadata(
-        //           worker,
-        //           this.parsedMetadataJSONMap,
-        //           collectionID,
-        //           fileTypeInfo,
-        //           file
-        //       );
-        return await extractFileMetadata(
-            worker,
-            this.parsedMetadataJSONMap,
-            collectionID,
-            fileTypeInfo,
-            file
-        );
+    ): Promise<Metadata | null> {
+        return isLivePhoto
+            ? extractLivePhotoMetadata(
+                  worker,
+                  this.parsedMetadataJSONMap,
+                  collectionID,
+                  fileTypeInfo,
+                  livePhotoAssets
+              )
+            : await extractFileMetadata(
+                  worker,
+                  this.parsedMetadataJSONMap,
+                  collectionID,
+                  fileTypeInfo,
+                  file
+              );
+        // return await extractFileMetadata(
+        //     worker,
+        //     this.parsedMetadataJSONMap,
+        //     collectionID,
+        //     fileTypeInfo,
+        //     file
+        // );
     }
 
-    // clusterLivePhotoFiles(mediaFiles: FileWithCollection[]) {
-    //     return clusterLivePhotoFiles(mediaFiles);
-    // }
+    clusterLivePhotoFiles(mediaFiles: FileWithCollection[]) {
+        return clusterLivePhotoFiles(mediaFiles);
+    }
 
     constructPublicMagicMetadata(
         publicMagicMetadataProps: FilePublicMagicMetadataProps
@@ -183,6 +184,10 @@ class UploadService {
                     );
                 }
             }
+            if (!file.thumbnail) {
+                addLogLine('No thumbnail found for file');
+            }
+
             const thumbnailUploadURL = await this.getUploadURL();
             let thumbnailObjectKey: string = null;
             if (USE_CF_PROXY) {

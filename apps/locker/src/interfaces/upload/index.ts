@@ -81,8 +81,8 @@ export interface UploadURL {
 
 export interface FileInMemory {
     filedata: Uint8Array | DataStream;
-    // thumbnail: Uint8Array;
-    // hasStaticThumbnail: boolean;
+    thumbnail: Uint8Array;
+    hasStaticThumbnail: boolean;
 }
 
 export interface FileWithMetadata
@@ -98,14 +98,14 @@ export interface EncryptedFile {
 }
 export interface ProcessedFile {
     file: LocalFileAttributes<Uint8Array | DataStream>;
-    // thumbnail: LocalFileAttributes<Uint8Array>;
+    thumbnail: LocalFileAttributes<Uint8Array>;
     metadata: LocalFileAttributes<string>;
     pubMagicMetadata: EncryptedMagicMetadata;
     localID: number;
 }
 export interface BackupedFile {
     file: FileAttributes;
-    thumbnail: FileAttributes;
+    thumbnail?: FileAttributes;
     metadata: FileAttributes;
     pubMagicMetadata: EncryptedMagicMetadata;
 }

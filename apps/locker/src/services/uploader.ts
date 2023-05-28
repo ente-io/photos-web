@@ -48,6 +48,8 @@ export default async function uploader(
     let fileTypeInfo: FileTypeInfo;
     let fileSize: number;
 
+    addLogLine(`collectionID: ${collection.id}`);
+
     try {
         // Get the file size and check if it's supported
         fileSize = UploadService.getAssetSize(uploadAsset);
@@ -69,6 +71,12 @@ export default async function uploader(
             uploadAsset,
             collection.id,
             fileTypeInfo
+        );
+
+        addLogLine(
+            `extracted metadata for ${fileNameSize} - ${JSON.stringify(
+                metadata
+            )}`
         );
 
         // Find any matching existing files
@@ -130,9 +138,9 @@ export default async function uploader(
         // Read the file and create a file object with metadata
         addLogLine(`reading asset ${fileNameSize}`);
         const file = await UploadService.readAsset(fileTypeInfo, uploadAsset);
-        // if (file.hasStaticThumbnail) {
-        //     metadata.hasStaticThumbnail = true;
-        // }
+        if (file.hasStaticThumbnail) {
+            metadata.hasStaticThumbnail = true;
+        }
         let pubMagicMetadata: FilePublicMagicMetadata;
         if (uploaderName) {
             pubMagicMetadata = await uploadService.constructPublicMagicMetadata(
@@ -142,7 +150,7 @@ export default async function uploader(
         const fileWithMetadata: FileWithMetadata = {
             localID,
             filedata: file.filedata,
-            // thumbnail: file.thumbnail,
+            thumbnail: file.thumbnail,
             metadata,
             pubMagicMetadata,
         };
