@@ -20,6 +20,7 @@ import { borderProperty } from '@/constants/ui/locker/border';
 import NavBar from '@/components/pages/locker/NavBar';
 import { syncFiles } from '@/services/fileService';
 import { EnteFile } from '@/interfaces/file';
+import { addLogLine } from '@/utils/logging';
 
 interface lockerDashboardContextProps {
     currentCollection: Collection;
@@ -60,7 +61,13 @@ const Locker = () => {
 
     useEffect(() => {
         if (!currentCollection) return;
-        syncFiles([currentCollection], setFiles);
+        addLogLine(`Syncing files for collection ${currentCollection.name}`);
+        const sync = async () => {
+            const files = await syncFiles([currentCollection], () => {});
+            setFiles(files);
+        };
+
+        sync();
     }, [currentCollection]);
 
     return (
@@ -151,16 +158,15 @@ const Locker = () => {
                                 <Typography>Settings</Typography>
                             </Button>
                         </Box>
-                        <Box>
-                            {currentCollection && files.length > 0 && (
-                                <Typography>
-                                    {files.map((file) => (
-                                        <Typography key={file.id}>
-                                            {file.title}
-                                        </Typography>
-                                    ))}
+                        <Box
+                            sx={{
+                                width: '100%',
+                            }}>
+                            {files.map((file) => (
+                                <Typography key={file.id}>
+                                    {file.metadata.title}
                                 </Typography>
-                            )}
+                            ))}
                         </Box>
                     </Box>
                 </Box>
