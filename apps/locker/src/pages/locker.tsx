@@ -80,44 +80,36 @@ const Locker = () => {
                     setFiles,
                 }}>
                 <Box
-                    sx={{
-                        height: '100vh',
-                        width: '100vw',
-                        display: 'flex',
-                        flexDirection: 'column',
-                    }}>
+                    height="100vh"
+                    width="100vw"
+                    display="flex"
+                    flexDirection="column">
                     <NavBar />
-                    <Box
-                        sx={{
-                            width: '100%',
-                            height: '100%',
-                            display: 'flex',
-                        }}>
+                    <Box width="100%" height="100%" display="flex">
                         <Box
-                            sx={{
-                                height: '100%',
-                                borderRight: borderProperty,
-                                width: 'fit-content',
-                                padding: '1rem',
-                                boxSizing: 'border-box',
-                                display: 'flex',
-                                flexDirection: 'column',
-                            }}>
+                            width="fit-content"
+                            borderRight={borderProperty}
+                            padding="1rem"
+                            boxSizing={'border-box'}
+                            height="100%"
+                            display="flex"
+                            flexDirection="column">
                             {collections.length > 0 && (
                                 <>
                                     {collections.map((collection) => (
                                         <Button
                                             key={collection.id}
                                             variant="text"
+                                            color={
+                                                currentCollection?.id ===
+                                                collection.id
+                                                    ? 'accent'
+                                                    : 'inherit'
+                                            }
                                             sx={{
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 gap: '0.5rem',
-                                                color:
-                                                    currentCollection?.id ===
-                                                    collection.id
-                                                        ? '#2AB954'
-                                                        : '#fff',
                                             }}
                                             onClick={() => {
                                                 setCurrentCollection(
