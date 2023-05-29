@@ -22,6 +22,7 @@ import { GalleryContext } from 'pages/gallery';
 import { formatDate } from 'utils/time/format';
 import { Trans } from 'react-i18next';
 import { t } from 'i18next';
+import { areFilesWithFileHashSame, hasFileHash } from 'utils/upload';
 
 const A_DAY = 24 * 60 * 60 * 1000;
 const FOOTER_HEIGHT = 90;
@@ -163,7 +164,7 @@ const NothingContainer = styled(ListItemContainer)`
 interface Props {
     height: number;
     width: number;
-    filteredData: EnteFile[];
+    displayFiles: EnteFile[];
     showAppDownloadBanner: boolean;
     getThumbnail: (
         file: EnteFile,
@@ -176,7 +177,7 @@ interface Props {
 export function PhotoList({
     height,
     width,
-    filteredData,
+    displayFiles,
     showAppDownloadBanner,
     getThumbnail,
     activeCollection,
@@ -232,14 +233,14 @@ export function PhotoList({
                 skipMerge = true;
                 groupByFileSize(timeStampList);
             } else {
-                groupByTime(t, timeStampList);
+                groupByTime(timeStampList);
             }
 
             if (!skipMerge) {
                 timeStampList = mergeTimeStampList(timeStampList, columns);
             }
             if (timeStampList.length === 1) {
-                timeStampList.push(getEmptyListItem(t));
+                timeStampList.push(getEmptyListItem());
             }
             timeStampList.push(getVacuumItem(timeStampList));
             if (publicCollectionGalleryContext.accessedThroughSharedURL) {
@@ -250,7 +251,7 @@ export function PhotoList({
                         )
                     );
                 }
-                timeStampList.push(getAlbumsFooter(t));
+                timeStampList.push(getAlbumsFooter());
             } else if (showAppDownloadBanner) {
                 timeStampList.push(getAppDownloadFooter());
             }
@@ -266,7 +267,7 @@ export function PhotoList({
     }, [
         width,
         height,
-        filteredData,
+        displayFiles,
         deduplicateContext.isOnDeduplicatePage,
         deduplicateContext.fileSizeMap,
     ]);
@@ -319,7 +320,7 @@ export function PhotoList({
                         getPhotoListFooter(
                             publicCollectionGalleryContext.photoListFooter
                         ),
-                        getAlbumsFooter(t),
+                        getAlbumsFooter(),
                     ];
                 }
             } else if (showAppDownloadBanner) {
@@ -340,20 +341,41 @@ export function PhotoList({
 
     const groupByFileSize = (timeStampList: TimeStampListItem[]) => {
         let index = 0;
-        while (index < filteredData.length) {
-            const file = filteredData[index];
-            const currentFileSize = deduplicateContext.fileSizeMap.get(file.id);
-            const currentCreationTime = file.metadata.creationTime;
+        while (index < displayFiles.length) {
+            const firstFile = displayFiles[index];
+            const firstFileSize = deduplicateContext.fileSizeMap.get(
+                firstFile.id
+            );
+            const firstFileCreationTime = firstFile.metadata.creationTime;
             let lastFileIndex = index;
 
-            while (lastFileIndex < filteredData.length) {
+            while (lastFileIndex < displayFiles.length) {
+                const lastFile = displayFiles[lastFileIndex];
+
+                const lastFileSize = deduplicateContext.fileSizeMap.get(
+                    lastFile.id
+                );
+                if (lastFileSize !== firstFileSize) {
+                    break;
+                }
+
+                const lastFileCreationTime = lastFile.metadata.creationTime;
                 if (
-                    deduplicateContext.fileSizeMap.get(
-                        filteredData[lastFileIndex].id
-                    ) !== currentFileSize ||
-                    (deduplicateContext.clubSameTimeFilesOnly &&
-                        filteredData[lastFileIndex].metadata.creationTime !==
-                            currentCreationTime)
+                    deduplicateContext.clubSameTimeFilesOnly &&
+                    lastFileCreationTime !== firstFileCreationTime
+                ) {
+                    break;
+                }
+
+                const eitherFileHasFileHash =
+                    hasFileHash(lastFile.metadata) ||
+                    hasFileHash(firstFile.metadata);
+                if (
+                    eitherFileHasFileHash &&
+                    !areFilesWithFileHashSame(
+                        lastFile.metadata,
+                        firstFile.metadata
+                    )
                 ) {
                     break;
                 }
@@ -362,7 +384,7 @@ export function PhotoList({
             lastFileIndex--;
             timeStampList.push({
                 itemType: ITEM_TYPE.SIZE_AND_COUNT,
-                fileSize: currentFileSize,
+                fileSize: firstFileSize,
                 fileCount: lastFileIndex - index + 1,
             });
 
@@ -370,7 +392,7 @@ export function PhotoList({
                 const tileSize = Math.min(columns, lastFileIndex - index + 1);
                 timeStampList.push({
                     itemType: ITEM_TYPE.FILE,
-                    items: filteredData.slice(index, index + tileSize),
+                    items: displayFiles.slice(index, index + tileSize),
                     itemStartIndex: index,
                 });
                 index += tileSize;
@@ -378,10 +400,10 @@ export function PhotoList({
         }
     };
 
-    const groupByTime = (t, timeStampList: TimeStampListItem[]) => {
+    const groupByTime = (timeStampList: TimeStampListItem[]) => {
         let listItemIndex = 0;
         let currentDate;
-        filteredData.forEach((item, index) => {
+        displayFiles.forEach((item, index) => {
             if (
                 !currentDate ||
                 !isSameDay(
@@ -453,7 +475,7 @@ export function PhotoList({
         };
     };
 
-    const getEmptyListItem = (t) => {
+    const getEmptyListItem = () => {
         return {
             itemType: ITEM_TYPE.OTHER,
             item: (
@@ -521,7 +543,7 @@ export function PhotoList({
         };
     };
 
-    const getAlbumsFooter = (t) => {
+    const getAlbumsFooter = () => {
         return {
             itemType: ITEM_TYPE.MARKETING_FOOTER,
             height: ALBUM_FOOTER_HEIGHT,
@@ -645,7 +667,6 @@ export function PhotoList({
     };
 
     const renderListItem = (
-        t,
         listItem: TimeStampListItem,
         isScrolling: boolean
     ) => {
@@ -721,7 +742,7 @@ export function PhotoList({
                         columns={columns}
                         shrinkRatio={shrinkRatio}
                         groups={timeStampList[index].groups}>
-                        {renderListItem(t, timeStampList[index], isScrolling)}
+                        {renderListItem(timeStampList[index], isScrolling)}
                     </ListContainer>
                 </ListItem>
             )}

@@ -19,7 +19,7 @@ import { mergeMetadata, sortFiles } from 'utils/file';
 import { AppContext } from 'pages/_app';
 import { PublicCollectionGalleryContext } from 'utils/publicCollectionGallery';
 import { CustomError, parseSharingErrorCodes } from 'utils/error';
-import VerticallyCentered, { CenteredFlex } from 'components/Container';
+import { VerticallyCentered, CenteredFlex } from 'components/Container';
 import { t } from 'i18next';
 
 import EnteSpinner from 'components/EnteSpinner';
@@ -33,7 +33,6 @@ import SharedAlbumNavbar from 'components/pages/sharedAlbum/Navbar';
 import { CollectionInfo } from 'components/Collections/CollectionInfo';
 import { CollectionInfoBarWrapper } from 'components/Collections/styledComponents';
 import { ITEM_TYPE, TimeStampListItem } from 'components/PhotoList';
-import FormContainer from 'components/Form/FormContainer';
 import FormPaper from 'components/Form/FormPaper';
 import FormPaperTitle from 'components/Form/FormPaper/Title';
 import Typography from '@mui/material/Typography';
@@ -167,6 +166,8 @@ export default function PublicCollectionGallery() {
                     collectionKey.current
                 );
                 if (localCollection) {
+                    const sortAsc: boolean =
+                        localCollection?.pubMagicMetadata?.data.asc ?? false;
                     setPublicCollection(localCollection);
                     const isPasswordProtected =
                         localCollection?.publicURLs?.[0]?.passwordEnabled;
@@ -174,7 +175,8 @@ export default function PublicCollectionGallery() {
                     const collectionUID = getPublicCollectionUID(token.current);
                     const localFiles = await getLocalPublicFiles(collectionUID);
                     const localPublicFiles = sortFiles(
-                        mergeMetadata(localFiles)
+                        mergeMetadata(localFiles),
+                        sortAsc
                     );
                     setPublicFiles(localPublicFiles);
                     passwordJWTToken.current =
@@ -352,7 +354,7 @@ export default function PublicCollectionGallery() {
         }
         if (isPasswordProtected && !passwordJWTToken.current) {
             return (
-                <FormContainer>
+                <VerticallyCentered>
                     <FormPaper>
                         <FormPaperTitle>{t('PASSWORD')}</FormPaperTitle>
                         <Typography color={'text.muted'} mb={2} variant="small">
@@ -365,7 +367,7 @@ export default function PublicCollectionGallery() {
                             fieldType="password"
                         />
                     </FormPaper>
-                </FormContainer>
+                </VerticallyCentered>
             );
         }
         if (!publicFiles) {
@@ -406,6 +408,8 @@ export default function PublicCollectionGallery() {
                         publicCollection?.publicURLs?.[0]?.enableDownload ??
                         true
                     }
+                    fileToCollectionsMap={null}
+                    collectionNameMap={null}
                 />
                 {blockingLoad && (
                     <LoadingOverlay>

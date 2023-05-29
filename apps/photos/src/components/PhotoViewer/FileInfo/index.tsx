@@ -43,16 +43,16 @@ export const FileInfoSidebar = styled((props: DialogProps) => (
 });
 
 interface Iprops {
-    shouldDisableEdits: boolean;
+    shouldDisableEdits?: boolean;
     showInfo: boolean;
     handleCloseInfo: () => void;
     file: EnteFile;
     exif: any;
     scheduleUpdate: () => void;
     refreshPhotoswipe: () => void;
-    fileToCollectionsMap: Map<number, number[]>;
-    collectionNameMap: Map<number, string>;
-    isTrashCollection: boolean;
+    fileToCollectionsMap?: Map<number, number[]>;
+    collectionNameMap?: Map<number, string>;
+    showCollectionChips: boolean;
 }
 
 function BasicDeviceCamera({
@@ -86,7 +86,7 @@ export function FileInfo({
     refreshPhotoswipe,
     fileToCollectionsMap,
     collectionNameMap,
-    isTrashCollection,
+    showCollectionChips,
 }: Iprops) {
     const appContext = useContext(AppContext);
     const [parsedExifData, setParsedExifData] = useState<Record<string, any>>();
@@ -250,7 +250,7 @@ export function FileInfo({
                     caption={formatTime(file.metadata.modificationTime / 1000)}
                     hideEditOption
                 />
-                {!isTrashCollection && (
+                {showCollectionChips && (
                     <InfoItem icon={<FolderOutlined />} hideEditOption>
                         <Box
                             display={'flex'}
@@ -259,7 +259,7 @@ export function FileInfo({
                             justifyContent={'flex-start'}
                             alignItems={'flex-start'}>
                             {fileToCollectionsMap
-                                .get(file.id)
+                                ?.get(file.id)
                                 ?.filter((collectionID) =>
                                     collectionNameMap.has(collectionID)
                                 )

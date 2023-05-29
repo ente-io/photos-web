@@ -11,15 +11,12 @@ import { EnteFile } from 'types/file';
 import { logError } from 'utils/sentry';
 import { FILE_TYPE } from 'constants/file';
 import { CustomError } from 'utils/error';
-import QueueProcessor, { PROCESSING_STRATEGY } from './queueProcessor';
 import ComlinkCryptoWorker from 'utils/comlink/ComlinkCryptoWorker';
-import { addLogLine } from 'utils/logging';
 import { CacheStorageService } from './cache/cacheStorageService';
 import { CACHES } from 'constants/cache';
 import { Remote } from 'comlink';
 import { DedicatedCryptoWorker } from 'worker/crypto.worker';
-
-const MAX_PARALLEL_DOWNLOADS = 10;
+import { LimitedCache } from 'types/cache';
 
 class DownloadManager {
     private fileObjectURLPromise = new Map<
@@ -28,10 +25,39 @@ class DownloadManager {
     >();
     private thumbnailObjectURLPromise = new Map<number, Promise<string>>();
 
-    private thumbnailDownloadRequestsProcessor = new QueueProcessor<any>(
-        MAX_PARALLEL_DOWNLOADS,
-        PROCESSING_STRATEGY.LIFO
-    );
+    private async getThumbnailCache() {
+        try {
+            const thumbnailCache = await CacheStorageService.open(
+                CACHES.THUMBS
+            );
+            return thumbnailCache;
+        } catch (e) {
+            return null;
+            // ignore
+        }
+    }
+
+    public async getCachedThumbnail(
+        file: EnteFile,
+        thumbnailCache?: LimitedCache
+    ) {
+        try {
+            if (!thumbnailCache) {
+                thumbnailCache = await this.getThumbnailCache();
+            }
+            const cacheResp: Response = await thumbnailCache?.match(
+                file.id.toString()
+            );
+
+            if (cacheResp) {
+                return URL.createObjectURL(await cacheResp.blob());
+            }
+            return null;
+        } catch (e) {
+            logError(e, 'failed to get cached thumbnail');
+            throw e;
+        }
+    }
 
     public async getThumbnail(
         file: EnteFile,
@@ -40,44 +66,26 @@ class DownloadManager {
         timeout?: number
     ) {
         try {
-            addLogLine(`[${file.id}] [DownloadManager] getThumbnail called`);
             const token = tokenOverride || getToken();
             if (!token) {
                 return null;
             }
-            if (this.thumbnailObjectURLPromise.has(file.id)) {
-                addLogLine(
-                    `[${file.id}] [DownloadManager] getThumbnail promise cache hit, returning existing promise`
-                );
-            }
             if (!this.thumbnailObjectURLPromise.has(file.id)) {
                 const downloadPromise = async () => {
-                    const thumbnailCache = await CacheStorageService.open(
-                        CACHES.THUMBS
+                    const thumbnailCache = await this.getThumbnailCache();
+                    const cachedThumb = await this.getCachedThumbnail(
+                        file,
+                        thumbnailCache
                     );
-
-                    const cacheResp: Response = await thumbnailCache?.match(
-                        file.id.toString()
-                    );
-                    if (cacheResp) {
-                        addLogLine(
-                            `[${file.id}] [DownloadManager] in memory cache hit, using localCache files`
-                        );
-                        return URL.createObjectURL(await cacheResp.blob());
+                    if (cachedThumb) {
+                        return cachedThumb;
                     }
-                    addLogLine(
-                        `[${file.id}] [DownloadManager] in memory cache miss, DownloadManager getThumbnail download started`
+                    const thumb = await this.downloadThumb(
+                        token,
+                        file,
+                        usingWorker,
+                        timeout
                     );
-                    const thumb =
-                        await this.thumbnailDownloadRequestsProcessor.queueUpRequest(
-                            () =>
-                                this.downloadThumb(
-                                    token,
-                                    file,
-                                    usingWorker,
-                                    timeout
-                                )
-                        ).promise;
                     const thumbBlob = new Blob([thumb]);
 
                     thumbnailCache
@@ -128,7 +136,6 @@ class DownloadManager {
         const fileKey = forPreview ? `${file.id}_preview` : `${file.id}`;
         try {
             const getFilePromise = async () => {
-                addLogLine(`[${file.id}] [DownloadManager] downloading file`);
                 const fileStream = await this.downloadFile(file);
                 const fileBlob = await new Response(fileStream).blob();
                 if (forPreview) {
@@ -141,11 +148,6 @@ class DownloadManager {
                     return { converted: [fileURL], original: [fileURL] };
                 }
             };
-            if (this.fileObjectURLPromise.has(fileKey)) {
-                addLogLine(
-                    `[${file.id}] [DownloadManager] getFile promise cache hit, returning existing promise`
-                );
-            }
             if (!this.fileObjectURLPromise.get(fileKey)) {
                 this.fileObjectURLPromise.set(fileKey, getFilePromise());
             }

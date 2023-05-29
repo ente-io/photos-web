@@ -72,6 +72,7 @@ interface Iprops {
     setDeletedFileIds?: (value: Set<number>) => void;
     isIncomingSharedCollection: boolean;
     isTrashCollection: boolean;
+    isHiddenCollection: boolean;
     enableDownload: boolean;
     isSourceLoaded: boolean;
     fileToCollectionsMap: Map<number, number[]>;
@@ -371,18 +372,28 @@ function PhotoViewer(props: Iprops) {
     };
 
     const onFavClick = async (file: EnteFile) => {
-        if (!file) return;
-        const { favItemIds } = props;
-        if (!isInFav(file)) {
-            favItemIds.add(file.id);
-            addToFavorites(file);
-            setIsFav(true);
-        } else {
-            favItemIds.delete(file.id);
-            removeFromFavorites(file);
-            setIsFav(false);
+        try {
+            if (
+                props.isTrashCollection ||
+                props.isIncomingSharedCollection ||
+                props.isHiddenCollection
+            ) {
+                return;
+            }
+            const { favItemIds } = props;
+            if (!isInFav(file)) {
+                favItemIds.add(file.id);
+                addToFavorites(file);
+                setIsFav(true);
+            } else {
+                favItemIds.delete(file.id);
+                removeFromFavorites(file);
+                setIsFav(false);
+            }
+            needUpdate.current = true;
+        } catch (e) {
+            logError(e, 'onFavClick failed');
         }
-        needUpdate.current = true;
     };
 
     const trashFile = async (file: EnteFile) => {
@@ -606,16 +617,15 @@ function PhotoViewer(props: Iprops) {
                                 title={t('TOGGLE_FULLSCREEN')}
                             />
 
-                            {!props.isIncomingSharedCollection && (
-                                <button
-                                    className="pswp__button pswp__button--custom"
-                                    title={t('INFO_OPTION')}
-                                    onClick={handleOpenInfo}>
-                                    <InfoIcon fontSize="small" />
-                                </button>
-                            )}
+                            <button
+                                className="pswp__button pswp__button--custom"
+                                title={t('INFO_OPTION')}
+                                onClick={handleOpenInfo}>
+                                <InfoIcon fontSize="small" />
+                            </button>
                             {!props.isIncomingSharedCollection &&
-                                !props.isTrashCollection && (
+                                !props.isTrashCollection &&
+                                !props.isHiddenCollection && (
                                     <button
                                         title={
                                             isFav
@@ -664,8 +674,12 @@ function PhotoViewer(props: Iprops) {
                 </div>
             </div>
             <FileInfo
-                isTrashCollection={props.isTrashCollection}
                 shouldDisableEdits={props.isIncomingSharedCollection}
+                showCollectionChips={
+                    !props.isTrashCollection &&
+                    !props.isIncomingSharedCollection &&
+                    !props.isHiddenCollection
+                }
                 showInfo={showInfo}
                 handleCloseInfo={handleCloseInfo}
                 file={photoSwipe?.currItem as EnteFile}
