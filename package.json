@@ -2,6 +2,10 @@
     "name": "ente-web",
     "version": "1.0.0",
     "private": true,
+    "workspaces": [
+        "packages/*",
+        "apps/*"
+    ],
     "scripts": {
         "build": "turbo run build && turbo run export",
         "dev": "turbo run dev --parallel",
@@ -24,8 +28,17 @@
     "standard": {
         "parser": "babel-eslint"
     },
-    "workspaces": [
-        "packages/*",
-        "apps/*"
-    ]
+    "lint-staged": {
+        "apps/**/*.{js,jsx,ts,tsx}": [
+            "eslint --fix",
+            "prettier --write --ignore-unknown"
+        ],
+        "packages/**/*.{js,jsx,ts,tsx}": [
+            "eslint --fix",
+            "prettier --write --ignore-unknown"
+        ],
+        "**/*.{json,css,scss,md,html,yml,yaml}": [
+            "prettier --write --ignore-unknown"
+        ]
+    }
 }

@@ -77,6 +77,7 @@
     "DOWNLOAD_OPTION": "Download (D)",
     "DOWNLOAD_FAVORITES": "Download favorites",
     "DOWNLOAD_UNCATEGORIZED": "Download uncategorized",
+    "DOWNLOAD_HIDDEN": "Download hidden",
     "COPY_OPTION": "Copy as PNG (Ctrl/Cmd - C)",
     "TOGGLE_FULLSCREEN": "Toggle fullscreen (F)",
     "ZOOM_IN_OUT": "Zoom in/out",
@@ -201,7 +202,7 @@
     "SEARCH": "Search",
     "SEARCH_RESULTS": "Search results",
     "NO_RESULTS": "No results found",
-    "SEARCH_HINT": "Search for albums, dates ...",
+    "SEARCH_HINT": "Search for albums, dates, descriptions, ...",
     "SEARCH_TYPE": {
         "COLLECTION": "Album",
         "LOCATION": "Location",
@@ -490,6 +491,7 @@
     "PUBLIC_COLLECT_SUBTEXT": "Allow people with the link to also add photos to the shared album.",
     "STOP_EXPORT": "Stop",
     "EXPORT_PROGRESS": "<a>{{progress.success}} / {{progress.total}}</a> items synced",
+    "MIGRATING_EXPORT": "Preparing...",
     "EXPORT_NOTIFICATION": {
         "START": "Export started",
         "IN_PROGRESS": "Export already in progress",
@@ -517,5 +519,9 @@
     "RECOVER_TWO_FACTOR": "Recover two-factor",
     "at": "at",
     "AUTH_NEXT": "next",
-    "AUTH_DOWNLOAD_MOBILE_APP": "Download our mobile app to manage your secrets"
+    "AUTH_DOWNLOAD_MOBILE_APP": "Download our mobile app to manage your secrets",
+    "HIDDEN":"Hidden",
+    "HIDE":"Hide",
+    "UNHIDE":"Unhide",
+    "UNHIDE_TO_COLLECTION":"Unhide to album"
 }

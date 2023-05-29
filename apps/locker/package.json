@@ -32,7 +32,6 @@
         "@types/react-pdf": "^6.2.0",
         "sass": "^1.62.1",
         "sass-loader": "^13.2.2",
-        "@ente/tsconfig": "*",
         "@ente/eslint-config": "*"
     }
 }

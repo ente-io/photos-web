@@ -5,20 +5,14 @@ import {
 } from 'types/magicMetadata';
 import { Metadata } from 'types/upload';
 
-interface FileAttributesBase {
+export interface MetadataFileAttributes {
+    encryptedData: string;
     decryptionHeader: string;
 }
-
-interface MetadataFileAttributes extends FileAttributesBase {
-    encryptedData: string;
-    objectKey?: string;
-}
-interface S3FileAttributes extends FileAttributesBase {
+export interface S3FileAttributes {
     objectKey: string;
-    encryptedData?: string;
+    decryptionHeader: string;
 }
-
-export type FileAttributes = MetadataFileAttributes | S3FileAttributes;
 
 export interface FileInfo {
     fileSize: number;
@@ -29,9 +23,9 @@ export interface EncryptedEnteFile {
     id: number;
     collectionID: number;
     ownerID: number;
-    file: FileAttributes;
-    thumbnail: FileAttributes;
-    metadata: FileAttributes;
+    file: S3FileAttributes;
+    thumbnail: S3FileAttributes;
+    metadata: MetadataFileAttributes;
     info: FileInfo;
     magicMetadata: EncryptedMagicMetadata;
     pubMagicMetadata: EncryptedMagicMetadata;
@@ -53,6 +47,7 @@ export interface EnteFile
     metadata: Metadata;
     magicMetadata: FileMagicMetadata;
     pubMagicMetadata: FilePublicMagicMetadata;
+    isTrashed?: boolean;
     key: string;
     src?: string;
     msrc?: string;
@@ -60,7 +55,6 @@ export interface EnteFile
     w?: number;
     h?: number;
     title?: string;
-    isTrashed?: boolean;
     deleteBy?: number;
     isSourceLoaded?: boolean;
     originalVideoURL?: string;

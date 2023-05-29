@@ -77,13 +77,14 @@
     "DOWNLOAD_OPTION": "Scarica (D)",
     "DOWNLOAD_FAVORITES": "Scarica i preferiti",
     "DOWNLOAD_UNCATEGORIZED": "Scarica i file senza categoria",
+    "DOWNLOAD_HIDDEN": "",
     "COPY_OPTION": "Copia come PNG (Ctrl/Cmd - C)",
     "TOGGLE_FULLSCREEN": "Attiva/disattiva schermo intero (F)",
     "ZOOM_IN_OUT": "Zoom in/out",
     "PREVIOUS": "Precedente (←)",
     "NEXT": "Successivo (→)",
     "TITLE_PHOTOS": "ente Photos",
-    "TITLE_ALBUMS": "",
+    "TITLE_ALBUMS": "ente Photos",
     "TITLE_AUTH": "ente Auth",
     "UPLOAD_FIRST_PHOTO": "Carica la tua prima foto",
     "IMPORT_YOUR_FOLDERS": "Importa una cartella",
@@ -490,6 +491,7 @@
     "PUBLIC_COLLECT_SUBTEXT": "",
     "STOP_EXPORT": "",
     "EXPORT_PROGRESS": "",
+    "MIGRATING_EXPORT": "",
     "EXPORT_NOTIFICATION": {
         "START": "",
         "IN_PROGRESS": "",
@@ -517,5 +519,9 @@
     "RECOVER_TWO_FACTOR": "",
     "at": "",
     "AUTH_NEXT": "",
-    "AUTH_DOWNLOAD_MOBILE_APP": ""
+    "AUTH_DOWNLOAD_MOBILE_APP": "",
+    "HIDDEN": "",
+    "HIDE": "",
+    "UNHIDE": "",
+    "UNHIDE_TO_COLLECTION": ""
 }

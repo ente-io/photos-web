@@ -135,9 +135,7 @@ export function groupFilesBasedOnCollectionID(files: EnteFile[]) {
         if (!collectionWiseFiles.has(file.collectionID)) {
             collectionWiseFiles.set(file.collectionID, []);
         }
-        if (!file.isTrashed) {
-            collectionWiseFiles.get(file.collectionID).push(file);
-        }
+        collectionWiseFiles.get(file.collectionID).push(file);
     }
     return collectionWiseFiles;
 }
@@ -149,32 +147,28 @@ function getSelectedFileIds(selectedFiles: SelectedState) {
             filesIDs.push(Number(key));
         }
     }
-    return filesIDs;
+    return new Set(filesIDs);
 }
 export function getSelectedFiles(
     selected: SelectedState,
     files: EnteFile[]
 ): EnteFile[] {
-    const filesIDs = new Set(getSelectedFileIds(selected));
-    const selectedFiles: EnteFile[] = [];
-    const foundFiles = new Set<number>();
-    for (const file of files) {
-        if (filesIDs.has(file.id) && !foundFiles.has(file.id)) {
-            selectedFiles.push(file);
-            foundFiles.add(file.id);
-        }
-    }
-    return selectedFiles;
+    const selectedFilesIDs = getSelectedFileIds(selected);
+    return files.filter((file) => selectedFilesIDs.has(file.id));
 }
 
-export function sortFiles(files: EnteFile[]) {
+export function sortFiles(files: EnteFile[], sortAsc = false) {
     // sort based on the time of creation time of the file,
     // for files with same creation time, sort based on the time of last modification
+    const factor = sortAsc ? -1 : 1;
     return files.sort((a, b) => {
         if (a.metadata.creationTime === b.metadata.creationTime) {
-            return b.metadata.modificationTime - a.metadata.modificationTime;
+            return (
+                factor *
+                (b.metadata.modificationTime - a.metadata.modificationTime)
+            );
         }
-        return b.metadata.creationTime - a.metadata.creationTime;
+        return factor * (b.metadata.creationTime - a.metadata.creationTime);
     });
 }
 
@@ -356,12 +350,10 @@ export function isExactTypeHEIC(exactType: string) {
 
 export async function changeFilesVisibility(
     files: EnteFile[],
-    selected: SelectedState,
     visibility: VISIBILITY_STATE
 ) {
-    const selectedFiles = getSelectedFiles(selected, files);
     const updatedFiles: EnteFile[] = [];
-    for (const file of selectedFiles) {
+    for (const file of files) {
         const updatedMagicMetadataProps: FileMagicMetadataProps = {
             visibility,
         };
@@ -453,9 +445,9 @@ export async function getFileFromURL(fileURL: string) {
     return fileFile;
 }
 
-export function getUniqueFiles(files: EnteFile[]) {
+export function getUniqueFiles(files: EnteFile[], sortAsc = false) {
     const idSet = new Set<number>();
-    return files.filter((file) => {
+    const uniqueFiles = files.filter((file) => {
         if (!idSet.has(file.id)) {
             idSet.add(file.id);
             return true;
@@ -463,11 +455,13 @@ export function getUniqueFiles(files: EnteFile[]) {
             return false;
         }
     });
-}
-export function getNonTrashedFiles(files: EnteFile[]) {
-    return files.filter(
-        (file) => typeof file.isTrashed === 'undefined' || !file.isTrashed
-    );
+
+    if (sortAsc === true) {
+        return uniqueFiles.sort(
+            (a, b) => a.metadata.creationTime - b.metadata.creationTime
+        );
+    }
+    return uniqueFiles;
 }
 
 export async function downloadFiles(files: EnteFile[]) {
@@ -503,12 +497,12 @@ export const createTypedObjectURL = async (blob: Blob, fileName: string) => {
     return URL.createObjectURL(new Blob([blob], { type: type.mimeType }));
 };
 
-export const getUserOwnedNonTrashedFiles = (files: EnteFile[]) => {
+export const getUserOwnedFiles = (files: EnteFile[]) => {
     const user: User = getData(LS_KEYS.USER);
     if (!user?.id) {
         throw Error('user missing');
     }
-    return files.filter((file) => file.isTrashed || file.ownerID === user.id);
+    return files.filter((file) => file.ownerID === user.id);
 };
 
 // doesn't work on firefox
@@ -579,4 +573,15 @@ export function getPersonalFiles(files: EnteFile[], user: User) {
 
 export function getIDBasedSortedFiles(files: EnteFile[]) {
     return files.sort((a, b) => a.id - b.id);
+}
+
+export function constructFileToCollectionMap(files: EnteFile[]) {
+    const fileToCollectionsMap = new Map<number, number[]>();
+    (files ?? []).forEach((file) => {
+        if (!fileToCollectionsMap.get(file.id)) {
+            fileToCollectionsMap.set(file.id, []);
+        }
+        fileToCollectionsMap.get(file.id).push(file.collectionID);
+    });
+    return fileToCollectionsMap;
 }

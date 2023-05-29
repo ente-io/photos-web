@@ -28,6 +28,8 @@ export const CustomError = {
     SIGNUP_FAILED: 'signup failed',
     FAV_COLLECTION_MISSING: 'favorite collection missing',
     INVALID_COLLECTION_OPERATION: 'invalid collection operation',
+    TO_MOVE_FILES_FROM_MULTIPLE_COLLECTIONS:
+        'to move files from multiple collections',
     WAIT_TIME_EXCEEDED: 'thumbnail generation wait time exceeded',
     REQUEST_CANCELLED: 'request canceled',
     REQUEST_FAILED: 'request failed',
@@ -56,12 +58,14 @@ export const CustomError = {
     NETWORK_ERROR: 'Network Error',
     NOT_FILE_OWNER: 'not file owner',
     UPDATE_EXPORTED_RECORD_FAILED: 'update file exported record failed',
+    EXPORT_STOPPED: 'export stopped',
     NO_EXPORT_FOLDER_SELECTED: 'no export folder selected',
     EXPORT_FOLDER_DOES_NOT_EXIST: 'export folder does not exist',
     NO_INTERNET_CONNECTION: 'no internet connection',
     AUTH_KEY_NOT_FOUND: 'auth key not found',
     EXIF_DATA_NOT_FOUND: 'exif data not found',
     SELECT_FOLDER_ABORTED: 'select folder aborted',
+    NON_MEDIA_FILE: 'non media file',
 };
 
 export function parseUploadErrorCodes(error) {

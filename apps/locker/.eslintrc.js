@@ -3,7 +3,7 @@ module.exports = {
     // This is required here to ensure desktop picks the right eslint config, where this app is
     // packaged as a submodule.
     root: true,
-    extends: ['@ente/eslint-config'],
+    // extends: ['@ente/eslint-config'],
     parser: '@typescript-eslint/parser',
     parserOptions: {
         tsconfigRootDir: __dirname,

@@ -21,12 +21,11 @@ import FormPaperTitle from 'components/Form/FormPaper/Title';
 import FormPaper from 'components/Form/FormPaper';
 import FormPaperFooter from 'components/Form/FormPaper/Footer';
 import LinkButton from 'components/pages/gallery/LinkButton';
-import FormContainer from 'components/Form/FormContainer';
 import SingleInputForm, {
     SingleInputFormProps,
 } from 'components/SingleInputForm';
 import EnteSpinner from 'components/EnteSpinner';
-import VerticallyCentered from 'components/Container';
+import { VerticallyCentered } from 'components/Container';
 
 export default function Verify() {
     const [email, setEmail] = useState('');
@@ -132,7 +131,7 @@ export default function Verify() {
     }
 
     return (
-        <FormContainer>
+        <VerticallyCentered>
             <FormPaper>
                 <FormPaperTitle sx={{ mb: 14, wordBreak: 'break-word' }}>
                     <Trans
@@ -167,6 +166,6 @@ export default function Verify() {
                     </LinkButton>
                 </FormPaperFooter>
             </FormPaper>
-        </FormContainer>
+        </VerticallyCentered>
     );
 }

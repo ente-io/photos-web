@@ -3,10 +3,9 @@ import { useRouter } from 'next/router';
 import EnteSpinner from 'components/EnteSpinner';
 import { AppContext } from 'pages/_app';
 import Login from 'components/Login';
-import VerticallyCentered from 'components/Container';
+import { VerticallyCentered } from 'components/Container';
 import { getData, LS_KEYS } from 'utils/storage/localStorage';
 import { PAGES } from 'constants/pages';
-import FormContainer from 'components/Form/FormContainer';
 import FormPaper from 'components/Form/FormPaper';
 
 export default function Home() {
@@ -36,10 +35,10 @@ export default function Home() {
             </EnteSpinner>
         </VerticallyCentered>
     ) : (
-        <FormContainer>
+        <VerticallyCentered>
             <FormPaper>
                 <Login signUp={register} />
             </FormPaper>
-        </FormContainer>
+        </VerticallyCentered>
     );
 }
