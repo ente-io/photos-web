@@ -19,25 +19,25 @@ import {
     UserDetails,
     DeleteChallengeResponse,
     GetRemoteStoreValueResponse,
-} from 'types/user';
+} from '@/interfaces/user';
 import { ServerErrorCodes } from 'utils/error';
 import isElectron from 'is-electron';
-import safeStorageService from './electron/safeStorage';
-import { deleteAllCache } from 'utils/storage/cache';
-import { B64EncryptionResult } from 'types/crypto';
+// import safeStorageService from './electron/safeStorage';
+// import { deleteAllCache } from '@/utils/storage/cache';
+import { B64EncryptionResult } from '@/interfaces/crypto';
 import { getLocalFamilyData, isPartOfFamily } from 'utils/user/family';
 import { AxiosResponse } from 'axios';
-import { APPS, getAppName } from 'constants/apps';
+// import { APPS, getAppName } from '@/constants/apps';
 
 const ENDPOINT = getEndpoint();
 
 const HAS_SET_KEYS = 'hasSetKeys';
 
 export const sendOtt = (email: string) => {
-    const appName = getAppName();
+    // const appName = getAppName();
     return HTTPService.post(`${ENDPOINT}/users/ott`, {
         email,
-        client: appName === APPS.AUTH ? 'totp' : 'web',
+        client: 'totp',
     });
 };
 
@@ -139,23 +139,23 @@ export const logoutUser = async () => {
         } catch (e) {
             logError(e, 'clearData failed');
         }
-        try {
-            await deleteAllCache();
-        } catch (e) {
-            logError(e, 'deleteAllCache failed');
-        }
+        // try {
+        //     await deleteAllCache();
+        // } catch (e) {
+        //     logError(e, 'deleteAllCache failed');
+        // }
         try {
             await clearFiles();
         } catch (e) {
             logError(e, 'clearFiles failed');
         }
-        if (isElectron()) {
-            try {
-                safeStorageService.clearElectronStore();
-            } catch (e) {
-                logError(e, 'clearElectronStore failed');
-            }
-        }
+        // if (isElectron()) {
+        //     try {
+        //         safeStorageService.clearElectronStore();
+        //     } catch (e) {
+        //         logError(e, 'clearElectronStore failed');
+        //     }
+        // }
         try {
             eventBus.emit(Events.LOGOUT);
         } catch (e) {

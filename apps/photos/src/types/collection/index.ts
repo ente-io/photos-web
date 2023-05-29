@@ -25,6 +25,7 @@ export interface EncryptedCollection {
     isDeleted: boolean;
     magicMetadata: EncryptedMagicMetadata;
     pubMagicMetadata: EncryptedMagicMetadata;
+    app: 'locker' | 'photos';
 }
 
 export interface Collection

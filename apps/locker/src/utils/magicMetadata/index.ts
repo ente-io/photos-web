@@ -1,10 +1,10 @@
-import { Collection } from 'types/collection';
-import { EnteFile } from 'types/file';
+import { Collection } from '@/interfaces/collection';
+import { EnteFile } from '@/interfaces/file';
 import {
     FileMagicMetadataProps,
     MagicMetadataCore,
     VISIBILITY_STATE,
-} from 'types/magicMetadata';
+} from '@/interfaces/magicMetadata';
 import ComlinkCryptoWorker from 'utils/comlink/ComlinkCryptoWorker';
 
 export function IsArchived(item: Collection | EnteFile) {

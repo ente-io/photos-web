@@ -22,6 +22,10 @@
         "eslint": "8.40.0",
         "eslint-config-next": "13.4.2",
         "file-loader": "^6.2.0",
+        "formik": "^2.3.2",
+        "fs": "^0.0.1-security",
+        "i18next": "^22.5.0",
+        "jszip": "^3.10.1",
         "next": "13.4.2",
         "react": "18.2.0",
         "react-dom": "18.2.0",
@@ -29,9 +33,10 @@
         "typescript": "5.0.4"
     },
     "devDependencies": {
+        "@ente/eslint-config": "*",
+        "@ente/tsconfig": "*",
         "@types/react-pdf": "^6.2.0",
         "sass": "^1.62.1",
-        "sass-loader": "^13.2.2",
-        "@ente/eslint-config": "*"
+        "sass-loader": "^13.2.2"
     }
 }

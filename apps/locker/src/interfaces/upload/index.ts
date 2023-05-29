@@ -55,33 +55,15 @@ export interface FileTypeInfo {
     videoType?: string;
 }
 
-/*
- * ElectronFile is a custom interface that is used to represent
- * any file on disk as a File-like object in the Electron desktop app.
- *
- * This was added to support the auto-resuming of failed uploads
- * which needed absolute paths to the files which the
- * normal File interface does not provide.
- */
-export interface ElectronFile {
-    name: string;
-    path: string;
-    size: number;
-    lastModified: number;
-    stream: () => Promise<ReadableStream<Uint8Array>>;
-    blob: () => Promise<Blob>;
-    arrayBuffer: () => Promise<Uint8Array>;
-}
-
 export interface UploadAsset {
     isLivePhoto?: boolean;
-    file?: File | ElectronFile;
+    file?: File;
     livePhotoAssets?: LivePhotoAssets;
     isElectron?: boolean;
 }
 export interface LivePhotoAssets {
-    image: globalThis.File | ElectronFile;
-    video: globalThis.File | ElectronFile;
+    image: globalThis.File;
+    video: globalThis.File;
 }
 
 export interface FileWithCollection extends UploadAsset {
@@ -123,7 +105,7 @@ export interface ProcessedFile {
 }
 export interface BackupedFile {
     file: FileAttributes;
-    thumbnail: FileAttributes;
+    thumbnail?: FileAttributes;
     metadata: FileAttributes;
     pubMagicMetadata: EncryptedMagicMetadata;
 }

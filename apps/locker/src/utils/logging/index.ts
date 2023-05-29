@@ -1,4 +1,4 @@
-import { ElectronFile } from '@/interfaces/upload';
+// import { ElectronFile } from '@/interfaces/upload';
 import { convertBytesToHumanReadable } from '@/utils/file/size';
 import { formatDateTimeShort } from '@/utils/time/format';
 import { isDEVSentryENV } from '@/constants/sentry';
@@ -57,7 +57,7 @@ export function getDebugLogs() {
     return combineLogLines(getLogs());
 }
 
-export function getFileNameSize(file: File | ElectronFile) {
+export function getFileNameSize(file: File) {
     return `${file.name}_${convertBytesToHumanReadable(file.size)}`;
 }
 

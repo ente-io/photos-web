@@ -1,11 +1,11 @@
-import { KeyAttributes } from '@/services/user';
+import { KeyAttributes } from '@/interfaces/user';
 import { SESSION_KEYS, setKey } from '@/utils/storage/sessionStorage';
 import { getData, LS_KEYS, setData } from '@/utils/storage/localStorage';
 import { getActualKey, getToken } from '@/utils/common/key';
 import { setRecoveryKey } from '@/services/userService';
 import { logError } from '@/utils/sentry';
 import isElectron from 'is-electron';
-import safeStorageService from 'services/electron/safeStorage';
+// import safeStorageService from '@/services/electron/safeStorage';
 import ComlinkCryptoWorker from 'utils/comlink/ComlinkCryptoWorker';
 import { PasswordStrength } from 'constants/crypto';
 import zxcvbn from 'zxcvbn';
@@ -91,17 +91,17 @@ export async function generateAndSaveIntermediateKeyAttributes(
 
 export const saveKeyInSessionStore = async (
     keyType: SESSION_KEYS,
-    key: string,
-    fromDesktop?: boolean
+    key: string
+    // fromDesktop?: boolean
 ) => {
     const cryptoWorker = await ComlinkCryptoWorker.getInstance();
     const sessionKeyAttributes = await cryptoWorker.generateKeyAndEncryptToB64(
         key
     );
     setKey(keyType, sessionKeyAttributes);
-    if (isElectron() && !fromDesktop) {
-        safeStorageService.setEncryptionKey(key);
-    }
+    // if (isElectron() && !fromDesktop) {
+    //     safeStorageService.setEncryptionKey(key);
+    // }
 };
 
 export const getRecoveryKey = async () => {
