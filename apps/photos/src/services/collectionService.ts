@@ -1,13 +1,13 @@
-import { getEndpoint } from 'utils/common/apiUtil';
-import { getData, LS_KEYS } from 'utils/storage/localStorage';
-import localForage from 'utils/storage/localForage';
-
-import { getActualKey, getToken } from 'utils/common/key';
+import { getEndpoint } from '../utils/common/apiUtil';
+import { getData, LS_KEYS } from '../utils/storage/localStorage';
+import localForage from '../utils/storage/localForage';
+import { REQUEST_BATCH_SIZE } from '../constants/api';
+import { getActualKey, getToken } from '../utils/common/key';
 import { getPublicKey } from './userService';
 import HTTPService from './HTTPService';
-import { EnteFile } from 'types/file';
-import { logError } from 'utils/sentry';
-import { CustomError } from 'utils/error';
+import { EnteFile } from '../types/file';
+import { logError } from '../utils/sentry';
+import { CustomError } from '../utils/error';
 import {
     isSharedFile,
     sortFiles,
@@ -61,7 +61,6 @@ import {
 } from 'utils/collection';
 import ComlinkCryptoWorker from 'utils/comlink/ComlinkCryptoWorker';
 import { getLocalFiles } from './fileService';
-import { REQUEST_BATCH_SIZE } from 'constants/api';
 import { batch } from 'utils/common';
 import { t } from 'i18next';
 import { EncryptedMagicMetadata } from 'types/magicMetadata';
@@ -442,6 +441,7 @@ export const addToCollection = async (
     try {
         const token = getToken();
         const batchedFiles = batch(files, REQUEST_BATCH_SIZE);
+
         for (const batch of batchedFiles) {
             const fileKeysEncryptedWithNewCollection =
                 await encryptWithNewCollectionKey(collection, batch);
@@ -453,6 +453,7 @@ export const addToCollection = async (
             await HTTPService.post(
                 `${ENDPOINT}/collections/add-files`,
                 requestBody,
+
                 null,
                 {
                     'X-Auth-Token': token,
@@ -472,6 +473,7 @@ export const restoreToCollection = async (
     try {
         const token = getToken();
         const batchedFiles = batch(files, REQUEST_BATCH_SIZE);
+
         for (const batch of batchedFiles) {
             const fileKeysEncryptedWithNewCollection =
                 await encryptWithNewCollectionKey(collection, batch);
@@ -483,6 +485,7 @@ export const restoreToCollection = async (
             await HTTPService.post(
                 `${ENDPOINT}/collections/restore-files`,
                 requestBody,
+
                 null,
                 {
                     'X-Auth-Token': token,
@@ -502,6 +505,7 @@ export const moveToCollection = async (
     try {
         const token = getToken();
         const batchedFiles = batch(files, REQUEST_BATCH_SIZE);
+
         for (const batch of batchedFiles) {
             const fileKeysEncryptedWithNewCollection =
                 await encryptWithNewCollectionKey(toCollection, batch);
@@ -514,6 +518,7 @@ export const moveToCollection = async (
             await HTTPService.post(
                 `${ENDPOINT}/collections/move-files`,
                 requestBody,
+
                 null,
                 {
                     'X-Auth-Token': token,
@@ -651,6 +656,7 @@ export const removeNonUserFiles = async (
         const fileIDs = nonUserFiles.map((f) => f.id);
         const token = getToken();
         const batchedFileIDs = batch(fileIDs, REQUEST_BATCH_SIZE);
+
         for (const batch of batchedFileIDs) {
             const request: RemoveFromCollectionRequest = {
                 collectionID,
@@ -660,6 +666,7 @@ export const removeNonUserFiles = async (
             await HTTPService.post(
                 `${ENDPOINT}/collections/v3/remove-files`,
                 request,
+
                 null,
                 { 'X-Auth-Token': token }
             );
@@ -773,6 +780,7 @@ export const renameCollection = async (
     await HTTPService.post(
         `${ENDPOINT}/collections/rename`,
         collectionRenameRequest,
+
         null,
         {
             'X-Auth-Token': token,
@@ -818,6 +826,7 @@ export const shareCollection = async (
         await HTTPService.post(
             `${ENDPOINT}/collections/share`,
             shareCollectionRequest,
+
             null,
             {
                 'X-Auth-Token': token,
@@ -842,6 +851,7 @@ export const unshareCollection = async (
         await HTTPService.post(
             `${ENDPOINT}/collections/unshare`,
             shareCollectionRequest,
+
             null,
             {
                 'X-Auth-Token': token,
@@ -864,6 +874,7 @@ export const createShareableURL = async (collection: Collection) => {
         const resp = await HTTPService.post(
             `${ENDPOINT}/collections/share-url`,
             createPublicAccessTokenRequest,
+
             null,
             {
                 'X-Auth-Token': token,
@@ -907,6 +918,7 @@ export const updateShareableURL = async (
         const res = await HTTPService.put(
             `${ENDPOINT}/collections/share-url`,
             request,
+
             null,
             {
                 'X-Auth-Token': token,

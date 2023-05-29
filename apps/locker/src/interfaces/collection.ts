@@ -1,5 +1,5 @@
 import { CollectionSummaryType, CollectionType } from '@/constants/collection';
-import { User } from '../services/user';
+// import { User } from '../services/user';
 import {
     EncryptedMagicMetadata,
     MagicMetadataCore,
@@ -7,6 +7,7 @@ import {
     VISIBILITY_STATE,
 } from './magicMetadata';
 import { EnteFile } from './file';
+import { User } from './user';
 
 export interface EncryptedCollection {
     id: number;

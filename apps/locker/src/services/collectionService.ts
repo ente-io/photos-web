@@ -1,4 +1,3 @@
-import { REQUEST_BATCH_SIZE } from './../../../photos/src/constants/api/index';
 import {
     AddToCollectionRequest,
     Collection,
@@ -61,6 +60,7 @@ import {
 } from '@/constants/collection';
 
 import { t } from 'i18next';
+import { REQUEST_BATCH_SIZE } from '@/constants/api';
 
 const ENDPOINT = getEndpoint();
 const COLLECTION_TABLE = 'collections';
