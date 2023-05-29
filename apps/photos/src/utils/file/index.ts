@@ -291,15 +291,19 @@ export async function getRenderableFileURL(
             };
         }
         case FILE_TYPE.VIDEO: {
+            const [fileStreamCopy1, fileStreamCopy2] = fileStream.tee();
+            const originalVideoURL = URL.createObjectURL(
+                await new Response(fileStreamCopy1).blob()
+            );
             const transcodedVideoStream =
-                await ffmpegService.liveTranscodeVideo(fileStream);
+                await ffmpegService.liveTranscodeVideo(fileStreamCopy2);
             const streamableVideoURL = await getStreamableVideo(
                 transcodedVideoStream
             );
 
             return {
                 converted: [streamableVideoURL],
-                original: [streamableVideoURL],
+                original: [originalVideoURL],
             };
         }
 
