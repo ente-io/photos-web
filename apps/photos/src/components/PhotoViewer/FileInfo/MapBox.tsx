@@ -1,6 +1,7 @@
 // import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { useEffect, useState } from 'react';
 import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 const MapBox: React.FC = () => {
     const [isClient, setIsClient] = useState(false);
@@ -18,12 +19,14 @@ const MapBox: React.FC = () => {
     }, []);
 
     const position: [number, number] = [51.505, -0.09]; // Example coordinates
-
     useEffect(() => {
+        setIsClient(true);
         if (isClient) {
+            console.log('checking');
             const mapContainer = document.getElementById('map-container');
             if (mapContainer && !mapContainer.hasChildNodes()) {
-                const map = L.map(mapContainer).setView(position, 13);
+                const map = L.map(mapContainer).setView([51.505, -0.09], 1);
+
                 L.tileLayer(
                     'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
                     {
@@ -47,7 +50,9 @@ const MapBox: React.FC = () => {
     }
 
     return (
-        <div id="map-container" style={{ height: '100%', width: '100%' }}></div>
+        <div
+            id="map-container"
+            style={{ height: '200px', width: '100%' }}></div>
     );
 };
 export default MapBox;
