@@ -6,9 +6,13 @@ import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility
 const L = runningInBrowser() ? require('leaflet') : null;
 runningInBrowser() ? require('leaflet-defaulticon-compatibility') : null;
 
-const MapBox: React.FC = () => {
+interface MapBoxProps {
+    location: { latitude: number; longitude: number };
+}
+
+const MapBox: React.FC<MapBoxProps> = ({ location }) => {
     const [isClient, setIsClient] = useState(false);
-    const position: [number, number] = [51.505, -0.09]; // Example coordinates
+    const position: [number, number] = [location.latitude, location.longitude];
 
     useEffect(() => {
         setIsClient(true);
@@ -18,7 +22,7 @@ const MapBox: React.FC = () => {
         if (isClient) {
             const mapContainer = document.getElementById('map-container');
             if (mapContainer && !mapContainer.hasChildNodes()) {
-                const map = L.map(mapContainer).setView([51.505, -0.09], 1);
+                const map = L.map(mapContainer).setView([51.505, -0.09], 13);
 
                 L.tileLayer(
                     'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',

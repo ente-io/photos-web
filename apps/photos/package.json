@@ -53,7 +53,7 @@
         "idb": "^7.0.0",
         "is-electron": "^2.2.0",
         "jszip": "3.8.0",
-        "leaflet": "^1.9.4",
+        "leaflet": "1.9.3",
         "leaflet-defaulticon-compatibility": "^0.1.1",
         "libsodium-wrappers": "^0.7.8",
         "localforage": "^1.9.0",
