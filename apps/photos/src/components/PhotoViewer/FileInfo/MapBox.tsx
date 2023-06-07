@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
+import { runningInBrowser } from 'utils/common';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.webpack.css'; // Re-uses images from ~leaflet package
-import * as L from 'leaflet';
-import 'leaflet-defaulticon-compatibility';
+const L = runningInBrowser() ? require('leaflet') : null;
+runningInBrowser() ? require('leaflet-defaulticon-compatibility') : null;
 
 const MapBox: React.FC = () => {
     const [isClient, setIsClient] = useState(false);
