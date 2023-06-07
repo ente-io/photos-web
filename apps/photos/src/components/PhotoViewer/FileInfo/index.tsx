@@ -165,6 +165,7 @@ export function FileInfo({
     if (!file) {
         return <></>;
     }
+    console.log(file);
 
     return (
         <FileInfoSidebar open={showInfo} onClose={handleCloseInfo}>

@@ -1,28 +1,18 @@
-// import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { useEffect, useState } from 'react';
-import L from 'leaflet';
+import dynamic from 'next/dynamic';
 import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
 
 const MapBox: React.FC = () => {
     const [isClient, setIsClient] = useState(false);
+    const position: [number, number] = [51.505, -0.09]; // Example coordinates
 
     useEffect(() => {
         setIsClient(true);
-        return () => {
-            if (isClient) {
-                const mapContainer = document.getElementById('map-container');
-                if (mapContainer) {
-                    mapContainer.remove();
-                }
-            }
-        };
     }, []);
 
-    const position: [number, number] = [51.505, -0.09]; // Example coordinates
     useEffect(() => {
-        setIsClient(true);
         if (isClient) {
-            console.log('checking');
             const mapContainer = document.getElementById('map-container');
             if (mapContainer && !mapContainer.hasChildNodes()) {
                 const map = L.map(mapContainer).setView([51.505, -0.09], 1);
@@ -37,9 +27,7 @@ const MapBox: React.FC = () => {
 
                 L.marker(position)
                     .addTo(map)
-                    .bindPopup(
-                        'A pretty CSS3 popup. <br /> Easily customizable.'
-                    )
+                    .bindPopup('You were here.')
                     .openPopup();
             }
         }
@@ -55,4 +43,5 @@ const MapBox: React.FC = () => {
             style={{ height: '200px', width: '100%' }}></div>
     );
 };
-export default MapBox;
+
+export default dynamic(() => Promise.resolve(MapBox), { ssr: false });
