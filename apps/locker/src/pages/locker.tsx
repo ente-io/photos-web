@@ -1,6 +1,5 @@
 import { Box, Button, Typography } from '@mui/material';
 
-import FolderIcon from '@mui/icons-material/Folder';
 import FolderDeleteIcon from '@mui/icons-material/FolderDelete';
 import SettingsIcon from '@mui/icons-material/Settings';
 import {
@@ -21,6 +20,11 @@ import NavBar from '@/components/pages/locker/NavBar';
 import { syncFiles } from '@/services/fileService';
 import { EnteFile } from '@/interfaces/file';
 import { addLogLine } from '@/utils/logging';
+
+import DownloadIcon from '@mui/icons-material/Download';
+import { downloadFile } from '@/utils/file';
+import CloudIcon from '@mui/icons-material/Cloud';
+import CollectionComponent from '@/components/pages/locker/Collection';
 
 interface lockerDashboardContextProps {
     currentCollection: Collection;
@@ -53,7 +57,7 @@ const Locker = () => {
             setCollections(await syncCollections());
 
             // set the current collection to uncategorized
-            // setCurrentCollection(uncategorizedCollection);
+            setCurrentCollection(uncategorizedCollection);
         };
 
         init();
@@ -64,6 +68,7 @@ const Locker = () => {
         addLogLine(`Syncing files for collection ${currentCollection.name}`);
         const sync = async () => {
             const files = await syncFiles([currentCollection], () => {});
+            console.log(files);
             setFiles(files);
         };
 
@@ -94,36 +99,16 @@ const Locker = () => {
                             height="100%"
                             display="flex"
                             flexDirection="column">
-                            {collections.length > 0 && (
-                                <>
-                                    {collections.map((collection) => (
-                                        <Button
-                                            key={collection.id}
-                                            variant="text"
-                                            color={
-                                                currentCollection?.id ===
-                                                collection.id
-                                                    ? 'accent'
-                                                    : 'inherit'
-                                            }
-                                            sx={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '0.5rem',
-                                            }}
-                                            onClick={() => {
-                                                setCurrentCollection(
-                                                    collection
-                                                );
-                                            }}>
-                                            <FolderIcon />
-                                            <Typography>
-                                                {collection.name}
-                                            </Typography>
-                                        </Button>
-                                    ))}
-                                </>
-                            )}
+                            <Button
+                                variant="text"
+                                sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                }}>
+                                <CloudIcon />
+                                <Typography>Locker</Typography>
+                            </Button>
                             <Button
                                 variant="text"
                                 sx={{
@@ -150,14 +135,50 @@ const Locker = () => {
                                 <Typography>Settings</Typography>
                             </Button>
                         </Box>
-                        <Box
-                            sx={{
-                                width: '100%',
-                            }}>
+                        <Box width="100%" padding="1rem" boxSizing="border-box">
+                            {collections.length > 0 && (
+                                <>
+                                    <h3>Collections</h3>
+                                    {collections.map((collection) => (
+                                        <CollectionComponent
+                                            collection={collection}
+                                            key={collection.id}
+                                        />
+                                    ))}
+                                </>
+                            )}
+
+                            <h3>Files</h3>
                             {files.map((file) => (
-                                <Typography key={file.id}>
-                                    {file.metadata.title}
-                                </Typography>
+                                <Box
+                                    bgcolor="#201E1E"
+                                    width="15rem"
+                                    height="3rem"
+                                    borderRadius="10px"
+                                    padding=".5rem"
+                                    boxSizing={'border-box'}
+                                    key={file.id}
+                                    display="flex"
+                                    alignItems="center"
+                                    justifyContent="space-between">
+                                    <Typography
+                                        textOverflow="ellipsis"
+                                        overflow="hidden">
+                                        {file.metadata.title}
+                                    </Typography>
+                                    <button
+                                        style={{
+                                            all: 'unset',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                        }}>
+                                        <DownloadIcon
+                                            onClick={() => {
+                                                downloadFile(file, false);
+                                            }}
+                                        />
+                                    </button>
+                                </Box>
                             ))}
                         </Box>
                     </Box>
