@@ -149,37 +149,43 @@ const Locker = () => {
                             )}
 
                             <h3>Files</h3>
-                            {files.map((file) => (
-                                <Box
-                                    bgcolor="#201E1E"
-                                    width="15rem"
-                                    height="3rem"
-                                    borderRadius="10px"
-                                    padding=".5rem"
-                                    boxSizing={'border-box'}
-                                    key={file.id}
-                                    display="flex"
-                                    alignItems="center"
-                                    justifyContent="space-between">
-                                    <Typography
-                                        textOverflow="ellipsis"
-                                        overflow="hidden">
-                                        {file.metadata.title}
-                                    </Typography>
-                                    <button
-                                        style={{
-                                            all: 'unset',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                        }}>
-                                        <DownloadIcon
-                                            onClick={() => {
-                                                downloadFile(file, false);
-                                            }}
-                                        />
-                                    </button>
-                                </Box>
-                            ))}
+                            <Box
+                                display="flex"
+                                flexWrap="wrap"
+                                gap="1rem"
+                                width="100%">
+                                {files.map((file) => (
+                                    <Box
+                                        bgcolor="#201E1E"
+                                        width="15rem"
+                                        height="3rem"
+                                        borderRadius="10px"
+                                        padding=".5rem"
+                                        boxSizing={'border-box'}
+                                        key={file.id}
+                                        display="flex"
+                                        alignItems="center"
+                                        justifyContent="space-between">
+                                        <Typography
+                                            textOverflow="ellipsis"
+                                            overflow="hidden">
+                                            {file.metadata.title}
+                                        </Typography>
+                                        <button
+                                            style={{
+                                                all: 'unset',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                            }}>
+                                            <DownloadIcon
+                                                onClick={() => {
+                                                    downloadFile(file, false);
+                                                }}
+                                            />
+                                        </button>
+                                    </Box>
+                                ))}
+                            </Box>
                         </Box>
                     </Box>
                 </Box>
