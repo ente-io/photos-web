@@ -1,4 +1,4 @@
-import { Box, Button, Typography } from '@mui/material';
+import { Box, Button, IconButton, Typography } from '@mui/material';
 
 import FolderDeleteIcon from '@mui/icons-material/FolderDelete';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -17,7 +17,7 @@ import {
 } from '@/services/collectionService';
 import { borderProperty } from '@/constants/ui/locker/border';
 import NavBar from '@/components/pages/locker/NavBar';
-import { syncFiles } from '@/services/fileService';
+import { syncFiles as _syncFiles } from '@/services/fileService';
 import { EnteFile } from '@/interfaces/file';
 import { addLogLine } from '@/utils/logging';
 
@@ -31,6 +31,9 @@ interface lockerDashboardContextProps {
     setCurrentCollection: Dispatch<SetStateAction<Collection>>;
     files: EnteFile[];
     setFiles: Dispatch<SetStateAction<EnteFile[]>>;
+    syncCollections: () => Promise<void>;
+    uncategorizedCollection: Collection;
+    syncFiles: () => Promise<void>;
 }
 
 export const LockerDashboardContext =
@@ -45,34 +48,42 @@ const Locker = () => {
         useState<Collection | null>(null);
     const [files, setFiles] = useState<EnteFile[]>([]);
 
+    const [uncategorizedCollection, setUncategorizedCollection] =
+        useState<Collection | null>(null);
+
+    const doSync = async () => {
+        setCollections(await syncCollections());
+    };
+
     useEffect(() => {
         const init = async () => {
-            setCollections(await syncCollections());
+            await doSync();
 
             let uncategorizedCollection = await getUncategorizedCollection();
             if (!uncategorizedCollection) {
                 uncategorizedCollection = await createUnCategorizedCollection();
             }
 
-            setCollections(await syncCollections());
+            await doSync();
 
             // set the current collection to uncategorized
             setCurrentCollection(uncategorizedCollection);
+            setUncategorizedCollection(uncategorizedCollection);
         };
 
         init();
     }, []);
 
-    useEffect(() => {
+    const syncFiles = async () => {
         if (!currentCollection) return;
         addLogLine(`Syncing files for collection ${currentCollection.name}`);
-        const sync = async () => {
-            const files = await syncFiles([currentCollection], () => {});
-            console.log(files);
-            setFiles(files);
-        };
 
-        sync();
+        const files = await _syncFiles([currentCollection], () => {});
+        setFiles(files);
+    };
+
+    useEffect(() => {
+        syncFiles();
     }, [currentCollection]);
 
     return (
@@ -83,6 +94,9 @@ const Locker = () => {
                     setCurrentCollection,
                     files,
                     setFiles,
+                    syncCollections: doSync,
+                    uncategorizedCollection,
+                    syncFiles,
                 }}>
                 <Box
                     height="100vh"
@@ -139,12 +153,17 @@ const Locker = () => {
                             {collections.length > 0 && (
                                 <>
                                     <h3>Collections</h3>
-                                    {collections.map((collection) => (
-                                        <CollectionComponent
-                                            collection={collection}
-                                            key={collection.id}
-                                        />
-                                    ))}
+                                    <Box
+                                        gap="1rem"
+                                        flexWrap="wrap"
+                                        display="flex">
+                                        {collections.map((collection) => (
+                                            <CollectionComponent
+                                                collection={collection}
+                                                key={collection.id}
+                                            />
+                                        ))}
+                                    </Box>
                                 </>
                             )}
 
@@ -171,18 +190,12 @@ const Locker = () => {
                                             overflow="hidden">
                                             {file.metadata.title}
                                         </Typography>
-                                        <button
-                                            style={{
-                                                all: 'unset',
-                                                display: 'flex',
-                                                alignItems: 'center',
+                                        <IconButton
+                                            onClick={() => {
+                                                downloadFile(file, false);
                                             }}>
-                                            <DownloadIcon
-                                                onClick={() => {
-                                                    downloadFile(file, false);
-                                                }}
-                                            />
-                                        </button>
+                                            <DownloadIcon />
+                                        </IconButton>
                                     </Box>
                                 ))}
                             </Box>

@@ -16,6 +16,7 @@ import { UPLOAD_STAGES } from '@/constants/upload';
 import { LockerDashboardContext } from '@/pages/locker';
 import { FileWithCollection } from '@/interfaces/upload';
 import { addLogLine } from '@/utils/logging';
+import NewCollectionModal from './NewCollectionModal';
 
 const NavBar = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -39,9 +40,22 @@ const NavBar = () => {
     const [hasLivePhotos, setHasLivePhotos] = useState(false);
     const [files, setFiles] = useState([]);
 
-    const { currentCollection } = useContext(LockerDashboardContext);
+    const {
+        currentCollection,
+        syncCollections,
+        setCurrentCollection,
+        uncategorizedCollection,
+        syncFiles,
+    } = useContext(LockerDashboardContext);
 
     const localIDCounter = useRef(0);
+
+    const [showNewCollectionModal, setShowNewCollectionModal] = useState(false);
+
+    useEffect(() => {
+        console.log('Syncing files');
+        syncFiles();
+    }, [finishedUploads]);
 
     const initUploadManager = async () => {
         // Initialize the upload manager
@@ -108,16 +122,20 @@ const NavBar = () => {
                     display: 'flex',
                     justifyContent: 'space-between',
                 }}>
-                <Link href="/locker">
-                    <Image
-                        src="/locker.svg"
-                        alt="ente Locker logo"
-                        width={200}
-                        height={50}
-                    />
-                </Link>
+                <Image
+                    src="/locker.svg"
+                    alt="ente Locker logo"
+                    width={200}
+                    height={50}
+                    onClick={() => {
+                        setCurrentCollection(uncategorizedCollection);
+                    }}
+                />
                 <Box>
-                    <IconButton>
+                    <IconButton
+                        onClick={() => {
+                            setShowNewCollectionModal(true);
+                        }}>
                         <CreateNewFolderIcon />
                     </IconButton>
                     <IconButton
@@ -136,6 +154,13 @@ const NavBar = () => {
                 }}
                 onChange={(e) => {
                     setFile(e.target.files[0]);
+                }}
+            />
+            <NewCollectionModal
+                show={showNewCollectionModal}
+                onHide={() => {
+                    setShowNewCollectionModal(false);
+                    syncCollections();
                 }}
             />
         </>
