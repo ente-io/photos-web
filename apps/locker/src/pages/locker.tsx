@@ -1,4 +1,4 @@
-import { Box, Button, IconButton, Typography } from '@mui/material';
+import { Box, Button, Typography } from '@mui/material';
 
 import FolderDeleteIcon from '@mui/icons-material/FolderDelete';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -21,10 +21,9 @@ import { syncFiles as _syncFiles } from '@/services/fileService';
 import { EnteFile } from '@/interfaces/file';
 import { addLogLine } from '@/utils/logging';
 
-import DownloadIcon from '@mui/icons-material/Download';
-import { downloadFile } from '@/utils/file';
 import CloudIcon from '@mui/icons-material/Cloud';
 import CollectionComponent from '@/components/pages/locker/Collection';
+import FileComponent from '@/components/pages/locker/File';
 
 interface lockerDashboardContextProps {
     currentCollection: Collection;
@@ -174,29 +173,7 @@ const Locker = () => {
                                 gap="1rem"
                                 width="100%">
                                 {files.map((file) => (
-                                    <Box
-                                        bgcolor="#201E1E"
-                                        width="15rem"
-                                        height="3rem"
-                                        borderRadius="10px"
-                                        padding=".5rem"
-                                        boxSizing={'border-box'}
-                                        key={file.id}
-                                        display="flex"
-                                        alignItems="center"
-                                        justifyContent="space-between">
-                                        <Typography
-                                            textOverflow="ellipsis"
-                                            overflow="hidden">
-                                            {file.metadata.title}
-                                        </Typography>
-                                        <IconButton
-                                            onClick={() => {
-                                                downloadFile(file, false);
-                                            }}>
-                                            <DownloadIcon />
-                                        </IconButton>
-                                    </Box>
+                                    <FileComponent file={file} key={file.id} />
                                 ))}
                             </Box>
                         </Box>
