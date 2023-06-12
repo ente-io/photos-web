@@ -17,7 +17,7 @@ import {
 } from '@/services/collectionService';
 import { borderProperty } from '@/constants/ui/locker/border';
 import NavBar from '@/components/pages/locker/NavBar';
-import { syncFiles as _syncFiles } from '@/services/fileService';
+import { syncFiles } from '@/services/fileService';
 import { EnteFile } from '@/interfaces/file';
 import { addLogLine } from '@/utils/logging';
 
@@ -50,20 +50,20 @@ const Locker = () => {
     const [uncategorizedCollection, setUncategorizedCollection] =
         useState<Collection | null>(null);
 
-    const doSync = async () => {
+    const doSyncCollections = async () => {
         setCollections(await syncCollections());
     };
 
     useEffect(() => {
         const init = async () => {
-            await doSync();
+            await doSyncCollections();
 
             let uncategorizedCollection = await getUncategorizedCollection();
             if (!uncategorizedCollection) {
                 uncategorizedCollection = await createUnCategorizedCollection();
             }
 
-            await doSync();
+            await doSyncCollections();
 
             // set the current collection to uncategorized
             setCurrentCollection(uncategorizedCollection);
@@ -73,16 +73,16 @@ const Locker = () => {
         init();
     }, []);
 
-    const syncFiles = async () => {
+    const doSyncFiles = async () => {
         if (!currentCollection) return;
         addLogLine(`Syncing files for collection ${currentCollection.name}`);
 
-        const files = await _syncFiles([currentCollection], () => {});
+        const files = await syncFiles([currentCollection], () => {});
         setFiles(files);
     };
 
     useEffect(() => {
-        syncFiles();
+        doSyncFiles();
     }, [currentCollection]);
 
     return (
@@ -93,9 +93,9 @@ const Locker = () => {
                     setCurrentCollection,
                     files,
                     setFiles,
-                    syncCollections: doSync,
+                    syncCollections: doSyncCollections,
                     uncategorizedCollection,
-                    syncFiles,
+                    syncFiles: doSyncFiles,
                 }}>
                 <Box
                     height="100vh"
