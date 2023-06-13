@@ -1,4 +1,4 @@
-// import { Subscription } from 'types/billing';
+import { Subscription } from '@/interfaces/billing';
 
 export interface KeyAttributes {
     kekSalt: string;
@@ -84,7 +84,7 @@ export interface UserDetails {
     usage: number;
     fileCount: number;
     sharedCollectionCount: number;
-    // subscription: Subscription;
+    subscription: Subscription;
     familyData?: FamilyData;
 }
 

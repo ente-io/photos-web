@@ -17,6 +17,7 @@ import { LockerDashboardContext } from '@/pages/locker';
 import { FileWithCollection } from '@/interfaces/upload';
 import { addLogLine } from '@/utils/logging';
 import NewCollectionModal from './NewCollectionModal';
+import MenuIcon from '@mui/icons-material/Menu';
 
 const NavBar = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -46,6 +47,7 @@ const NavBar = () => {
         setCurrentCollection,
         uncategorizedCollection,
         syncFiles,
+        setLeftDrawerOpened,
     } = useContext(LockerDashboardContext);
 
     const localIDCounter = useRef(0);
@@ -122,15 +124,27 @@ const NavBar = () => {
                     display: 'flex',
                     justifyContent: 'space-between',
                 }}>
-                <Image
-                    src="/locker.svg"
-                    alt="ente Locker logo"
-                    width={200}
-                    height={50}
-                    onClick={() => {
-                        setCurrentCollection(uncategorizedCollection);
-                    }}
-                />
+                <Box
+                    height="inherit"
+                    display="flex"
+                    alignItems="center"
+                    gap="1rem">
+                    <IconButton
+                        onClick={() => {
+                            setLeftDrawerOpened(true);
+                        }}>
+                        <MenuIcon />
+                    </IconButton>
+                    <Image
+                        src="/locker.svg"
+                        alt="ente Locker logo"
+                        width={200}
+                        height={50}
+                        onClick={() => {
+                            setCurrentCollection(uncategorizedCollection);
+                        }}
+                    />
+                </Box>
                 <Box>
                     <IconButton
                         onClick={() => {

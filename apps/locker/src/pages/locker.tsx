@@ -1,4 +1,15 @@
-import { Box, Button, Typography } from '@mui/material';
+import {
+    Box,
+    Button,
+    Drawer,
+    IconButton,
+    List,
+    ListItem,
+    ListItemButton,
+    ListItemIcon,
+    ListItemText,
+    Typography,
+} from '@mui/material';
 
 import FolderDeleteIcon from '@mui/icons-material/FolderDelete';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -24,6 +35,12 @@ import { addLogLine } from '@/utils/logging';
 import CloudIcon from '@mui/icons-material/Cloud';
 import CollectionComponent from '@/components/pages/locker/Collection';
 import FileComponent from '@/components/pages/locker/File';
+import StorageSection from '@/components/Sidebar/SubscriptionCard/contentOverlay/storageSection';
+import { IndividualSubscriptionCardContent } from '@/components/Sidebar/SubscriptionCard/contentOverlay/individual';
+import { UserDetails } from '@/interfaces/user';
+import { getUserDetailsV2 } from '@/services/userService';
+import SubscriptionCard from '@/components/Sidebar/SubscriptionCard';
+import MenuIcon from '@mui/icons-material/Menu';
 
 interface lockerDashboardContextProps {
     currentCollection: Collection;
@@ -33,6 +50,8 @@ interface lockerDashboardContextProps {
     syncCollections: () => Promise<void>;
     uncategorizedCollection: Collection;
     syncFiles: () => Promise<void>;
+    leftDrawerOpened: boolean;
+    setLeftDrawerOpened: Dispatch<SetStateAction<boolean>>;
 }
 
 export const LockerDashboardContext =
@@ -49,6 +68,10 @@ const Locker = () => {
 
     const [uncategorizedCollection, setUncategorizedCollection] =
         useState<Collection | null>(null);
+
+    const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
+
+    const [leftDrawerOpened, setLeftDrawerOpened] = useState<boolean>(false);
 
     const doSyncCollections = async () => {
         setCollections(await syncCollections());
@@ -68,6 +91,9 @@ const Locker = () => {
             // set the current collection to uncategorized
             setCurrentCollection(uncategorizedCollection);
             setUncategorizedCollection(uncategorizedCollection);
+
+            const userDetails = await getUserDetailsV2();
+            setUserDetails(userDetails);
         };
 
         init();
@@ -96,6 +122,8 @@ const Locker = () => {
                     syncCollections: doSyncCollections,
                     uncategorizedCollection,
                     syncFiles: doSyncFiles,
+                    leftDrawerOpened,
+                    setLeftDrawerOpened,
                 }}>
                 <Box
                     height="100vh"
@@ -104,50 +132,57 @@ const Locker = () => {
                     flexDirection="column">
                     <NavBar />
                     <Box width="100%" height="100%" display="flex">
-                        <Box
-                            width="fit-content"
-                            borderRight={borderProperty}
-                            padding="1rem"
-                            boxSizing={'border-box'}
-                            height="100%"
-                            display="flex"
-                            flexDirection="column">
-                            <Button
-                                variant="text"
-                                sx={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.5rem',
-                                }}>
-                                <CloudIcon />
-                                <Typography>Locker</Typography>
-                            </Button>
-                            <Button
-                                variant="text"
-                                sx={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.5rem',
-                                }}>
-                                <FolderDeleteIcon />
-                                <Typography>Trash</Typography>
-                            </Button>
-                            <Box
-                                sx={{
-                                    height: '100%',
-                                }}
-                            />
-                            <Button
-                                variant="text"
-                                sx={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.5rem',
-                                }}>
-                                <SettingsIcon />
-                                <Typography>Settings</Typography>
-                            </Button>
-                        </Box>
+                        <Drawer
+                            anchor="left"
+                            open={leftDrawerOpened}
+                            onClose={() => {
+                                setLeftDrawerOpened(false);
+                            }}>
+                            <List>
+                                <ListItem>
+                                    <IconButton
+                                        onClick={() => {
+                                            setLeftDrawerOpened(false);
+                                        }}>
+                                        <MenuIcon />
+                                    </IconButton>
+                                </ListItem>
+                                <ListItem>
+                                    {userDetails && (
+                                        <SubscriptionCard
+                                            userDetails={userDetails}
+                                            onClick={() => {
+                                                console.log('Hello!');
+                                            }}
+                                        />
+                                    )}
+                                </ListItem>
+                                <ListItem>
+                                    <ListItemButton>
+                                        <ListItemIcon>
+                                            <CloudIcon />
+                                        </ListItemIcon>
+                                        <ListItemText primary="Locker" />
+                                    </ListItemButton>
+                                </ListItem>
+                                <ListItem>
+                                    <ListItemButton>
+                                        <ListItemIcon>
+                                            <FolderDeleteIcon />
+                                        </ListItemIcon>
+                                        <ListItemText primary="Trash" />
+                                    </ListItemButton>
+                                </ListItem>
+                                <ListItem>
+                                    <ListItemButton>
+                                        <ListItemIcon>
+                                            <SettingsIcon />
+                                        </ListItemIcon>
+                                        <ListItemText primary="Settings" />
+                                    </ListItemButton>
+                                </ListItem>
+                            </List>
+                        </Drawer>
                         <Box width="100%" padding="1rem" boxSizing="border-box">
                             {collections.length > 0 && (
                                 <>
