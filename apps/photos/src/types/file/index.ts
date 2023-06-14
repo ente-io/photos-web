@@ -1,7 +1,7 @@
 import {
     EncryptedMagicMetadata,
-    FileMagicMetadata,
-    FilePublicMagicMetadata,
+    MagicMetadataCore,
+    VISIBILITY_STATE,
 } from 'types/magicMetadata';
 import { Metadata } from 'types/upload';
 
@@ -60,6 +60,7 @@ export interface EnteFile
     originalVideoURL?: string;
     originalImageURL?: string;
     dataIndex?: number;
+    conversionFailed?: boolean;
 }
 
 export interface TrashRequest {
@@ -70,3 +71,32 @@ export interface TrashRequestItems {
     fileID: number;
     collectionID: number;
 }
+
+export interface FileWithUpdatedMagicMetadata {
+    file: EnteFile;
+    updatedMagicMetadata: FileMagicMetadata;
+}
+
+export interface FileWithUpdatedPublicMagicMetadata {
+    file: EnteFile;
+    updatedPublicMagicMetadata: FilePublicMagicMetadata;
+}
+
+export interface FileMagicMetadataProps {
+    visibility?: VISIBILITY_STATE;
+    filePaths?: string[];
+}
+
+export type FileMagicMetadata = MagicMetadataCore<FileMagicMetadataProps>;
+
+export interface FilePublicMagicMetadataProps {
+    editedTime?: number;
+    editedName?: string;
+    caption?: string;
+    uploaderName?: string;
+    w?: number;
+    h?: number;
+}
+
+export type FilePublicMagicMetadata =
+    MagicMetadataCore<FilePublicMagicMetadataProps>;

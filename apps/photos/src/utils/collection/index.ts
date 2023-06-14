@@ -1,22 +1,25 @@
 import {
     addToCollection,
+    createAlbum,
     getNonEmptyCollections,
     moveToCollection,
     removeFromCollection,
     restoreToCollection,
     unhideToCollection,
     updateCollectionMagicMetadata,
+    updatePublicCollectionMagicMetadata,
 } from 'services/collectionService';
 import { downloadFiles } from 'utils/file';
 import { getLocalFiles, getLocalHiddenFiles } from 'services/fileService';
 import { EnteFile } from 'types/file';
-import { CustomError, ServerErrorCodes } from 'utils/error';
+import { CustomError } from 'utils/error';
 import { User } from 'types/user';
 import { getData, LS_KEYS } from 'utils/storage/localStorage';
 import { logError } from 'utils/sentry';
 import {
     Collection,
     CollectionMagicMetadataProps,
+    CollectionPublicMagicMetadataProps,
     CollectionSummaries,
 } from 'types/collection';
 import {
@@ -25,15 +28,11 @@ import {
     HIDE_FROM_COLLECTION_BAR_TYPES,
     OPTIONS_NOT_HAVING_COLLECTION_TYPES,
     SYSTEM_COLLECTION_TYPES,
-    UPLOAD_NOT_ALLOWED_COLLECTION_TYPES,
+    SELECT_NOT_ALLOWED_COLLECTION,
 } from 'constants/collection';
 import { getUnixTimeInMicroSecondsWithDelta } from 'utils/time';
-import {
-    NEW_COLLECTION_MAGIC_METADATA,
-    SUB_TYPE,
-    VISIBILITY_STATE,
-} from 'types/magicMetadata';
-import { IsArchived, updateMagicMetadataProps } from 'utils/magicMetadata';
+import { SUB_TYPE, VISIBILITY_STATE } from 'types/magicMetadata';
+import { IsArchived, updateMagicMetadata } from 'utils/magicMetadata';
 import { getAlbumsURL } from 'utils/common/apiUtil';
 import bs58 from 'bs58';
 import { t } from 'i18next';
@@ -165,22 +164,60 @@ export const changeCollectionVisibility = async (
             visibility,
         };
 
-        const updatedCollection = {
-            ...collection,
-            magicMetadata: await updateMagicMetadataProps(
-                collection.magicMetadata ?? NEW_COLLECTION_MAGIC_METADATA,
-                collection.key,
-                updatedMagicMetadataProps
-            ),
-        } as Collection;
-
-        await updateCollectionMagicMetadata(updatedCollection);
+        const updatedMagicMetadata = await updateMagicMetadata(
+            updatedMagicMetadataProps,
+            collection.magicMetadata,
+            collection.key
+        );
+        await updateCollectionMagicMetadata(collection, updatedMagicMetadata);
     } catch (e) {
-        logError(e, 'change file visibility failed');
-        switch (e.status?.toString()) {
-            case ServerErrorCodes.FORBIDDEN:
-                throw Error(CustomError.NOT_FILE_OWNER);
-        }
+        logError(e, 'change collection visibility failed');
+        throw e;
+    }
+};
+
+export const changeCollectionSortOrder = async (
+    collection: Collection,
+    asc: boolean
+) => {
+    try {
+        const updatedPublicMagicMetadataProps: CollectionPublicMagicMetadataProps =
+            {
+                asc,
+            };
+
+        const updatedPubMagicMetadata = await updateMagicMetadata(
+            updatedPublicMagicMetadataProps,
+            collection.pubMagicMetadata,
+            collection.key
+        );
+
+        await updatePublicCollectionMagicMetadata(
+            collection,
+            updatedPubMagicMetadata
+        );
+    } catch (e) {
+        logError(e, 'change collection order failed');
+    }
+};
+
+export const changeCollectionSubType = async (
+    collection: Collection,
+    subType: SUB_TYPE
+) => {
+    try {
+        const updatedMagicMetadataProps: CollectionMagicMetadataProps = {
+            subType: subType,
+        };
+
+        const updatedMagicMetadata = await updateMagicMetadata(
+            updatedMagicMetadataProps,
+            collection.magicMetadata,
+            collection.key
+        );
+        await updateCollectionMagicMetadata(collection, updatedMagicMetadata);
+    } catch (e) {
+        logError(e, 'change collection subType failed');
         throw e;
     }
 };
@@ -200,8 +237,8 @@ export const hasNonSystemCollections = (
     return false;
 };
 
-export const isUploadAllowedCollection = (type: CollectionSummaryType) => {
-    return !UPLOAD_NOT_ALLOWED_COLLECTION_TYPES.has(type);
+export const isSelectAllowedCollection = (type: CollectionSummaryType) => {
+    return !SELECT_NOT_ALLOWED_COLLECTION.has(type);
 };
 
 export const isSystemCollection = (type: CollectionSummaryType) => {
@@ -356,3 +393,19 @@ export function constructCollectionNameMap(
         ])
     );
 }
+
+export const getOrCreateAlbum = async (
+    albumName: string,
+    existingCollections: Collection[]
+) => {
+    const user: User = getData(LS_KEYS.USER);
+    if (!user?.id) {
+        throw Error('user missing');
+    }
+    for (const collection of existingCollections) {
+        if (isValidReplacementAlbum(collection, user, albumName)) {
+            return collection;
+        }
+    }
+    return createAlbum(albumName);
+};

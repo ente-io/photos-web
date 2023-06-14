@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 
-import { createAlbum, getLatestCollections } from 'services/collectionService';
+import { getLatestCollections } from 'services/collectionService';
 import { Trans } from 'react-i18next';
 import { t } from 'i18next';
 
@@ -8,7 +8,11 @@ import UploadProgress from './UploadProgress';
 
 import UploadStrategyChoiceModal from './UploadStrategyChoiceModal';
 import { SetCollectionNamerAttributes } from '../Collections/CollectionNamer';
-import { SetCollections, SetCollectionSelectorAttributes } from 'types/gallery';
+import {
+    CollectionSelectorIntent,
+    SetCollections,
+    SetCollectionSelectorAttributes,
+} from 'types/gallery';
 import { GalleryContext } from 'pages/gallery';
 import { AppContext } from 'pages/_app';
 import { logError } from 'utils/sentry';
@@ -61,6 +65,8 @@ import {
     savePublicCollectionUploaderName,
 } from 'services/publicCollectionService';
 import { UploadTypeSelectorIntent } from 'types/gallery';
+import { getOrCreateAlbum } from 'utils/collection';
+
 const FIRST_ALBUM_NAME = 'My First Album';
 
 interface Props {
@@ -433,7 +439,7 @@ export default function Uploader(props: Props) {
                     collectionName,
                     files,
                 ] of collectionNameToFilesMap) {
-                    const collection = await createAlbum(
+                    const collection = await getOrCreateAlbum(
                         collectionName,
                         existingCollection
                     );
@@ -685,7 +691,7 @@ export default function Uploader(props: Props) {
                 callback: uploadFilesToExistingCollection,
                 onCancel: handleCollectionSelectorCancel,
                 showNextModal,
-                title: t('UPLOAD_TO_COLLECTION'),
+                intent: CollectionSelectorIntent.upload,
             });
         } catch (e) {
             logError(e, 'handleCollectionCreationAndUpload failed');

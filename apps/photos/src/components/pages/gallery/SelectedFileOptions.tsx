@@ -1,5 +1,8 @@
 import React, { useContext } from 'react';
-import { SetCollectionSelectorAttributes } from 'types/gallery';
+import {
+    CollectionSelectorIntent,
+    SetCollectionSelectorAttributes,
+} from 'types/gallery';
 import { FluidContainer } from 'components/Container';
 import { COLLECTION_OPS_TYPE } from 'utils/collection';
 import {
@@ -80,8 +83,8 @@ const SelectedFileOptions = ({
         setCollectionSelectorAttributes({
             callback: addToCollectionHelper,
             showNextModal: showCreateCollectionModal(COLLECTION_OPS_TYPE.ADD),
-            title: t('ADD_TO_COLLECTION'),
-            fromCollection: activeCollection,
+            intent: CollectionSelectorIntent.add,
+            fromCollection: !isInSearchMode ? activeCollection : undefined,
         });
 
     const trashHandler = () =>
@@ -105,7 +108,7 @@ const SelectedFileOptions = ({
             showNextModal: showCreateCollectionModal(
                 COLLECTION_OPS_TYPE.RESTORE
             ),
-            title: t('RESTORE_TO_COLLECTION'),
+            intent: CollectionSelectorIntent.restore,
         });
 
     const removeFromCollectionHandler = () => {
@@ -140,8 +143,8 @@ const SelectedFileOptions = ({
         setCollectionSelectorAttributes({
             callback: moveToCollectionHelper,
             showNextModal: showCreateCollectionModal(COLLECTION_OPS_TYPE.MOVE),
-            title: t('MOVE_TO_COLLECTION'),
-            fromCollection: activeCollection,
+            intent: CollectionSelectorIntent.move,
+            fromCollection: !isInSearchMode ? activeCollection : undefined,
         });
     };
 
@@ -151,8 +154,7 @@ const SelectedFileOptions = ({
             showNextModal: showCreateCollectionModal(
                 COLLECTION_OPS_TYPE.UNHIDE
             ),
-            title: t('UNHIDE_TO_COLLECTION'),
-            fromCollection: activeCollection,
+            intent: CollectionSelectorIntent.unhide,
         });
     };
 
