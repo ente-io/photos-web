@@ -15,7 +15,10 @@ const FileComponent = ({ file }: { file: EnteFile }) => {
             display="flex"
             alignItems="center"
             justifyContent="space-between">
-            <Typography textOverflow="ellipsis" overflow="hidden">
+            <Typography
+                textOverflow="ellipsis"
+                overflow="hidden"
+                whiteSpace="nowrap">
                 {file.metadata.title}
             </Typography>
             <IconButton

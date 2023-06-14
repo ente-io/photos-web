@@ -2,7 +2,6 @@ import {
     Box,
     Button,
     Drawer,
-    Icon,
     IconButton,
     List,
     ListItem,
@@ -42,6 +41,7 @@ import SubscriptionCard from '@/components/Sidebar/SubscriptionCard';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import Image from 'next/image';
+import { sortFiles } from '@/utils/file';
 interface lockerDashboardContextProps {
     currentCollection: Collection;
     setCurrentCollection: Dispatch<SetStateAction<Collection>>;
@@ -65,6 +65,7 @@ const Locker = () => {
     const [currentCollection, setCurrentCollection] =
         useState<Collection | null>(null);
     const [files, setFiles] = useState<EnteFile[]>([]);
+    const [filteredFiles, setFilteredFiles] = useState<EnteFile[]>([]);
 
     const [uncategorizedCollection, setUncategorizedCollection] =
         useState<Collection | null>(null);
@@ -107,18 +108,22 @@ const Locker = () => {
         if (!currentCollection) return;
         addLogLine(`Syncing files for collection ${currentCollection.name}`);
 
-        const files = await syncFiles([currentCollection], setFiles);
-        setFiles(files);
+        const files = await syncFiles(collections, () => {});
+        setFiles(sortFiles(files));
+    };
+
+    const filterFiles = async () => {
+        const filtered = files.filter((file) => {
+            return file.collectionID === currentCollection.id;
+        });
+
+        setFilteredFiles(filtered);
     };
 
     useEffect(() => {
         doSyncFiles();
 
-        if (currentCollection?.id !== uncategorizedCollection?.id) {
-            setCollections([]);
-        } else {
-            doSyncCollections();
-        }
+        doSyncCollections();
 
         // set path
         if (collectionsPath.length === 0 && uncategorizedCollection) {
@@ -142,6 +147,11 @@ const Locker = () => {
             }
         }
     }, [currentCollection]);
+
+    useEffect(() => {
+        if (!currentCollection) return;
+        filterFiles();
+    }, [files, currentCollection]);
 
     return (
         <>
@@ -245,30 +255,32 @@ const Locker = () => {
                                     ))}
                                 </Box>
                             )}
-                            {collections.length > 0 && (
-                                <>
-                                    <h3>Collections</h3>
-                                    <Box
-                                        gap="1rem"
-                                        flexWrap="wrap"
-                                        display="flex">
-                                        {collections
-                                            .filter(
-                                                (r) =>
-                                                    r.id !==
-                                                    uncategorizedCollection?.id
-                                            )
-                                            .map((collection) => (
-                                                <CollectionComponent
-                                                    collection={collection}
-                                                    key={collection.id}
-                                                />
-                                            ))}
-                                    </Box>
-                                </>
-                            )}
+                            {collections.length > 0 &&
+                                currentCollection?.id ===
+                                    uncategorizedCollection?.id && (
+                                    <>
+                                        <h3>Collections</h3>
+                                        <Box
+                                            gap="1rem"
+                                            flexWrap="wrap"
+                                            display="flex">
+                                            {collections
+                                                .filter(
+                                                    (r) =>
+                                                        r.id !==
+                                                        uncategorizedCollection?.id
+                                                )
+                                                .map((collection) => (
+                                                    <CollectionComponent
+                                                        collection={collection}
+                                                        key={collection.id}
+                                                    />
+                                                ))}
+                                        </Box>
+                                    </>
+                                )}
 
-                            {files.length > 0 ? (
+                            {filteredFiles.length > 0 ? (
                                 <>
                                     <h3>Files</h3>
                                     <Box
@@ -276,7 +288,7 @@ const Locker = () => {
                                         flexWrap="wrap"
                                         gap="1rem"
                                         width="100%">
-                                        {files.map((file) => (
+                                        {filteredFiles.map((file) => (
                                             <FileComponent
                                                 file={file}
                                                 key={file.id}
