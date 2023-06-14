@@ -108,7 +108,6 @@ const Locker = () => {
         addLogLine(`Syncing files for collection ${currentCollection.name}`);
 
         const files = await syncFiles([currentCollection], setFiles);
-        console.log(files);
         setFiles(files);
     };
 
