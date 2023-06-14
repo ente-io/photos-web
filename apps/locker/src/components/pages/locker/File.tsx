@@ -10,7 +10,7 @@ const FileComponent = ({ file }: { file: EnteFile }) => {
             width="15rem"
             height="3rem"
             borderRadius="10px"
-            padding=".5rem"
+            padding="1rem"
             boxSizing={'border-box'}
             display="flex"
             alignItems="center"

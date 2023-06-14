@@ -24,13 +24,14 @@ const CollectionComponent = ({ collection }: { collection: Collection }) => {
             }}>
             <Box
                 bgcolor={bgColor}
-                width="15rem"
+                width="auto"
                 height="3rem"
                 borderRadius="10px"
-                padding=".5rem"
+                padding="1rem"
                 boxSizing={'border-box'}
                 display="flex"
                 alignItems="center"
+                flexGrow="1"
                 gap=".5rem">
                 <FolderIcon />
                 <Typography>{collection.name}</Typography>

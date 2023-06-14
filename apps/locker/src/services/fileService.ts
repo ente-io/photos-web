@@ -77,6 +77,7 @@ export const syncFiles = async (
         }
         const lastSyncTime = await getCollectionLastSyncTime(collection);
         if (collection.updationTime === lastSyncTime) {
+            addLogLine('updation time too recent');
             continue;
         }
         const newFiles = await getFiles(collection, lastSyncTime, setFiles);

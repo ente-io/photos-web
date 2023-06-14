@@ -55,9 +55,10 @@ const NavBar = () => {
     const [showNewCollectionModal, setShowNewCollectionModal] = useState(false);
 
     useEffect(() => {
-        console.log('Syncing files');
-        syncFiles();
-    }, [finishedUploads]);
+        if (uploadStage === UPLOAD_STAGES.FINISH) {
+            syncFiles();
+        }
+    }, [uploadStage]);
 
     const initUploadManager = async () => {
         // Initialize the upload manager
