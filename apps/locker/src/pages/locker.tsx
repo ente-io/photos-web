@@ -1,7 +1,6 @@
 import {
     Box,
     Button,
-    Drawer,
     IconButton,
     List,
     ListItem,
@@ -42,6 +41,9 @@ import MenuIcon from '@mui/icons-material/Menu';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import Image from 'next/image';
 import { sortFiles } from '@/utils/file';
+import { EnteDrawer } from '@/components/EnteDrawer';
+import { useRouter } from 'next/router';
+import { DrawerSidebar } from '@/components/Sidebar/drawer';
 interface lockerDashboardContextProps {
     currentCollection: Collection;
     setCurrentCollection: Dispatch<SetStateAction<Collection>>;
@@ -76,13 +78,31 @@ const Locker = () => {
 
     const [collectionsPath, setCollectionsPath] = useState<Collection[]>([]);
 
+    const router = useRouter();
+
     const doSyncCollections = async () => {
         setCollections(await syncCollections());
     };
 
     useEffect(() => {
         const init = async () => {
-            await doSyncCollections();
+            let userDetails: UserDetails;
+
+            try {
+                userDetails = await getUserDetailsV2();
+            } catch {
+                router.push('/login');
+                return;
+            }
+
+            setUserDetails(userDetails);
+
+            try {
+                await doSyncCollections();
+            } catch {
+                router.push('/login');
+                return;
+            }
 
             let uncategorizedCollection = await getUncategorizedCollection();
             if (!uncategorizedCollection) {
@@ -96,9 +116,6 @@ const Locker = () => {
             setUncategorizedCollection(uncategorizedCollection);
             // set path
             setCollectionsPath([uncategorizedCollection]);
-
-            const userDetails = await getUserDetailsV2();
-            setUserDetails(userDetails);
         };
 
         init();
@@ -174,7 +191,7 @@ const Locker = () => {
                     flexDirection="column">
                     <NavBar />
                     <Box width="100%" height="100%" display="flex">
-                        <Drawer
+                        <DrawerSidebar
                             anchor="left"
                             open={leftDrawerOpened}
                             onClose={() => {
@@ -224,7 +241,7 @@ const Locker = () => {
                                     </ListItemButton>
                                 </ListItem>
                             </List>
-                        </Drawer>
+                        </DrawerSidebar>
                         <Box
                             width="100%"
                             height="100%"

@@ -24,6 +24,7 @@
         "file-loader": "^6.2.0",
         "formik": "^2.3.2",
         "fs": "^0.0.1-security",
+        "get-user-locale": "^2.2.1",
         "i18next": "^22.5.0",
         "jszip": "^3.10.1",
         "next": "13.4.2",

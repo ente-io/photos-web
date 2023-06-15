@@ -24,15 +24,15 @@ export default function StorageSection({ usage, storage }: Iprops) {
     return (
         <Box width="100%">
             <Typography variant="small" color={'text.muted'}>
-                {t('STORAGE')}
+                Storage
             </Typography>
             <DefaultBox>
                 <Typography
                     fontWeight={'bold'}
                     sx={{ fontSize: '24px', lineHeight: '30px' }}>
-                    {`${makeHumanReadableStorage(usage, { roundUp: true })} ${t(
-                        'OF'
-                    )} ${makeHumanReadableStorage(storage)} ${t('USED')}`}
+                    {`${makeHumanReadableStorage(usage, {
+                        roundUp: true,
+                    })} of ${makeHumanReadableStorage(storage)} used`}
                 </Typography>
             </DefaultBox>
             <MobileSmallBox>
@@ -41,7 +41,7 @@ export default function StorageSection({ usage, storage }: Iprops) {
                     sx={{ fontSize: '24px', lineHeight: '30px' }}>
                     {`${convertBytesToGBs(usage)} /  ${convertBytesToGBs(
                         storage
-                    )} ${t('GB')} ${t('USED')}`}
+                    )} GB used`}
                 </Typography>
             </MobileSmallBox>
         </Box>

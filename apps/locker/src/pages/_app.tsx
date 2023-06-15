@@ -14,8 +14,14 @@ export const metadata = {
 
 import { AppProps } from 'next/app';
 import Head from 'next/head';
+import { useEffect } from 'react';
+import { setupI18n } from '@/i18n';
 
 const App = ({ Component, pageProps }: AppProps) => {
+    useEffect(() => {
+        setupI18n();
+    }, []);
+
     return (
         <>
             <Head>

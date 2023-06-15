@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { UserDetails } from 'types/user';
+import { UserDetails } from '@/interfaces/user';
 import { isPartOfFamily } from 'utils/user/family';
 import StorageSection from '../storageSection';
 import { FamilyUsageSection } from './usageSection';
