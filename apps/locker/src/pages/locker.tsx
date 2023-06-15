@@ -1,17 +1,5 @@
-import {
-    Box,
-    Button,
-    IconButton,
-    List,
-    ListItem,
-    ListItemButton,
-    ListItemIcon,
-    ListItemText,
-    Typography,
-} from '@mui/material';
+import { Box, Button, Typography } from '@mui/material';
 
-import FolderDeleteIcon from '@mui/icons-material/FolderDelete';
-import SettingsIcon from '@mui/icons-material/Settings';
 import {
     Dispatch,
     Fragment,
@@ -31,19 +19,17 @@ import { syncFiles } from '@/services/fileService';
 import { EnteFile } from '@/interfaces/file';
 import { addLogLine } from '@/utils/logging';
 
-import CloudIcon from '@mui/icons-material/Cloud';
 import CollectionComponent from '@/components/pages/locker/Collection';
 import FileComponent from '@/components/pages/locker/File';
 import { UserDetails } from '@/interfaces/user';
 import { getUserDetailsV2 } from '@/services/userService';
-import SubscriptionCard from '@/components/Sidebar/SubscriptionCard';
-import MenuIcon from '@mui/icons-material/Menu';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import Image from 'next/image';
 import { sortFiles } from '@/utils/file';
-import { EnteDrawer } from '@/components/EnteDrawer';
 import { useRouter } from 'next/router';
-import { DrawerSidebar } from '@/components/Sidebar/drawer';
+import LockerDrawer from '@/components/pages/locker/Drawer';
+import { getLocalTrash, syncTrash } from '@/services/trashService';
+
 interface lockerDashboardContextProps {
     currentCollection: Collection;
     setCurrentCollection: Dispatch<SetStateAction<Collection>>;
@@ -54,6 +40,9 @@ interface lockerDashboardContextProps {
     syncFiles: () => Promise<void>;
     leftDrawerOpened: boolean;
     setLeftDrawerOpened: Dispatch<SetStateAction<boolean>>;
+    userDetails: UserDetails;
+    dashboardView: 'locker' | 'trash';
+    setDashboardView: Dispatch<SetStateAction<'locker' | 'trash'>>;
 }
 
 export const LockerDashboardContext =
@@ -78,25 +67,29 @@ const Locker = () => {
 
     const [collectionsPath, setCollectionsPath] = useState<Collection[]>([]);
 
+    const [dashboardView, setDashboardView] = useState<'locker' | 'trash'>(
+        'locker'
+    );
+
     const router = useRouter();
 
     const doSyncCollections = async () => {
         setCollections(await syncCollections());
     };
 
-    useEffect(() => {
-        const init = async () => {
-            let userDetails: UserDetails;
+    const init = async () => {
+        let userDetails: UserDetails;
 
-            try {
-                userDetails = await getUserDetailsV2();
-            } catch {
-                router.push('/login');
-                return;
-            }
+        try {
+            userDetails = await getUserDetailsV2();
+        } catch {
+            router.push('/login');
+            return;
+        }
 
-            setUserDetails(userDetails);
+        setUserDetails(userDetails);
 
+        if (dashboardView === 'locker') {
             try {
                 await doSyncCollections();
             } catch {
@@ -116,8 +109,23 @@ const Locker = () => {
             setUncategorizedCollection(uncategorizedCollection);
             // set path
             setCollectionsPath([uncategorizedCollection]);
-        };
+        } else {
+            setCollectionsPath([]);
+            setCurrentCollection(null);
 
+            await syncTrash(collections, files, setFiles);
+
+            const localTrash = await getLocalTrash();
+
+            setFiles(sortFiles(localTrash.map((item) => item.file)));
+        }
+    };
+
+    useEffect(() => {
+        init();
+    }, [dashboardView]);
+
+    useEffect(() => {
         init();
     }, []);
 
@@ -166,7 +174,12 @@ const Locker = () => {
     }, [currentCollection]);
 
     useEffect(() => {
-        if (!currentCollection) return;
+        if (dashboardView === 'trash') {
+            setFilteredFiles(files);
+            return;
+        } else if (!currentCollection) {
+            return;
+        }
         filterFiles();
     }, [files, currentCollection]);
 
@@ -183,6 +196,9 @@ const Locker = () => {
                     syncFiles: doSyncFiles,
                     leftDrawerOpened,
                     setLeftDrawerOpened,
+                    userDetails,
+                    dashboardView,
+                    setDashboardView,
                 }}>
                 <Box
                     height="100vh"
@@ -191,57 +207,10 @@ const Locker = () => {
                     flexDirection="column">
                     <NavBar />
                     <Box width="100%" height="100%" display="flex">
-                        <DrawerSidebar
-                            anchor="left"
-                            open={leftDrawerOpened}
-                            onClose={() => {
-                                setLeftDrawerOpened(false);
-                            }}>
-                            <List>
-                                <ListItem>
-                                    <IconButton
-                                        onClick={() => {
-                                            setLeftDrawerOpened(false);
-                                        }}>
-                                        <MenuIcon />
-                                    </IconButton>
-                                </ListItem>
-                                <ListItem>
-                                    {userDetails && (
-                                        <SubscriptionCard
-                                            userDetails={userDetails}
-                                            onClick={() => {
-                                                console.log('Hello!');
-                                            }}
-                                        />
-                                    )}
-                                </ListItem>
-                                <ListItem>
-                                    <ListItemButton>
-                                        <ListItemIcon>
-                                            <CloudIcon />
-                                        </ListItemIcon>
-                                        <ListItemText primary="Locker" />
-                                    </ListItemButton>
-                                </ListItem>
-                                <ListItem>
-                                    <ListItemButton>
-                                        <ListItemIcon>
-                                            <FolderDeleteIcon />
-                                        </ListItemIcon>
-                                        <ListItemText primary="Trash" />
-                                    </ListItemButton>
-                                </ListItem>
-                                <ListItem>
-                                    <ListItemButton>
-                                        <ListItemIcon>
-                                            <SettingsIcon />
-                                        </ListItemIcon>
-                                        <ListItemText primary="Settings" />
-                                    </ListItemButton>
-                                </ListItem>
-                            </List>
-                        </DrawerSidebar>
+                        <LockerDrawer
+                            isOpen={leftDrawerOpened}
+                            setIsOpen={setLeftDrawerOpened}
+                        />
                         <Box
                             width="100%"
                             height="100%"
