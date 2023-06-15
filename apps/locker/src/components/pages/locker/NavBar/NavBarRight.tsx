@@ -1,28 +1,29 @@
-import { Box, IconButton, Typography } from '@mui/material';
-import Link from 'next/link';
-import Image from 'next/image';
-import { borderProperty } from '@/constants/ui/locker/border';
+import { Box, IconButton } from '@mui/material';
 import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
+import { syncCollections } from '@/services/collectionService';
 import { useContext, useEffect, useRef, useState } from 'react';
-import uploadManager from '@/services/uploadManager';
+import NewCollectionModal from '../NewCollectionModal';
+import { UPLOAD_STAGES } from '@/constants/upload';
+import { FileWithCollection } from '@/interfaces/upload';
 import {
+    UploadCounter,
     InProgressUpload,
     SegregatedFinishedUploads,
-    UploadCounter,
     UploadFileNames,
 } from '@/interfaces/upload/ui';
-import { UPLOAD_STAGES } from '@/constants/upload';
 import { LockerDashboardContext } from '@/pages/locker';
-import { FileWithCollection } from '@/interfaces/upload';
+import uploadManager from '@/services/uploadManager';
 import { addLogLine } from '@/utils/logging';
-import NewCollectionModal from './NewCollectionModal';
-import MenuIcon from '@mui/icons-material/Menu';
-import ClearIcon from '@mui/icons-material/Clear';
-const NavBar = () => {
+
+const NavBarRight = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [file, setFile] = useState<File | null>(null);
+
+    const [showNewCollectionModal, setShowNewCollectionModal] = useState(false);
+
+    const localIDCounter = useRef(0);
 
     const [percentComplete, setPercentComplete] = useState(0);
     const [uploadCounter, setUploadCounter] = useState({} as UploadCounter);
@@ -41,20 +42,9 @@ const NavBar = () => {
     const [hasLivePhotos, setHasLivePhotos] = useState(false);
     const [files, setFiles] = useState([]);
 
-    const {
-        currentCollection,
-        syncCollections,
-        setCurrentCollection,
-        uncategorizedCollection,
-        syncFiles,
-        setLeftDrawerOpened,
-        selectedFiles,
-        setSelectedFiles,
-    } = useContext(LockerDashboardContext);
-
-    const localIDCounter = useRef(0);
-
-    const [showNewCollectionModal, setShowNewCollectionModal] = useState(false);
+    const { currentCollection, syncCollections, syncFiles } = useContext(
+        LockerDashboardContext
+    );
 
     useEffect(() => {
         if (uploadStage === UPLOAD_STAGES.FINISH) {
@@ -120,66 +110,19 @@ const NavBar = () => {
 
     return (
         <>
-            <Box
-                sx={{
-                    padding: '1rem',
-                    borderBottom: borderProperty,
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                }}>
-                {selectedFiles.length > 0 ? (
-                    <Box
-                        height="inherit"
-                        display="flex"
-                        alignItems="center"
-                        gap="1rem">
-                        <IconButton
-                            onClick={() => {
-                                setSelectedFiles([]);
-                            }}>
-                            <ClearIcon />
-                        </IconButton>
-                        <Typography>
-                            <b>{selectedFiles.length} files</b> selected
-                        </Typography>
-                    </Box>
-                ) : (
-                    <Box
-                        height="inherit"
-                        display="flex"
-                        alignItems="center"
-                        gap="1rem">
-                        <IconButton
-                            onClick={() => {
-                                setLeftDrawerOpened(true);
-                            }}>
-                            <MenuIcon />
-                        </IconButton>
-                        <Image
-                            src="/locker.svg"
-                            alt="ente Locker logo"
-                            width={200}
-                            height={50}
-                            onClick={() => {
-                                setCurrentCollection(uncategorizedCollection);
-                            }}
-                        />
-                    </Box>
-                )}
-                <Box>
-                    <IconButton
-                        onClick={() => {
-                            setShowNewCollectionModal(true);
-                        }}>
-                        <CreateNewFolderIcon />
-                    </IconButton>
-                    <IconButton
-                        onClick={() => {
-                            fileInputRef.current?.click();
-                        }}>
-                        <FileUploadIcon />
-                    </IconButton>
-                </Box>
+            <Box>
+                <IconButton
+                    onClick={() => {
+                        setShowNewCollectionModal(true);
+                    }}>
+                    <CreateNewFolderIcon />
+                </IconButton>
+                <IconButton
+                    onClick={() => {
+                        fileInputRef.current?.click();
+                    }}>
+                    <FileUploadIcon />
+                </IconButton>
             </Box>
             <input
                 ref={fileInputRef}
@@ -202,4 +145,4 @@ const NavBar = () => {
     );
 };
 
-export default NavBar;
+export default NavBarRight;
