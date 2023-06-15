@@ -1,4 +1,4 @@
-import { Box, IconButton } from '@mui/material';
+import { Box, IconButton, Typography } from '@mui/material';
 import Link from 'next/link';
 import Image from 'next/image';
 import { borderProperty } from '@/constants/ui/locker/border';
@@ -18,7 +18,7 @@ import { FileWithCollection } from '@/interfaces/upload';
 import { addLogLine } from '@/utils/logging';
 import NewCollectionModal from './NewCollectionModal';
 import MenuIcon from '@mui/icons-material/Menu';
-
+import ClearIcon from '@mui/icons-material/Clear';
 const NavBar = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -48,6 +48,8 @@ const NavBar = () => {
         uncategorizedCollection,
         syncFiles,
         setLeftDrawerOpened,
+        selectedFiles,
+        setSelectedFiles,
     } = useContext(LockerDashboardContext);
 
     const localIDCounter = useRef(0);
@@ -125,27 +127,45 @@ const NavBar = () => {
                     display: 'flex',
                     justifyContent: 'space-between',
                 }}>
-                <Box
-                    height="inherit"
-                    display="flex"
-                    alignItems="center"
-                    gap="1rem">
-                    <IconButton
-                        onClick={() => {
-                            setLeftDrawerOpened(true);
-                        }}>
-                        <MenuIcon />
-                    </IconButton>
-                    <Image
-                        src="/locker.svg"
-                        alt="ente Locker logo"
-                        width={200}
-                        height={50}
-                        onClick={() => {
-                            setCurrentCollection(uncategorizedCollection);
-                        }}
-                    />
-                </Box>
+                {selectedFiles.length > 0 ? (
+                    <Box
+                        height="inherit"
+                        display="flex"
+                        alignItems="center"
+                        gap="1rem">
+                        <IconButton
+                            onClick={() => {
+                                setSelectedFiles([]);
+                            }}>
+                            <ClearIcon />
+                        </IconButton>
+                        <Typography>
+                            <b>{selectedFiles.length} files</b> selected
+                        </Typography>
+                    </Box>
+                ) : (
+                    <Box
+                        height="inherit"
+                        display="flex"
+                        alignItems="center"
+                        gap="1rem">
+                        <IconButton
+                            onClick={() => {
+                                setLeftDrawerOpened(true);
+                            }}>
+                            <MenuIcon />
+                        </IconButton>
+                        <Image
+                            src="/locker.svg"
+                            alt="ente Locker logo"
+                            width={200}
+                            height={50}
+                            onClick={() => {
+                                setCurrentCollection(uncategorizedCollection);
+                            }}
+                        />
+                    </Box>
+                )}
                 <Box>
                     <IconButton
                         onClick={() => {

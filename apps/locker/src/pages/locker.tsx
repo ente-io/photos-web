@@ -43,6 +43,8 @@ interface lockerDashboardContextProps {
     userDetails: UserDetails;
     dashboardView: 'locker' | 'trash';
     setDashboardView: Dispatch<SetStateAction<'locker' | 'trash'>>;
+    selectedFiles: EnteFile[];
+    setSelectedFiles: Dispatch<SetStateAction<EnteFile[]>>;
 }
 
 export const LockerDashboardContext =
@@ -70,6 +72,8 @@ const Locker = () => {
     const [dashboardView, setDashboardView] = useState<'locker' | 'trash'>(
         'locker'
     );
+
+    const [selectedFiles, setSelectedFiles] = useState<EnteFile[]>([]);
 
     const router = useRouter();
 
@@ -199,6 +203,8 @@ const Locker = () => {
                     userDetails,
                     dashboardView,
                     setDashboardView,
+                    selectedFiles,
+                    setSelectedFiles,
                 }}>
                 <Box
                     height="100vh"

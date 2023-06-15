@@ -2,8 +2,16 @@ import { EnteFile } from '@/interfaces/file';
 import { downloadFile } from '@/utils/file';
 import { Box, Typography, IconButton } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
+import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
+import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import { useContext } from 'react';
+import { LockerDashboardContext } from '@/pages/locker';
 
 const FileComponent = ({ file }: { file: EnteFile }) => {
+    const { selectedFiles, setSelectedFiles } = useContext(
+        LockerDashboardContext
+    );
+
     return (
         <Box
             bgcolor="#201E1E"
@@ -15,6 +23,25 @@ const FileComponent = ({ file }: { file: EnteFile }) => {
             display="flex"
             alignItems="center"
             justifyContent="space-between">
+            <IconButton>
+                {selectedFiles.includes(file) ? (
+                    <CheckBoxIcon
+                        onClick={() => {
+                            setSelectedFiles(
+                                selectedFiles.filter(
+                                    (selectedFile) => selectedFile !== file
+                                )
+                            );
+                        }}
+                    />
+                ) : (
+                    <CheckBoxOutlineBlankIcon
+                        onClick={() => {
+                            setSelectedFiles([...selectedFiles, file]);
+                        }}
+                    />
+                )}
+            </IconButton>
             <Typography
                 textOverflow="ellipsis"
                 overflow="hidden"
