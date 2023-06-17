@@ -60,7 +60,8 @@ const setLocalFiles = async (files: EnteFile[]) => {
 
 export const syncFiles = async (
     collections: Collection[],
-    setFiles: SetFiles
+    setFiles: SetFiles,
+    force = false
 ): Promise<EnteFile[]> => {
     const localFiles = await getLocalFiles();
     let files = await removeDeletedCollectionFiles(collections, localFiles);
@@ -76,7 +77,7 @@ export const syncFiles = async (
             throw Error(CustomError.HIDDEN_COLLECTION_SYNC_FILE_ATTEMPTED);
         }
         const lastSyncTime = await getCollectionLastSyncTime(collection);
-        if (collection.updationTime === lastSyncTime) {
+        if (collection.updationTime === lastSyncTime && !force) {
             addLogLine('updation time too recent');
             continue;
         }

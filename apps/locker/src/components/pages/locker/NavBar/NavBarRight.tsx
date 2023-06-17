@@ -17,6 +17,7 @@ import uploadManager from '@/services/uploadManager';
 import { addLogLine } from '@/utils/logging';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DriveFileMoveIcon from '@mui/icons-material/DriveFileMove';
+import TrashFilesModal from '../TrashFilesModal';
 
 const NavBarRight = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -24,6 +25,7 @@ const NavBarRight = () => {
     const [file, setFile] = useState<File | null>(null);
 
     const [showNewCollectionModal, setShowNewCollectionModal] = useState(false);
+    const [showTrashFilesModal, setShowTrashFilesModal] = useState(false);
 
     const localIDCounter = useRef(0);
 
@@ -44,13 +46,8 @@ const NavBarRight = () => {
     const [hasLivePhotos, setHasLivePhotos] = useState(false);
     const [files, setFiles] = useState([]);
 
-    const {
-        currentCollection,
-        syncCollections,
-        syncFiles,
-        selectedFiles,
-        setSelectedFiles,
-    } = useContext(LockerDashboardContext);
+    const { currentCollection, syncCollections, syncFiles, selectedFiles } =
+        useContext(LockerDashboardContext);
 
     useEffect(() => {
         if (uploadStage === UPLOAD_STAGES.FINISH) {
@@ -122,7 +119,10 @@ const NavBarRight = () => {
                         <IconButton>
                             <DriveFileMoveIcon />
                         </IconButton>
-                        <IconButton>
+                        <IconButton
+                            onClick={() => {
+                                setShowTrashFilesModal(true);
+                            }}>
                             <DeleteIcon />
                         </IconButton>
                     </>
@@ -158,6 +158,13 @@ const NavBarRight = () => {
                 onHide={() => {
                     setShowNewCollectionModal(false);
                     syncCollections();
+                }}
+            />
+            <TrashFilesModal
+                show={showTrashFilesModal}
+                onHide={() => {
+                    setShowTrashFilesModal(false);
+                    syncFiles();
                 }}
             />
         </>

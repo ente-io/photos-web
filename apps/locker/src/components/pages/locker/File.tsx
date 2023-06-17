@@ -23,23 +23,22 @@ const FileComponent = ({ file }: { file: EnteFile }) => {
             display="flex"
             alignItems="center"
             justifyContent="space-between">
-            <IconButton>
+            <IconButton
+                onClick={() => {
+                    if (selectedFiles.includes(file)) {
+                        setSelectedFiles(
+                            selectedFiles.filter(
+                                (selectedFile) => selectedFile !== file
+                            )
+                        );
+                    } else {
+                        setSelectedFiles([...selectedFiles, file]);
+                    }
+                }}>
                 {selectedFiles.includes(file) ? (
-                    <CheckBoxIcon
-                        onClick={() => {
-                            setSelectedFiles(
-                                selectedFiles.filter(
-                                    (selectedFile) => selectedFile !== file
-                                )
-                            );
-                        }}
-                    />
+                    <CheckBoxIcon />
                 ) : (
-                    <CheckBoxOutlineBlankIcon
-                        onClick={() => {
-                            setSelectedFiles([...selectedFiles, file]);
-                        }}
-                    />
+                    <CheckBoxOutlineBlankIcon />
                 )}
             </IconButton>
             <Typography
