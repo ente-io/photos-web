@@ -15,6 +15,8 @@ import {
 import { LockerDashboardContext } from '@/pages/locker';
 import uploadManager from '@/services/uploadManager';
 import { addLogLine } from '@/utils/logging';
+import DeleteIcon from '@mui/icons-material/Delete';
+import DriveFileMoveIcon from '@mui/icons-material/DriveFileMove';
 
 const NavBarRight = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -42,9 +44,13 @@ const NavBarRight = () => {
     const [hasLivePhotos, setHasLivePhotos] = useState(false);
     const [files, setFiles] = useState([]);
 
-    const { currentCollection, syncCollections, syncFiles } = useContext(
-        LockerDashboardContext
-    );
+    const {
+        currentCollection,
+        syncCollections,
+        syncFiles,
+        selectedFiles,
+        setSelectedFiles,
+    } = useContext(LockerDashboardContext);
 
     useEffect(() => {
         if (uploadStage === UPLOAD_STAGES.FINISH) {
@@ -111,18 +117,31 @@ const NavBarRight = () => {
     return (
         <>
             <Box>
-                <IconButton
-                    onClick={() => {
-                        setShowNewCollectionModal(true);
-                    }}>
-                    <CreateNewFolderIcon />
-                </IconButton>
-                <IconButton
-                    onClick={() => {
-                        fileInputRef.current?.click();
-                    }}>
-                    <FileUploadIcon />
-                </IconButton>
+                {selectedFiles.length > 0 ? (
+                    <>
+                        <IconButton>
+                            <DriveFileMoveIcon />
+                        </IconButton>
+                        <IconButton>
+                            <DeleteIcon />
+                        </IconButton>
+                    </>
+                ) : (
+                    <>
+                        <IconButton
+                            onClick={() => {
+                                setShowNewCollectionModal(true);
+                            }}>
+                            <CreateNewFolderIcon />
+                        </IconButton>
+                        <IconButton
+                            onClick={() => {
+                                fileInputRef.current?.click();
+                            }}>
+                            <FileUploadIcon />
+                        </IconButton>
+                    </>
+                )}
             </Box>
             <input
                 ref={fileInputRef}
