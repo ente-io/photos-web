@@ -146,6 +146,7 @@ const NavBarRight = () => {
             <input
                 ref={fileInputRef}
                 type="file"
+                multiple
                 style={{
                     display: 'none',
                 }}
