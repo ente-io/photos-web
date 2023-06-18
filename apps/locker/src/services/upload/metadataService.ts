@@ -53,8 +53,11 @@ export async function extractMetadata(
     } else if (fileTypeInfo.fileType === FILE_TYPE.VIDEO) {
         extractedMetadata = await getVideoMetadata(receivedFile);
     } else {
-        // for all other file types, we don't need to extract metadata
-        return null;
+        // create basic metadata
+        extractedMetadata = {
+            location: NULL_LOCATION,
+            creationTime: receivedFile.lastModified * 1000,
+        };
     }
     const fileHash = await getFileHash(worker, receivedFile);
 

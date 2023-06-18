@@ -98,7 +98,7 @@ export default async function uploader(
             addLocalLog(
                 () =>
                     `matched file collectionIDs:${matchingExistingFilesCollectionIDs}
-                       and collectionID:${collection.id}`
+                           and collectionID:${collection.id}`
             );
 
             // If the file is already present in the collection, return the matching file

@@ -128,6 +128,7 @@ export async function extractFileMetadata(
     fileTypeInfo: FileTypeInfo,
     rawFile: File
 ) {
+    addLogLine('extractFileMetadata() - start');
     const originalName = getFileOriginalName(rawFile);
     const googleMetadata =
         parsedMetadataJSONMap.get(
