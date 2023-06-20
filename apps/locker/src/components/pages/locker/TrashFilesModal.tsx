@@ -1,17 +1,10 @@
-import { FlexWrapper } from '@/components/Container';
-import DialogTitleWithCloseButton from '@/components/DialogBox/TitleWithCloseButton';
-import { CollectionType } from '@/constants/collection';
+import DialogBoxV2 from '@/components/DialogBoxV2';
+import EnteButton from '@/components/EnteButton';
 import { LockerDashboardContext } from '@/pages/locker';
-import { createCollection } from '@/services/collectionService';
 import { trashFiles } from '@/services/fileService';
-import {
-    Button,
-    Dialog,
-    DialogContent,
-    Input,
-    Typography,
-} from '@mui/material';
-import { useContext, useState } from 'react';
+import { Button, Stack } from '@mui/material';
+import { t } from 'i18next';
+import { useContext } from 'react';
 
 interface IProps {
     show: boolean;
@@ -23,29 +16,30 @@ const TrashFilesModal = (props: IProps) => {
         LockerDashboardContext
     );
     return (
-        <Dialog open={props.show} onClose={props.onHide} maxWidth="xs">
-            <DialogTitleWithCloseButton onClose={props.onHide}>
-                Trash {selectedFiles.length} Files?
-            </DialogTitleWithCloseButton>
-            <DialogContent>
-                <FlexWrapper flexDirection={'column'}>
-                    <Typography>
-                        Are you sure you want to trash {selectedFiles.length}{' '}
-                        files? They will be recoverable within 30 days.
-                    </Typography>
-                    <Button
-                        variant="text"
-                        onClick={async () => {
-                            trashFiles(selectedFiles).then(() => {
-                                setSelectedFiles([]);
-                                props.onHide();
-                            });
-                        }}>
-                        Trash
-                    </Button>
-                </FlexWrapper>
-            </DialogContent>
-        </Dialog>
+        <DialogBoxV2
+            open={props.show}
+            onClose={props.onHide}
+            sx={{ zIndex: 1600 }}
+            attributes={{
+                title: `Trash ${selectedFiles.length} Files?`,
+            }}>
+            <Stack spacing={'8px'}>
+                <EnteButton
+                    type="submit"
+                    size="large"
+                    color="critical"
+                    onClick={async () => {
+                        await trashFiles(selectedFiles);
+                        setSelectedFiles([]);
+                        props.onHide();
+                    }}>
+                    Trash
+                </EnteButton>
+                <Button size="large" color={'secondary'} onClick={props.onHide}>
+                    {t('CANCEL')}
+                </Button>
+            </Stack>
+        </DialogBoxV2>
     );
 };
 
