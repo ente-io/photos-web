@@ -1,9 +1,10 @@
-import { FlexWrapper } from '@/components/Container';
-import DialogTitleWithCloseButton from '@/components/DialogBox/TitleWithCloseButton';
+import DialogBoxV2 from '@/components/DialogBoxV2';
 import { CollectionType } from '@/constants/collection';
 import { createCollection } from '@/services/collectionService';
-import { Button, Dialog, DialogContent, Input } from '@mui/material';
-import { useState } from 'react';
+import { t } from 'i18next';
+import SingleInputForm, {
+    SingleInputFormProps,
+} from '@/components/SingleInputForm';
 
 interface IProps {
     show: boolean;
@@ -11,35 +12,37 @@ interface IProps {
 }
 
 const NewCollectionModal = (props: IProps) => {
-    const [newName, setNewName] = useState('');
+    const callback: SingleInputFormProps['callback'] = async (
+        inputValue,
+        setFieldError
+    ) => {
+        try {
+            await createCollection(inputValue, CollectionType.folder);
+            props.onHide();
+        } catch (e) {
+            setFieldError(e.message);
+        }
+    };
 
     return (
-        <Dialog open={props.show} onClose={props.onHide} maxWidth="xs">
-            <DialogTitleWithCloseButton onClose={props.onHide}>
-                New Collection
-            </DialogTitleWithCloseButton>
-            <DialogContent>
-                <FlexWrapper flexDirection={'column'}>
-                    <Input
-                        placeholder="Collection Name"
-                        onChange={(e) => {
-                            setNewName(e.target.value);
-                        }}
-                    />
-                    <Button
-                        variant="text"
-                        onClick={async () => {
-                            await createCollection(
-                                newName,
-                                CollectionType.folder
-                            );
-                            props.onHide();
-                        }}>
-                        Create
-                    </Button>
-                </FlexWrapper>
-            </DialogContent>
-        </Dialog>
+        <DialogBoxV2
+            sx={{ zIndex: 1600 }}
+            open={props.show}
+            onClose={props.onHide}
+            attributes={{
+                title: 'New collection',
+            }}>
+            <SingleInputForm
+                initialValue={''}
+                callback={callback}
+                placeholder={'Collection name'}
+                buttonText={'Create'}
+                fieldType="text"
+                caption={''}
+                secondaryButtonAction={props.onHide}
+                submitButtonProps={{ sx: { mt: 1, mb: 2 } }}
+            />
+        </DialogBoxV2>
     );
 };
 
