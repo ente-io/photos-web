@@ -16,13 +16,12 @@ const FileComponent = ({ file }: { file: EnteFile }) => {
         <Box
             bgcolor="#201E1E"
             width="15rem"
+            flexGrow={1}
             height="3rem"
             borderRadius="10px"
-            padding="1rem"
             boxSizing={'border-box'}
             display="flex"
-            alignItems="center"
-            justifyContent="space-between">
+            alignItems="center">
             <IconButton
                 onClick={() => {
                     if (selectedFiles.includes(file)) {
@@ -47,12 +46,6 @@ const FileComponent = ({ file }: { file: EnteFile }) => {
                 whiteSpace="nowrap">
                 {file.metadata.title}
             </Typography>
-            <IconButton
-                onClick={() => {
-                    downloadFile(file, false);
-                }}>
-                <DownloadIcon />
-            </IconButton>
         </Box>
     );
 };
