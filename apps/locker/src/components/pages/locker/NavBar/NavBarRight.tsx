@@ -18,6 +18,8 @@ import { addLogLine } from '@/utils/logging';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DriveFileMoveIcon from '@mui/icons-material/DriveFileMove';
 import TrashFilesModal from '../TrashFilesModal';
+import DownloadIcon from '@mui/icons-material/Download';
+import { downloadFilesAsZip } from '@/utils/file';
 
 const NavBarRight = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -124,6 +126,12 @@ const NavBarRight = () => {
                                 setShowTrashFilesModal(true);
                             }}>
                             <DeleteIcon />
+                        </IconButton>
+                        <IconButton
+                            onClick={async () => {
+                                await downloadFilesAsZip(selectedFiles);
+                            }}>
+                            <DownloadIcon />
                         </IconButton>
                     </>
                 ) : (

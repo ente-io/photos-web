@@ -31,6 +31,7 @@ import { addLogLine } from '@/utils/logging';
 import { CustomError } from '@/utils/error';
 import { convertBytesToHumanReadable } from './size';
 import ComlinkCryptoWorker from '../comlink/ComlinkCryptoWorker';
+import JSZip from 'jszip';
 
 const WAIT_TIME_IMAGE_CONVERSION = 30 * 1000;
 
@@ -43,10 +44,10 @@ export function downloadAsFile(filename: string, content: string) {
 }
 
 export async function downloadFile(
-    file: EnteFile,
-    accessedThroughSharedURL: boolean,
-    token?: string,
-    passwordToken?: string
+    file: EnteFile
+    // accessedThroughSharedURL: boolean,
+    // token?: string,
+    // passwordToken?: string
 ) {
     try {
         let fileBlob: Blob;
@@ -115,6 +116,28 @@ export async function downloadFile(
         logError(e, 'failed to download file');
     }
 }
+
+const downloadFileAsBlob = async (file: EnteFile): Promise<Blob> => {
+    try {
+        let fileBlob: Blob;
+        const fileReader = new FileReader();
+        const fileURL = await DownloadManager.getCachedOriginalFile(file)[0];
+        if (!fileURL) {
+            fileBlob = await new Response(
+                await DownloadManager.downloadFile(file)
+            ).blob();
+        } else {
+            fileBlob = await (await fetch(fileURL)).blob();
+        }
+        const fileType = await getFileType(
+            new File([fileBlob], file.metadata.title)
+        );
+        fileBlob = new Blob([fileBlob], { type: fileType.mimeType });
+        return fileBlob;
+    } catch (e) {
+        logError(e, 'failed to download file');
+    }
+};
 
 function downloadUsingAnchor(link: string, name: string) {
     const a = document.createElement('a');
@@ -471,11 +494,34 @@ export function getNonTrashedFiles(files: EnteFile[]) {
 export async function downloadFiles(files: EnteFile[]) {
     for (const file of files) {
         try {
-            await downloadFile(file, false);
+            await downloadFile(file);
         } catch (e) {
             logError(e, 'download fail for file');
         }
     }
+}
+
+export async function downloadFilesAsZip(files: EnteFile[]) {
+    const zip = new JSZip();
+    for (const file of files) {
+        try {
+            const fileBlob = await downloadFileAsBlob(file);
+            zip.file(file.metadata.title, fileBlob);
+        } catch (e) {
+            logError(e, 'download fail for file');
+        }
+    }
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(zipBlob);
+
+    const date = new Date();
+
+    downloadUsingAnchor(
+        url,
+        `${
+            files.length
+        }_files-ente_locker-${date.getHours()}-${date.getMinutes()}-${date.getSeconds()}.zip`
+    );
 }
 
 export async function needsConversionForPreview(
