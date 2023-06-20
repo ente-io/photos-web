@@ -19,7 +19,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import DriveFileMoveIcon from '@mui/icons-material/DriveFileMove';
 import TrashFilesModal from '../TrashFilesModal';
 import DownloadIcon from '@mui/icons-material/Download';
-import { downloadFilesAsZip } from '@/utils/file';
+import { downloadFile, downloadFilesAsZip } from '@/utils/file';
 
 const NavBarRight = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -129,7 +129,12 @@ const NavBarRight = () => {
                         </IconButton>
                         <IconButton
                             onClick={async () => {
-                                await downloadFilesAsZip(selectedFiles);
+                                if (selectedFiles.length > 1) {
+                                    await downloadFilesAsZip(selectedFiles);
+                                    return;
+                                }
+
+                                await downloadFile(selectedFiles[0]);
                             }}>
                             <DownloadIcon />
                         </IconButton>
