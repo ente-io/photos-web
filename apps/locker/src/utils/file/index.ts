@@ -419,11 +419,11 @@ export async function changeFileName(file: EnteFile, editedName: string) {
         editedName,
     };
 
-    file.pubMagicMetadata = await updateMagicMetadataProps(
+    file.pubMagicMetadata = (await updateMagicMetadataProps(
         file.pubMagicMetadata ?? NEW_FILE_MAGIC_METADATA,
         file.key,
         updatedPublicMagicMetadataProps
-    );
+    )) as FilePublicMagicMetadata;
     return file;
 }
 
@@ -448,6 +448,7 @@ export function isSharedFile(user: User, file: EnteFile) {
 }
 
 export function mergeMetadata(files: EnteFile[]): EnteFile[] {
+    addLogLine('Merging metadata');
     return files.map((file) => {
         if (file.pubMagicMetadata?.data.editedTime) {
             file.metadata.creationTime = file.pubMagicMetadata.data.editedTime;

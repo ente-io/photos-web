@@ -125,16 +125,11 @@ export const getFiles = async (
             );
             decryptedFiles = [...decryptedFiles, ...newDecryptedFilesBatch];
 
-            setFiles((files) =>
-                sortFiles(
-                    mergeMetadata(
-                        getLatestVersionFiles([
-                            ...(files || []),
-                            ...decryptedFiles,
-                        ])
-                    )
-                )
+            // setFiles((files) =>
+            decryptedFiles = sortFiles(
+                mergeMetadata(getLatestVersionFiles(decryptedFiles))
             );
+            // );
             if (resp.data.diff.length) {
                 time = resp.data.diff.slice(-1)[0].updationTime;
             }
