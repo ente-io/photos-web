@@ -26,18 +26,22 @@ const getFileTitle = (filename, extension) => {
 };
 
 const RenameFileModal = (props: IProps) => {
-    const { selectedFiles } = useContext(LockerDashboardContext);
+    const { selectedFiles, setSelectedFiles } = useContext(
+        LockerDashboardContext
+    );
 
     const [filename, setFilename] = useState<string>();
     const [extension, setExtension] = useState<string>();
 
     useEffect(() => {
+        if (selectedFiles.length !== 1) return;
+
         const [filename, extension] = splitFilenameAndExtension(
             selectedFiles[0].metadata.title
         );
         setFilename(filename);
         setExtension(extension);
-    }, []);
+    }, [selectedFiles]);
 
     const callback: SingleInputFormProps['callback'] = async (
         inputValue,
@@ -53,8 +57,9 @@ const RenameFileModal = (props: IProps) => {
             updatedFile = (
                 await updateFilePublicMagicMetadata([updatedFile])
             )[0];
-            updateExistingFilePubMetadata(selectedFiles[0], updatedFile);
-
+            const existingFile = selectedFiles[0];
+            updateExistingFilePubMetadata(existingFile, updatedFile);
+            setSelectedFiles([]);
             props.onHide();
         } catch (e) {
             setFieldError(e.message);
@@ -68,21 +73,23 @@ const RenameFileModal = (props: IProps) => {
             attributes={{
                 title: t('RENAME_FILE'),
             }}>
-            <SingleInputForm
-                initialValue={selectedFiles[0].title}
-                callback={callback}
-                placeholder={'File name'}
-                buttonText={'Rename'}
-                fieldType="text"
-                caption=""
-                secondaryButtonAction={props.onHide}
-                submitButtonProps={{
-                    sx: {
-                        mt: 1,
-                        mb: 2,
-                    },
-                }}
-            />
+            {selectedFiles.length === 1 && (
+                <SingleInputForm
+                    initialValue={selectedFiles[0].title}
+                    callback={callback}
+                    placeholder={'File name'}
+                    buttonText={'Rename'}
+                    fieldType="text"
+                    caption=""
+                    secondaryButtonAction={props.onHide}
+                    submitButtonProps={{
+                        sx: {
+                            mt: 1,
+                            mb: 2,
+                        },
+                    }}
+                />
+            )}
         </DialogBoxV2>
     );
 };

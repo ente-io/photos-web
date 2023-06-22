@@ -20,6 +20,8 @@ import DriveFileMoveIcon from '@mui/icons-material/DriveFileMove';
 import TrashFilesModal from '../TrashFilesModal';
 import DownloadIcon from '@mui/icons-material/Download';
 import { downloadFile, downloadFilesAsZip } from '@/utils/file';
+import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline';
+import RenameFileModal from '../RenameFileModal';
 
 const NavBarRight = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -28,6 +30,7 @@ const NavBarRight = () => {
 
     const [showNewCollectionModal, setShowNewCollectionModal] = useState(false);
     const [showTrashFilesModal, setShowTrashFilesModal] = useState(false);
+    const [showFileRenameModal, setShowFileRenameModal] = useState(false);
 
     const localIDCounter = useRef(0);
 
@@ -121,6 +124,14 @@ const NavBarRight = () => {
                         <IconButton>
                             <DriveFileMoveIcon />
                         </IconButton>
+                        {selectedFiles.length === 1 && (
+                            <IconButton
+                                onClick={() => {
+                                    setShowFileRenameModal(true);
+                                }}>
+                                <DriveFileRenameOutlineIcon />
+                            </IconButton>
+                        )}
                         <IconButton
                             onClick={() => {
                                 setShowTrashFilesModal(true);
@@ -178,6 +189,13 @@ const NavBarRight = () => {
                 show={showTrashFilesModal}
                 onHide={() => {
                     setShowTrashFilesModal(false);
+                    syncFiles();
+                }}
+            />
+            <RenameFileModal
+                show={showFileRenameModal}
+                onHide={() => {
+                    setShowFileRenameModal(false);
                     syncFiles();
                 }}
             />
