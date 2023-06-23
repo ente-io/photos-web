@@ -2,7 +2,7 @@ import { FlexWrapper } from '@/components/Container';
 import DialogBoxV2 from '@/components/DialogBoxV2';
 import { Collection } from '@/interfaces/collection';
 import { Button, TextField } from '@mui/material';
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import CollectionComponent from './Collection';
 import EnteButton from '@/components/EnteButton';
 import { LockerDashboardContext } from '@/pages/locker';
@@ -20,6 +20,25 @@ const MoveFilesModal = (props: IProps) => {
 
     const { selectedFiles } = useContext(LockerDashboardContext);
 
+    const [filteredCollections, setFilteredCollections] = useState<
+        Collection[]
+    >([]);
+
+    const [searchTerm, setSearchTerm] = useState('');
+
+    useEffect(() => {
+        if (searchTerm.length === 0) {
+            setFilteredCollections(props.collections);
+            return;
+        }
+
+        setFilteredCollections(
+            props.collections.filter((collection) =>
+                collection.name.toLowerCase().includes(searchTerm)
+            )
+        );
+    }, [searchTerm, props.collections]);
+
     return (
         <>
             <DialogBoxV2
@@ -36,9 +55,12 @@ const MoveFilesModal = (props: IProps) => {
                     label="Collection name"
                     variant="outlined"
                     placeholder="Collection name"
+                    onChange={(e) => {
+                        setSearchTerm(e.target.value);
+                    }}
                 />
                 <FlexWrapper flexDirection="column" width="100%" gap=".5rem">
-                    {props.collections.map((collection) => (
+                    {filteredCollections.map((collection) => (
                         <CollectionComponent
                             key={collection.id}
                             collection={collection}
