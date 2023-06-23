@@ -22,6 +22,7 @@ import DownloadIcon from '@mui/icons-material/Download';
 import { downloadFile, downloadFilesAsZip } from '@/utils/file';
 import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline';
 import RenameFileModal from '../RenameFileModal';
+import MoveFilesModal from '../MoveFilesModal';
 
 const NavBarRight = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -31,6 +32,7 @@ const NavBarRight = () => {
     const [showNewCollectionModal, setShowNewCollectionModal] = useState(false);
     const [showTrashFilesModal, setShowTrashFilesModal] = useState(false);
     const [showFileRenameModal, setShowFileRenameModal] = useState(false);
+    const [showMoveFilesModal, setShowMoveFilesModal] = useState(false);
 
     const localIDCounter = useRef(0);
 
@@ -51,8 +53,13 @@ const NavBarRight = () => {
     const [hasLivePhotos, setHasLivePhotos] = useState(false);
     const [files, setFiles] = useState([]);
 
-    const { currentCollection, syncCollections, syncFiles, selectedFiles } =
-        useContext(LockerDashboardContext);
+    const {
+        currentCollection,
+        syncCollections,
+        syncFiles,
+        selectedFiles,
+        collections,
+    } = useContext(LockerDashboardContext);
 
     useEffect(() => {
         if (uploadStage === UPLOAD_STAGES.FINISH) {
@@ -121,7 +128,10 @@ const NavBarRight = () => {
             <Box>
                 {selectedFiles.length > 0 ? (
                     <>
-                        <IconButton>
+                        <IconButton
+                            onClick={() => {
+                                setShowMoveFilesModal(true);
+                            }}>
                             <DriveFileMoveIcon />
                         </IconButton>
                         {selectedFiles.length === 1 && (
@@ -196,6 +206,14 @@ const NavBarRight = () => {
                 show={showFileRenameModal}
                 onHide={() => {
                     setShowFileRenameModal(false);
+                    syncFiles();
+                }}
+            />
+            <MoveFilesModal
+                show={showMoveFilesModal}
+                collections={collections}
+                onHide={() => {
+                    setShowMoveFilesModal(false);
                     syncFiles();
                 }}
             />

@@ -4,26 +4,31 @@ import { Box, Typography } from '@mui/material';
 import { useContext, useState } from 'react';
 import FolderIcon from '@mui/icons-material/Folder';
 
-const CollectionComponent = ({ collection }: { collection: Collection }) => {
+const CollectionComponent = ({
+    collection,
+    sx = '',
+    focus = false,
+    onClick,
+}: {
+    collection: Collection;
+    sx?: any;
+    focus?: boolean;
+    onClick?: () => void;
+}) => {
     const { setCurrentCollection } = useContext(LockerDashboardContext);
 
-    const [bgColor, setBgColor] = useState<string>('#201E1E');
+    const bgColor = `#1C1C1C`;
+    const bgColorSelected = `#1DB954`;
 
     return (
         <button
-            style={{ all: 'unset', cursor: 'pointer' }}
-            onClick={() => {
-                setBgColor('#1DB954');
-                // in 1 second, set the color back to the original
-                setTimeout(() => {
-                    setBgColor('#201E1E');
-                }, 1000);
-            }}
+            style={{ all: 'unset', cursor: 'pointer', width: 'fit-content' }}
             onDoubleClick={() => {
                 setCurrentCollection(collection);
-            }}>
+            }}
+            onClick={onClick}>
             <Box
-                bgcolor={bgColor}
+                bgcolor={focus ? bgColorSelected : bgColor}
                 width="auto"
                 height="3rem"
                 borderRadius="10px"
@@ -32,7 +37,8 @@ const CollectionComponent = ({ collection }: { collection: Collection }) => {
                 display="flex"
                 alignItems="center"
                 flexGrow="1"
-                gap=".5rem">
+                gap=".5rem"
+                sx={sx}>
                 <FolderIcon />
                 <Typography>{collection.name}</Typography>
             </Box>

@@ -33,6 +33,7 @@ import { getLocalTrash, syncTrash } from '@/services/trashService';
 interface lockerDashboardContextProps {
     currentCollection: Collection;
     setCurrentCollection: Dispatch<SetStateAction<Collection>>;
+    collections: Collection[];
     files: EnteFile[];
     setFiles: Dispatch<SetStateAction<EnteFile[]>>;
     syncCollections: () => Promise<void>;
@@ -205,6 +206,7 @@ const Locker = () => {
                     setDashboardView,
                     selectedFiles,
                     setSelectedFiles,
+                    collections,
                 }}>
                 <Box
                     height="100vh"
