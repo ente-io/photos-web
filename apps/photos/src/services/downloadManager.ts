@@ -18,6 +18,7 @@ import { Remote } from 'comlink';
 import { DedicatedCryptoWorker } from 'worker/crypto.worker';
 import { LimitedCache } from 'types/cache';
 import { addLocalLog } from 'utils/logging';
+import isElectron from 'is-electron';
 
 class DownloadManager {
     private fileObjectURLPromise = new Map<
@@ -140,34 +141,39 @@ class DownloadManager {
         try {
             const getFilePromise = async () => {
                 let fileStream: ReadableStream;
-                if (file.metadata.fileType === FILE_TYPE.IMAGE) {
-                    addLocalLog(() => `getFile: ${fileKey} is image`);
-                    const fileCache = await CacheStorageService.open(
-                        CACHES.FILES
-                    );
-                    const cachedFile = await fileCache?.match(fileKey);
-                    if (cachedFile) {
-                        addLocalLog(() => `getFile: ${fileKey} is cached`);
-                        fileStream = cachedFile.body;
-                    } else {
-                        addLocalLog(() => `getFile: ${fileKey} is not cached`);
-                    }
-                } else {
-                    const originalFileCache = await CacheStorageService.open(
-                        CACHES.ORIGINAL_FILES
-                    );
-                    const cachedOriginalFile = await originalFileCache?.match(
-                        fileKey
-                    );
-                    if (cachedOriginalFile) {
-                        addLocalLog(
-                            () => `getFile: ${fileKey} is cached original`
+                if (isElectron()) {
+                    if (file.metadata.fileType === FILE_TYPE.IMAGE) {
+                        addLocalLog(() => `getFile: ${fileKey} is image`);
+                        const fileCache = await CacheStorageService.open(
+                            CACHES.FILES
                         );
-                        fileStream = cachedOriginalFile.body;
+                        const cachedFile = await fileCache?.match(fileKey);
+                        if (cachedFile) {
+                            addLocalLog(() => `getFile: ${fileKey} is cached`);
+                            fileStream = cachedFile.body;
+                        } else {
+                            addLocalLog(
+                                () => `getFile: ${fileKey} is not cached`
+                            );
+                        }
                     } else {
-                        addLocalLog(
-                            () => `getFile: ${fileKey} is not cached original`
-                        );
+                        const originalFileCache =
+                            await CacheStorageService.open(
+                                CACHES.ORIGINAL_FILES
+                            );
+                        const cachedOriginalFile =
+                            await originalFileCache?.match(fileKey);
+                        if (cachedOriginalFile) {
+                            addLocalLog(
+                                () => `getFile: ${fileKey} is cached original`
+                            );
+                            fileStream = cachedOriginalFile.body;
+                        } else {
+                            addLocalLog(
+                                () =>
+                                    `getFile: ${fileKey} is not cached original`
+                            );
+                        }
                     }
                 }
                 let fileBlob: Blob;
@@ -176,17 +182,22 @@ class DownloadManager {
                     addLocalLog(() => `getFile: ${fileKey} is not cached`);
                     fileStream = await this.downloadFile(file);
                     fileBlob = await new Response(fileStream).blob();
-                    if (file.metadata.fileType === FILE_TYPE.IMAGE) {
-                        const fileCache = await CacheStorageService.open(
-                            CACHES.FILES
-                        );
-                        fileCache?.put(fileKey, new Response(fileBlob));
-                    } else {
-                        const originalFileCache =
-                            await CacheStorageService.open(
-                                CACHES.ORIGINAL_FILES
+                    if (isElectron()) {
+                        if (file.metadata.fileType === FILE_TYPE.IMAGE) {
+                            const fileCache = await CacheStorageService.open(
+                                CACHES.FILES
                             );
-                        originalFileCache?.put(fileKey, new Response(fileBlob));
+                            fileCache?.put(fileKey, new Response(fileBlob));
+                        } else {
+                            const originalFileCache =
+                                await CacheStorageService.open(
+                                    CACHES.ORIGINAL_FILES
+                                );
+                            originalFileCache?.put(
+                                fileKey,
+                                new Response(fileBlob)
+                            );
+                        }
                     }
                 } else {
                     fileBlob = await new Response(fileStream).blob();
