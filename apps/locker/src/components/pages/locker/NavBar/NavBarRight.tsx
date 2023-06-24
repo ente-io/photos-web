@@ -23,6 +23,7 @@ import { downloadFile, downloadFilesAsZip } from '@/utils/file';
 import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline';
 import RenameFileModal from '../RenameFileModal';
 import MoveFilesModal from '../MoveFilesModal';
+import PermanentlyDeleteFilesModal from '../PermanentlyDeleteFilesModal';
 
 const NavBarRight = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -33,6 +34,10 @@ const NavBarRight = () => {
     const [showTrashFilesModal, setShowTrashFilesModal] = useState(false);
     const [showFileRenameModal, setShowFileRenameModal] = useState(false);
     const [showMoveFilesModal, setShowMoveFilesModal] = useState(false);
+    const [
+        showPermanentlyDeleteFilesModal,
+        setShowPermanentlyDeleteFilesModal,
+    ] = useState(false);
 
     const localIDCounter = useRef(0);
 
@@ -60,6 +65,7 @@ const NavBarRight = () => {
         selectedFiles,
         setSelectedFiles,
         collections,
+        dashboardView,
     } = useContext(LockerDashboardContext);
 
     useEffect(() => {
@@ -145,7 +151,11 @@ const NavBarRight = () => {
                         )}
                         <IconButton
                             onClick={() => {
-                                setShowTrashFilesModal(true);
+                                if (dashboardView === 'trash') {
+                                    setShowPermanentlyDeleteFilesModal(true);
+                                } else {
+                                    setShowTrashFilesModal(true);
+                                }
                             }}>
                             <DeleteIcon />
                         </IconButton>
@@ -215,6 +225,14 @@ const NavBarRight = () => {
                 collections={collections}
                 onHide={() => {
                     setShowMoveFilesModal(false);
+                    setSelectedFiles([]);
+                    syncFiles();
+                }}
+            />
+            <PermanentlyDeleteFilesModal
+                show={showPermanentlyDeleteFilesModal}
+                onHide={() => {
+                    setShowPermanentlyDeleteFilesModal(false);
                     setSelectedFiles([]);
                     syncFiles();
                 }}
