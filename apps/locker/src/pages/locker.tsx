@@ -186,7 +186,7 @@ const Locker = () => {
             return;
         }
         filterFiles();
-    }, [files, currentCollection]);
+    }, [files, currentCollection, dashboardView]);
 
     return (
         <>
