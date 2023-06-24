@@ -42,6 +42,10 @@ import isElectron from 'is-electron';
 import imageProcessor from 'services/electron/imageProcessor';
 import { isPlaybackPossible } from 'utils/photoFrame';
 import { FileTypeInfo } from 'types/upload';
+import { Remote } from 'comlink';
+import { ML_SYNC_DOWNLOAD_TIMEOUT_MS } from 'constants/mlConfig';
+import PQueue from 'p-queue';
+import { DedicatedCryptoWorker } from 'worker/crypto.worker';
 
 const WAIT_TIME_IMAGE_CONVERSION = 30 * 1000;
 
@@ -671,4 +675,48 @@ export function constructFileToCollectionMap(files: EnteFile[]) {
         fileToCollectionsMap.get(file.id).push(file.collectionID);
     });
     return fileToCollectionsMap;
+}
+
+export async function getOriginalFile(
+    file: EnteFile,
+    token: string,
+    enteWorker?: Remote<DedicatedCryptoWorker>,
+    queue?: PQueue
+) {
+    let fileStream;
+    if (queue) {
+        fileStream = await queue.add(() =>
+            DownloadManager.downloadFile(
+                file,
+                token,
+                enteWorker,
+                ML_SYNC_DOWNLOAD_TIMEOUT_MS
+            )
+        );
+    } else {
+        fileStream = await DownloadManager.downloadFile(
+            file,
+            token,
+            enteWorker
+        );
+    }
+    return new Response(fileStream).blob();
+}
+
+export async function getOriginalConvertedFile(
+    file: EnteFile,
+    token: string,
+    enteWorker?: Remote<DedicatedCryptoWorker>,
+    queue?: PQueue
+) {
+    const fileBlob = await getOriginalFile(file, token, enteWorker, queue);
+    if (file.metadata.fileType === FILE_TYPE.IMAGE) {
+        return await getRenderableImage(file.metadata.title, fileBlob);
+    } else {
+        const livePhoto = await decodeLivePhoto(file, fileBlob);
+        return await getRenderableImage(
+            livePhoto.imageNameTitle,
+            new Blob([livePhoto.image])
+        );
+    }
 }

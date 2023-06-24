@@ -22,7 +22,7 @@ import {
     Versioned,
 } from 'types/machineLearning';
 // import { mlFilesStore, mlPeopleStore } from 'utils/storage/mlStorage';
-import { getRenderableImage } from 'utils/file';
+import { getOriginalConvertedFile, getRenderableImage } from 'utils/file';
 import { imageBitmapToBlob } from 'utils/image';
 import { cached } from 'utils/storage/cache';
 import mlIDbStorage from 'utils/storage/mlIDbStorage';
@@ -37,8 +37,6 @@ import {
     ibExtractFaceImagesFromCrops,
 } from './faceCrop';
 import { CACHES } from 'constants/cache';
-import { FILE_TYPE } from 'constants/file';
-import { decodeLivePhoto } from 'services/livePhotoService';
 import { addLogLine } from 'utils/logging';
 import { Remote } from 'comlink';
 import { DedicatedCryptoWorker } from 'worker/crypto.worker';
@@ -324,50 +322,6 @@ export async function getImageBlobBitmap(blob: Blob): Promise<ImageBitmap> {
 
 //     return new TFImageBitmap(undefined, tfImage);
 // }
-
-async function getOriginalFile(
-    file: EnteFile,
-    token: string,
-    enteWorker?: Remote<DedicatedCryptoWorker>,
-    queue?: PQueue
-) {
-    let fileStream;
-    if (queue) {
-        fileStream = await queue.add(() =>
-            DownloadManager.downloadFile(
-                file,
-                token,
-                enteWorker,
-                ML_SYNC_DOWNLOAD_TIMEOUT_MS
-            )
-        );
-    } else {
-        fileStream = await DownloadManager.downloadFile(
-            file,
-            token,
-            enteWorker
-        );
-    }
-    return new Response(fileStream).blob();
-}
-
-async function getOriginalConvertedFile(
-    file: EnteFile,
-    token: string,
-    enteWorker?: Remote<DedicatedCryptoWorker>,
-    queue?: PQueue
-) {
-    const fileBlob = await getOriginalFile(file, token, enteWorker, queue);
-    if (file.metadata.fileType === FILE_TYPE.IMAGE) {
-        return await getRenderableImage(file.metadata.title, fileBlob);
-    } else {
-        const livePhoto = await decodeLivePhoto(file, fileBlob);
-        return await getRenderableImage(
-            livePhoto.imageNameTitle,
-            new Blob([livePhoto.image])
-        );
-    }
-}
 
 export async function getOriginalImageBitmap(
     file: EnteFile,
