@@ -226,10 +226,7 @@ const Locker = () => {
                             boxSizing="border-box">
                             {currentCollection?.id !==
                                 uncategorizedCollection?.id && (
-                                <Box
-                                    display="flex"
-                                    gap="0.5rem"
-                                    alignItems="center">
+                                <Box display="flex" alignItems="center">
                                     {collectionsPath.map((collection, i) => (
                                         <Fragment key={collection.id}>
                                             <Button
