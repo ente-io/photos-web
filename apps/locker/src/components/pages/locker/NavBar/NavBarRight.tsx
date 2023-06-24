@@ -58,6 +58,7 @@ const NavBarRight = () => {
         syncCollections,
         syncFiles,
         selectedFiles,
+        setSelectedFiles,
         collections,
     } = useContext(LockerDashboardContext);
 
@@ -214,6 +215,7 @@ const NavBarRight = () => {
                 collections={collections}
                 onHide={() => {
                     setShowMoveFilesModal(false);
+                    setSelectedFiles([]);
                     syncFiles();
                 }}
             />
