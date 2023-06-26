@@ -59,15 +59,14 @@ const setLocalFiles = async (files: EnteFile[]) => {
 };
 
 export const syncFiles = async (
-    collections: Collection[],
-    setFiles: SetFiles,
-    force = false
+    collections: Collection[]
 ): Promise<EnteFile[]> => {
     const localFiles = await getLocalFiles();
     let files = await removeDeletedCollectionFiles(collections, localFiles);
     if (files.length !== localFiles.length) {
+        addLogLine(`removed ${localFiles.length - files.length} files`);
         await setLocalFiles(files);
-        setFiles(sortFiles(mergeMetadata(files)));
+        files = sortFiles(mergeMetadata(files));
     }
     for (const collection of collections) {
         if (!getToken()) {
@@ -77,12 +76,18 @@ export const syncFiles = async (
             throw Error(CustomError.HIDDEN_COLLECTION_SYNC_FILE_ATTEMPTED);
         }
         const lastSyncTime = await getCollectionLastSyncTime(collection);
-        if (collection.updationTime === lastSyncTime && !force) {
-            addLogLine('updation time too recent');
+        if (collection.updationTime === lastSyncTime) {
+            addLogLine(
+                `this collection is already up to date ${collection.name}`
+            );
             continue;
         }
-        const newFiles = await getFiles(collection, lastSyncTime, setFiles);
-        files = getLatestVersionFiles([...files, ...newFiles]);
+        addLogLine(`syncing collection ${collection.name}`);
+        const newFiles = await getFiles(collection, lastSyncTime);
+        addLogLine(`newFiles, ${newFiles}`);
+        const mergedArrays = [...files, ...newFiles];
+        addLogLine(`mergedArrays, ${mergedArrays}`);
+        files = getLatestVersionFiles(mergedArrays);
         await setLocalFiles(files);
         setCollectionLastSyncTime(collection, collection.updationTime);
     }
@@ -91,8 +96,7 @@ export const syncFiles = async (
 
 export const getFiles = async (
     collection: Collection,
-    sinceTime: number,
-    setFiles: SetFiles
+    sinceTime: number
 ): Promise<EnteFile[]> => {
     try {
         let decryptedFiles: EnteFile[] = [];
@@ -114,8 +118,12 @@ export const getFiles = async (
                 }
             );
 
+            const diffResults = resp.data.diff; // the newly updated files. e.g.: a deleted file is sent as a new file with isDeleted set to true.
+            addLogLine(`diff results ${JSON.stringify(diffResults)}`);
+
             const newDecryptedFilesBatch = await Promise.all(
-                resp.data.diff.map(async (file: EncryptedEnteFile) => {
+                diffResults.map(async (file: EncryptedEnteFile) => {
+                    // only decrypt the file if it's not deleted
                     if (!file.isDeleted) {
                         return await decryptFile(file, collection.key);
                     } else {
@@ -123,14 +131,19 @@ export const getFiles = async (
                     }
                 }) as Promise<EnteFile>[]
             );
-            decryptedFiles = [...decryptedFiles, ...newDecryptedFilesBatch];
 
-            // setFiles((files) =>
-            decryptedFiles = sortFiles(
-                mergeMetadata(getLatestVersionFiles(decryptedFiles))
+            addLogLine(
+                `newDecryptedFilesBatch ${JSON.stringify(
+                    newDecryptedFilesBatch
+                )}`
             );
+            // merge the new files with the existing files. diff results are appended.
+            decryptedFiles = [...decryptedFiles, ...newDecryptedFilesBatch];
+            addLogLine(`merged files ${JSON.stringify(decryptedFiles)}`);
+            // setFiles((files) =>
+            decryptedFiles = sortFiles(mergeMetadata(decryptedFiles));
             // );
-            if (resp.data.diff.length) {
+            if (diffResults.length) {
                 time = resp.data.diff.slice(-1)[0].updationTime;
             }
         } while (resp.data.hasMore);

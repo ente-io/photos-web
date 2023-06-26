@@ -603,13 +603,22 @@ export function getLatestVersionFiles(files: EnteFile[]) {
     const latestVersionFiles = new Map<string, EnteFile>();
     files.forEach((file) => {
         const uid = `${file.collectionID}-${file.id}`;
+        // if the file is not present in the map, add it.
+        // if it is in the map and the updation time is outdated, replace it with the new file.
+        // this accounts for a situation like, file uploaded 10s ago, but deleted 5s ago. since diff results are appended, the new file will have a newer updation time and therefore overwrite it.
         if (
             !latestVersionFiles.has(uid) ||
             latestVersionFiles.get(uid).updationTime < file.updationTime
         ) {
+            if (latestVersionFiles.has(uid)) {
+                `replacing file ${latestVersionFiles.get(uid).id} with ${
+                    file.id
+                }`;
+            }
             latestVersionFiles.set(uid, file);
         }
     });
+    // filter out deleted files
     return Array.from(latestVersionFiles.values()).filter(
         (file) => !file.isDeleted
     );
