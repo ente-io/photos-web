@@ -4,7 +4,6 @@ import FileUploadIcon from '@mui/icons-material/FileUpload';
 import { useContext, useEffect, useRef, useState } from 'react';
 import NewCollectionModal from '../NewCollectionModal';
 import { UPLOAD_STAGES } from '@/constants/upload';
-import { FileWithCollection } from '@/interfaces/upload';
 import {
     UploadCounter,
     InProgressUpload,
@@ -12,8 +11,6 @@ import {
     UploadFileNames,
 } from '@/interfaces/upload/ui';
 import { LockerDashboardContext } from '@/pages/locker';
-import uploadManager from '@/services/uploadManager';
-import { addLogLine } from '@/utils/logging';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DriveFileMoveIcon from '@mui/icons-material/DriveFileMove';
 import TrashFilesModal from '../TrashFilesModal';

@@ -14,7 +14,7 @@ interface IProps {
 }
 
 const UploaderFile = (props: IProps) => {
-    const { currentCollection } = useContext(LockerDashboardContext);
+    const { syncFiles } = useContext(LockerDashboardContext);
 
     const { inProgressUploads, finishedUploads } = useContext(UploaderContext);
 
@@ -33,14 +33,13 @@ const UploaderFile = (props: IProps) => {
     }, [inProgressUploads]);
 
     useEffect(() => {
-        console.log(finishedUploads);
         if (currentInProgressUpload) {
             // if it's finished, set to 100
             if (finishedUploads.get(UPLOAD_RESULT.UPLOADED)) {
                 if (
                     finishedUploads
                         .get(UPLOAD_RESULT.UPLOADED)
-                        ?.includes(props.localID)
+                        .includes(props.localID)
                 ) {
                     setProgress(100);
                     return;
@@ -65,7 +64,9 @@ const UploaderFile = (props: IProps) => {
                 <Box
                     width={`${progress}%`}
                     height="0.5rem"
-                    borderBottom="1px solid #42BDF2"
+                    borderBottom={`1px solid ${
+                        progress === 100 ? '#2AB954' : '#42BDF2'
+                    }`}
                 />
             </Box>
         </>

@@ -53,6 +53,8 @@ const UploaderBoxComponent = (props: IProps) => {
 
     const [showUploadingFiles, setShowUploadingFiles] = useState(true);
 
+    const { syncFiles } = useContext(LockerDashboardContext);
+
     const initUploadManager = async () => {
         // Initialize the upload manager
         await uploadManager.init(
@@ -80,6 +82,12 @@ const UploaderBoxComponent = (props: IProps) => {
         initUploadManager();
     }, []);
 
+    useEffect(() => {
+        if (percentComplete >= 100) {
+            syncFiles();
+        }
+    }, [percentComplete]);
+
     const { currentCollection } = useContext(LockerDashboardContext);
 
     const handleFileUpload = async () => {
@@ -105,8 +113,8 @@ const UploaderBoxComponent = (props: IProps) => {
 
         setUploadingFiles(fileWithCollections);
 
+        uploadManager.prepareForNewUpload();
         for await (const fileWithCollection of fileWithCollections) {
-            uploadManager.prepareForNewUpload();
             await uploadManager.queueFilesForUpload(
                 [fileWithCollection],
                 [currentCollection]

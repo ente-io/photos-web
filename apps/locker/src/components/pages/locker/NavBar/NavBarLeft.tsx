@@ -27,6 +27,7 @@ const NavBarLeft = () => {
                     <IconButton
                         onClick={() => {
                             setSelectedFiles([]);
+                            setSelectedCollections([]);
                         }}>
                         <ClearIcon />
                     </IconButton>
