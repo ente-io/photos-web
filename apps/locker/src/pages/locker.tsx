@@ -36,7 +36,7 @@ interface lockerDashboardContextProps {
     collections: Collection[];
     files: EnteFile[];
     setFiles: Dispatch<SetStateAction<EnteFile[]>>;
-    syncCollections: () => Promise<void>;
+    syncCollections: () => Promise<Collection[]>;
     uncategorizedCollection: Collection;
     syncFiles: () => Promise<void>;
     leftDrawerOpened: boolean;
@@ -46,6 +46,8 @@ interface lockerDashboardContextProps {
     setDashboardView: Dispatch<SetStateAction<'locker' | 'trash'>>;
     selectedFiles: EnteFile[];
     setSelectedFiles: Dispatch<SetStateAction<EnteFile[]>>;
+    selectedCollections: Collection[];
+    setSelectedCollections: Dispatch<SetStateAction<Collection[]>>;
 }
 
 export const LockerDashboardContext =
@@ -75,6 +77,9 @@ const Locker = () => {
     );
 
     const [selectedFiles, setSelectedFiles] = useState<EnteFile[]>([]);
+    const [selectedCollections, setSelectedCollections] = useState<
+        Collection[]
+    >([]);
 
     const router = useRouter();
 
@@ -211,6 +216,8 @@ const Locker = () => {
                     selectedFiles,
                     setSelectedFiles,
                     collections,
+                    selectedCollections,
+                    setSelectedCollections,
                 }}>
                 <Box
                     height="100vh"
