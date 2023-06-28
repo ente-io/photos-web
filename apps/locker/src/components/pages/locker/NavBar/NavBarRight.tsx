@@ -29,7 +29,7 @@ import RenameCollectionModal from '../RenameCollectionModal';
 const NavBarRight = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const [file, setFile] = useState<File | null>(null);
+    const [files, setFiles] = useState<File[]>([]);
 
     const [showNewCollectionModal, setShowNewCollectionModal] = useState(false);
     const [showTrashFilesModal, setShowTrashFilesModal] = useState(false);
@@ -61,7 +61,6 @@ const NavBarRight = () => {
         {} as UploadFileNames
     );
     const [hasLivePhotos, setHasLivePhotos] = useState(false);
-    const [files, setFiles] = useState([]);
 
     const {
         currentCollection,
@@ -94,7 +93,7 @@ const NavBarRight = () => {
                 setUploadFilenames: setUploadFileNames,
                 setHasLivePhotos,
             },
-            setFiles,
+            () => {},
             {
                 token: null,
                 passwordToken: null,
@@ -113,19 +112,21 @@ const NavBarRight = () => {
             return;
         }
 
-        const localID = localIDCounter.current++;
+        for await (const file of files) {
+            const localID = localIDCounter.current++;
 
-        // Add files to be uploaded
-        const fileWithCollection: FileWithCollection = {
-            file,
-            collection: currentCollection,
-            localID,
-            collectionID: currentCollection.id,
-        };
-        await uploadManager.queueFilesForUpload(
-            [fileWithCollection],
-            [currentCollection]
-        );
+            // Add files to be uploaded
+            const fileWithCollection: FileWithCollection = {
+                file,
+                collection: currentCollection,
+                localID,
+                collectionID: currentCollection.id,
+            };
+            await uploadManager.queueFilesForUpload(
+                [fileWithCollection],
+                [currentCollection]
+            );
+        }
     };
 
     useEffect(() => {
@@ -133,10 +134,10 @@ const NavBarRight = () => {
     }, []);
 
     useEffect(() => {
-        if (!file) return;
-        addLogLine(`File selected`);
+        if (!files) return;
+        addLogLine(`Files selected`);
         handleFileUpload();
-    }, [file, currentCollection]);
+    }, [files, currentCollection]);
 
     return (
         <>
@@ -230,7 +231,10 @@ const NavBarRight = () => {
                     display: 'none',
                 }}
                 onChange={(e) => {
-                    setFile(e.target.files[0]);
+                    // get files as File[]
+                    const files = Array.from(e.target.files || []);
+                    if (files.length === 0) return;
+                    setFiles(files);
                 }}
             />
             <NewCollectionModal
