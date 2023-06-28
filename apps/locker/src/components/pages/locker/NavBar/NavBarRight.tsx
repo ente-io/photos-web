@@ -25,6 +25,7 @@ import MoveFilesModal from '../MoveFilesModal';
 import PermanentlyDeleteFilesModal from '../PermanentlyDeleteFilesModal';
 import DeleteCollectionsModal from '../DeleteCollectionsModal';
 import RenameCollectionModal from '../RenameCollectionModal';
+import UploaderBoxComponent from '@/components/UploaderBoxComponent';
 
 const NavBarRight = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -80,64 +81,6 @@ const NavBarRight = () => {
             syncFiles();
         }
     }, [uploadStage]);
-
-    const initUploadManager = async () => {
-        // Initialize the upload manager
-        await uploadManager.init(
-            {
-                setPercentComplete,
-                setUploadCounter,
-                setInProgressUploads,
-                setFinishedUploads,
-                setUploadStage,
-                setUploadFilenames: setUploadFileNames,
-                setHasLivePhotos,
-            },
-            () => {},
-            {
-                token: null,
-                passwordToken: null,
-                accessedThroughSharedURL: false,
-                // photoListHeader: null,
-                // photoListFooter: null,
-            }
-        );
-    };
-
-    const handleFileUpload = async () => {
-        uploadManager.prepareForNewUpload();
-
-        if (!currentCollection) {
-            addLogLine('No collection selected');
-            return;
-        }
-
-        for await (const file of files) {
-            const localID = localIDCounter.current++;
-
-            // Add files to be uploaded
-            const fileWithCollection: FileWithCollection = {
-                file,
-                collection: currentCollection,
-                localID,
-                collectionID: currentCollection.id,
-            };
-            await uploadManager.queueFilesForUpload(
-                [fileWithCollection],
-                [currentCollection]
-            );
-        }
-    };
-
-    useEffect(() => {
-        initUploadManager();
-    }, []);
-
-    useEffect(() => {
-        if (!files) return;
-        addLogLine(`Files selected`);
-        handleFileUpload();
-    }, [files, currentCollection]);
 
     return (
         <>
@@ -291,6 +234,7 @@ const NavBarRight = () => {
                     syncCollections();
                 }}
             />
+            <UploaderBoxComponent filesToUpload={files} />
         </>
     );
 };
