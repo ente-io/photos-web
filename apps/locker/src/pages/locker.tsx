@@ -79,7 +79,10 @@ const Locker = () => {
     const router = useRouter();
 
     const doSyncCollections = async () => {
-        setCollections(await syncCollections());
+        const collections = await syncCollections();
+        setCollections(collections);
+
+        return collections;
     };
 
     const init = async () => {
@@ -136,7 +139,8 @@ const Locker = () => {
 
     const doSyncFiles = async () => {
         if (!currentCollection) return;
-        addLogLine(`Syncing files for collection ${currentCollection.name}`);
+
+        const collections = await doSyncCollections();
 
         const files = await syncFiles(collections);
         setFiles(sortFiles(files));
