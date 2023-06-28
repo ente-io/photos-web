@@ -30,7 +30,6 @@ const TrashFilesModal = (props: IProps) => {
                     color="critical"
                     onClick={async () => {
                         await trashFiles(selectedFiles);
-                        setSelectedFiles([]);
                         props.onHide();
                     }}>
                     Trash

@@ -48,6 +48,7 @@ interface lockerDashboardContextProps {
     setSelectedFiles: Dispatch<SetStateAction<EnteFile[]>>;
     selectedCollections: Collection[];
     setSelectedCollections: Dispatch<SetStateAction<Collection[]>>;
+    syncTrash: () => Promise<void>;
 }
 
 export const LockerDashboardContext =
@@ -134,6 +135,18 @@ const Locker = () => {
         }
     };
 
+    const doSyncTrash = async () => {
+        await syncTrash(collections, files, setFiles);
+
+        if (dashboardView !== 'trash') {
+            return;
+        }
+
+        const localTrash = await getLocalTrash();
+
+        setFiles(sortFiles(localTrash.map((item) => item.file)));
+    };
+
     useEffect(() => {
         init();
     }, [dashboardView]);
@@ -218,6 +231,7 @@ const Locker = () => {
                     collections,
                     selectedCollections,
                     setSelectedCollections,
+                    syncTrash: doSyncTrash,
                 }}>
                 <Box
                     height="100vh"

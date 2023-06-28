@@ -1,7 +1,6 @@
 import { Box, IconButton } from '@mui/material';
 import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
-import { syncCollections } from '@/services/collectionService';
 import { useContext, useEffect, useRef, useState } from 'react';
 import NewCollectionModal from '../NewCollectionModal';
 import { UPLOAD_STAGES } from '@/constants/upload';
@@ -74,6 +73,7 @@ const NavBarRight = () => {
         dashboardView,
         selectedCollections,
         setSelectedCollections,
+        syncTrash,
     } = useContext(LockerDashboardContext);
 
     useEffect(() => {
@@ -243,6 +243,7 @@ const NavBarRight = () => {
             <TrashFilesModal
                 show={showTrashFilesModal}
                 onHide={() => {
+                    setSelectedFiles([]);
                     setShowTrashFilesModal(false);
                     syncFiles();
                 }}
@@ -268,7 +269,7 @@ const NavBarRight = () => {
                 onHide={() => {
                     setShowPermanentlyDeleteFilesModal(false);
                     setSelectedFiles([]);
-                    syncFiles();
+                    syncTrash();
                 }}
             />
             <DeleteCollectionsModal
