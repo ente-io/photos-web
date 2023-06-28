@@ -24,6 +24,7 @@ import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutli
 import RenameFileModal from '../RenameFileModal';
 import MoveFilesModal from '../MoveFilesModal';
 import PermanentlyDeleteFilesModal from '../PermanentlyDeleteFilesModal';
+import DeleteCollectionsModal from '../DeleteCollectionsModal';
 
 const NavBarRight = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -38,6 +39,8 @@ const NavBarRight = () => {
         showPermanentlyDeleteFilesModal,
         setShowPermanentlyDeleteFilesModal,
     ] = useState(false);
+    const [showDeleteCollectionsModal, setShowDeleteCollectionsModal] =
+        useState(false);
 
     const localIDCounter = useRef(0);
 
@@ -135,43 +138,60 @@ const NavBarRight = () => {
     return (
         <>
             <Box>
-                {selectedFiles.length > 0 ? (
+                {selectedFiles.length > 0 || selectedCollections.length > 0 ? (
                     <>
-                        <IconButton
-                            onClick={() => {
-                                setShowMoveFilesModal(true);
-                            }}>
-                            <DriveFileMoveIcon />
-                        </IconButton>
-                        {selectedFiles.length === 1 && (
-                            <IconButton
-                                onClick={() => {
-                                    setShowFileRenameModal(true);
-                                }}>
-                                <DriveFileRenameOutlineIcon />
-                            </IconButton>
-                        )}
-                        <IconButton
-                            onClick={() => {
-                                if (dashboardView === 'trash') {
-                                    setShowPermanentlyDeleteFilesModal(true);
-                                } else {
-                                    setShowTrashFilesModal(true);
-                                }
-                            }}>
-                            <DeleteIcon />
-                        </IconButton>
-                        <IconButton
-                            onClick={async () => {
-                                if (selectedFiles.length > 1) {
-                                    await downloadFilesAsZip(selectedFiles);
-                                    return;
-                                }
+                        {selectedFiles.length > 0 ? (
+                            <>
+                                <IconButton
+                                    onClick={() => {
+                                        setShowMoveFilesModal(true);
+                                    }}>
+                                    <DriveFileMoveIcon />
+                                </IconButton>
+                                {selectedFiles.length === 1 && (
+                                    <IconButton
+                                        onClick={() => {
+                                            setShowFileRenameModal(true);
+                                        }}>
+                                        <DriveFileRenameOutlineIcon />
+                                    </IconButton>
+                                )}
+                                <IconButton
+                                    onClick={() => {
+                                        if (dashboardView === 'trash') {
+                                            setShowPermanentlyDeleteFilesModal(
+                                                true
+                                            );
+                                        } else {
+                                            setShowTrashFilesModal(true);
+                                        }
+                                    }}>
+                                    <DeleteIcon />
+                                </IconButton>
+                                <IconButton
+                                    onClick={async () => {
+                                        if (selectedFiles.length > 1) {
+                                            await downloadFilesAsZip(
+                                                selectedFiles
+                                            );
+                                            return;
+                                        }
 
-                                await downloadFile(selectedFiles[0]);
-                            }}>
-                            <DownloadIcon />
-                        </IconButton>
+                                        await downloadFile(selectedFiles[0]);
+                                    }}>
+                                    <DownloadIcon />
+                                </IconButton>
+                            </>
+                        ) : (
+                            <>
+                                <IconButton
+                                    onClick={() => {
+                                        setShowDeleteCollectionsModal(true);
+                                    }}>
+                                    <DeleteIcon />
+                                </IconButton>
+                            </>
+                        )}
                     </>
                 ) : (
                     <>
@@ -237,6 +257,13 @@ const NavBarRight = () => {
                     setShowPermanentlyDeleteFilesModal(false);
                     setSelectedFiles([]);
                     syncFiles();
+                }}
+            />
+            <DeleteCollectionsModal
+                show={showDeleteCollectionsModal}
+                onHide={() => {
+                    setShowDeleteCollectionsModal(false);
+                    syncCollections();
                 }}
             />
         </>
