@@ -25,6 +25,7 @@ import RenameFileModal from '../RenameFileModal';
 import MoveFilesModal from '../MoveFilesModal';
 import PermanentlyDeleteFilesModal from '../PermanentlyDeleteFilesModal';
 import DeleteCollectionsModal from '../DeleteCollectionsModal';
+import RenameCollectionModal from '../RenameCollectionModal';
 
 const NavBarRight = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -40,6 +41,8 @@ const NavBarRight = () => {
         setShowPermanentlyDeleteFilesModal,
     ] = useState(false);
     const [showDeleteCollectionsModal, setShowDeleteCollectionsModal] =
+        useState(false);
+    const [showRenameCollectionModal, setShowRenameCollectionModal] =
         useState(false);
 
     const localIDCounter = useRef(0);
@@ -184,6 +187,15 @@ const NavBarRight = () => {
                             </>
                         ) : (
                             <>
+                                {selectedCollections.length === 1 && (
+                                    <IconButton
+                                        onClick={() => {
+                                            setShowRenameCollectionModal(true);
+                                        }}>
+                                        <DriveFileRenameOutlineIcon />
+                                    </IconButton>
+                                )}
+
                                 <IconButton
                                     onClick={() => {
                                         setShowDeleteCollectionsModal(true);
@@ -263,6 +275,14 @@ const NavBarRight = () => {
                 show={showDeleteCollectionsModal}
                 onHide={() => {
                     setShowDeleteCollectionsModal(false);
+                    syncCollections();
+                }}
+            />
+            <RenameCollectionModal
+                show={showRenameCollectionModal}
+                onHide={() => {
+                    setShowRenameCollectionModal(false);
+                    setSelectedCollections([]);
                     syncCollections();
                 }}
             />

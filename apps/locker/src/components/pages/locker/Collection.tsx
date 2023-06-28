@@ -58,6 +58,10 @@ const CollectionComponent = ({
                 setCurrentCollection(collection);
             }}
             onClick={() => {
+                if (onClick) {
+                    onClick();
+                    return;
+                }
                 if (selectedCollections.includes(collection)) {
                     setSelectedCollections(
                         selectedCollections.filter(
