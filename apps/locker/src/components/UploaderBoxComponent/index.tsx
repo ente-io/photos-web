@@ -130,11 +130,16 @@ const UploaderBoxComponent = (props: IProps) => {
                 <Box
                     sx={{
                         width: '40rem',
-                        position: 'fixed',
+                        position: 'absolute',
+                        zIndex: 100,
                         bottom: '1rem',
                         right: '1rem',
                         borderRadius: '10px',
                         backgroundColor: '#141414',
+                        boxShadow: '0px 0px 10px 0px rgba(0,0,0,0.75)',
+                        '@media only screen and (max-width: 800px)': {
+                            width: '90%',
+                        },
                     }}>
                     <Box
                         width="100%"
