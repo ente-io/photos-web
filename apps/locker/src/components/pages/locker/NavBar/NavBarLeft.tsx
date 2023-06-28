@@ -12,10 +12,13 @@ const NavBarLeft = () => {
         setLeftDrawerOpened,
         selectedFiles,
         setSelectedFiles,
+        selectedCollections,
+        setSelectedCollections,
     } = useContext(LockerDashboardContext);
+
     return (
         <>
-            {selectedFiles.length > 0 ? (
+            {selectedFiles.length > 0 || selectedCollections.length > 0 ? (
                 <Box
                     height="inherit"
                     display="flex"
@@ -28,7 +31,13 @@ const NavBarLeft = () => {
                         <ClearIcon />
                     </IconButton>
                     <Typography>
-                        <b>{selectedFiles.length} files</b> selected
+                        <b>
+                            {selectedFiles.length > 0
+                                ? selectedFiles.length
+                                : selectedCollections.length}{' '}
+                            {selectedFiles.length > 0 ? 'files' : 'collections'}
+                        </b>{' '}
+                        selected
                     </Typography>
                 </Box>
             ) : (

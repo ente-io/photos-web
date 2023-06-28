@@ -66,6 +66,8 @@ const NavBarRight = () => {
         setSelectedFiles,
         collections,
         dashboardView,
+        selectedCollections,
+        setSelectedCollections,
     } = useContext(LockerDashboardContext);
 
     useEffect(() => {
