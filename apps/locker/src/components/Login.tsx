@@ -7,7 +7,7 @@ import FormPaperTitle from './Form/FormPaper/Title';
 import FormPaperFooter from './Form/FormPaper/Footer';
 import LinkButton from './pages/gallery/LinkButton';
 import SingleInputForm, { SingleInputFormProps } from './SingleInputForm';
-import { Input } from '@mui/material';
+import { Box, Input } from '@mui/material';
 import { t } from 'i18next';
 
 interface LoginProps {
@@ -32,21 +32,32 @@ export default function Login(props: LoginProps) {
 
     return (
         <>
-            <FormPaperTitle>{t('LOGIN')}</FormPaperTitle>
-            <SingleInputForm
-                callback={loginUser}
-                fieldType="email"
-                placeholder={t('ENTER_EMAIL')}
-                buttonText={t('LOGIN')}
-                autoComplete="username"
-                hiddenPostInput={<Input hidden type="password" value="" />}
-            />
+            <Box>
+                <FormPaperTitle>{t('LOGIN')} to ente Locker</FormPaperTitle>
+                <SingleInputForm
+                    callback={loginUser}
+                    fieldType="email"
+                    placeholder={t('ENTER_EMAIL')}
+                    buttonText={t('LOGIN')}
+                    autoComplete="username"
+                    hiddenPostInput={
+                        <Input
+                            hidden
+                            style={{
+                                display: 'none',
+                            }}
+                            type="password"
+                            value=""
+                        />
+                    }
+                />
 
-            <FormPaperFooter>
-                <LinkButton onClick={props.signUp}>
-                    {t('NO_ACCOUNT')}
-                </LinkButton>
-            </FormPaperFooter>
+                <FormPaperFooter>
+                    <LinkButton onClick={props.signUp}>
+                        {t('NO_ACCOUNT')}
+                    </LinkButton>
+                </FormPaperFooter>
+            </Box>
         </>
     );
 }

@@ -104,7 +104,7 @@ export default function Verify() {
                 setIsFirstLogin(true);
                 if (keyAttributes?.encryptedKey) {
                     clearKeys();
-                    // router.push(PAGES.CREDENTIALS);
+                    router.push(PAGES.CREDENTIALS);
                 } else {
                     // router.push(PAGES.GENERATE);
                 }
@@ -137,40 +137,48 @@ export default function Verify() {
 
     return (
         <FormContainer>
-            <FormPaper>
-                <FormPaperTitle sx={{ mb: 14, wordBreak: 'break-word' }}>
-                    <Trans
-                        i18nKey="EMAIL_SENT"
-                        components={{
-                            a: <Box color="text.muted" component={'span'} />,
-                        }}
-                        values={{ email }}
+            <Box>
+                <FormPaper>
+                    <FormPaperTitle sx={{ mb: 14, wordBreak: 'break-word' }}>
+                        <Trans
+                            i18nKey="EMAIL_SENT"
+                            components={{
+                                a: (
+                                    <Box
+                                        color="text.muted"
+                                        component={'span'}
+                                    />
+                                ),
+                            }}
+                            values={{ email }}
+                        />
+                    </FormPaperTitle>
+                    <Typography color={'text.muted'} mb={2} variant="small">
+                        {t('CHECK_INBOX')}
+                    </Typography>
+                    <SingleInputForm
+                        fieldType="text"
+                        autoComplete="one-time-code"
+                        placeholder={t('ENTER_OTT')}
+                        buttonText={t('VERIFY')}
+                        callback={onSubmit}
                     />
-                </FormPaperTitle>
-                <Typography color={'text.muted'} mb={2} variant="small">
-                    {t('CHECK_INBOX')}
-                </Typography>
-                <SingleInputForm
-                    fieldType="text"
-                    autoComplete="one-time-code"
-                    placeholder={t('ENTER_OTT')}
-                    buttonText={t('VERIFY')}
-                    callback={onSubmit}
-                />
 
-                <FormPaperFooter style={{ justifyContent: 'space-between' }}>
-                    {resend === 0 && (
-                        <LinkButton onClick={resendEmail}>
-                            {t('RESEND_MAIL')}
+                    <FormPaperFooter
+                        style={{ justifyContent: 'space-between' }}>
+                        {resend === 0 && (
+                            <LinkButton onClick={resendEmail}>
+                                {t('RESEND_MAIL')}
+                            </LinkButton>
+                        )}
+                        {resend === 1 && <span>{t('SENDING')}</span>}
+                        {resend === 2 && <span>{t('SENT')}</span>}
+                        <LinkButton onClick={logoutUser}>
+                            {t('CHANGE_EMAIL')}
                         </LinkButton>
-                    )}
-                    {resend === 1 && <span>{t('SENDING')}</span>}
-                    {resend === 2 && <span>{t('SENT')}</span>}
-                    <LinkButton onClick={logoutUser}>
-                        {t('CHANGE_EMAIL')}
-                    </LinkButton>
-                </FormPaperFooter>
-            </FormPaper>
+                    </FormPaperFooter>
+                </FormPaper>
+            </Box>
         </FormContainer>
     );
 }

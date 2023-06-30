@@ -81,6 +81,9 @@ export default function VerifyMasterPasswordForm({
                     type="email"
                     hidden
                     value={user?.email}
+                    style={{
+                        display: 'none',
+                    }}
                 />
             }
             autoComplete={'current-password'}

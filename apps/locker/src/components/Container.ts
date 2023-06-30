@@ -9,6 +9,8 @@ const VerticallyCentered = styled(Box)`
     flex-direction: column;
     text-align: center;
     overflow: auto;
+    width: 100%;
+    height: 100%;
 `;
 
 export default VerticallyCentered;

@@ -28,6 +28,7 @@ import EnteSpinner from '@/components/EnteSpinner';
 import VerifyMasterPasswordForm, {
     VerifyMasterPasswordFormProps,
 } from '@/components/VerifyMasterPasswordForm';
+import { Box } from '@mui/material';
 // import { APPS, getAppName } from '@/constants/apps';
 
 export default function Credentials() {
@@ -106,24 +107,27 @@ export default function Credentials() {
 
     return (
         <FormContainer>
-            <FormPaper style={{ minWidth: '320px' }}>
-                <FormPaperTitle>{t('PASSWORD')}</FormPaperTitle>
+            <Box>
+                <FormPaper style={{ minWidth: '320px' }}>
+                    <FormPaperTitle>{t('PASSWORD')}</FormPaperTitle>
 
-                <VerifyMasterPasswordForm
-                    buttonText={t('VERIFY_PASSPHRASE')}
-                    callback={useMasterPassword}
-                    user={user}
-                    keyAttributes={keyAttributes}
-                />
-                <FormPaperFooter style={{ justifyContent: 'space-between' }}>
-                    {/* <LinkButton onClick={redirectToRecoverPage}>
+                    <VerifyMasterPasswordForm
+                        buttonText={t('VERIFY_PASSPHRASE')}
+                        callback={useMasterPassword}
+                        user={user}
+                        keyAttributes={keyAttributes}
+                    />
+                    <FormPaperFooter
+                        style={{ justifyContent: 'space-between' }}>
+                        {/* <LinkButton onClick={redirectToRecoverPage}>
                         {t('FORGOT_PASSWORD')}
                     </LinkButton> */}
-                    <LinkButton onClick={logoutUser}>
-                        {t('CHANGE_EMAIL')}
-                    </LinkButton>
-                </FormPaperFooter>
-            </FormPaper>
+                        <LinkButton onClick={logoutUser}>
+                            {t('CHANGE_EMAIL')}
+                        </LinkButton>
+                    </FormPaperFooter>
+                </FormPaper>
+            </Box>
         </FormContainer>
     );
 }

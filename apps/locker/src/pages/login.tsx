@@ -29,17 +29,21 @@ export default function Home() {
         // router.push(PAGES.SIGNUP);
     };
 
-    return loading ? (
-        <VerticallyCentered>
-            <EnteSpinner>
-                <span className="sr-only">Loading...</span>
-            </EnteSpinner>
-        </VerticallyCentered>
-    ) : (
-        <FormContainer>
-            <FormPaper>
-                <Login signUp={register} />
-            </FormPaper>
-        </FormContainer>
+    return (
+        <>
+            {loading ? (
+                <VerticallyCentered>
+                    <EnteSpinner>
+                        <span className="sr-only">Loading...</span>
+                    </EnteSpinner>
+                </VerticallyCentered>
+            ) : (
+                <FormContainer>
+                    <FormPaper>
+                        <Login signUp={register} />
+                    </FormPaper>
+                </FormContainer>
+            )}
+        </>
     );
 }
