@@ -18,7 +18,10 @@ const FileComponent = ({ file }: { file: EnteFile }) => {
             boxSizing={'border-box'}
             display="flex"
             alignItems="center"
-            paddingRight="1rem">
+            paddingRight="1rem"
+            sx={{
+                userSelect: 'none',
+            }}>
             <IconButton
                 onClick={() => {
                     if (selectedFiles.includes(file)) {

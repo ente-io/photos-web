@@ -39,7 +39,6 @@ const CollectionComponent = ({
             boxSizing={'border-box'}
             display="flex"
             alignItems="center"
-            flexGrow="1"
             gap=".5rem"
             sx={{
                 ...sx,
@@ -47,6 +46,7 @@ const CollectionComponent = ({
                 '&:hover': {
                     backgroundColor: bgColorHover,
                 },
+                userSelect: 'none',
             }}
             onMouseEnter={() => {
                 setIsHover(true);
