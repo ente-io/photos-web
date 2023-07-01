@@ -51,6 +51,7 @@ interface lockerDashboardContextProps {
     syncTrash: () => Promise<void>;
     showUploaderBoxComponent: boolean;
     setShowUploaderBoxComponent: Dispatch<SetStateAction<boolean>>;
+    filteredFiles: EnteFile[];
 }
 
 export const LockerDashboardContext =
@@ -239,6 +240,7 @@ const Locker = () => {
                     syncTrash: doSyncTrash,
                     showUploaderBoxComponent,
                     setShowUploaderBoxComponent,
+                    filteredFiles,
                 }}>
                 <Box
                     height="100vh"

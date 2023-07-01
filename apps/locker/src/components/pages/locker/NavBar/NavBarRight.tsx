@@ -23,6 +23,9 @@ import PermanentlyDeleteFilesModal from '../PermanentlyDeleteFilesModal';
 import DeleteCollectionsModal from '../DeleteCollectionsModal';
 import RenameCollectionModal from '../RenameCollectionModal';
 import UploaderBoxComponent from '@/components/UploaderBoxComponent';
+import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
+import IndeterminateCheckBoxIcon from '@mui/icons-material/IndeterminateCheckBox';
 
 const NavBarRight = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -72,6 +75,7 @@ const NavBarRight = () => {
         syncTrash,
         showUploaderBoxComponent,
         setShowUploaderBoxComponent,
+        filteredFiles,
     } = useContext(LockerDashboardContext);
 
     useEffect(() => {
@@ -89,6 +93,28 @@ const NavBarRight = () => {
     return (
         <>
             <Box>
+                {selectedFiles.length === 0 ? (
+                    <IconButton
+                        onClick={() => {
+                            setSelectedFiles(filteredFiles);
+                            // setSelectedCollections(collections);
+                        }}>
+                        <CheckBoxOutlineBlankIcon />
+                    </IconButton>
+                ) : (
+                    <IconButton
+                        onClick={() => {
+                            setSelectedFiles([]);
+                            setSelectedCollections([]);
+                        }}>
+                        {selectedFiles.length === filteredFiles.length ? (
+                            <CheckBoxIcon />
+                        ) : (
+                            <IndeterminateCheckBoxIcon />
+                        )}
+                    </IconButton>
+                )}
+
                 {selectedFiles.length > 0 || selectedCollections.length > 0 ? (
                     <>
                         {selectedFiles.length > 0 ? (
