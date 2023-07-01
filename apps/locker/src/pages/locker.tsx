@@ -49,6 +49,8 @@ interface lockerDashboardContextProps {
     selectedCollections: Collection[];
     setSelectedCollections: Dispatch<SetStateAction<Collection[]>>;
     syncTrash: () => Promise<void>;
+    showUploaderBoxComponent: boolean;
+    setShowUploaderBoxComponent: Dispatch<SetStateAction<boolean>>;
 }
 
 export const LockerDashboardContext =
@@ -81,6 +83,9 @@ const Locker = () => {
     const [selectedCollections, setSelectedCollections] = useState<
         Collection[]
     >([]);
+
+    const [showUploaderBoxComponent, setShowUploaderBoxComponent] =
+        useState(false);
 
     const router = useRouter();
 
@@ -232,6 +237,8 @@ const Locker = () => {
                     selectedCollections,
                     setSelectedCollections,
                     syncTrash: doSyncTrash,
+                    showUploaderBoxComponent,
+                    setShowUploaderBoxComponent,
                 }}>
                 <Box
                     height="100vh"

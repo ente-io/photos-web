@@ -61,7 +61,6 @@ const NavBarRight = () => {
     const [hasLivePhotos, setHasLivePhotos] = useState(false);
 
     const {
-        currentCollection,
         syncCollections,
         syncFiles,
         selectedFiles,
@@ -71,6 +70,8 @@ const NavBarRight = () => {
         selectedCollections,
         setSelectedCollections,
         syncTrash,
+        showUploaderBoxComponent,
+        setShowUploaderBoxComponent,
     } = useContext(LockerDashboardContext);
 
     useEffect(() => {
@@ -78,6 +79,12 @@ const NavBarRight = () => {
             syncFiles();
         }
     }, [uploadStage]);
+
+    useEffect(() => {
+        if (files.length > 0) {
+            setShowUploaderBoxComponent(true);
+        }
+    }, [files]);
 
     return (
         <>
@@ -231,7 +238,9 @@ const NavBarRight = () => {
                     syncCollections();
                 }}
             />
-            <UploaderBoxComponent filesToUpload={files} />
+            {showUploaderBoxComponent && (
+                <UploaderBoxComponent filesToUpload={files} />
+            )}
         </>
     );
 };

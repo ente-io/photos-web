@@ -53,11 +53,13 @@ const UploaderBoxComponent = (props: IProps) => {
 
     const [showUploadingFiles, setShowUploadingFiles] = useState(true);
 
-    const { syncFiles } = useContext(LockerDashboardContext);
+    const { syncFiles, setShowUploaderBoxComponent } = useContext(
+        LockerDashboardContext
+    );
 
-    const initUploadManager = async () => {
+    const initUploadManager = () => {
         // Initialize the upload manager
-        await uploadManager.init(
+        uploadManager.init(
             {
                 setPercentComplete,
                 setUploadCounter,
@@ -174,27 +176,34 @@ const UploaderBoxComponent = (props: IProps) => {
                                     <OpenInFullIcon />
                                 )}
                             </IconButton>
-                            <IconButton size="small">
-                                <CloseIcon />
-                            </IconButton>
+                            {uploadingFiles.length === 0 && (
+                                <IconButton
+                                    size="small"
+                                    onClick={() => {
+                                        setShowUploaderBoxComponent(false);
+                                    }}>
+                                    <CloseIcon />
+                                </IconButton>
+                            )}
                         </Box>
                     </Box>
-                    {showUploadingFiles && (
-                        <>
-                            {uploadingFiles.map((file, index) => (
-                                <UploaderFile
-                                    key={index}
-                                    localID={file.localID}
-                                    file={file.file}
-                                />
-                            ))}
-                            {uploadingFiles.length < 1 && (
-                                <Typography textAlign="center" margin="1rem">
-                                    No files selected for upload
-                                </Typography>
-                            )}
-                        </>
-                    )}
+                    <Box
+                        display={showUploadingFiles ? 'flex' : 'none'}
+                        flexDirection="column"
+                        gap="0.5rem">
+                        {uploadingFiles.map((file, index) => (
+                            <UploaderFile
+                                key={index}
+                                localID={file.localID}
+                                file={file.file}
+                            />
+                        ))}
+                        {uploadingFiles.length < 1 && (
+                            <Typography textAlign="center" margin="1rem">
+                                No files selected for upload
+                            </Typography>
+                        )}
+                    </Box>
                 </Box>
             </UploaderContext.Provider>
         </>
