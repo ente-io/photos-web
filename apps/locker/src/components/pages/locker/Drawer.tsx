@@ -8,6 +8,7 @@ import {
     ListItemButton,
     ListItemIcon,
     ListItemText,
+    Box,
 } from '@mui/material';
 import { Dispatch, SetStateAction, useContext } from 'react';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -44,12 +45,14 @@ const LockerDrawer = ({
                 </ListItem>
                 <ListItem>
                     {userDetails && (
-                        <SubscriptionCard
-                            userDetails={userDetails}
-                            onClick={() => {
-                                console.log('Hello!');
-                            }}
-                        />
+                        <Box px={0.5} mt={2} pb={1.5} mb={1}>
+                            <SubscriptionCard
+                                userDetails={userDetails}
+                                onClick={() => {
+                                    console.log('Hello!');
+                                }}
+                            />
+                        </Box>
                     )}
                 </ListItem>
                 <ListItem>
