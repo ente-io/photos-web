@@ -26,6 +26,7 @@ export default function Home() {
     }, []);
 
     const register = () => {
+        window.location.href = 'https://web.ente.io';
         // router.push(PAGES.SIGNUP);
     };
 

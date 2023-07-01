@@ -78,11 +78,16 @@ export default function Credentials() {
     ) => {
         try {
             if (isFirstLogin()) {
-                await generateAndSaveIntermediateKeyAttributes(
-                    passphrase,
-                    keyAttributes,
-                    key
+                alert(
+                    "Since Locker is still in its early stages, we can't let new accounts login yet. Please login on web.ente.io first."
                 );
+                window.location.href = 'https://web.ente.io';
+                return;
+                // await generateAndSaveIntermediateKeyAttributes(
+                //     passphrase,
+                //     keyAttributes,
+                //     key
+                // );
             }
             await saveKeyInSessionStore(SESSION_KEYS.ENCRYPTION_KEY, key);
             await decryptAndStoreToken(key);
