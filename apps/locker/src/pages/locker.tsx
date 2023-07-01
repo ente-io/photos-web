@@ -6,6 +6,7 @@ import {
     SetStateAction,
     createContext,
     useEffect,
+    useMemo,
     useState,
 } from 'react';
 import { Collection } from '@/interfaces/collection';
@@ -65,7 +66,6 @@ const Locker = () => {
     const [currentCollection, setCurrentCollection] =
         useState<Collection | null>(null);
     const [files, setFiles] = useState<EnteFile[]>([]);
-    const [filteredFiles, setFilteredFiles] = useState<EnteFile[]>([]);
 
     const [uncategorizedCollection, setUncategorizedCollection] =
         useState<Collection | null>(null);
@@ -170,13 +170,16 @@ const Locker = () => {
         setFiles(sortFiles(files));
     };
 
-    const filterFiles = async () => {
+    const filteredFiles = useMemo(() => {
+        if (dashboardView === 'trash') return files;
+        if (!currentCollection) return [];
+
         const filtered = files.filter((file) => {
             return file.collectionID === currentCollection.id;
         });
 
-        setFilteredFiles(filtered);
-    };
+        return filtered;
+    }, [files, currentCollection, dashboardView]);
 
     useEffect(() => {
         doSyncFiles();
@@ -205,16 +208,6 @@ const Locker = () => {
             }
         }
     }, [currentCollection]);
-
-    useEffect(() => {
-        if (dashboardView === 'trash') {
-            setFilteredFiles(files);
-            return;
-        } else if (!currentCollection) {
-            return;
-        }
-        filterFiles();
-    }, [files, currentCollection, dashboardView]);
 
     return (
         <>
