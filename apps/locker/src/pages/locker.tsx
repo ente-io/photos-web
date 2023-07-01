@@ -307,8 +307,10 @@ const Locker = () => {
                                 <>
                                     <h3>Files</h3>
                                     <Box
-                                        display="flex"
-                                        flexWrap="wrap"
+                                        display="grid"
+                                        gridTemplateColumns={
+                                            'repeat(auto-fill, minmax(200px, 1fr))'
+                                        }
                                         gap="1rem"
                                         width="100%">
                                         {filteredFiles.map((file) => (

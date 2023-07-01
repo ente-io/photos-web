@@ -13,13 +13,12 @@ const FileComponent = ({ file }: { file: EnteFile }) => {
     return (
         <Box
             bgcolor="#201E1E"
-            width="15rem"
-            flexGrow={1}
             height="3rem"
             borderRadius="10px"
             boxSizing={'border-box'}
             display="flex"
-            alignItems="center">
+            alignItems="center"
+            paddingRight="1rem">
             <IconButton
                 onClick={() => {
                     if (selectedFiles.includes(file)) {
