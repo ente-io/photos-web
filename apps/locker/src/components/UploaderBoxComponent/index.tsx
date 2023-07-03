@@ -16,6 +16,7 @@ import { addLogLine } from '@/utils/logging';
 import MinimizeIcon from '@mui/icons-material/Minimize';
 import CloseIcon from '@mui/icons-material/Close';
 import OpenInFullIcon from '@mui/icons-material/OpenInFull';
+import { t } from 'i18next';
 
 export const UploaderContext = createContext(
     {} as {
@@ -202,7 +203,7 @@ const UploaderBoxComponent = (props: IProps) => {
                         ))}
                         {uploadingFiles.length < 1 && (
                             <Typography textAlign="center" margin="1rem">
-                                No files selected for upload
+                                {t('NO_FILES_SELECTED_FOR_UPLOAD')}
                             </Typography>
                         )}
                     </Box>

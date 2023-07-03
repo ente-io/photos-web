@@ -30,6 +30,7 @@ import { sortFiles } from '@/utils/file';
 import { useRouter } from 'next/router';
 import LockerDrawer from '@/components/pages/locker/Drawer';
 import { getLocalTrash, syncTrash } from '@/services/trashService';
+import { t } from 'i18next';
 
 interface lockerDashboardContextProps {
     currentCollection: Collection;
@@ -331,8 +332,7 @@ const Locker = () => {
                                         alt="Yellow duck smiling and dancing with the word ente in the background"
                                     />
                                     <Typography fontSize={24}>
-                                        No files in this collection. Upload some
-                                        files to get started!
+                                        {t('NO_FILES_GET_STARTED')}
                                     </Typography>
                                 </Box>
                             )}

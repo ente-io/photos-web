@@ -7,6 +7,7 @@ import CollectionComponent from './Collection';
 import EnteButton from '@/components/EnteButton';
 import { LockerDashboardContext } from '@/pages/locker';
 import { moveToCollection } from '@/services/collectionService';
+import { t } from 'i18next';
 
 interface IProps {
     show: boolean;
@@ -46,8 +47,8 @@ const MoveFilesModal = (props: IProps) => {
                 open={props.show}
                 onClose={props.onHide}
                 attributes={{
-                    title: `Move ${selectedFiles.length} ${
-                        selectedFiles.length > 1 ? 'files' : 'file'
+                    title: `${t('MOVE')} ${selectedFiles.length} ${
+                        selectedFiles.length > 1 ? t('FILES') : t('UPLOAD_FILE')
                     }`,
                 }}>
                 <TextField
@@ -90,11 +91,11 @@ const MoveFilesModal = (props: IProps) => {
                             }
                             props.onHide();
                         }}>
-                        Move
+                        {t('MOVE')}
                     </EnteButton>
                 )}
                 <Button size="large" color="secondary" onClick={props.onHide}>
-                    Cancel
+                    {t('CANCEL')}
                 </Button>
             </DialogBoxV2>
         </>

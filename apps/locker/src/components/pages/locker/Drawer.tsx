@@ -14,7 +14,8 @@ import { Dispatch, SetStateAction, useContext } from 'react';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloudIcon from '@mui/icons-material/Cloud';
 import FolderDeleteIcon from '@mui/icons-material/FolderDelete';
-import SettingsIcon from '@mui/icons-material/Settings';
+// import SettingsIcon from '@mui/icons-material/Settings';
+import { t } from 'i18next';
 
 const LockerDrawer = ({
     isOpen,
@@ -63,7 +64,7 @@ const LockerDrawer = ({
                         <ListItemIcon>
                             <CloudIcon />
                         </ListItemIcon>
-                        <ListItemText primary="Locker" />
+                        <ListItemText primary={t('LOCKER')} />
                     </ListItemButton>
                 </ListItem>
                 <ListItem>
@@ -74,17 +75,17 @@ const LockerDrawer = ({
                         <ListItemIcon>
                             <FolderDeleteIcon />
                         </ListItemIcon>
-                        <ListItemText primary="Trash" />
+                        <ListItemText primary={t('TRASH')} />
                     </ListItemButton>
                 </ListItem>
-                <ListItem>
+                {/* <ListItem>
                     <ListItemButton>
                         <ListItemIcon>
                             <SettingsIcon />
                         </ListItemIcon>
                         <ListItemText primary="Settings" />
                     </ListItemButton>
-                </ListItem>
+                </ListItem> */}
             </List>
         </DrawerSidebar>
     );

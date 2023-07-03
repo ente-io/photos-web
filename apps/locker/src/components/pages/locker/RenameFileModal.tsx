@@ -17,7 +17,7 @@ interface IProps {
     onHide: () => void;
 }
 
-const getFileTitle = (filename, extension) => {
+const getFileTitle = (filename: string, extension: string) => {
     if (extension) {
         return filename + '.' + extension;
     } else {
@@ -77,8 +77,8 @@ const RenameFileModal = (props: IProps) => {
                 <SingleInputForm
                     initialValue={selectedFiles[0].title}
                     callback={callback}
-                    placeholder={'File name'}
-                    buttonText={'Rename'}
+                    placeholder={t('FILE_NAME')}
+                    buttonText={t('RENAME')}
                     fieldType="text"
                     caption=""
                     secondaryButtonAction={props.onHide}

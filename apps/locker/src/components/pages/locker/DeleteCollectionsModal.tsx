@@ -22,7 +22,9 @@ const DeleteCollectionsModal = (props: IProps) => {
             onClose={props.onHide}
             sx={{ zIndex: 1600 }}
             attributes={{
-                title: `Delete ${selectedCollections.length} Collections?`,
+                title: `${t('DELETE')} ${selectedCollections.length} ${t(
+                    'COLLECTIONS'
+                )}?`,
             }}>
             <Stack spacing={'8px'}>
                 <EnteButton
@@ -36,7 +38,7 @@ const DeleteCollectionsModal = (props: IProps) => {
                         setSelectedCollections([]);
                         props.onHide();
                     }}>
-                    Delete & Discard Files
+                    {t('DELETE_AND_DISCARD')}
                 </EnteButton>
                 <EnteButton
                     type="submit"
@@ -49,7 +51,7 @@ const DeleteCollectionsModal = (props: IProps) => {
                         setSelectedCollections([]);
                         props.onHide();
                     }}>
-                    Delete & Preserve Files
+                    {t('DELETE_AND_PRESERVE')}
                 </EnteButton>
                 <Button size="large" color={'secondary'} onClick={props.onHide}>
                     {t('CANCEL')}

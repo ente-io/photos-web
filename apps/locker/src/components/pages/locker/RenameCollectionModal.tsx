@@ -50,8 +50,8 @@ const RenameCollectionModal = (props: IProps) => {
                 <SingleInputForm
                     initialValue={selectedCollections[0].name}
                     callback={callback}
-                    placeholder={'Collection name'}
-                    buttonText={'Rename'}
+                    placeholder={t('COLLECTION_NAME')}
+                    buttonText={t('RENAME')}
                     fieldType="text"
                     caption=""
                     secondaryButtonAction={props.onHide}

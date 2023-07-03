@@ -517,5 +517,14 @@
     "RECOVER_TWO_FACTOR": "Recover two-factor",
     "at": "at",
     "AUTH_NEXT": "next",
-    "AUTH_DOWNLOAD_MOBILE_APP": "Download our mobile app to manage your secrets"
+    "AUTH_DOWNLOAD_MOBILE_APP": "Download our mobile app to manage your secrets",
+    "NO_FILES_GET_STARTED":"No files in this collection. Upload some files to get started!",
+    "COLLECTIONS": "Collections",
+    "DELETE_AND_DISCARD": "Delete & Discard Files",
+    "DELETE_AND_PRESERVE": "Delete & Preserve Files",
+    "CREATE_LOCKER_COLLECTION": "New collection",
+    "COLLECTION_NAME": "Collection name",
+    "PERMANENTLY_DELETE": "Permanently Delete",
+    "LOCKER": "Locker",
+    "NO_FILES_SELECTED_FOR_UPLOAD": "No files selected for upload"
 }

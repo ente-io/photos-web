@@ -21,7 +21,7 @@ const TrashFilesModal = (props: IProps) => {
             onClose={props.onHide}
             sx={{ zIndex: 1600 }}
             attributes={{
-                title: `Trash ${selectedFiles.length} Files?`,
+                title: `${t('TRASH')} ${selectedFiles.length} ${t('FILES')}?`,
             }}>
             <Stack spacing={'8px'}>
                 <EnteButton
@@ -32,7 +32,7 @@ const TrashFilesModal = (props: IProps) => {
                         await trashFiles(selectedFiles);
                         props.onHide();
                     }}>
-                    Trash
+                    {t('TRASH')}
                 </EnteButton>
                 <Button size="large" color={'secondary'} onClick={props.onHide}>
                     {t('CANCEL')}

@@ -20,7 +20,9 @@ const PermanentlyDeleteFilesModal = (props: IProps) => {
             onClose={props.onHide}
             sx={{ zIndex: 1600 }}
             attributes={{
-                title: `Permanently Delete ${selectedFiles.length} Files?`,
+                title: `${t('PERMANENTLY_DELETE')} ${selectedFiles.length} ${t(
+                    'FILES'
+                )}?`,
             }}>
             <Stack spacing={'8px'}>
                 <EnteButton
@@ -33,7 +35,7 @@ const PermanentlyDeleteFilesModal = (props: IProps) => {
                         );
                         props.onHide();
                     }}>
-                    Delete
+                    {t('DELETE')}
                 </EnteButton>
                 <Button size="large" color={'secondary'} onClick={props.onHide}>
                     {t('CANCEL')}

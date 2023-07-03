@@ -4,6 +4,7 @@ import { useContext } from 'react';
 import Image from 'next/image';
 import MenuIcon from '@mui/icons-material/Menu';
 import ClearIcon from '@mui/icons-material/Clear';
+import { t } from 'i18next';
 
 const NavBarLeft = () => {
     const {
@@ -36,9 +37,11 @@ const NavBarLeft = () => {
                             {selectedFiles.length > 0
                                 ? selectedFiles.length
                                 : selectedCollections.length}{' '}
-                            {selectedFiles.length > 0 ? 'files' : 'collections'}
+                            {selectedFiles.length > 0
+                                ? t('FILES')
+                                : t('COLLECTIONS')}
                         </b>{' '}
-                        selected
+                        {t('SELECTED')}
                     </Typography>
                 </Box>
             ) : (

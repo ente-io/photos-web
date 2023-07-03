@@ -1,7 +1,3 @@
-import { FileWithCollection } from '@/interfaces/upload';
-import { LockerDashboardContext } from '@/pages/locker';
-import uploadManager from '@/services/uploadManager';
-import { addLogLine } from '@/utils/logging';
 import { Box, Typography } from '@mui/material';
 import { useContext, useEffect, useState } from 'react';
 import { UploaderContext } from '..';
@@ -14,8 +10,6 @@ interface IProps {
 }
 
 const UploaderFile = (props: IProps) => {
-    const { syncFiles } = useContext(LockerDashboardContext);
-
     const { inProgressUploads, finishedUploads } = useContext(UploaderContext);
 
     const [currentInProgressUpload, setCurrentInProgressUpload] =

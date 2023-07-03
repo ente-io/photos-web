@@ -30,13 +30,13 @@ const NewCollectionModal = (props: IProps) => {
             open={props.show}
             onClose={props.onHide}
             attributes={{
-                title: 'New collection',
+                title: t('CREATE_LOCKER_COLLECTION'),
             }}>
             <SingleInputForm
                 initialValue={''}
                 callback={callback}
-                placeholder={'Collection name'}
-                buttonText={'Create'}
+                placeholder={t('COLLECTION_NAME')}
+                buttonText={t('CREATE')}
                 fieldType="text"
                 caption={''}
                 secondaryButtonAction={props.onHide}
