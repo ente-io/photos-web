@@ -15,7 +15,8 @@ export function SubscriptionCardContentOverlay({ userDetails }: Iprops) {
             <SpaceBetweenFlex
                 height={'100%'}
                 flexDirection={'column'}
-                padding={'20px 16px'}>
+                padding={'20px 16px'}
+                boxSizing="border-box">
                 {hasNonAdminFamilyMembers(userDetails.familyData) ? (
                     <FamilySubscriptionCardContent userDetails={userDetails} />
                 ) : (
