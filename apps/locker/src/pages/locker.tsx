@@ -183,6 +183,9 @@ const Locker = () => {
     }, [files, currentCollection, dashboardView]);
 
     useEffect(() => {
+        setSelectedCollections([]);
+        setSelectedFiles([]);
+
         doSyncFiles();
 
         doSyncCollections();
