@@ -17,6 +17,8 @@ import MinimizeIcon from '@mui/icons-material/Minimize';
 import CloseIcon from '@mui/icons-material/Close';
 import OpenInFullIcon from '@mui/icons-material/OpenInFull';
 import { t } from 'i18next';
+import CancelUploadsDialog from './CancelUploadsDialog';
+import uploadCancelService from '@/services/upload/uploadCancelService';
 
 export const UploaderContext = createContext(
     {} as {
@@ -58,6 +60,11 @@ const UploaderBoxComponent = (props: IProps) => {
         LockerDashboardContext
     );
 
+    const [
+        showCancelInProgressUploadsDialog,
+        setShowCancelInProgressUploadsDialog,
+    ] = useState(false);
+
     const initUploadManager = () => {
         // Initialize the upload manager
         uploadManager.init(
@@ -87,7 +94,6 @@ const UploaderBoxComponent = (props: IProps) => {
 
     useEffect(() => {
         if (uploadStage === UPLOAD_STAGES.FINISH) {
-            setShowUploaderBoxComponent(false);
             syncFiles();
         }
     }, [uploadStage]);
@@ -175,15 +181,24 @@ const UploaderBoxComponent = (props: IProps) => {
                                     <OpenInFullIcon />
                                 )}
                             </IconButton>
-                            {uploadingFiles.length === 0 && (
-                                <IconButton
-                                    size="small"
-                                    onClick={() => {
-                                        setShowUploaderBoxComponent(false);
-                                    }}>
-                                    <CloseIcon />
-                                </IconButton>
-                            )}
+                            <IconButton
+                                size="small"
+                                onClick={() => {
+                                    if (
+                                        ![
+                                            UPLOAD_STAGES.FINISH,
+                                            UPLOAD_STAGES.START,
+                                        ].includes(uploadStage)
+                                    ) {
+                                        setShowCancelInProgressUploadsDialog(
+                                            true
+                                        );
+                                        return;
+                                    }
+                                    setShowUploaderBoxComponent(false);
+                                }}>
+                                <CloseIcon />
+                            </IconButton>
                         </Box>
                     </Box>
                     <Box
@@ -206,6 +221,18 @@ const UploaderBoxComponent = (props: IProps) => {
                         )}
                     </Box>
                 </Box>
+                <CancelUploadsDialog
+                    show={showCancelInProgressUploadsDialog}
+                    onHide={() => {
+                        setShowCancelInProgressUploadsDialog(false);
+                    }}
+                    clearUploads={async () => {
+                        uploadCancelService.requestUploadCancelation();
+                        setInProgressUploads([]);
+                        setUploadStage(UPLOAD_STAGES.START);
+                        setShowUploaderBoxComponent(false);
+                    }}
+                />
             </UploaderContext.Provider>
         </>
     );

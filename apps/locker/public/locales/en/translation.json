@@ -526,5 +526,6 @@
     "COLLECTION_NAME": "Collection name",
     "PERMANENTLY_DELETE": "Permanently Delete",
     "LOCKER": "Locker",
-    "NO_FILES_SELECTED_FOR_UPLOAD": "No files selected for upload"
+    "NO_FILES_SELECTED_FOR_UPLOAD": "No files selected for upload",
+    "CLEAR_IN_PROGRESS_UPLOADS": "Clear and cancel in-progress uploads?"
 }
