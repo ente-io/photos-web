@@ -11,7 +11,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/$
 const PDFViewer = ({ pdfData }: { pdfData: Uint8Array }) => {
     const data = useMemo(() => {
         return new File([pdfData], 'data');
-    }, []);
+    }, [pdfData]);
     const { pageNumber, setPageNumber } = useContext(PreviewContext);
     const { totalPages, setTotalPages } = useContext(PreviewContext);
     const { hasRendered, setHasRendered } = useContext(PreviewContext);
@@ -38,27 +38,27 @@ const PDFViewer = ({ pdfData }: { pdfData: Uint8Array }) => {
     const [width, setWidth] = useState(0);
     const [height, setHeight] = useState(0);
 
+    const updateWindowDimensions = () => {
+        if (!originalWidth || !originalHeight) {
+            return;
+        }
+
+        // if the width of the window is greater than the width of the PDF, set the width of the PDF to the width of the window
+        if (window.innerWidth > originalWidth) {
+            setWidth(originalWidth);
+        } else {
+            setWidth(window.innerWidth);
+        }
+
+        // if the height of the window is greater than the height of the PDF, set the height of the PDF to the height of the window
+        if (window.innerHeight > originalHeight) {
+            setHeight(originalHeight);
+        } else {
+            setHeight(window.innerHeight);
+        }
+    };
+
     useEffect(() => {
-        const updateWindowDimensions = () => {
-            if (!originalWidth || !originalHeight) {
-                return;
-            }
-
-            // if the width of the window is greater than the width of the PDF, set the width of the PDF to the width of the window
-            if (window.innerWidth > originalWidth) {
-                setWidth(originalWidth);
-            } else {
-                setWidth(window.innerWidth);
-            }
-
-            // if the height of the window is greater than the height of the PDF, set the height of the PDF to the height of the window
-            if (window.innerHeight > originalHeight) {
-                setHeight(originalHeight);
-            } else {
-                setHeight(window.innerHeight);
-            }
-        };
-
         // call the function to update window dimensions
         updateWindowDimensions();
 

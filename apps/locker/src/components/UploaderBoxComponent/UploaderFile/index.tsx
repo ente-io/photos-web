@@ -24,7 +24,7 @@ const UploaderFile = (props: IProps) => {
         if (inProgressUpload) {
             setCurrentInProgressUpload(inProgressUpload);
         }
-    }, [inProgressUploads]);
+    }, [props.localID, inProgressUploads]);
 
     useEffect(() => {
         if (currentInProgressUpload) {
@@ -42,7 +42,7 @@ const UploaderFile = (props: IProps) => {
 
             setProgress(currentInProgressUpload.progress);
         }
-    }, [currentInProgressUpload, finishedUploads]);
+    }, [currentInProgressUpload, finishedUploads, props.localID]);
 
     return (
         <>
