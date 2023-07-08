@@ -12,9 +12,8 @@ interface IProps {
 }
 
 const TrashFilesModal = (props: IProps) => {
-    const { selectedFiles, setSelectedFiles } = useContext(
-        LockerDashboardContext
-    );
+    const { selectedFiles } = useContext(LockerDashboardContext);
+
     return (
         <DialogBoxV2
             open={props.show}

@@ -6,14 +6,10 @@
     align-items: center;
 
     .container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+        // display: flex;
+        // flex-direction: column;
+        // align-items: center;
         color: white;
-
-        h1,
-        p {
-            margin: 0;
-        }
+        text-align: center;
     }
 }

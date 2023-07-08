@@ -2,7 +2,13 @@
 
 import Image from 'next/image';
 import styles from './styles.module.scss';
+import { Button, Typography } from '@mui/material';
+import BetaWarningDialog from './BetaWarningDialog';
+import { useState } from 'react';
+
 const LandingPage = () => {
+    const [showBetaWarningDialog, setShowBetaWarningDialog] = useState(false);
+
     return (
         <>
             <div className={styles.wrapper}>
@@ -15,9 +21,23 @@ const LandingPage = () => {
                             height={100}
                         />
                     </a>
-                    <p>Coming soon.</p>
+                    <Typography marginBottom="1rem">
+                        Your truly personal space for important documents.
+                    </Typography>
+                    <Button
+                        variant="contained"
+                        color="accent"
+                        onClick={() => {
+                            setShowBetaWarningDialog(true);
+                        }}>
+                        Try it out
+                    </Button>
                 </div>
             </div>
+            <BetaWarningDialog
+                show={showBetaWarningDialog}
+                onHide={() => setShowBetaWarningDialog(false)}
+            />
         </>
     );
 };
