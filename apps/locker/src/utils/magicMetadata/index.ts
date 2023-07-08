@@ -5,7 +5,7 @@ import {
     MagicMetadataCore,
     VISIBILITY_STATE,
 } from '@/interfaces/magicMetadata';
-import ComlinkCryptoWorker from 'utils/comlink/ComlinkCryptoWorker';
+import ComlinkCryptoWorker from '@/utils/comlink/ComlinkCryptoWorker';
 
 export function IsArchived(item: Collection | EnteFile) {
     if (

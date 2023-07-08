@@ -20,12 +20,12 @@ import {
     DeleteChallengeResponse,
     GetRemoteStoreValueResponse,
 } from '@/interfaces/user';
-import { ServerErrorCodes } from 'utils/error';
+import { ServerErrorCodes } from '@/utils/error';
 import isElectron from 'is-electron';
 // import safeStorageService from './electron/safeStorage';
 // import { deleteAllCache } from '@/utils/storage/cache';
 import { B64EncryptionResult } from '@/interfaces/crypto';
-import { getLocalFamilyData, isPartOfFamily } from 'utils/user/family';
+import { getLocalFamilyData, isPartOfFamily } from '@/utils/user/family';
 import { AxiosResponse } from 'axios';
 // import { APPS, getAppName } from '@/constants/apps';
 

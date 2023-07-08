@@ -8,10 +8,10 @@ import {
 } from '@/services/collectionService';
 import { downloadFiles } from '@/utils/file';
 import { EnteFile } from '@/interfaces/file';
-import { CustomError, ServerErrorCodes } from 'utils/error';
+import { CustomError, ServerErrorCodes } from '@/utils/error';
 import { User } from '@/interfaces/user';
-import { getData, LS_KEYS } from 'utils/storage/localStorage';
-import { logError } from 'utils/sentry';
+import { getData, LS_KEYS } from '@/utils/storage/localStorage';
+import { logError } from '@/utils/sentry';
 import {
     Collection,
     CollectionMagicMetadataProps,
@@ -23,15 +23,15 @@ import {
     OPTIONS_NOT_HAVING_COLLECTION_TYPES,
     SYSTEM_COLLECTION_TYPES,
     UPLOAD_NOT_ALLOWED_COLLECTION_TYPES,
-} from 'constants/collection';
-import { getUnixTimeInMicroSecondsWithDelta } from 'utils/time';
+} from '@/constants/collection';
+import { getUnixTimeInMicroSecondsWithDelta } from '@/utils/time';
 import {
     NEW_COLLECTION_MAGIC_METADATA,
     SUB_TYPE,
     VISIBILITY_STATE,
 } from '@/interfaces/magicMetadata';
-import { IsArchived, updateMagicMetadataProps } from 'utils/magicMetadata';
-import { getAlbumsURL } from 'utils/common/apiUtil';
+import { IsArchived, updateMagicMetadataProps } from '@/utils/magicMetadata';
+import { getAlbumsURL } from '@/utils/common/apiUtil';
 import bs58 from 'bs58';
 import { t } from 'i18next';
 import { getLocalFiles } from '@/services/fileService';

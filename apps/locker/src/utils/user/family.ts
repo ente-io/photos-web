@@ -1,6 +1,6 @@
 import { FamilyData, FamilyMember, User } from '@/interfaces/user';
-import { logError } from 'utils/sentry';
-import { getData, LS_KEYS } from 'utils/storage/localStorage';
+import { logError } from '@/utils/sentry';
+import { getData, LS_KEYS } from '@/utils/storage/localStorage';
 
 export function getLocalFamilyData(): FamilyData {
     return getData(LS_KEYS.FAMILY_DATA);

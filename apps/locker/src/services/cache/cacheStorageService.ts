@@ -1,4 +1,4 @@
-import { logError } from 'utils/sentry';
+import { logError } from '@/utils/sentry';
 import { CacheStorageFactory } from './cacheStorageFactory';
 
 async function openCache(cacheName: string) {

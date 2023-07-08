@@ -1,7 +1,7 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import Backend from 'i18next-http-backend';
-import { getBestPossibleUserLocale } from 'utils/i18n';
+import { getBestPossibleUserLocale } from '@/utils/i18n';
 
 export const setupI18n = async () => {
     await i18n

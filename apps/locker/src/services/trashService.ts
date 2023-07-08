@@ -1,10 +1,10 @@
 import { SetFiles } from '@/interfaces/gallery';
 import { Collection } from '@/interfaces/collection';
-import { getEndpoint } from 'utils/common/apiUtil';
-import { getToken } from 'utils/common/key';
-import { decryptFile, mergeMetadata, sortFiles } from 'utils/file';
-import { logError } from 'utils/sentry';
-import localForage from 'utils/storage/localForage';
+import { getEndpoint } from '@/utils/common/apiUtil';
+import { getToken } from '@/utils/common/key';
+import { decryptFile, mergeMetadata, sortFiles } from '@/utils/file';
+import { logError } from '@/utils/sentry';
+import localForage from '@/utils/storage/localForage';
 import { getCollection } from './collectionService';
 
 import HTTPService from './HTTPService';

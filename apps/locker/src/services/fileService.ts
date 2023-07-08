@@ -4,7 +4,7 @@ import localForage from '@/utils/storage/localForage';
 import { getToken } from '@/utils/common/key';
 import { Collection } from '@/interfaces/collection';
 import HTTPService from './HTTPService';
-import { logError } from 'utils/sentry';
+import { logError } from '@/utils/sentry';
 import {
     decryptFile,
     getLatestVersionFiles,

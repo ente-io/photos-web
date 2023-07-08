@@ -1,5 +1,5 @@
-import { FILE_TYPE } from 'constants/file';
-import { LIVE_PHOTO_ASSET_SIZE_LIMIT } from 'constants/upload';
+import { FILE_TYPE } from '@/constants/file';
+import { LIVE_PHOTO_ASSET_SIZE_LIMIT } from '@/constants/upload';
 import { encodeLivePhoto } from '@/services/livePhotoService';
 import { getFileType } from '@/services/typeDetectionService';
 import {
@@ -8,7 +8,7 @@ import {
     LivePhotoAssets,
     ParsedMetadataJSONMap,
 } from '@/interfaces/upload';
-import { CustomError } from 'utils/error';
+import { CustomError } from '@/utils/error';
 import { getFileTypeFromExtensionForLivePhotoClustering } from '@/utils/file/livePhoto';
 import { splitFilenameAndExtension, isImageOrVideo } from '@/utils/file';
 import { logError } from '@/utils/sentry';

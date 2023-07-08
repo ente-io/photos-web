@@ -6,8 +6,8 @@ import { setRecoveryKey } from '@/services/userService';
 import { logError } from '@/utils/sentry';
 import isElectron from 'is-electron';
 // import safeStorageService from '@/services/electron/safeStorage';
-import ComlinkCryptoWorker from 'utils/comlink/ComlinkCryptoWorker';
-import { PasswordStrength } from 'constants/crypto';
+import ComlinkCryptoWorker from '@/utils/comlink/ComlinkCryptoWorker';
+import { PasswordStrength } from '@/constants/crypto';
 import zxcvbn from 'zxcvbn';
 
 export async function generateKeyAttributes(

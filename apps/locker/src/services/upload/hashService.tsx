@@ -1,10 +1,10 @@
 import { Remote } from 'comlink';
-import { FILE_READER_CHUNK_SIZE } from 'constants/upload';
-import { getFileStream, getElectronFileStream } from 'services/readerService';
-import { DataStream } from 'types/upload';
-import { CustomError } from 'utils/error';
-import { addLogLine, getFileNameSize } from 'utils/logging';
-import { logError } from 'utils/sentry';
+import { FILE_READER_CHUNK_SIZE } from '@/constants/upload';
+import { getFileStream } from '@/services/readerService';
+import { DataStream } from '@/interfaces/upload';
+import { CustomError } from '@/utils/error';
+import { addLogLine, getFileNameSize } from '@/utils/logging';
+import { logError } from '@/utils/sentry';
 import { DedicatedCryptoWorker } from 'worker/crypto.worker';
 
 export async function getFileHash(
@@ -14,14 +14,14 @@ export async function getFileHash(
     try {
         addLogLine(`getFileHash called for ${getFileNameSize(file)}`);
         let filedata: DataStream;
-        if (file instanceof File) {
-            filedata = getFileStream(file, FILE_READER_CHUNK_SIZE);
-        } else {
-            filedata = await getElectronFileStream(
-                file,
-                FILE_READER_CHUNK_SIZE
-            );
-        }
+        // if (file instanceof File) {
+        filedata = getFileStream(file, FILE_READER_CHUNK_SIZE);
+        // } else {
+        //     filedata = await getElectronFileStream(
+        //         file,
+        //         FILE_READER_CHUNK_SIZE
+        //     );
+        // }
         const hashState = await worker.initChunkHashing();
 
         const streamReader = filedata.stream.getReader();

@@ -1,6 +1,6 @@
 // import isElectron from 'is-electron';
 import { UserDetails } from '@/interfaces/user';
-import { getData, LS_KEYS, setData } from 'utils/storage/localStorage';
+import { getData, LS_KEYS, setData } from '@/utils/storage/localStorage';
 // import ElectronService from '@/services/electron/common';
 
 export function makeID(length) {

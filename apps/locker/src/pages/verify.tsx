@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Trans } from 'react-i18next';
 import { t } from 'i18next';
 
-import { LS_KEYS, getData, setData } from 'utils/storage/localStorage';
+import { LS_KEYS, getData, setData } from '@/utils/storage/localStorage';
 import { useRouter } from 'next/router';
 import {
     verifyOtt,
@@ -11,10 +11,10 @@ import {
     clearFiles,
     putAttributes,
 } from 'services/userService';
-import { setIsFirstLogin } from 'utils/storage';
-import { clearKeys } from 'utils/storage/sessionStorage';
+import { setIsFirstLogin } from '@/utils/storage';
+import { clearKeys } from '@/utils/storage/sessionStorage';
 // import { AppContext } from 'pages/_app';
-import { PAGES } from 'constants/pages';
+import { PAGES } from '@/constants/pages';
 import {
     KeyAttributes,
     EmailVerificationResponse,

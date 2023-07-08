@@ -1,6 +1,6 @@
 import * as Comlink from 'comlink';
 import { StateAddress } from 'libsodium-wrappers';
-import * as libsodium from 'utils/crypto/libsodium';
+import * as libsodium from '@/utils/crypto/libsodium';
 
 export class DedicatedCryptoWorker {
     async decryptMetadata(

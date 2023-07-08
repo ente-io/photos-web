@@ -4,8 +4,8 @@ import EnteSpinner from '@/components/EnteSpinner';
 // import { AppContext } from 'pages/_app';
 import Login from 'components/Login';
 import VerticallyCentered from 'components/Container';
-import { getData, LS_KEYS } from 'utils/storage/localStorage';
-import { PAGES } from 'constants/pages';
+import { getData, LS_KEYS } from '@/utils/storage/localStorage';
+import { PAGES } from '@/constants/pages';
 import FormContainer from 'components/Form/FormContainer';
 import FormPaper from 'components/Form/FormPaper';
 

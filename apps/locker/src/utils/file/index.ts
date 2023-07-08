@@ -406,11 +406,11 @@ export async function changeFileCreationTime(
     const updatedPublicMagicMetadataProps: FilePublicMagicMetadataProps = {
         editedTime,
     };
-    file.pubMagicMetadata = await updateMagicMetadataProps(
+    file.pubMagicMetadata = (await updateMagicMetadataProps(
         file.pubMagicMetadata ?? NEW_FILE_MAGIC_METADATA,
         file.key,
         updatedPublicMagicMetadataProps
-    );
+    )) as FilePublicMagicMetadata;
     return file;
 }
 
@@ -432,11 +432,11 @@ export async function changeCaption(file: EnteFile, caption: string) {
         caption,
     };
 
-    file.pubMagicMetadata = await updateMagicMetadataProps(
+    file.pubMagicMetadata = (await updateMagicMetadataProps(
         file.pubMagicMetadata ?? NEW_FILE_MAGIC_METADATA,
         file.key,
         updatedPublicMagicMetadataProps
-    );
+    )) as FilePublicMagicMetadata;
     return file;
 }
 

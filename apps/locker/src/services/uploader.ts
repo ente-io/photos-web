@@ -1,10 +1,10 @@
 import { EnteFile } from '@/interfaces/file';
-import { handleUploadError, CustomError } from 'utils/error';
-import { logError } from 'utils/sentry';
+import { handleUploadError, CustomError } from '@/utils/error';
+import { logError } from '@/utils/sentry';
 import { findMatchingExistingFiles } from '@/utils/upload';
 import UIService from './upload/uiService';
 import UploadService from './upload/uploadService';
-import { UPLOAD_RESULT, MAX_FILE_SIZE_SUPPORTED } from 'constants/upload';
+import { UPLOAD_RESULT, MAX_FILE_SIZE_SUPPORTED } from '@/constants/upload';
 import {
     FileWithCollection,
     BackupedFile,

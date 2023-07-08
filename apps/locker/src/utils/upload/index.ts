@@ -8,8 +8,8 @@ import {
     A_SEC_IN_MICROSECONDS,
     DEFAULT_IMPORT_SUGGESTION,
     PICKED_UPLOAD_TYPE,
-} from 'constants/upload';
-import { FILE_TYPE } from 'constants/file';
+} from '@/constants/upload';
+import { FILE_TYPE } from '@/constants/file';
 // import { ENTE_METADATA_FOLDER } from '@/constants/export';
 import isElectron from 'is-electron';
 

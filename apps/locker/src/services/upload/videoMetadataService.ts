@@ -1,7 +1,7 @@
-import { NULL_EXTRACTED_METADATA } from 'constants/upload';
+import { NULL_EXTRACTED_METADATA } from '@/constants/upload';
 // import * as ffmpegService from '@/services/ffmpeg/ffmpegService';
-import { logError } from 'utils/sentry';
-import { getFileNameSize, addLogLine } from 'utils/logging';
+import { logError } from '@/utils/sentry';
+import { getFileNameSize, addLogLine } from '@/utils/logging';
 
 export async function getVideoMetadata(file: File) {
     let videoMetadata = NULL_EXTRACTED_METADATA;

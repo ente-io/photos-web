@@ -1,7 +1,7 @@
 import { B64EncryptionResult } from '@/interfaces/crypto';
-import ComlinkCryptoWorker from 'utils/comlink/ComlinkCryptoWorker';
-import { getData, LS_KEYS } from 'utils/storage/localStorage';
-import { getKey, SESSION_KEYS } from 'utils/storage/sessionStorage';
+import ComlinkCryptoWorker from '@/utils/comlink/ComlinkCryptoWorker';
+import { getData, LS_KEYS } from '@/utils/storage/localStorage';
+import { getKey, SESSION_KEYS } from '@/utils/storage/sessionStorage';
 import { CustomError } from '../error';
 
 export const getActualKey = async () => {

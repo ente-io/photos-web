@@ -1,4 +1,4 @@
-// import { Language } from 'constants/locale';
+// import { Language } from '@/constants/locale';
 import { Language } from '@/constants/locale';
 import { getData, LS_KEYS, setData } from './localStorage';
 

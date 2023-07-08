@@ -2,19 +2,19 @@ import React, { useContext, useEffect, useState } from 'react';
 
 import { t } from 'i18next';
 
-import { clearData, getData, LS_KEYS } from 'utils/storage/localStorage';
+import { clearData, getData, LS_KEYS } from '@/utils/storage/localStorage';
 import { useRouter } from 'next/router';
-import { PAGES } from 'constants/pages';
-import { SESSION_KEYS, getKey } from 'utils/storage/sessionStorage';
+import { PAGES } from '@/constants/pages';
+import { SESSION_KEYS, getKey } from '@/utils/storage/sessionStorage';
 import {
     decryptAndStoreToken,
     generateAndSaveIntermediateKeyAttributes,
     saveKeyInSessionStore,
-} from 'utils/crypto';
-import { logoutUser } from 'services/userService';
-import { isFirstLogin } from 'utils/storage';
+} from '@/utils/crypto';
+import { logoutUser } from '@/services/userService';
+import { isFirstLogin } from '@/utils/storage';
 // import { AppContext } from 'pages/_app';
-import { logError } from 'utils/sentry';
+import { logError } from '@/utils/sentry';
 import { KeyAttributes, User } from '@/interfaces/user';
 import FormContainer from '@/components/Form/FormContainer';
 import FormPaper from '@/components/Form/FormPaper';
