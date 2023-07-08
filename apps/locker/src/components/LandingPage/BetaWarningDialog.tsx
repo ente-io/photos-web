@@ -1,6 +1,4 @@
-import { trashFiles } from '@/services/fileService';
 import { Stack, Button, Typography } from '@mui/material';
-import { t } from 'i18next';
 import DialogBoxV2 from '../DialogBoxV2';
 import EnteButton from '../EnteButton';
 
