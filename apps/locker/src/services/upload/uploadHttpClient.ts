@@ -27,9 +27,16 @@ class UploadHttpClient {
             }
             const response = await retryHTTPCall(
                 () =>
-                    HTTPService.post(`${ENDPOINT}/files`, uploadFile, null, {
-                        'X-Auth-Token': token,
-                    }),
+                    HTTPService.post(
+                        `${ENDPOINT}/files`,
+                        uploadFile,
+                        {
+                            app: 'locker',
+                        },
+                        {
+                            'X-Auth-Token': token,
+                        }
+                    ),
                 handleUploadError
             );
             return response.data;

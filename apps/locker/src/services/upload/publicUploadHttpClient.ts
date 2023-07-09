@@ -31,7 +31,9 @@ class PublicUploadHttpClient {
                     HTTPService.post(
                         `${ENDPOINT}/public-collection/file`,
                         uploadFile,
-                        null,
+                        {
+                            app: 'locker',
+                        },
                         {
                             'X-Auth-Access-Token': token,
                             ...(passwordToken && {
