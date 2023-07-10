@@ -94,6 +94,7 @@ export const updateTrash = async (
                 `${ENDPOINT}/trash/v2/diff`,
                 {
                     sinceTime: time,
+                    app: 'locker',
                 },
                 {
                     'X-Auth-Token': token,
