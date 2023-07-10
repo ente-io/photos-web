@@ -1,37 +1,38 @@
 import {
     addToCollection,
+    createAlbum,
     getNonEmptyCollections,
     moveToCollection,
     removeFromCollection,
     restoreToCollection,
+    unhideToCollection,
     updateCollectionMagicMetadata,
+    updatePublicCollectionMagicMetadata,
 } from 'services/collectionService';
 import { downloadFiles } from 'utils/file';
-import { getLocalFiles } from 'services/fileService';
+import { getLocalFiles, getLocalHiddenFiles } from 'services/fileService';
 import { EnteFile } from 'types/file';
-import { CustomError, ServerErrorCodes } from 'utils/error';
+import { CustomError } from 'utils/error';
 import { User } from 'types/user';
 import { getData, LS_KEYS } from 'utils/storage/localStorage';
 import { logError } from 'utils/sentry';
 import {
     Collection,
     CollectionMagicMetadataProps,
+    CollectionPublicMagicMetadataProps,
     CollectionSummaries,
 } from 'types/collection';
 import {
     CollectionSummaryType,
+    CollectionType,
     HIDE_FROM_COLLECTION_BAR_TYPES,
     OPTIONS_NOT_HAVING_COLLECTION_TYPES,
     SYSTEM_COLLECTION_TYPES,
-    UPLOAD_NOT_ALLOWED_COLLECTION_TYPES,
+    SELECT_NOT_ALLOWED_COLLECTION,
 } from 'constants/collection';
 import { getUnixTimeInMicroSecondsWithDelta } from 'utils/time';
-import {
-    NEW_COLLECTION_MAGIC_METADATA,
-    SUB_TYPE,
-    VISIBILITY_STATE,
-} from 'types/magicMetadata';
-import { IsArchived, updateMagicMetadataProps } from 'utils/magicMetadata';
+import { SUB_TYPE, VISIBILITY_STATE } from 'types/magicMetadata';
+import { IsArchived, updateMagicMetadata } from 'utils/magicMetadata';
 import { getAlbumsURL } from 'utils/common/apiUtil';
 import bs58 from 'bs58';
 import { t } from 'i18next';
@@ -41,6 +42,7 @@ export enum COLLECTION_OPS_TYPE {
     MOVE,
     REMOVE,
     RESTORE,
+    UNHIDE,
 }
 export async function handleCollectionOps(
     type: COLLECTION_OPS_TYPE,
@@ -54,8 +56,8 @@ export async function handleCollectionOps(
             break;
         case COLLECTION_OPS_TYPE.MOVE:
             await moveToCollection(
-                collection,
                 selectedCollectionID,
+                collection,
                 selectedFiles
             );
             break;
@@ -64,6 +66,9 @@ export async function handleCollectionOps(
             break;
         case COLLECTION_OPS_TYPE.RESTORE:
             await restoreToCollection(collection, selectedFiles);
+            break;
+        case COLLECTION_OPS_TYPE.UNHIDE:
+            await unhideToCollection(collection, selectedFiles);
             break;
         default:
             throw Error(CustomError.INVALID_COLLECTION_OPERATION);
@@ -86,6 +91,15 @@ export async function downloadAllCollectionFiles(collectionID: number) {
         await downloadFiles(collectionFiles);
     } catch (e) {
         logError(e, 'download collection failed ');
+    }
+}
+
+export async function downloadHiddenFiles() {
+    try {
+        const hiddenFiles = await getLocalHiddenFiles();
+        await downloadFiles(hiddenFiles);
+    } catch (e) {
+        logError(e, 'download hidden files failed ');
     }
 }
 
@@ -150,22 +164,60 @@ export const changeCollectionVisibility = async (
             visibility,
         };
 
-        const updatedCollection = {
-            ...collection,
-            magicMetadata: await updateMagicMetadataProps(
-                collection.magicMetadata ?? NEW_COLLECTION_MAGIC_METADATA,
-                collection.key,
-                updatedMagicMetadataProps
-            ),
-        } as Collection;
-
-        await updateCollectionMagicMetadata(updatedCollection);
+        const updatedMagicMetadata = await updateMagicMetadata(
+            updatedMagicMetadataProps,
+            collection.magicMetadata,
+            collection.key
+        );
+        await updateCollectionMagicMetadata(collection, updatedMagicMetadata);
     } catch (e) {
-        logError(e, 'change file visibility failed');
-        switch (e.status?.toString()) {
-            case ServerErrorCodes.FORBIDDEN:
-                throw Error(CustomError.NOT_FILE_OWNER);
-        }
+        logError(e, 'change collection visibility failed');
+        throw e;
+    }
+};
+
+export const changeCollectionSortOrder = async (
+    collection: Collection,
+    asc: boolean
+) => {
+    try {
+        const updatedPublicMagicMetadataProps: CollectionPublicMagicMetadataProps =
+            {
+                asc,
+            };
+
+        const updatedPubMagicMetadata = await updateMagicMetadata(
+            updatedPublicMagicMetadataProps,
+            collection.pubMagicMetadata,
+            collection.key
+        );
+
+        await updatePublicCollectionMagicMetadata(
+            collection,
+            updatedPubMagicMetadata
+        );
+    } catch (e) {
+        logError(e, 'change collection order failed');
+    }
+};
+
+export const changeCollectionSubType = async (
+    collection: Collection,
+    subType: SUB_TYPE
+) => {
+    try {
+        const updatedMagicMetadataProps: CollectionMagicMetadataProps = {
+            subType: subType,
+        };
+
+        const updatedMagicMetadata = await updateMagicMetadata(
+            updatedMagicMetadataProps,
+            collection.magicMetadata,
+            collection.key
+        );
+        await updateCollectionMagicMetadata(collection, updatedMagicMetadata);
+    } catch (e) {
+        logError(e, 'change collection subType failed');
         throw e;
     }
 };
@@ -185,8 +237,8 @@ export const hasNonSystemCollections = (
     return false;
 };
 
-export const isUploadAllowedCollection = (type: CollectionSummaryType) => {
-    return !UPLOAD_NOT_ALLOWED_COLLECTION_TYPES.has(type);
+export const isSelectAllowedCollection = (type: CollectionSummaryType) => {
+    return !SELECT_NOT_ALLOWED_COLLECTION.has(type);
 };
 
 export const isSystemCollection = (type: CollectionSummaryType) => {
@@ -205,6 +257,7 @@ export const showDownloadQuickOption = (type: CollectionSummaryType) => {
         type === CollectionSummaryType.favorites ||
         type === CollectionSummaryType.album ||
         type === CollectionSummaryType.uncategorized ||
+        type === CollectionSummaryType.hidden ||
         type === CollectionSummaryType.incomingShare ||
         type === CollectionSummaryType.outgoingShare ||
         type === CollectionSummaryType.sharedOnlyViaLink ||
@@ -232,11 +285,10 @@ export const getUserOwnedCollections = (collections: Collection[]) => {
     return collections.filter((collection) => collection.owner.id === user.id);
 };
 
-export const getNonHiddenCollections = (collections: Collection[]) => {
-    return collections.filter((collection) => !isCollectionHidden(collection));
-};
+export const isDefaultHiddenCollection = (collection: Collection) =>
+    collection.magicMetadata?.data.subType === SUB_TYPE.DEFAULT_HIDDEN;
 
-export const isCollectionHidden = (collection: Collection) =>
+export const isHiddenCollection = (collection: Collection) =>
     collection.magicMetadata?.data.visibility === VISIBILITY_STATE.HIDDEN ||
     collection.magicMetadata?.data.subType === SUB_TYPE.DEFAULT_HIDDEN;
 
@@ -260,9 +312,24 @@ export function isValidMoveTarget(
 ) {
     return (
         sourceCollectionID !== targetCollection.id &&
-        !isCollectionHidden(targetCollection) &&
+        !isHiddenCollection(targetCollection) &&
         !isQuickLinkCollection(targetCollection) &&
         !isIncomingShare(targetCollection, user)
+    );
+}
+
+export function isValidReplacementAlbum(
+    collection: Collection,
+    user: User,
+    wantedCollectionName: string
+) {
+    return (
+        collection.name === wantedCollectionName &&
+        (collection.type === CollectionType.album ||
+            collection.type === CollectionType.folder) &&
+        !isHiddenCollection(collection) &&
+        !isQuickLinkCollection(collection) &&
+        !isIncomingShare(collection, user)
     );
 }
 
@@ -291,3 +358,54 @@ export function getNonEmptyPersonalCollections(
     );
     return personalCollections;
 }
+
+export function getNonHiddenCollections(
+    collections: Collection[]
+): Collection[] {
+    return collections.filter((collection) => !isHiddenCollection(collection));
+}
+
+export async function splitNormalAndHiddenCollections(
+    collections: Collection[]
+): Promise<{
+    normalCollections: Collection[];
+    hiddenCollections: Collection[];
+}> {
+    const normalCollections = [];
+    const hiddenCollections = [];
+    for (const collection of collections) {
+        if (isHiddenCollection(collection)) {
+            hiddenCollections.push(collection);
+        } else {
+            normalCollections.push(collection);
+        }
+    }
+    return { normalCollections, hiddenCollections };
+}
+
+export function constructCollectionNameMap(
+    collections: Collection[]
+): Map<number, string> {
+    return new Map<number, string>(
+        (collections ?? []).map((collection) => [
+            collection.id,
+            collection.name,
+        ])
+    );
+}
+
+export const getOrCreateAlbum = async (
+    albumName: string,
+    existingCollections: Collection[]
+) => {
+    const user: User = getData(LS_KEYS.USER);
+    if (!user?.id) {
+        throw Error('user missing');
+    }
+    for (const collection of existingCollections) {
+        if (isValidReplacementAlbum(collection, user, albumName)) {
+            return collection;
+        }
+    }
+    return createAlbum(albumName);
+};

@@ -7,7 +7,6 @@ import {
 } from 'utils/file';
 import { logError } from 'utils/sentry';
 import downloadManager from './downloadManager';
-import { updateFilePublicMagicMetadata } from './fileService';
 import { EnteFile } from 'types/file';
 
 import { getParsedExifData } from './upload/exifService';
@@ -20,6 +19,7 @@ const EXIF_TIME_TAGS = [
     'CreateDate',
     'ModifyDate',
     'DateCreated',
+    'MetadataDate',
 ];
 
 export async function updateCreationTimeWithExif(
@@ -56,23 +56,26 @@ export async function updateCreationTimeWithExif(
                         correctCreationTime = getUnixTimeInMicroSeconds(
                             exifData?.DateTimeOriginal ?? exifData?.DateCreated
                         );
-                    } else {
+                    } else if (fixOption === FIX_OPTIONS.DATE_TIME_DIGITIZED) {
                         correctCreationTime = getUnixTimeInMicroSeconds(
                             exifData?.CreateDate
                         );
+                    } else if (fixOption === FIX_OPTIONS.METADATA_DATE) {
+                        correctCreationTime = getUnixTimeInMicroSeconds(
+                            exifData?.MetadataDate
+                        );
+                    } else {
+                        throw new Error('Invalid fix option');
                     }
                 }
                 if (
                     correctCreationTime &&
                     correctCreationTime !== file.metadata.creationTime
                 ) {
-                    let updatedFile = await changeFileCreationTime(
+                    const updatedFile = await changeFileCreationTime(
                         file,
                         correctCreationTime
                     );
-                    updatedFile = (
-                        await updateFilePublicMagicMetadata([updatedFile])
-                    )[0];
                     updateExistingFilePubMetadata(file, updatedFile);
                 }
             } catch (e) {

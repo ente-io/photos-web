@@ -2,6 +2,7 @@ import { CollectionSelectorAttributes } from 'components/Collections/CollectionS
 import { TimeStampListItem } from 'components/PhotoList';
 import { Collection } from 'types/collection';
 import { EnteFile } from 'types/file';
+import { User } from 'types/user';
 
 export type SelectedState = {
     [k: number]: boolean;
@@ -32,6 +33,18 @@ export type GalleryContextType = {
     setActiveCollection: (collection: number) => void;
     syncWithRemote: (force?: boolean, silent?: boolean) => Promise<void>;
     setBlockingLoad: (value: boolean) => void;
+    setIsInSearchMode: (value: boolean) => void;
     photoListHeader: TimeStampListItem;
     openExportModal: () => void;
+    authenticateUser: (callback: () => void) => void;
+    user: User;
+    userIDToEmailMap: Map<number, string>;
 };
+
+export enum CollectionSelectorIntent {
+    upload,
+    add,
+    move,
+    restore,
+    unhide,
+}

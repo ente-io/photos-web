@@ -86,6 +86,7 @@ export interface UserDetails {
     sharedCollectionCount: number;
     subscription: Subscription;
     familyData?: FamilyData;
+    storageBonus?: number;
 }
 
 export interface DeleteChallengeResponse {
@@ -100,4 +101,8 @@ export interface GetRemoteStoreValueResponse {
 export interface UpdateRemoteStoreValueRequest {
     key: string;
     value: string;
+}
+
+export interface GetFeatureFlagResponse {
+    disableCFUploadProxy?: boolean;
 }

@@ -9,7 +9,6 @@ import { Formik } from 'formik';
 
 import FixCreationTimeOptions from './options';
 import { t } from 'i18next';
-import { TFunction } from 'i18next';
 export interface FixCreationTimeAttributes {
     files: EnteFile[];
 }
@@ -30,6 +29,7 @@ export enum FIX_STATE {
 export enum FIX_OPTIONS {
     DATE_TIME_ORIGINAL,
     DATE_TIME_DIGITIZED,
+    METADATA_DATE,
     CUSTOM_TIME,
 }
 
@@ -38,13 +38,7 @@ interface formValues {
     customTime: Date;
 }
 
-function Message({
-    fixState,
-    t,
-}: {
-    t: TFunction<'translations', undefined, 'translations'>;
-    fixState: FIX_STATE;
-}) {
+function Message({ fixState }: { fixState: FIX_STATE }) {
     let message = null;
     switch (fixState) {
         case FIX_STATE.NOT_STARTED:
@@ -119,7 +113,7 @@ export default function FixCreationTime(props: Props) {
                         ? { alignItems: 'center' }
                         : {}),
                 }}>
-                <Message fixState={fixState} t={t} />
+                <Message fixState={fixState} />
 
                 {fixState === FIX_STATE.RUNNING && (
                     <FixCreationTimeRunning progressTracker={progressTracker} />

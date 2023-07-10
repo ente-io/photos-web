@@ -25,6 +25,7 @@ export interface EncryptedCollection {
     isDeleted: boolean;
     magicMetadata: EncryptedMagicMetadata;
     app: 'locker' | 'photos';
+    pubMagicMetadata: EncryptedMagicMetadata;
 }
 
 export interface Collection
@@ -35,10 +36,12 @@ export interface Collection
         | 'encryptedName'
         | 'nameDecryptionNonce'
         | 'magicMetadata'
+        | 'pubMagicMetadata'
     > {
     key: string;
     name: string;
     magicMetadata: CollectionMagicMetadata;
+    pubMagicMetadata: CollectionPublicMagicMetadata;
 }
 
 export interface PublicURL {
@@ -106,10 +109,17 @@ export interface CollectionMagicMetadataProps {
     subType?: SUB_TYPE;
 }
 
-export interface CollectionMagicMetadata
-    extends Omit<MagicMetadataCore, 'data'> {
-    data: CollectionMagicMetadataProps;
+export type CollectionMagicMetadata =
+    MagicMetadataCore<CollectionMagicMetadataProps>;
+
+export interface CollectionPublicMagicMetadataProps {
+    asc?: boolean;
+    coverID?: number;
 }
+
+export type CollectionPublicMagicMetadata =
+    MagicMetadataCore<CollectionPublicMagicMetadataProps>;
+
 export interface CollectionSummary {
     id: number;
     name: string;

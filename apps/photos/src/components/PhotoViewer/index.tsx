@@ -42,6 +42,7 @@ import ChevronLeft from '@mui/icons-material/ChevronLeft';
 import { t } from 'i18next';
 import { getParsedExifData } from 'services/upload/exifService';
 import { getFileType } from 'services/typeDetectionService';
+import { ConversionFailedNotification } from './styledComponents/ConversionFailedNotification';
 
 interface PhotoswipeFullscreenAPI {
     enter: () => void;
@@ -72,8 +73,10 @@ interface Iprops {
     setDeletedFileIds?: (value: Set<number>) => void;
     isIncomingSharedCollection: boolean;
     isTrashCollection: boolean;
+    isHiddenCollection: boolean;
     enableDownload: boolean;
     isSourceLoaded: boolean;
+    conversionFailed: boolean;
     fileToCollectionsMap: Map<number, number[]>;
     collectionNameMap: Map<number, string>;
 }
@@ -83,7 +86,7 @@ function PhotoViewer(props: Iprops) {
     const [photoSwipe, setPhotoSwipe] =
         useState<Photoswipe<Photoswipe.Options>>();
 
-    const { isOpen, items, isSourceLoaded } = props;
+    const { isOpen, items, isSourceLoaded, conversionFailed } = props;
     const [isFav, setIsFav] = useState(false);
     const [showInfo, setShowInfo] = useState(false);
     const [exif, setExif] =
@@ -178,7 +181,8 @@ function PhotoViewer(props: Iprops) {
     useEffect(() => {
         if (!isOpen) return;
         const item = items[photoSwipe?.getCurrentIndex()];
-        if (item && item.metadata.fileType === FILE_TYPE.LIVE_PHOTO) {
+        if (!item) return;
+        if (item.metadata.fileType === FILE_TYPE.LIVE_PHOTO) {
             const getVideoAndImage = () => {
                 const video = document.getElementById(
                     `live-photo-video-${item.id}`
@@ -212,32 +216,25 @@ function PhotoViewer(props: Iprops) {
                     loading: true,
                 });
             }
-
-            const downloadLivePhotoBtn = document.getElementById(
-                `download-btn-${item.id}`
-            ) as HTMLButtonElement;
-            if (downloadLivePhotoBtn) {
-                const downloadLivePhoto = () => {
-                    downloadFileHelper(photoSwipe.currItem);
-                };
-
-                downloadLivePhotoBtn.addEventListener(
-                    'click',
-                    downloadLivePhoto
-                );
-                return () => {
-                    downloadLivePhotoBtn.removeEventListener(
-                        'click',
-                        downloadLivePhoto
-                    );
-                    setLivePhotoBtnOptions(defaultLivePhotoDefaultOptions);
-                };
-            }
-
-            return () => {
-                setLivePhotoBtnOptions(defaultLivePhotoDefaultOptions);
-            };
         }
+
+        const downloadLivePhotoBtn = document.getElementById(
+            `download-btn-${item.id}`
+        ) as HTMLButtonElement;
+        const downloadFile = () => {
+            downloadFileHelper(photoSwipe.currItem);
+        };
+
+        if (downloadLivePhotoBtn) {
+            downloadLivePhotoBtn.addEventListener('click', downloadFile);
+        }
+
+        return () => {
+            if (downloadLivePhotoBtn) {
+                downloadLivePhotoBtn.removeEventListener('click', downloadFile);
+            }
+            setLivePhotoBtnOptions(defaultLivePhotoDefaultOptions);
+        };
     }, [photoSwipe?.currItem, isOpen, isSourceLoaded]);
 
     useEffect(() => {
@@ -371,18 +368,28 @@ function PhotoViewer(props: Iprops) {
     };
 
     const onFavClick = async (file: EnteFile) => {
-        if (!file) return;
-        const { favItemIds } = props;
-        if (!isInFav(file)) {
-            favItemIds.add(file.id);
-            addToFavorites(file);
-            setIsFav(true);
-        } else {
-            favItemIds.delete(file.id);
-            removeFromFavorites(file);
-            setIsFav(false);
+        try {
+            if (
+                props.isTrashCollection ||
+                props.isIncomingSharedCollection ||
+                props.isHiddenCollection
+            ) {
+                return;
+            }
+            const { favItemIds } = props;
+            if (!isInFav(file)) {
+                favItemIds.add(file.id);
+                addToFavorites(file);
+                setIsFav(true);
+            } else {
+                favItemIds.delete(file.id);
+                removeFromFavorites(file);
+                setIsFav(false);
+            }
+            needUpdate.current = true;
+        } catch (e) {
+            logError(e, 'onFavClick failed');
         }
-        needUpdate.current = true;
     };
 
     const trashFile = async (file: EnteFile) => {
@@ -548,6 +555,14 @@ function PhotoViewer(props: Iprops) {
                             {livePhotoBtnHTML} {t('LIVE')}
                         </LivePhotoBtn>
                     )}
+                    {conversionFailed && (
+                        <ConversionFailedNotification
+                            onClick={() =>
+                                downloadFileHelper(photoSwipe.currItem)
+                            }
+                        />
+                    )}
+
                     <div className="pswp__container">
                         <div className="pswp__item" />
                         <div className="pswp__item" />
@@ -606,16 +621,15 @@ function PhotoViewer(props: Iprops) {
                                 title={t('TOGGLE_FULLSCREEN')}
                             />
 
-                            {!props.isIncomingSharedCollection && (
-                                <button
-                                    className="pswp__button pswp__button--custom"
-                                    title={t('INFO_OPTION')}
-                                    onClick={handleOpenInfo}>
-                                    <InfoIcon fontSize="small" />
-                                </button>
-                            )}
+                            <button
+                                className="pswp__button pswp__button--custom"
+                                title={t('INFO_OPTION')}
+                                onClick={handleOpenInfo}>
+                                <InfoIcon fontSize="small" />
+                            </button>
                             {!props.isIncomingSharedCollection &&
-                                !props.isTrashCollection && (
+                                !props.isTrashCollection &&
+                                !props.isHiddenCollection && (
                                     <button
                                         title={
                                             isFav
@@ -664,8 +678,12 @@ function PhotoViewer(props: Iprops) {
                 </div>
             </div>
             <FileInfo
-                isTrashCollection={props.isTrashCollection}
                 shouldDisableEdits={props.isIncomingSharedCollection}
+                showCollectionChips={
+                    !props.isTrashCollection &&
+                    !props.isIncomingSharedCollection &&
+                    !props.isHiddenCollection
+                }
                 showInfo={showInfo}
                 handleCloseInfo={handleCloseInfo}
                 file={photoSwipe?.currItem as EnteFile}
@@ -674,6 +692,7 @@ function PhotoViewer(props: Iprops) {
                 refreshPhotoswipe={refreshPhotoswipe}
                 fileToCollectionsMap={props.fileToCollectionsMap}
                 collectionNameMap={props.collectionNameMap}
+                closePhotoViewer={handleClose}
             />
         </>
     );

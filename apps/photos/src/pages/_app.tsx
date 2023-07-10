@@ -36,6 +36,7 @@ import {
 import {
     getFamilyPortalRedirectURL,
     getRoadmapRedirectURL,
+    updateMapEnabledStatus,
 } from 'services/userService';
 import { CustomError } from 'utils/error';
 import {
@@ -76,6 +77,7 @@ import {
 import exportService from 'services/export';
 import { ExportStage } from 'constants/export';
 import { REDIRECTS } from 'constants/redirects';
+import { getLocalMapEnabled, setLocalMapEnabled } from 'utils/storage';
 
 const redirectMap = new Map([
     [REDIRECTS.ROADMAP, getRoadmapRedirectURL],
@@ -102,7 +104,9 @@ type AppContextType = {
     redirectURL: string;
     setRedirectURL: (url: string) => void;
     mlSearchEnabled: boolean;
+    mapEnabled: boolean;
     updateMlSearchEnabled: (enabled: boolean) => Promise<void>;
+    updateMapEnabled: (enabled: boolean) => Promise<void>;
     startLoading: () => void;
     finishLoading: () => void;
     closeMessageDialog: () => void;
@@ -147,6 +151,7 @@ export default function App(props) {
     const [redirectName, setRedirectName] = useState<string>(null);
     const [redirectURL, setRedirectURL] = useState(null);
     const [mlSearchEnabled, setMlSearchEnabled] = useState(false);
+    const [mapEnabled, setMapEnabled] = useState(false);
     const isLoadingBarRunning = useRef(false);
     const loadingBar = useRef(null);
     const [dialogMessage, setDialogMessage] = useState<DialogBoxAttributes>();
@@ -250,6 +255,10 @@ export default function App(props) {
     }, []);
 
     useEffect(() => {
+        setMapEnabled(getLocalMapEnabled());
+    }, []);
+
+    useEffect(() => {
         if (!isElectron()) {
             return;
         }
@@ -262,10 +271,6 @@ export default function App(props) {
                 }
                 const exportRecord = await exportService.getExportRecord(
                     exportSettings.folder
-                );
-                await exportService.runMigration(
-                    exportSettings.folder,
-                    exportRecord
                 );
                 if (exportSettings.continuousExport) {
                     exportService.enableContinuousExport();
@@ -398,6 +403,16 @@ export default function App(props) {
         }
     };
 
+    const updateMapEnabled = async (enabled: boolean) => {
+        try {
+            await updateMapEnabledStatus(enabled);
+            setLocalMapEnabled(enabled);
+            setMapEnabled(enabled);
+        } catch (e) {
+            logError(e, 'Error while updating mapEnabled');
+        }
+    };
+
     const startLoading = () => {
         !isLoadingBarRunning.current && loadingBar.current?.continuousStart();
         isLoadingBarRunning.current = true;
@@ -497,6 +512,8 @@ export default function App(props) {
                         setThemeColor,
                         somethingWentWrong,
                         setDialogBoxAttributesV2,
+                        mapEnabled,
+                        updateMapEnabled,
                     }}>
                     {(loading || !isI18nReady) && (
                         <Overlay

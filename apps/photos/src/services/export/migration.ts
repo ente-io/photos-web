@@ -7,6 +7,7 @@ import {
     FileExportNames,
     ExportRecordV0,
     CollectionExportNames,
+    ExportProgress,
 } from 'types/export';
 import { EnteFile } from 'types/file';
 import { User } from 'types/user';
@@ -38,10 +39,12 @@ import { FILE_TYPE } from 'constants/file';
 import { decodeLivePhoto } from 'services/livePhotoService';
 import downloadManager from 'services/downloadManager';
 import { retryAsyncFunction } from 'utils/network';
+import { sleep } from 'utils/common';
 
 export async function migrateExport(
     exportDir: string,
-    exportRecord: ExportRecordV1 | ExportRecordV2 | ExportRecord
+    exportRecord: ExportRecordV1 | ExportRecordV2 | ExportRecord,
+    updateProgress: (progress: ExportProgress) => void
 ) {
     try {
         addLogLine(`current export version: ${exportRecord.version}`);
@@ -63,11 +66,24 @@ export async function migrateExport(
         }
         if (exportRecord.version === 2) {
             addLogLine('migrating export to version 3');
-            await migrationV2ToV3(exportDir, exportRecord as ExportRecordV2);
+            await migrationV2ToV3(
+                exportDir,
+                exportRecord as ExportRecordV2,
+                updateProgress
+            );
             exportRecord = await exportService.updateExportRecord(exportDir, {
                 version: 3,
             });
             addLogLine('migration to version 3 complete');
+        }
+
+        if (exportRecord.version === 3) {
+            addLogLine('migrating export to version 4');
+            await migrationV3ToV4(exportDir, exportRecord as ExportRecord);
+            exportRecord = await exportService.updateExportRecord(exportDir, {
+                version: 4,
+            });
+            addLogLine('migration to version 4 complete');
         }
         addLogLine(`Record at latest version`);
     } catch (e) {
@@ -115,26 +131,25 @@ async function migrationV1ToV2(
 
 async function migrationV2ToV3(
     exportDir: string,
-    exportRecord: ExportRecordV2
+    exportRecord: ExportRecordV2,
+    updateProgress: (progress: ExportProgress) => void
 ) {
     if (!exportRecord?.exportedFiles) {
         return;
     }
     const user: User = getData(LS_KEYS.USER);
-    const localFiles = await getLocalFiles();
+    const localFiles = mergeMetadata(await getLocalFiles());
     const personalFiles = getIDBasedSortedFiles(
         getPersonalFiles(localFiles, user)
     );
 
     const collectionExportNames =
-        await getCollectionExportNamesFromExportedCollectionPaths(
-            exportDir,
-            exportRecord
-        );
+        await getCollectionExportNamesFromExportedCollectionPaths(exportRecord);
 
     const fileExportNames = await getFileExportNamesFromExportedFiles(
         exportRecord,
-        getExportedFiles(personalFiles, exportRecord)
+        getExportedFiles(personalFiles, exportRecord),
+        updateProgress
     );
 
     exportRecord.exportedCollectionPaths = undefined;
@@ -144,6 +159,21 @@ async function migrationV2ToV3(
         fileExportNames,
         collectionExportNames,
     };
+    await exportService.updateExportRecord(exportDir, updatedExportRecord);
+}
+
+async function migrationV3ToV4(exportDir: string, exportRecord: ExportRecord) {
+    if (!exportRecord?.collectionExportNames) {
+        return;
+    }
+
+    const collectionExportNames = reMigrateCollectionExportNames(exportRecord);
+
+    const updatedExportRecord: ExportRecord = {
+        ...exportRecord,
+        collectionExportNames,
+    };
+
     await exportService.updateExportRecord(exportDir, updatedExportRecord);
 }
 
@@ -241,7 +271,6 @@ async function removeDeprecatedExportRecordProperties(
 }
 
 async function getCollectionExportNamesFromExportedCollectionPaths(
-    exportDir: string,
     exportRecord: ExportRecordV2
 ): Promise<CollectionExportNames> {
     if (!exportRecord.exportedCollectionPaths) {
@@ -249,7 +278,12 @@ async function getCollectionExportNamesFromExportedCollectionPaths(
     }
     const exportedCollectionNames = Object.fromEntries(
         Object.entries(exportRecord.exportedCollectionPaths).map(
-            ([key, value]) => [key, value.replace(exportDir, '').slice(1)]
+            ([key, exportedCollectionPath]) => {
+                const exportedCollectionName = exportedCollectionPath
+                    .split('/')
+                    .pop();
+                return [key, exportedCollectionName];
+            }
         )
     );
     return exportedCollectionNames;
@@ -264,7 +298,8 @@ async function getCollectionExportNamesFromExportedCollectionPaths(
 */
 async function getFileExportNamesFromExportedFiles(
     exportRecord: ExportRecordV2,
-    exportedFiles: EnteFile[]
+    exportedFiles: EnteFile[],
+    updateProgress: (progress: ExportProgress) => void
 ): Promise<FileExportNames> {
     if (!exportedFiles.length) {
         return;
@@ -278,7 +313,9 @@ async function getFileExportNamesFromExportedFiles(
     const exportedCollectionPaths = convertCollectionIDFolderPathObjectToMap(
         exportRecord.exportedCollectionPaths
     );
+    let success = 0;
     for (const file of exportedFiles) {
+        await sleep(0);
         const collectionPath = exportedCollectionPaths.get(file.collectionID);
         addLocalLog(
             () =>
@@ -323,8 +360,29 @@ async function getFileExportNamesFromExportedFiles(
             ...exportedFileNames,
             [getExportRecordFileUID(file)]: fileExportName,
         };
+        updateProgress({
+            total: exportedFiles.length,
+            success: success++,
+            failed: 0,
+        });
     }
     return exportedFileNames;
+}
+
+function reMigrateCollectionExportNames(
+    exportRecord: ExportRecord
+): CollectionExportNames {
+    const exportedCollectionNames = Object.fromEntries(
+        Object.entries(exportRecord.collectionExportNames).map(
+            ([key, exportedCollectionPath]) => {
+                const exportedCollectionName = exportedCollectionPath
+                    .split('/')
+                    .pop();
+                return [key, exportedCollectionName];
+            }
+        )
+    );
+    return exportedCollectionNames;
 }
 
 async function addCollectionExportedRecordV1(

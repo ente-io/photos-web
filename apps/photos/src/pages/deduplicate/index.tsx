@@ -3,7 +3,7 @@ import { t } from 'i18next';
 import PhotoFrame from 'components/PhotoFrame';
 import { ALL_SECTION } from 'constants/collection';
 import { AppContext } from 'pages/_app';
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import {
     getDuplicateFiles,
     clubDuplicatesByTime,
@@ -13,7 +13,7 @@ import { EnteFile } from 'types/file';
 import { SelectedState } from 'types/gallery';
 
 import { ServerErrorCodes } from 'utils/error';
-import { getSelectedFiles } from 'utils/file';
+import { constructFileToCollectionMap, getSelectedFiles } from 'utils/file';
 import {
     DeduplicateContextType,
     DefaultDeduplicateContext,
@@ -24,11 +24,11 @@ import { PAGES } from 'constants/pages';
 import router from 'next/router';
 import { getKey, SESSION_KEYS } from 'utils/storage/sessionStorage';
 import { styled } from '@mui/material';
-import { syncCollections } from 'services/collectionService';
+import { getLatestCollections } from 'services/collectionService';
 import EnteSpinner from 'components/EnteSpinner';
-import VerticallyCentered from 'components/Container';
-import { Collection } from 'types/collection';
+import { VerticallyCentered } from 'components/Container';
 import Typography from '@mui/material/Typography';
+import useMemoSingleThreaded from 'hooks/useMemoSingleThreaded';
 
 export const DeduplicateContext = createContext<DeduplicateContextType>(
     DefaultDeduplicateContext
@@ -47,7 +47,6 @@ export default function Deduplicate() {
         setRedirectURL,
     } = useContext(AppContext);
     const [duplicateFiles, setDuplicateFiles] = useState<EnteFile[]>(null);
-    const [collections, setCollection] = useState<Collection[]>([]);
     const [clubSameTimeFilesOnly, setClubSameTimeFilesOnly] = useState(false);
     const [fileSizeMap, setFileSizeMap] = useState(new Map<number, number>());
     const [collectionNameMap, setCollectionNameMap] = useState(
@@ -75,10 +74,13 @@ export default function Deduplicate() {
         syncWithRemote();
     }, [clubSameTimeFilesOnly]);
 
+    const fileToCollectionsMap = useMemoSingleThreaded(() => {
+        return constructFileToCollectionMap(duplicateFiles);
+    }, [duplicateFiles]);
+
     const syncWithRemote = async () => {
         startLoading();
-        const collections = await syncCollections();
-        setCollection(collections);
+        const collections = await getLatestCollections();
         const collectionNameMap = new Map<number, string>();
         for (const collection of collections) {
             collectionNameMap.set(collection.id, collection.name);
@@ -189,12 +191,12 @@ export default function Deduplicate() {
             ) : (
                 <PhotoFrame
                     files={duplicateFiles}
-                    collections={collections}
                     syncWithRemote={syncWithRemote}
                     setSelected={setSelected}
                     selected={selected}
                     activeCollection={ALL_SECTION}
-                    isDeduplicating
+                    fileToCollectionsMap={fileToCollectionsMap}
+                    collectionNameMap={collectionNameMap}
                 />
             )}
             <DeduplicateOptions

@@ -8,7 +8,7 @@ import {
     styled,
 } from '@mui/material';
 import { ExportStage } from 'constants/export';
-import VerticallyCentered, { FlexWrapper } from './Container';
+import { VerticallyCentered, FlexWrapper } from './Container';
 import { ProgressBar } from 'react-bootstrap';
 import { t } from 'i18next';
 import { Trans } from 'react-i18next';
@@ -35,6 +35,8 @@ export default function ExportInProgress(props: Props) {
                     <Box mb={1.5}>
                         {isLoading ? (
                             t('EXPORT_STARTING')
+                        ) : props.exportStage === ExportStage.MIGRATION ? (
+                            t('MIGRATING_EXPORT')
                         ) : (
                             <Trans
                                 i18nKey={'EXPORT_PROGRESS'}

@@ -12,12 +12,16 @@ import {
     sortFiles,
 } from 'utils/file';
 import { eventBus, Events } from './events';
-import { EnteFile, EncryptedEnteFile, TrashRequest } from 'types/file';
+import {
+    EnteFile,
+    EncryptedEnteFile,
+    TrashRequest,
+    FileWithUpdatedMagicMetadata,
+    FileWithUpdatedPublicMagicMetadata,
+} from 'types/file';
 import { SetFiles } from 'types/gallery';
 import { BulkUpdateMagicMetadataRequest } from 'types/magicMetadata';
 import { addLogLine } from 'utils/logging';
-import { isCollectionHidden } from 'utils/collection';
-import { CustomError } from 'utils/error';
 import ComlinkCryptoWorker from 'utils/comlink/ComlinkCryptoWorker';
 import {
     getCollectionLastSyncTime,
@@ -28,10 +32,17 @@ import { batch } from 'utils/common';
 
 const ENDPOINT = getEndpoint();
 const FILES_TABLE = 'files';
+const HIDDEN_FILES_TABLE = 'hidden-files';
 
 export const getLocalFiles = async () => {
     const files: Array<EnteFile> =
         (await localForage.getItem<EnteFile[]>(FILES_TABLE)) || [];
+    return files;
+};
+
+export const getLocalHiddenFiles = async () => {
+    const files: Array<EnteFile> =
+        (await localForage.getItem<EnteFile[]>(HIDDEN_FILES_TABLE)) || [];
     return files;
 };
 
@@ -58,30 +69,66 @@ const setLocalFiles = async (files: EnteFile[]) => {
     }
 };
 
+const setLocalHiddenFiles = async (files: EnteFile[]) => {
+    try {
+        await localForage.setItem(HIDDEN_FILES_TABLE, files);
+    } catch (e1) {
+        try {
+            const storageEstimate = await navigator.storage.estimate();
+            logError(e1, 'failed to save files to indexedDB', {
+                storageEstimate,
+            });
+            addLogLine(`storage estimate ${JSON.stringify(storageEstimate)}`);
+        } catch (e2) {
+            logError(e1, 'failed to save files to indexedDB');
+            logError(e2, 'failed to get storage stats');
+        }
+        throw e1;
+    }
+};
+
+export const syncHiddenFiles = async (
+    collections: Collection[],
+    setFiles: SetFiles
+) => {
+    return await syncFilesHelper(collections, setFiles, 'hidden');
+};
+
 export const syncFiles = async (
     collections: Collection[],
     setFiles: SetFiles
-): Promise<EnteFile[]> => {
-    const localFiles = await getLocalFiles();
+) => {
+    return await syncFilesHelper(collections, setFiles, 'normal');
+};
+
+const syncFilesHelper = async (
+    collections: Collection[],
+    setFiles: SetFiles,
+    type: 'normal' | 'hidden'
+) => {
+    const localFiles =
+        type === 'normal' ? await getLocalFiles() : await getLocalHiddenFiles();
     let files = await removeDeletedCollectionFiles(collections, localFiles);
     if (files.length !== localFiles.length) {
-        await setLocalFiles(files);
+        type === 'normal'
+            ? await setLocalFiles(files)
+            : await setLocalHiddenFiles(files);
         setFiles(sortFiles(mergeMetadata(files)));
     }
     for (const collection of collections) {
         if (!getToken()) {
             continue;
         }
-        if (isCollectionHidden(collection)) {
-            throw Error(CustomError.HIDDEN_COLLECTION_SYNC_FILE_ATTEMPTED);
-        }
         const lastSyncTime = await getCollectionLastSyncTime(collection);
         if (collection.updationTime === lastSyncTime) {
             continue;
         }
+
         const newFiles = await getFiles(collection, lastSyncTime, setFiles);
         files = getLatestVersionFiles([...files, ...newFiles]);
-        await setLocalFiles(files);
+        type === 'normal'
+            ? await setLocalFiles(files)
+            : await setLocalHiddenFiles(files);
         setCollectionLastSyncTime(collection, collection.updationTime);
     }
     return files;
@@ -209,24 +256,29 @@ export const deleteFromTrash = async (filesToDelete: number[]) => {
     }
 };
 
-export const updateFileMagicMetadata = async (files: EnteFile[]) => {
+export const updateFileMagicMetadata = async (
+    fileWithUpdatedMagicMetadataList: FileWithUpdatedMagicMetadata[]
+) => {
     const token = getToken();
     if (!token) {
         return;
     }
     const reqBody: BulkUpdateMagicMetadataRequest = { metadataList: [] };
     const cryptoWorker = await ComlinkCryptoWorker.getInstance();
-    for (const file of files) {
+    for (const {
+        file,
+        updatedMagicMetadata,
+    } of fileWithUpdatedMagicMetadataList) {
         const { file: encryptedMagicMetadata } =
             await cryptoWorker.encryptMetadata(
-                file.magicMetadata.data,
+                updatedMagicMetadata.data,
                 file.key
             );
         reqBody.metadataList.push({
             id: file.id,
             magicMetadata: {
-                version: file.magicMetadata.version,
-                count: file.magicMetadata.count,
+                version: updatedMagicMetadata.version,
+                count: updatedMagicMetadata.count,
                 data: encryptedMagicMetadata.encryptedData,
                 header: encryptedMagicMetadata.decryptionHeader,
             },
@@ -235,35 +287,40 @@ export const updateFileMagicMetadata = async (files: EnteFile[]) => {
     await HTTPService.put(`${ENDPOINT}/files/magic-metadata`, reqBody, null, {
         'X-Auth-Token': token,
     });
-    return files.map(
-        (file): EnteFile => ({
+    return fileWithUpdatedMagicMetadataList.map(
+        ({ file, updatedMagicMetadata }): EnteFile => ({
             ...file,
             magicMetadata: {
-                ...file.magicMetadata,
-                version: file.magicMetadata.version + 1,
+                ...updatedMagicMetadata,
+                version: updatedMagicMetadata.version + 1,
             },
         })
     );
 };
 
-export const updateFilePublicMagicMetadata = async (files: EnteFile[]) => {
+export const updateFilePublicMagicMetadata = async (
+    fileWithUpdatedPublicMagicMetadataList: FileWithUpdatedPublicMagicMetadata[]
+): Promise<EnteFile[]> => {
     const token = getToken();
     if (!token) {
         return;
     }
     const reqBody: BulkUpdateMagicMetadataRequest = { metadataList: [] };
     const cryptoWorker = await ComlinkCryptoWorker.getInstance();
-    for (const file of files) {
+    for (const {
+        file,
+        updatedPublicMagicMetadata: updatePublicMagicMetadata,
+    } of fileWithUpdatedPublicMagicMetadataList) {
         const { file: encryptedPubMagicMetadata } =
             await cryptoWorker.encryptMetadata(
-                file.pubMagicMetadata.data,
+                updatePublicMagicMetadata.data,
                 file.key
             );
         reqBody.metadataList.push({
             id: file.id,
             magicMetadata: {
-                version: file.pubMagicMetadata.version,
-                count: file.pubMagicMetadata.count,
+                version: updatePublicMagicMetadata.version,
+                count: updatePublicMagicMetadata.count,
                 data: encryptedPubMagicMetadata.encryptedData,
                 header: encryptedPubMagicMetadata.decryptionHeader,
             },
@@ -277,12 +334,12 @@ export const updateFilePublicMagicMetadata = async (files: EnteFile[]) => {
             'X-Auth-Token': token,
         }
     );
-    return files.map(
-        (file): EnteFile => ({
+    return fileWithUpdatedPublicMagicMetadataList.map(
+        ({ file, updatedPublicMagicMetadata }): EnteFile => ({
             ...file,
             pubMagicMetadata: {
-                ...file.pubMagicMetadata,
-                version: file.pubMagicMetadata.version + 1,
+                ...updatedPublicMagicMetadata,
+                version: updatedPublicMagicMetadata.version + 1,
             },
         })
     );

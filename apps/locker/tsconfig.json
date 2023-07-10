@@ -1,5 +1,5 @@
 {
-    "extends": "@ente/tsconfig/ente.json",
+    "extends": "../../tsconfig.base.json",
     "compilerOptions": {
         "baseUrl": "./src",
         "paths": {

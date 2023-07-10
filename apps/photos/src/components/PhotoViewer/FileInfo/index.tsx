@@ -4,10 +4,10 @@ import { RenderCreationTime } from './RenderCreationTime';
 import { Box, DialogProps, Link, Stack, styled } from '@mui/material';
 import { getEXIFLocation } from 'services/upload/exifService';
 import { RenderCaption } from './RenderCaption';
-
 import CopyButton from 'components/CodeBlock/CopyButton';
 import { formatDate, formatTime } from 'utils/time/format';
 import Titlebar from 'components/Titlebar';
+import MapBox from './MapBox';
 import InfoItem from './InfoItem';
 import { FlexWrapper } from 'components/Container';
 import EnteSpinner from 'components/EnteSpinner';
@@ -32,6 +32,12 @@ import { ObjectLabelList } from 'components/MachineLearning/ObjectList';
 // import MLServiceFileInfoButton from 'components/MachineLearning/MLServiceFileInfoButton';
 import { AppContext } from 'pages/_app';
 import { t } from 'i18next';
+import { GalleryContext } from 'pages/gallery';
+import {
+    getMapDisableConfirmationDialog,
+    getMapEnableConfirmationDialog,
+} from 'utils/ui';
+import { PublicCollectionGalleryContext } from 'utils/publicCollectionGallery';
 
 export const FileInfoSidebar = styled((props: DialogProps) => (
     <EnteDrawer {...props} anchor="right" />
@@ -43,16 +49,17 @@ export const FileInfoSidebar = styled((props: DialogProps) => (
 });
 
 interface Iprops {
-    shouldDisableEdits: boolean;
+    shouldDisableEdits?: boolean;
     showInfo: boolean;
     handleCloseInfo: () => void;
     file: EnteFile;
     exif: any;
     scheduleUpdate: () => void;
     refreshPhotoswipe: () => void;
-    fileToCollectionsMap: Map<number, number[]>;
-    collectionNameMap: Map<number, string>;
-    isTrashCollection: boolean;
+    fileToCollectionsMap?: Map<number, number[]>;
+    collectionNameMap?: Map<number, string>;
+    showCollectionChips: boolean;
+    closePhotoViewer: () => void;
 }
 
 function BasicDeviceCamera({
@@ -86,9 +93,15 @@ export function FileInfo({
     refreshPhotoswipe,
     fileToCollectionsMap,
     collectionNameMap,
-    isTrashCollection,
+    showCollectionChips,
+    closePhotoViewer,
 }: Iprops) {
     const appContext = useContext(AppContext);
+    const galleryContext = useContext(GalleryContext);
+    const publicCollectionGalleryContext = useContext(
+        PublicCollectionGalleryContext
+    );
+
     const [parsedExifData, setParsedExifData] = useState<Record<string, any>>();
     const [showExif, setShowExif] = useState(false);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -164,6 +177,25 @@ export function FileInfo({
     if (!file) {
         return <></>;
     }
+    const onCollectionChipClick = (collectionID) => {
+        galleryContext.setActiveCollection(collectionID);
+        galleryContext.setIsInSearchMode(false);
+        closePhotoViewer();
+    };
+
+    const openEnableMapConfirmationDialog = () =>
+        appContext.setDialogBoxAttributesV2(
+            getMapEnableConfirmationDialog(() =>
+                appContext.updateMapEnabled(true)
+            )
+        );
+
+    const openDisableMapConfirmationDialog = () =>
+        appContext.setDialogBoxAttributesV2(
+            getMapDisableConfirmationDialog(() =>
+                appContext.updateMapEnabled(false)
+            )
+        );
 
     return (
         <FileInfoSidebar open={showInfo} onClose={handleCloseInfo}>
@@ -202,25 +234,51 @@ export function FileInfo({
                 )}
 
                 {location && (
-                    <InfoItem
-                        icon={<LocationOnOutlined />}
-                        title={t('LOCATION')}
-                        caption={
-                            <Link
-                                href={getOpenStreetMapLink(location)}
-                                target="_blank"
-                                sx={{ fontWeight: 'bold' }}>
-                                {t('SHOW_ON_MAP')}
-                            </Link>
-                        }
-                        customEndButton={
-                            <CopyButton
-                                code={getOpenStreetMapLink(location)}
-                                color="secondary"
-                                size="medium"
+                    <>
+                        <InfoItem
+                            icon={<LocationOnOutlined />}
+                            title={t('LOCATION')}
+                            caption={
+                                !appContext.mapEnabled ||
+                                publicCollectionGalleryContext.accessedThroughSharedURL ? (
+                                    <Link
+                                        href={getOpenStreetMapLink(location)}
+                                        target="_blank"
+                                        sx={{ fontWeight: 'bold' }}>
+                                        {t('SHOW_ON_MAP')}
+                                    </Link>
+                                ) : (
+                                    <LinkButton
+                                        onClick={
+                                            openDisableMapConfirmationDialog
+                                        }
+                                        sx={{
+                                            textDecoration: 'none',
+                                            color: 'text.muted',
+                                            fontWeight: 'bold',
+                                        }}>
+                                        {t('DISABLE_MAP')}
+                                    </LinkButton>
+                                )
+                            }
+                            customEndButton={
+                                <CopyButton
+                                    code={getOpenStreetMapLink(location)}
+                                    color="secondary"
+                                    size="medium"
+                                />
+                            }
+                        />
+                        {!publicCollectionGalleryContext.accessedThroughSharedURL && (
+                            <MapBox
+                                location={location}
+                                mapEnabled={appContext.mapEnabled}
+                                openUpdateMapConfirmationDialog={
+                                    openEnableMapConfirmationDialog
+                                }
                             />
-                        }
-                    />
+                        )}
+                    </>
                 )}
                 <InfoItem
                     icon={<TextSnippetOutlined />}
@@ -250,7 +308,7 @@ export function FileInfo({
                     caption={formatTime(file.metadata.modificationTime / 1000)}
                     hideEditOption
                 />
-                {!isTrashCollection && (
+                {showCollectionChips && (
                     <InfoItem icon={<FolderOutlined />} hideEditOption>
                         <Box
                             display={'flex'}
@@ -259,18 +317,23 @@ export function FileInfo({
                             justifyContent={'flex-start'}
                             alignItems={'flex-start'}>
                             {fileToCollectionsMap
-                                .get(file.id)
+                                ?.get(file.id)
                                 ?.filter((collectionID) =>
                                     collectionNameMap.has(collectionID)
                                 )
                                 ?.map((collectionID) => (
-                                    <Chip key={collectionID}>
+                                    <Chip
+                                        key={collectionID}
+                                        onClick={() =>
+                                            onCollectionChipClick(collectionID)
+                                        }>
                                         {collectionNameMap.get(collectionID)}
                                     </Chip>
                                 ))}
                         </Box>
                     </InfoItem>
                 )}
+
                 {appContext.mlSearchEnabled && (
                     <>
                         <PhotoPeopleList

@@ -1,24 +1,18 @@
 import {
     EncryptedMagicMetadata,
-    FileMagicMetadata,
-    FilePublicMagicMetadata,
+    MagicMetadataCore,
+    VISIBILITY_STATE,
 } from 'types/magicMetadata';
 import { Metadata } from 'types/upload';
 
-interface FileAttributesBase {
+export interface MetadataFileAttributes {
+    encryptedData: string;
     decryptionHeader: string;
 }
-
-interface MetadataFileAttributes extends FileAttributesBase {
-    encryptedData: string;
-    objectKey?: string;
-}
-interface S3FileAttributes extends FileAttributesBase {
+export interface S3FileAttributes {
     objectKey: string;
-    encryptedData?: string;
+    decryptionHeader: string;
 }
-
-export type FileAttributes = MetadataFileAttributes | S3FileAttributes;
 
 export interface FileInfo {
     fileSize: number;
@@ -29,9 +23,9 @@ export interface EncryptedEnteFile {
     id: number;
     collectionID: number;
     ownerID: number;
-    file: FileAttributes;
-    thumbnail: FileAttributes;
-    metadata: FileAttributes;
+    file: S3FileAttributes;
+    thumbnail: S3FileAttributes;
+    metadata: MetadataFileAttributes;
     info: FileInfo;
     magicMetadata: EncryptedMagicMetadata;
     pubMagicMetadata: EncryptedMagicMetadata;
@@ -53,6 +47,7 @@ export interface EnteFile
     metadata: Metadata;
     magicMetadata: FileMagicMetadata;
     pubMagicMetadata: FilePublicMagicMetadata;
+    isTrashed?: boolean;
     key: string;
     src?: string;
     msrc?: string;
@@ -60,12 +55,12 @@ export interface EnteFile
     w?: number;
     h?: number;
     title?: string;
-    isTrashed?: boolean;
     deleteBy?: number;
     isSourceLoaded?: boolean;
     originalVideoURL?: string;
     originalImageURL?: string;
     dataIndex?: number;
+    conversionFailed?: boolean;
 }
 
 export interface TrashRequest {
@@ -76,3 +71,32 @@ export interface TrashRequestItems {
     fileID: number;
     collectionID: number;
 }
+
+export interface FileWithUpdatedMagicMetadata {
+    file: EnteFile;
+    updatedMagicMetadata: FileMagicMetadata;
+}
+
+export interface FileWithUpdatedPublicMagicMetadata {
+    file: EnteFile;
+    updatedPublicMagicMetadata: FilePublicMagicMetadata;
+}
+
+export interface FileMagicMetadataProps {
+    visibility?: VISIBILITY_STATE;
+    filePaths?: string[];
+}
+
+export type FileMagicMetadata = MagicMetadataCore<FileMagicMetadataProps>;
+
+export interface FilePublicMagicMetadataProps {
+    editedTime?: number;
+    editedName?: string;
+    caption?: string;
+    uploaderName?: string;
+    w?: number;
+    h?: number;
+}
+
+export type FilePublicMagicMetadata =
+    MagicMetadataCore<FilePublicMagicMetadataProps>;
