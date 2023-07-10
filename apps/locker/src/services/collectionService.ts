@@ -1,4 +1,4 @@
-import { REQUEST_BATCH_SIZE } from './../../../photos/src/constants/api/index';
+import { REQUEST_BATCH_SIZE } from '@/constants/api/index';
 import {
     AddToCollectionRequest,
     Collection,
