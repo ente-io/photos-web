@@ -331,7 +331,9 @@ export const getUserDetailsV2 = async (): Promise<UserDetails> => {
 
         const resp = await HTTPService.get(
             `${ENDPOINT}/users/details/v2`,
-            null,
+            {
+                app: 'locker',
+            },
             {
                 'X-Auth-Token': token,
             }

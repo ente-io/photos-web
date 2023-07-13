@@ -507,6 +507,14 @@ export const updateMapEnabledStatus = async (newStatus: boolean) => {
 };
 
 export async function getDisableCFUploadProxyFlag(): Promise<boolean> {
+    if (
+        process.env
+            .NEXT_PUBLIC_I_KNOW_WHAT_I_AM_DOING_DISABLE_CF_UPLOAD_PROXY ===
+        'true'
+    ) {
+        return true;
+    }
+
     try {
         const featureFlags = (
             await fetch('https://static.ente.io/feature_flags.json')
