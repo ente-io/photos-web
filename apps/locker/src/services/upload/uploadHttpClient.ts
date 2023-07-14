@@ -58,6 +58,7 @@ class UploadHttpClient {
                         `${ENDPOINT}/files/upload-urls`,
                         {
                             count: Math.min(MAX_URL_REQUESTS, count * 2),
+                            app: 'locker',
                         },
                         { 'X-Auth-Token': token }
                     );

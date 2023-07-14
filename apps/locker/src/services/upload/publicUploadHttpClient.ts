@@ -66,6 +66,8 @@ class PublicUploadHttpClient {
                         `${ENDPOINT}/public-collection/upload-urls`,
                         {
                             count: Math.min(MAX_URL_REQUESTS, count * 2),
+
+                            app: 'locker',
                         },
                         {
                             'X-Auth-Access-Token': token,
@@ -102,6 +104,7 @@ class PublicUploadHttpClient {
                 `${ENDPOINT}/public-collection/multipart-upload-urls`,
                 {
                     count,
+                    app: 'locker',
                 },
                 {
                     'X-Auth-Access-Token': token,
