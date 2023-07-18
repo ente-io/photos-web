@@ -18,7 +18,6 @@ import {
 import NavBar from '@/components/pages/locker/NavBar';
 import { syncFiles } from '@/services/fileService';
 import { EnteFile } from '@/interfaces/file';
-import { addLogLine } from '@/utils/logging';
 
 import CollectionComponent from '@/components/pages/locker/Collection';
 import FileComponent from '@/components/pages/locker/File';
@@ -31,6 +30,7 @@ import { useRouter } from 'next/router';
 import LockerDrawer from '@/components/pages/locker/Drawer';
 import { getLocalTrash, syncTrash } from '@/services/trashService';
 import { t } from 'i18next';
+import FullScreenLoader from '@/components/FullScreenLoader';
 
 interface lockerDashboardContextProps {
     currentCollection: Collection;
@@ -89,6 +89,8 @@ const Locker = () => {
     const [showUploaderBoxComponent, setShowUploaderBoxComponent] =
         useState(false);
 
+    const [authChecked, setAuthChecked] = useState(false);
+
     const router = useRouter();
 
     const doSyncCollections = async () => {
@@ -107,6 +109,8 @@ const Locker = () => {
             router.push('/login');
             return;
         }
+
+        setAuthChecked(true);
 
         setUserDetails(userDetails);
 
@@ -215,6 +219,7 @@ const Locker = () => {
 
     return (
         <>
+            {!authChecked && <FullScreenLoader />}
             <LockerDashboardContext.Provider
                 value={{
                     currentCollection,
