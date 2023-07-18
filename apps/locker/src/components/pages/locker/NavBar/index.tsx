@@ -7,7 +7,7 @@ const NavBar = () => {
         <>
             <Box
                 sx={{
-                    padding: '1rem',
+                    padding: '0.5rem',
                     borderBottom: borderProperty,
                     display: 'flex',
                     justifyContent: 'space-between',

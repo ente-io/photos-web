@@ -59,8 +59,8 @@ const NavBarLeft = () => {
                     <Image
                         src="/locker.svg"
                         alt="ente Locker logo"
-                        width={200}
-                        height={50}
+                        width={100}
+                        height={40}
                         onClick={() => {
                             setCurrentCollection(uncategorizedCollection);
                         }}
