@@ -339,7 +339,10 @@ const Locker = () => {
                                         width={376}
                                         alt="Yellow duck smiling and dancing with the word ente in the background"
                                     />
-                                    <Typography fontSize={24}>
+                                    <Typography
+                                        fontSize={24}
+                                        lineHeight={1.25}
+                                        textAlign="center">
                                         {t('NO_FILES_GET_STARTED')}
                                     </Typography>
                                 </Box>
