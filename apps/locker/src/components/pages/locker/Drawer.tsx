@@ -60,6 +60,7 @@ const LockerDrawer = ({
                     <ListItemButton
                         onClick={() => {
                             setDashboardView('locker');
+                            setIsOpen(false);
                         }}>
                         <ListItemIcon>
                             <CloudIcon />
@@ -71,6 +72,7 @@ const LockerDrawer = ({
                     <ListItemButton
                         onClick={() => {
                             setDashboardView('trash');
+                            setIsOpen(false);
                         }}>
                         <ListItemIcon>
                             <FolderDeleteIcon />
