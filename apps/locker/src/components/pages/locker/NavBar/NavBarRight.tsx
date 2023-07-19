@@ -1,7 +1,14 @@
-import { Box, IconButton, Menu, MenuItem } from '@mui/material';
+import {
+    Box,
+    IconButton,
+    ListItemIcon,
+    ListItemText,
+    Menu,
+    MenuItem,
+} from '@mui/material';
 import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState, MouseEvent } from 'react';
 import NewCollectionModal from '../NewCollectionModal';
 import { UPLOAD_STAGES } from '@/constants/upload';
 import { LockerDashboardContext } from '@/pages/locker';
@@ -46,7 +53,20 @@ const NavBarRight = () => {
     );
 
     const [showMobileLayout, setShowMobileLayout] = useState(false);
-    const [showMobileOverflowMenu, setShowMobileOverflowMenu] = useState(false);
+
+    const [overflowMenuAnchorEl, setOverflowMenuAnchorEl] =
+        useState<null | HTMLElement>(null);
+
+    const open = Boolean(overflowMenuAnchorEl);
+
+    const handleMobileDotsMenuClick = (
+        event: MouseEvent<HTMLButtonElement>
+    ) => {
+        setOverflowMenuAnchorEl(event.currentTarget);
+    };
+    const handleMobileDotsMenuClose = () => {
+        setOverflowMenuAnchorEl(null);
+    };
 
     const {
         syncCollections,
@@ -138,14 +158,34 @@ const NavBarRight = () => {
             <Box>
                 {showMobileLayout ? (
                     <>
-                        <IconButton>
+                        <IconButton onClick={handleMobileDotsMenuClick}>
                             <MoreHorizIcon />
                         </IconButton>
                         <Menu
-                            open={showMobileOverflowMenu}
-                            onClose={() => {
-                                setShowMobileOverflowMenu(false);
-                            }}></Menu>
+                            open={open}
+                            onClose={handleMobileDotsMenuClose}
+                            anchorEl={overflowMenuAnchorEl}>
+                            {selectedFiles.length === 0 ? (
+                                <MenuItem onClick={selectAllHandler}>
+                                    <ListItemIcon>
+                                        <CheckBoxOutlineBlankIcon />
+                                    </ListItemIcon>
+                                    <ListItemText>Select All</ListItemText>
+                                </MenuItem>
+                            ) : (
+                                <MenuItem onClick={selectAllHandler}>
+                                    <ListItemIcon>
+                                        {selectedFiles.length ===
+                                        filteredFiles.length ? (
+                                            <CheckBoxIcon />
+                                        ) : (
+                                            <IndeterminateCheckBoxIcon />
+                                        )}
+                                    </ListItemIcon>
+                                    <ListItemText>De-select All</ListItemText>
+                                </MenuItem>
+                            )}
+                        </Menu>
                     </>
                 ) : (
                     <>
