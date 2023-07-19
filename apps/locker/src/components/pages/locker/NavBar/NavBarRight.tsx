@@ -165,26 +165,114 @@ const NavBarRight = () => {
                             open={open}
                             onClose={handleMobileDotsMenuClose}
                             anchorEl={overflowMenuAnchorEl}>
-                            {selectedFiles.length === 0 ? (
-                                <MenuItem onClick={selectAllHandler}>
+                            {selectedFiles.length === 0
+                                ? [
+                                      <MenuItem
+                                          key="select-all"
+                                          onClick={selectAllHandler}>
+                                          <ListItemIcon>
+                                              <CheckBoxOutlineBlankIcon />
+                                          </ListItemIcon>
+                                          <ListItemText>
+                                              Select All
+                                          </ListItemText>
+                                      </MenuItem>,
+                                  ]
+                                : [
+                                      <MenuItem
+                                          key="deselect-all"
+                                          onClick={selectAllHandler}>
+                                          <ListItemIcon>
+                                              {selectedFiles.length ===
+                                              filteredFiles.length ? (
+                                                  <CheckBoxIcon />
+                                              ) : (
+                                                  <IndeterminateCheckBoxIcon />
+                                              )}
+                                          </ListItemIcon>
+                                          <ListItemText>
+                                              De-select All
+                                          </ListItemText>
+                                      </MenuItem>,
+                                      selectedFiles.length === 1 && (
+                                          <MenuItem
+                                              key="rename-file"
+                                              onClick={renameFileHandler}>
+                                              <ListItemIcon>
+                                                  <DriveFileRenameOutlineIcon />
+                                              </ListItemIcon>
+                                              <ListItemText>
+                                                  Rename
+                                              </ListItemText>
+                                          </MenuItem>
+                                      ),
+                                      <MenuItem
+                                          key="move-files"
+                                          onClick={moveFilesHandler}>
+                                          <ListItemIcon>
+                                              <DriveFileMoveIcon />
+                                          </ListItemIcon>
+                                          <ListItemText>Move</ListItemText>
+                                      </MenuItem>,
+                                      <MenuItem
+                                          key="trash-files"
+                                          onClick={trashAndDeleteFilesHandler}>
+                                          <ListItemIcon>
+                                              <DeleteIcon />
+                                          </ListItemIcon>
+                                          <ListItemText>Trash</ListItemText>
+                                      </MenuItem>,
+                                      <MenuItem
+                                          key="download-files"
+                                          onClick={downloadFilesHandler}>
+                                          <ListItemIcon>
+                                              <DownloadIcon />
+                                          </ListItemIcon>
+                                          <ListItemText>Download</ListItemText>
+                                      </MenuItem>,
+                                  ]}
+                            {selectedCollections.length === 1 && (
+                                <MenuItem
+                                    key="rename-collection"
+                                    onClick={renameCollectionHandler}>
                                     <ListItemIcon>
-                                        <CheckBoxOutlineBlankIcon />
+                                        <DriveFileRenameOutlineIcon />
                                     </ListItemIcon>
-                                    <ListItemText>Select All</ListItemText>
-                                </MenuItem>
-                            ) : (
-                                <MenuItem onClick={selectAllHandler}>
-                                    <ListItemIcon>
-                                        {selectedFiles.length ===
-                                        filteredFiles.length ? (
-                                            <CheckBoxIcon />
-                                        ) : (
-                                            <IndeterminateCheckBoxIcon />
-                                        )}
-                                    </ListItemIcon>
-                                    <ListItemText>De-select All</ListItemText>
+                                    <ListItemText>Rename</ListItemText>
                                 </MenuItem>
                             )}
+                            {selectedCollections.length > 0 && (
+                                <MenuItem
+                                    key="delete-collection"
+                                    onClick={deleteCollectionHandler}>
+                                    <ListItemIcon>
+                                        <DeleteIcon />
+                                    </ListItemIcon>
+                                    <ListItemText>Delete</ListItemText>
+                                </MenuItem>
+                            )}
+                            {selectedFiles.length === 0 && [
+                                <MenuItem
+                                    key="create-collection"
+                                    onClick={createCollectionHandler}>
+                                    <ListItemIcon>
+                                        <CreateNewFolderIcon />
+                                    </ListItemIcon>
+                                    <ListItemText>
+                                        Create New Collection
+                                    </ListItemText>
+                                </MenuItem>,
+                                <MenuItem
+                                    key="upload-files"
+                                    onClick={() => {
+                                        fileInputRef.current?.click();
+                                    }}>
+                                    <ListItemIcon>
+                                        <FileUploadIcon />
+                                    </ListItemIcon>
+                                    <ListItemText>Upload Files</ListItemText>
+                                </MenuItem>,
+                            ]}
                         </Menu>
                     </>
                 ) : (
