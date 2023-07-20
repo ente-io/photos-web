@@ -8,18 +8,21 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
     title: 'ente Locker',
-    description: 'The safe space for your documents. Coming soon.',
+    description: 'The safe space for your documents.',
     image: '/locker.svg',
 };
 
 import { AppProps } from 'next/app';
 import Head from 'next/head';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { setupI18n } from '@/i18n';
+import FullScreenLoader from '@/components/FullScreenLoader';
 
 const App = ({ Component, pageProps }: AppProps) => {
+    const [isI18nReady, setIsI18nReady] = useState<boolean>(false);
+
     useEffect(() => {
-        setupI18n();
+        setupI18n().finally(() => setIsI18nReady(true));
     }, []);
 
     return (
@@ -38,7 +41,11 @@ const App = ({ Component, pageProps }: AppProps) => {
             </Head>
             <main className={inter.className} style={{ display: 'contents' }}>
                 <ThemeProvider theme={getTheme('dark')}>
-                    <Component {...pageProps} />
+                    {isI18nReady ? (
+                        <Component {...pageProps} />
+                    ) : (
+                        <FullScreenLoader />
+                    )}
                 </ThemeProvider>
             </main>
         </>
