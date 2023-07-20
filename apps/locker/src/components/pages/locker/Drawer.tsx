@@ -51,7 +51,7 @@ const LockerDrawer = ({
                             <SubscriptionCard
                                 userDetails={userDetails}
                                 onClick={() => {
-                                    console.log('Hello!');
+                                    window.open('https://web.ente.io');
                                 }}
                             />
                         </Box>
