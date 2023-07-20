@@ -1,7 +1,7 @@
 import './globals.scss';
 import { Inter } from 'next/font/google';
 
-import { styled, ThemeProvider } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
 import { getTheme } from '../components/themes';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -36,11 +36,11 @@ const App = ({ Component, pageProps }: AppProps) => {
                     content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
                 />
             </Head>
-            <div className={inter.className} style={{ display: 'contents' }}>
+            <main className={inter.className} style={{ display: 'contents' }}>
                 <ThemeProvider theme={getTheme('dark')}>
                     <Component {...pageProps} />
                 </ThemeProvider>
-            </div>
+            </main>
         </>
     );
 };

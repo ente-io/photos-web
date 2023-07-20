@@ -1,6 +1,6 @@
 import { ThemeColorsOptions } from '@mui/material';
 import darkThemeColors from './dark';
-import lightThemeColors from './light';
+// import lightThemeColors from './light';
 import { getFixesColors } from './fixed';
 
 export const getColors = (

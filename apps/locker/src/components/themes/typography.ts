@@ -33,5 +33,5 @@ export const typography: TypographyOptions = {
         fontSize: '10px',
         lineHeight: '12px',
     },
-    fontFamily: ['Inter', 'sans-serif'].join(','),
+    fontFamily: `'Inter', sans-serif`,
 };

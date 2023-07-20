@@ -42,6 +42,7 @@ export default function DialogBoxV2({
 
     return (
         <Dialog
+            disablePortal
             open={open}
             onClose={handleClose}
             PaperProps={{
