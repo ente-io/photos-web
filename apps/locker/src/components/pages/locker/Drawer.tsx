@@ -30,6 +30,7 @@ const LockerDrawer = ({
 
     return (
         <DrawerSidebar
+            disablePortal
             anchor="left"
             open={isOpen}
             onClose={() => {
