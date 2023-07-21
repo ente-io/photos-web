@@ -134,7 +134,7 @@ const FileInfoDrawer = ({
                     </ListItemIcon>
                     <ListItemText>
                         {new Date(
-                            selectedFile?.metadata.creationTime
+                            selectedFile?.metadata.creationTime / 1000
                         ).toLocaleString('en-US', {
                             weekday: 'long',
                             month: 'long',
