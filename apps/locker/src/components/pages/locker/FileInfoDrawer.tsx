@@ -27,9 +27,9 @@ import CloseIcon from '@mui/icons-material/Close';
 import { convertBytesToHumanReadable } from '@/utils/file/size';
 import { t } from 'i18next';
 import { changeCaption, updateExistingFilePubMetadata } from '@/utils/file';
-import EnteSpinner from '@/components/EnteSpinner';
 import { updateFilePublicMagicMetadata } from '@/services/fileService';
-
+import { SmallLoadingSpinner } from '@/components/SmallLoadingSpinner';
+import CheckIcon from '@mui/icons-material/Check';
 const FileInfoDrawer = ({
     isOpen,
     setIsOpen,
@@ -158,7 +158,19 @@ const FileInfoDrawer = ({
                     placeholder={t('CAPTION_PLACEHOLDER')}
                     disabled={!selectedFile}
                 />
-                {captionSaveInProgress && <EnteSpinner />}
+                <ListItem
+                    sx={{
+                        display: 'flex',
+                        justifyContent: 'flex-end',
+                    }}>
+                    <IconButton disabled>
+                        {captionSaveInProgress ? (
+                            <SmallLoadingSpinner />
+                        ) : (
+                            <CheckIcon />
+                        )}
+                    </IconButton>
+                </ListItem>
             </List>
         </DrawerSidebar>
     );
