@@ -23,6 +23,7 @@ import IndeterminateCheckBoxIcon from '@mui/icons-material/IndeterminateCheckBox
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import { isMobileDisplay } from '@/utils/resolution/isMobile';
 import dynamic from 'next/dynamic';
+import InfoIcon from '@mui/icons-material/Info';
 
 const NewCollectionModal = dynamic(() => import('../NewCollectionModal'));
 const TrashFilesModal = dynamic(() => import('../TrashFilesModal'));
@@ -35,6 +36,8 @@ const DeleteCollectionsModal = dynamic(
     () => import('../DeleteCollectionsModal')
 );
 const RenameCollectionModal = dynamic(() => import('../RenameCollectionModal'));
+
+const FileInfoDrawer = dynamic(() => import('../FileInfoDrawer'));
 
 const NavBarRight = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -53,6 +56,7 @@ const NavBarRight = () => {
         useState(false);
     const [showRenameCollectionModal, setShowRenameCollectionModal] =
         useState(false);
+    const [showFileInfoDrawer, setShowFileInfoDrawer] = useState(false);
 
     const [uploadStage, setUploadStage] = useState<UPLOAD_STAGES>(
         UPLOAD_STAGES.START
@@ -163,6 +167,10 @@ const NavBarRight = () => {
         setShowNewCollectionModal(true);
     };
 
+    const fileInfoHandler = () => {
+        setShowFileInfoDrawer(true);
+    };
+
     return (
         <>
             <Box>
@@ -204,7 +212,7 @@ const NavBarRight = () => {
                                               De-select All
                                           </ListItemText>
                                       </MenuItem>,
-                                      selectedFiles.length === 1 && (
+                                      selectedFiles.length === 1 && [
                                           <MenuItem
                                               key="rename-file"
                                               onClick={renameFileHandler}>
@@ -214,8 +222,18 @@ const NavBarRight = () => {
                                               <ListItemText>
                                                   Rename
                                               </ListItemText>
-                                          </MenuItem>
-                                      ),
+                                          </MenuItem>,
+                                          <MenuItem
+                                              key="file-info"
+                                              onClick={fileInfoHandler}>
+                                              <ListItemIcon>
+                                                  <InfoIcon />
+                                              </ListItemIcon>
+                                              <ListItemText>
+                                                  File Info
+                                              </ListItemText>
+                                          </MenuItem>,
+                                      ],
                                       <MenuItem
                                           key="move-files"
                                           onClick={moveFilesHandler}>
@@ -311,10 +329,17 @@ const NavBarRight = () => {
                                             <DriveFileMoveIcon />
                                         </IconButton>
                                         {selectedFiles.length === 1 && (
-                                            <IconButton
-                                                onClick={renameFileHandler}>
-                                                <DriveFileRenameOutlineIcon />
-                                            </IconButton>
+                                            <>
+                                                <IconButton
+                                                    onClick={renameFileHandler}>
+                                                    <DriveFileRenameOutlineIcon />
+                                                </IconButton>
+
+                                                <IconButton
+                                                    onClick={fileInfoHandler}>
+                                                    <InfoIcon />
+                                                </IconButton>
+                                            </>
                                         )}
                                         <IconButton
                                             onClick={
@@ -428,6 +453,10 @@ const NavBarRight = () => {
                     setSelectedCollections([]);
                     syncCollections();
                 }}
+            />
+            <FileInfoDrawer
+                isOpen={showFileInfoDrawer}
+                setIsOpen={setShowFileInfoDrawer}
             />
             {showUploaderBoxComponent && (
                 <UploaderBoxComponent filesToUpload={files} />
