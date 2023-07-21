@@ -9,26 +9,32 @@ import {
 import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import { useContext, useEffect, useRef, useState, MouseEvent } from 'react';
-import NewCollectionModal from '../NewCollectionModal';
 import { UPLOAD_STAGES } from '@/constants/upload';
 import { LockerDashboardContext } from '@/pages/locker';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DriveFileMoveIcon from '@mui/icons-material/DriveFileMove';
-import TrashFilesModal from '../TrashFilesModal';
 import DownloadIcon from '@mui/icons-material/Download';
 import { downloadFile, downloadFilesAsZip } from '@/utils/file';
 import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline';
-import RenameFileModal from '../RenameFileModal';
-import MoveFilesModal from '../MoveFilesModal';
-import PermanentlyDeleteFilesModal from '../PermanentlyDeleteFilesModal';
-import DeleteCollectionsModal from '../DeleteCollectionsModal';
-import RenameCollectionModal from '../RenameCollectionModal';
 import UploaderBoxComponent from '@/components/UploaderBoxComponent';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import IndeterminateCheckBoxIcon from '@mui/icons-material/IndeterminateCheckBox';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import { isMobileDisplay } from '@/utils/resolution/isMobile';
+import dynamic from 'next/dynamic';
+
+const NewCollectionModal = dynamic(() => import('../NewCollectionModal'));
+const TrashFilesModal = dynamic(() => import('../TrashFilesModal'));
+const RenameFileModal = dynamic(() => import('../RenameFileModal'));
+const MoveFilesModal = dynamic(() => import('../MoveFilesModal'));
+const PermanentlyDeleteFilesModal = dynamic(
+    () => import('../PermanentlyDeleteFilesModal')
+);
+const DeleteCollectionsModal = dynamic(
+    () => import('../DeleteCollectionsModal')
+);
+const RenameCollectionModal = dynamic(() => import('../RenameCollectionModal'));
 
 const NavBarRight = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
