@@ -101,11 +101,15 @@ const NavBarRight = () => {
         }
     }, [files]);
 
+    const checkIsMobile = () => {
+        const isMobileDisplay_ = isMobileDisplay();
+        setShowMobileLayout(isMobileDisplay_);
+    };
+
     useEffect(() => {
-        window.onresize = () => {
-            const isMobileDisplay_ = isMobileDisplay();
-            setShowMobileLayout(isMobileDisplay_);
-        };
+        checkIsMobile();
+
+        window.onresize = checkIsMobile;
 
         return () => {
             window.onresize = null;
