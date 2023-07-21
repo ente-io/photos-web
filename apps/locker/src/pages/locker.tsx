@@ -1,4 +1,4 @@
-import { Box, Button, Typography } from '@mui/material';
+import { Box, Button } from '@mui/material';
 
 import {
     Dispatch,
@@ -19,18 +19,17 @@ import NavBar from '@/components/pages/locker/NavBar';
 import { syncFiles } from '@/services/fileService';
 import { EnteFile } from '@/interfaces/file';
 
-import CollectionComponent from '@/components/pages/locker/Collection';
-import FileComponent from '@/components/pages/locker/File';
 import { UserDetails } from '@/interfaces/user';
 import { getUserDetailsV2 } from '@/services/userService';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
-import Image from 'next/image';
 import { sortFiles } from '@/utils/file';
 import { useRouter } from 'next/router';
 import LockerDrawer from '@/components/pages/locker/Drawer';
 import { getLocalTrash, syncTrash } from '@/services/trashService';
-import { t } from 'i18next';
 import FullScreenLoader from '@/components/FullScreenLoader';
+import FilesSection from '@/components/pages/locker/FilesSection';
+import CollectionsSection from '@/components/pages/locker/CollectionsSection';
+import CollectionEmptyMessage from '@/components/pages/locker/CollectionEmptyMessage';
 
 interface lockerDashboardContextProps {
     currentCollection: Collection;
@@ -285,67 +284,13 @@ const Locker = () => {
                             {collections.length > 0 &&
                                 currentCollection?.id ===
                                     uncategorizedCollection?.id && (
-                                    <>
-                                        <h3>Collections</h3>
-                                        <Box
-                                            gap="1rem"
-                                            flexWrap="wrap"
-                                            display="flex">
-                                            {collections
-                                                .filter(
-                                                    (r) =>
-                                                        r.id !==
-                                                        uncategorizedCollection?.id
-                                                )
-                                                .map((collection) => (
-                                                    <CollectionComponent
-                                                        collection={collection}
-                                                        key={collection.id}
-                                                    />
-                                                ))}
-                                        </Box>
-                                    </>
+                                    <CollectionsSection />
                                 )}
 
                             {filteredFiles.length > 0 ? (
-                                <>
-                                    <h3>Files</h3>
-                                    <Box
-                                        display="grid"
-                                        gridTemplateColumns={
-                                            'repeat(auto-fill, minmax(200px, 1fr))'
-                                        }
-                                        gap="1rem"
-                                        width="100%">
-                                        {filteredFiles.map((file) => (
-                                            <FileComponent
-                                                file={file}
-                                                key={file.id}
-                                            />
-                                        ))}
-                                    </Box>
-                                </>
+                                <FilesSection />
                             ) : (
-                                <Box
-                                    display="flex"
-                                    justifyContent="center"
-                                    alignItems="center"
-                                    flexDirection={'column'}
-                                    gap="2rem"
-                                    marginTop="1rem">
-                                    <Image
-                                        src="/images/empty-state/ente_duck.png"
-                                        height={288}
-                                        width={376}
-                                        alt="Yellow duck smiling and dancing with the word ente in the background"
-                                    />
-                                    <Typography
-                                        fontSize={24}
-                                        lineHeight={1.25}
-                                        textAlign="center">
-                                        {t('NO_FILES_GET_STARTED')}
-                                    </Typography>
-                                </Box>
+                                <CollectionEmptyMessage />
                             )}
                         </Box>
                     </Box>
