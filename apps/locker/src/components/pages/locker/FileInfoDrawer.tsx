@@ -8,7 +8,6 @@ import {
     ListItemIcon,
     ListItemText,
     TextField,
-    TextareaAutosize,
     Typography,
 } from '@mui/material';
 import {
@@ -52,18 +51,19 @@ const FileInfoDrawer = ({
             setCaptionSaveInProgress(true);
             // save value
             try {
-                const updatedFile = await changeCaption(selectedFile, caption);
+                let updatedFile = await changeCaption(selectedFile, caption);
+                updatedFile = (
+                    await updateFilePublicMagicMetadata([updatedFile])
+                )[0];
                 updateExistingFilePubMetadata(selectedFile, updatedFile);
-                updateFilePublicMagicMetadata([selectedFile]);
+                selectedFile.title = selectedFile.pubMagicMetadata.data.caption;
             } catch (e: any) {
                 console.error(e);
             } finally {
                 setCaptionSaveInProgress(false);
+                await syncFiles();
             }
-
-            await syncFiles();
         }, 500);
-
         return () => clearTimeout(timer);
     }, [caption]);
 
