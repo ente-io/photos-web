@@ -1,7 +1,7 @@
 import { Collection } from '@/interfaces/collection';
 import { LockerDashboardContext } from '@/pages/locker';
 import { Box, Typography } from '@mui/material';
-import { useContext, useState } from 'react';
+import { useContext, useMemo, useState } from 'react';
 import FolderIcon from '@mui/icons-material/Folder';
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
@@ -28,6 +28,12 @@ const CollectionComponent = ({
     const bgColor = `#1C1C1C`;
     const bgColorHover = `#282828`;
     const bgColorSelected = `#1DB954`;
+
+    const isSelected = useMemo(() => {
+        return selectedCollections.find(
+            (selectedCollection) => selectedCollection.id === collection.id
+        );
+    }, [selectedCollections, collection]);
 
     return (
         <Box
@@ -62,11 +68,11 @@ const CollectionComponent = ({
                     onClick();
                     return;
                 }
-                if (selectedCollections.includes(collection)) {
+                if (isSelected) {
                     setSelectedCollections(
                         selectedCollections.filter(
                             (selectedCollection) =>
-                                selectedCollection !== collection
+                                selectedCollection.id !== collection.id
                         )
                     );
                 } else {
@@ -78,7 +84,7 @@ const CollectionComponent = ({
             }}>
             {isHover || selectedCollections.length > 0 ? (
                 <>
-                    {selectedCollections.includes(collection) ? (
+                    {isSelected ? (
                         <CheckBoxIcon />
                     ) : (
                         <CheckBoxOutlineBlankIcon />
