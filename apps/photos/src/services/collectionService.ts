@@ -15,7 +15,7 @@ import {
 } from 'utils/file';
 import {
     Collection,
-    CollectionLatestFiles,
+    CollectionToFileMap,
     AddToCollectionRequest,
     MoveToCollectionRequest,
     EncryptedFileKey,
@@ -30,6 +30,7 @@ import {
     CollectionMagicMetadataProps,
     CollectionPublicMagicMetadata,
     RemoveFromCollectionRequest,
+    CollectionShareeMagicMetadata,
 } from 'types/collection';
 import {
     COLLECTION_LIST_SORT_BY,
@@ -43,17 +44,23 @@ import {
     HIDDEN_SECTION,
 } from 'constants/collection';
 import { SUB_TYPE, UpdateMagicMetadataRequest } from 'types/magicMetadata';
-import { IsArchived, updateMagicMetadata } from 'utils/magicMetadata';
-import { User } from 'types/user';
+import {
+    isArchivedCollection,
+    isArchivedFile,
+    isPinnedCollection,
+    updateMagicMetadata,
+} from 'utils/magicMetadata';
+import { FamilyData, User } from 'types/user';
 import {
     isQuickLinkCollection,
     isOutgoingShare,
-    isIncomingShare,
     isSharedOnlyViaLink,
     isValidMoveTarget,
     isHiddenCollection,
     getNonHiddenCollections,
     changeCollectionSubType,
+    isIncomingCollabShare,
+    isIncomingShare,
 } from 'utils/collection';
 import ComlinkCryptoWorker from 'utils/comlink/ComlinkCryptoWorker';
 import { getLocalFiles } from './fileService';
@@ -139,12 +146,25 @@ const getCollectionWithSecrets = async (
         };
     }
 
+    let collectionShareeMagicMetadata: CollectionShareeMagicMetadata;
+    if (collection.sharedMagicMetadata?.data) {
+        collectionShareeMagicMetadata = {
+            ...collection.sharedMagicMetadata,
+            data: await cryptoWorker.decryptMetadata(
+                collection.sharedMagicMetadata.data,
+                collection.sharedMagicMetadata.header,
+                collectionKey
+            ),
+        };
+    }
+
     return {
         ...collection,
         name: collectionName,
         key: collectionKey,
         magicMetadata: collectionMagicMetadata,
         pubMagicMetadata: collectionPublicMagicMetadata,
+        sharedMagicMetadata: collectionShareeMagicMetadata,
     };
 };
 
@@ -277,10 +297,9 @@ export const getCollection = async (
 };
 
 export const getCollectionLatestFiles = (
-    user: User,
     files: EnteFile[],
     archivedCollections: Set<number>
-): CollectionLatestFiles => {
+): CollectionToFileMap => {
     const latestFiles = new Map<number, EnteFile>();
 
     files.forEach((file) => {
@@ -289,14 +308,62 @@ export const getCollectionLatestFiles = (
         }
         if (
             !latestFiles.has(ALL_SECTION) &&
-            !IsArchived(file) &&
-            file.ownerID === user.id &&
+            !isArchivedFile(file) &&
             !archivedCollections.has(file.collectionID)
         ) {
             latestFiles.set(ALL_SECTION, file);
         }
     });
     return latestFiles;
+};
+
+export const getCollectionCoverFiles = (
+    files: EnteFile[],
+    archivedCollections: Set<number>,
+    collections: Collection[]
+): CollectionToFileMap => {
+    const collectionIDToFileMap = groupFilesBasedOnCollectionID(files);
+
+    const coverFiles = new Map<number, EnteFile>();
+
+    collections.forEach((collection) => {
+        const collectionFiles = collectionIDToFileMap.get(collection.id);
+        if (!collectionFiles || collectionFiles.length === 0) {
+            return;
+        }
+        const coverID = collection.pubMagicMetadata?.data?.coverID;
+        if (typeof coverID === 'number' && coverID > 0) {
+            const coverFile = collectionFiles.find(
+                (file) => file.id === coverID
+            );
+            if (coverFile) {
+                coverFiles.set(collection.id, coverFile);
+                return;
+            }
+        }
+        if (collection.pubMagicMetadata?.data?.asc) {
+            coverFiles.set(
+                collection.id,
+                collectionFiles[collectionFiles.length - 1]
+            );
+        } else {
+            coverFiles.set(collection.id, collectionFiles[0]);
+        }
+    });
+
+    for (const file of files) {
+        if (coverFiles.has(ALL_SECTION)) {
+            break;
+        }
+        if (
+            !isArchivedFile(file) &&
+            !archivedCollections.has(file.collectionID)
+        ) {
+            coverFiles.set(ALL_SECTION, file);
+        }
+    }
+
+    return coverFiles;
 };
 
 export const getFavItemIds = async (
@@ -359,6 +426,7 @@ const createCollection = async (
             isDeleted: false,
             magicMetadata: encryptedMagicMetadata,
             pubMagicMetadata: null,
+            sharedMagicMetadata: null,
         };
         const createdCollection = await postCollection(newCollection, token);
         const decryptedCreatedCollection = await getCollectionWithSecrets(
@@ -738,6 +806,50 @@ export const updateCollectionMagicMetadata = async (
     return updatedCollection;
 };
 
+export const updateSharedCollectionMagicMetadata = async (
+    collection: Collection,
+    updatedMagicMetadata: CollectionMagicMetadata
+) => {
+    const token = getToken();
+    if (!token) {
+        return;
+    }
+
+    const cryptoWorker = await ComlinkCryptoWorker.getInstance();
+
+    const { file: encryptedMagicMetadata } = await cryptoWorker.encryptMetadata(
+        updatedMagicMetadata.data,
+        collection.key
+    );
+
+    const reqBody: UpdateMagicMetadataRequest = {
+        id: collection.id,
+        magicMetadata: {
+            version: updatedMagicMetadata.version,
+            count: updatedMagicMetadata.count,
+            data: encryptedMagicMetadata.encryptedData,
+            header: encryptedMagicMetadata.decryptionHeader,
+        },
+    };
+
+    await HTTPService.put(
+        `${ENDPOINT}/collections/sharee-magic-metadata`,
+        reqBody,
+        null,
+        {
+            'X-Auth-Token': token,
+        }
+    );
+    const updatedCollection: Collection = {
+        ...collection,
+        magicMetadata: {
+            ...updatedMagicMetadata,
+            version: updatedMagicMetadata.version + 1,
+        },
+    };
+    return updatedCollection;
+};
+
 export const updatePublicCollectionMagicMetadata = async (
     collection: Collection,
     updatedPublicMagicMetadata: CollectionPublicMagicMetadata
@@ -811,7 +923,8 @@ export const renameCollection = async (
 
 export const shareCollection = async (
     collection: Collection,
-    withUserEmail: string
+    withUserEmail: string,
+    role: string
 ) => {
     try {
         const cryptoWorker = await ComlinkCryptoWorker.getInstance();
@@ -824,6 +937,7 @@ export const shareCollection = async (
         const shareCollectionRequest = {
             collectionID: collection.id,
             email: withUserEmail,
+            role: role,
             encryptedKey,
         };
         await HTTPService.post(
@@ -970,6 +1084,7 @@ export function sortCollectionSummaries(
                     return a.name.localeCompare(b.name);
             }
         })
+        .sort((a, b) => b.order - a.order)
         .sort(
             (a, b) =>
                 COLLECTION_SORT_ORDER.get(a.type) -
@@ -1002,9 +1117,13 @@ export async function getCollectionSummaries(
 ): Promise<CollectionSummaries> {
     const collectionSummaries: CollectionSummaries = new Map();
     const collectionLatestFiles = getCollectionLatestFiles(
-        user,
         files,
         archivedCollections
+    );
+    const collectionCoverFiles = getCollectionCoverFiles(
+        files,
+        archivedCollections,
+        collections
     );
     const collectionFilesCount = getCollectionsFileCount(
         files,
@@ -1018,23 +1137,36 @@ export async function getCollectionSummaries(
             collectionFilesCount.get(collection.id) ||
             collection.type === CollectionType.uncategorized
         ) {
+            let type: CollectionSummaryType;
+            if (isIncomingShare(collection, user)) {
+                if (isIncomingCollabShare(collection, user)) {
+                    type = CollectionSummaryType.incomingShareCollaborator;
+                } else {
+                    type = CollectionSummaryType.incomingShareViewer;
+                }
+            } else if (isOutgoingShare(collection, user)) {
+                type = CollectionSummaryType.outgoingShare;
+            } else if (isSharedOnlyViaLink(collection)) {
+                type = CollectionSummaryType.sharedOnlyViaLink;
+            } else if (isArchivedCollection(collection)) {
+                type = CollectionSummaryType.archived;
+            } else if (isHiddenCollection(collection)) {
+                type = CollectionSummaryType.hidden;
+            } else if (isPinnedCollection(collection)) {
+                type = CollectionSummaryType.pinned;
+            } else {
+                type = CollectionSummaryType[collection.type];
+            }
+
             collectionSummaries.set(collection.id, {
                 id: collection.id,
                 name: collection.name,
                 latestFile: collectionLatestFiles.get(collection.id),
+                coverFile: collectionCoverFiles.get(collection.id),
                 fileCount: collectionFilesCount.get(collection.id) ?? 0,
                 updationTime: collection.updationTime,
-                type: isIncomingShare(collection, user)
-                    ? CollectionSummaryType.incomingShare
-                    : isOutgoingShare(collection)
-                    ? CollectionSummaryType.outgoingShare
-                    : isSharedOnlyViaLink(collection)
-                    ? CollectionSummaryType.sharedOnlyViaLink
-                    : IsArchived(collection)
-                    ? CollectionSummaryType.archived
-                    : isHiddenCollection(collection)
-                    ? CollectionSummaryType.hidden
-                    : CollectionSummaryType[collection.type],
+                type: type,
+                order: collection.magicMetadata?.data?.order ?? 0,
             });
         }
     }
@@ -1062,7 +1194,11 @@ export async function getCollectionSummaries(
 
     collectionSummaries.set(
         ALL_SECTION,
-        getAllCollectionSummaries(collectionFilesCount, collectionLatestFiles)
+        getAllCollectionSummaries(
+            collectionFilesCount,
+            collectionCoverFiles,
+            collectionLatestFiles
+        )
     );
     collectionSummaries.set(
         ARCHIVE_SECTION,
@@ -1107,7 +1243,7 @@ function getCollectionsFileCount(
     for (const file of files) {
         if (isSharedFile(user, file)) {
             continue;
-        } else if (IsArchived(file)) {
+        } else if (isArchivedFile(file)) {
             uniqueArchivedFileIDs.add(file.id);
         } else if (!archivedCollections.has(file.collectionID)) {
             uniqueAllSectionFileIDs.add(file.id);
@@ -1122,15 +1258,18 @@ function getCollectionsFileCount(
 
 function getAllCollectionSummaries(
     collectionFilesCount: CollectionFilesCount,
-    collectionsLatestFile: CollectionLatestFiles
+    collectionCoverFiles: CollectionToFileMap,
+    collectionsLatestFile: CollectionToFileMap
 ): CollectionSummary {
     return {
         id: ALL_SECTION,
         name: t('ALL_SECTION_NAME'),
         type: CollectionSummaryType.all,
+        coverFile: collectionCoverFiles.get(ALL_SECTION),
         latestFile: collectionsLatestFile.get(ALL_SECTION),
         fileCount: collectionFilesCount.get(ALL_SECTION) || 0,
         updationTime: collectionsLatestFile.get(ALL_SECTION)?.updationTime,
+        order: 1,
     };
 }
 
@@ -1140,49 +1279,57 @@ function getDummyUncategorizedCollectionSummaries(): CollectionSummary {
         name: t('UNCATEGORIZED'),
         type: CollectionSummaryType.uncategorized,
         latestFile: null,
+        coverFile: null,
         fileCount: 0,
         updationTime: 0,
+        order: 1,
     };
 }
 
 function getHiddenCollectionSummaries(
     collectionFilesCount: CollectionFilesCount,
-    collectionsLatestFile: CollectionLatestFiles
+    collectionsLatestFile: CollectionToFileMap
 ): CollectionSummary {
     return {
         id: HIDDEN_SECTION,
         name: t('HIDDEN'),
         type: CollectionSummaryType.hidden,
+        coverFile: null,
         latestFile: collectionsLatestFile.get(HIDDEN_SECTION),
         fileCount: collectionFilesCount.get(HIDDEN_SECTION) ?? 0,
         updationTime: collectionsLatestFile.get(HIDDEN_SECTION)?.updationTime,
+        order: -1,
     };
 }
 function getArchivedCollectionSummaries(
     collectionFilesCount: CollectionFilesCount,
-    collectionsLatestFile: CollectionLatestFiles
+    collectionsLatestFile: CollectionToFileMap
 ): CollectionSummary {
     return {
         id: ARCHIVE_SECTION,
         name: t('ARCHIVE_SECTION_NAME'),
         type: CollectionSummaryType.archive,
+        coverFile: null,
         latestFile: collectionsLatestFile.get(ARCHIVE_SECTION),
         fileCount: collectionFilesCount.get(ARCHIVE_SECTION) ?? 0,
         updationTime: collectionsLatestFile.get(ARCHIVE_SECTION)?.updationTime,
+        order: -1,
     };
 }
 
 function getTrashedCollectionSummaries(
     collectionFilesCount: CollectionFilesCount,
-    collectionsLatestFile: CollectionLatestFiles
+    collectionsLatestFile: CollectionToFileMap
 ): CollectionSummary {
     return {
         id: TRASH_SECTION,
         name: t('TRASH'),
         type: CollectionSummaryType.trash,
+        coverFile: null,
         latestFile: collectionsLatestFile.get(TRASH_SECTION),
         fileCount: collectionFilesCount.get(TRASH_SECTION) ?? 0,
         updationTime: collectionsLatestFile.get(TRASH_SECTION)?.updationTime,
+        order: -1,
     };
 }
 
@@ -1261,20 +1408,19 @@ export async function unhideToCollection(
     }
 }
 
-export const constructUserIDToEmailMap = async (): Promise<
-    Map<number, string>
-> => {
+export const constructUserIDToEmailMap = (
+    user: User,
+    collections: Collection[]
+): Map<number, string> => {
     try {
-        const collection = await getLocalCollections();
-        const user: User = getData(LS_KEYS.USER);
         const userIDToEmailMap = new Map<number, string>();
-        collection.map((item) => {
+        collections.forEach((item) => {
             const { owner, sharees } = item;
             if (user.id !== owner.id && owner.email) {
                 userIDToEmailMap.set(owner.id, owner.email);
             }
             if (sharees) {
-                sharees.map((item) => {
+                sharees.forEach((item) => {
                     if (item.id !== user.id)
                         userIDToEmailMap.set(item.id, item.email);
                 });
@@ -1284,6 +1430,35 @@ export const constructUserIDToEmailMap = async (): Promise<
     } catch (e) {
         logError('Error Mapping UserId to email:', e);
         return new Map<number, string>();
-        throw e;
     }
+};
+
+export const constructEmailList = (
+    user: User,
+    collections: Collection[],
+    familyData: FamilyData
+): string[] => {
+    const emails = collections
+        .map((item) => {
+            const { owner, sharees } = item;
+            if (owner.email && item.owner.id !== user.id) {
+                return [item.owner.email];
+            } else {
+                if (!sharees?.length) {
+                    return [];
+                }
+                const shareeEmails = item.sharees
+                    .filter((sharee) => sharee.email !== user.email)
+                    .map((sharee) => sharee.email);
+                return shareeEmails;
+            }
+        })
+        .flat();
+
+    // adding family members
+    if (familyData) {
+        const family = familyData.members.map((member) => member.email);
+        emails.push(...family);
+    }
+    return Array.from(new Set(emails));
 };
