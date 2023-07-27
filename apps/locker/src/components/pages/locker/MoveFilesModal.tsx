@@ -2,7 +2,7 @@ import { FlexWrapper } from '@/components/Container';
 import DialogBoxV2 from '@/components/DialogBoxV2';
 import { Collection } from '@/interfaces/collection';
 import { Button, TextField } from '@mui/material';
-import { useContext, useEffect, useState } from 'react';
+import { Fragment, useContext, useEffect, useState } from 'react';
 import CollectionComponent from './Collection';
 import EnteButton from '@/components/EnteButton';
 import { LockerDashboardContext } from '@/pages/locker';
@@ -48,7 +48,9 @@ const MoveFilesModal = (props: IProps) => {
                 onClose={props.onHide}
                 attributes={{
                     title: `${t('MOVE')} ${selectedFiles.length} ${
-                        selectedFiles.length > 1 ? t('FILES') : t('UPLOAD_FILE')
+                        selectedFiles.length > 1
+                            ? t('FILES')
+                            : t('UPLOAD_FILES')
                     }`,
                 }}>
                 <TextField
@@ -61,20 +63,31 @@ const MoveFilesModal = (props: IProps) => {
                     }}
                 />
                 <FlexWrapper flexDirection="column" width="100%" gap=".5rem">
-                    {filteredCollections.map((collection) => (
-                        <CollectionComponent
-                            key={collection.id}
-                            collection={collection}
-                            sx={{
-                                width: '100%',
-                                border: '1px solid #b1b1b1',
-                            }}
-                            focus={targetCollection?.id === collection.id}
-                            onClick={() => {
-                                setTargetCollection(collection);
-                            }}
-                        />
-                    ))}
+                    {selectedFiles.length > 0 && (
+                        <>
+                            {filteredCollections.map((collection) => (
+                                <Fragment key={collection.id}>
+                                    {collection.id !==
+                                        selectedFiles[0].collectionID && (
+                                        <CollectionComponent
+                                            collection={collection}
+                                            sx={{
+                                                width: '100%',
+                                                border: '1px solid #b1b1b1',
+                                            }}
+                                            focus={
+                                                targetCollection?.id ===
+                                                collection.id
+                                            }
+                                            onClick={() => {
+                                                setTargetCollection(collection);
+                                            }}
+                                        />
+                                    )}
+                                </Fragment>
+                            ))}
+                        </>
+                    )}
                 </FlexWrapper>
                 {targetCollection && (
                     <EnteButton
