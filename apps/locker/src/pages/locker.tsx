@@ -88,7 +88,7 @@ const Locker = () => {
     const [showUploaderBoxComponent, setShowUploaderBoxComponent] =
         useState(false);
 
-    const [authChecked, setAuthChecked] = useState(false);
+    const [initialLoadFinished, setInitialLoadFinished] = useState(false);
 
     const router = useRouter();
 
@@ -108,8 +108,6 @@ const Locker = () => {
             router.push('/login');
             return;
         }
-
-        setAuthChecked(true);
 
         setUserDetails(userDetails);
 
@@ -143,6 +141,8 @@ const Locker = () => {
 
             setFiles(sortFiles(localTrash.map((item) => item.file)));
         }
+
+        setInitialLoadFinished(true);
     };
 
     const doSyncTrash = async () => {
@@ -218,7 +218,7 @@ const Locker = () => {
 
     return (
         <>
-            {!authChecked && <FullScreenLoader />}
+            {!initialLoadFinished && <FullScreenLoader />}
             <LockerDashboardContext.Provider
                 value={{
                     currentCollection,
