@@ -2,7 +2,7 @@ import { Box, Typography } from '@mui/material';
 import { useContext, useEffect, useState } from 'react';
 import { UploaderContext } from '..';
 import { InProgressUpload } from '@/interfaces/upload/ui';
-import { UPLOAD_RESULT } from '@/constants/upload';
+import { UPLOAD_RESULT, UPLOAD_STAGES } from '@/constants/upload';
 
 interface IProps {
     localID: number;
@@ -10,7 +10,8 @@ interface IProps {
 }
 
 const UploaderFile = (props: IProps) => {
-    const { inProgressUploads, finishedUploads } = useContext(UploaderContext);
+    const { inProgressUploads, finishedUploads, uploadStage } =
+        useContext(UploaderContext);
 
     const [currentInProgressUpload, setCurrentInProgressUpload] =
         useState<InProgressUpload | null>(null);
@@ -29,7 +30,10 @@ const UploaderFile = (props: IProps) => {
     useEffect(() => {
         if (currentInProgressUpload) {
             // if it's finished, set to 100
-            if (finishedUploads.get(UPLOAD_RESULT.UPLOADED)) {
+            if (
+                finishedUploads.get(UPLOAD_RESULT.UPLOADED) ||
+                uploadStage === UPLOAD_STAGES.FINISH
+            ) {
                 if (
                     finishedUploads
                         .get(UPLOAD_RESULT.UPLOADED)
@@ -42,7 +46,7 @@ const UploaderFile = (props: IProps) => {
 
             setProgress(currentInProgressUpload.progress);
         }
-    }, [currentInProgressUpload, finishedUploads, props.localID]);
+    }, [currentInProgressUpload, finishedUploads, props.localID, uploadStage]);
 
     return (
         <>

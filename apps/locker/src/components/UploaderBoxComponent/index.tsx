@@ -24,6 +24,7 @@ export const UploaderContext = createContext(
     {} as {
         inProgressUploads: InProgressUpload[];
         finishedUploads: SegregatedFinishedUploads;
+        uploadStage: UPLOAD_STAGES;
     }
 );
 
@@ -141,6 +142,7 @@ const UploaderBoxComponent = (props: IProps) => {
                 value={{
                     inProgressUploads,
                     finishedUploads,
+                    uploadStage,
                 }}>
                 <Box
                     sx={{
