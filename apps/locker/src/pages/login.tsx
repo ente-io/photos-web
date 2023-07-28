@@ -41,7 +41,9 @@ export default function Home() {
             ) : (
                 <FormContainer>
                     <FormPaper>
-                        <Login signUp={register} />
+                        <Login
+                        //  signUp={register}
+                        />
                     </FormPaper>
                 </FormContainer>
             )}
