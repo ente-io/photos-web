@@ -19,6 +19,7 @@ type IProps = React.PropsWithChildren<
         attributes: DialogBoxAttributesV2;
         size?: Breakpoint;
         titleCloseButton?: boolean;
+        dialogMaxWidth?: string;
     }
 >;
 
@@ -27,6 +28,7 @@ export default function DialogBoxV2({
     children,
     open,
     onClose,
+    dialogMaxWidth = '360px',
     ...props
 }: IProps) {
     const [loading, setLoading] = useState(false);
@@ -48,7 +50,7 @@ export default function DialogBoxV2({
             PaperProps={{
                 sx: {
                     padding: '8px 12px',
-                    maxWidth: '360px',
+                    maxWidth: dialogMaxWidth,
                 },
             }}
             {...props}>

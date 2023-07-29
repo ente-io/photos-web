@@ -30,6 +30,8 @@ import FullScreenLoader from '@/components/FullScreenLoader';
 import FilesSection from '@/components/pages/locker/FilesSection';
 import CollectionsSection from '@/components/pages/locker/CollectionsSection';
 import CollectionEmptyMessage from '@/components/pages/locker/CollectionEmptyMessage';
+import TutorialDialog from '@/components/pages/locker/TutorialDialog';
+import { LS_KEYS, getData, setData } from '@/utils/storage/localStorage';
 
 interface lockerDashboardContextProps {
     currentCollection: Collection;
@@ -90,6 +92,8 @@ const Locker = () => {
 
     const [initialLoadFinished, setInitialLoadFinished] = useState(false);
 
+    const [showTutorialDialog, setShowTutorialDialog] = useState(false);
+
     const router = useRouter();
 
     const doSyncCollections = async () => {
@@ -143,6 +147,8 @@ const Locker = () => {
         }
 
         setInitialLoadFinished(true);
+
+        setShowTutorialDialog(!getData(LS_KEYS.TUTORIAL)?.viewed);
     };
 
     const doSyncTrash = async () => {
@@ -296,6 +302,15 @@ const Locker = () => {
                     </Box>
                 </Box>
             </LockerDashboardContext.Provider>
+            <TutorialDialog
+                open={showTutorialDialog}
+                onHide={() => {
+                    setShowTutorialDialog(false);
+                    setData(LS_KEYS.TUTORIAL, {
+                        viewed: true,
+                    });
+                }}
+            />
         </>
     );
 };
