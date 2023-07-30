@@ -4608,6 +4608,11 @@ workbox-core@6.3.0:
   resolved "https://registry.npmjs.org/workbox-core/-/workbox-core-6.3.0.tgz"
   integrity sha512-SufToEV3SOLwwz3j+P4pgkfpzLRUlR17sX3p/LrMHP/brYKvJQqjTwtSvaCkkAX0RPHX2TFHmN8xhPP1bpmomg==
 
+workbox-core@7.0.0:
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/workbox-core/-/workbox-core-7.0.0.tgz#dec114ec923cc2adc967dd9be1b8a0bed50a3545"
+  integrity sha512-81JkAAZtfVP8darBpfRTovHg8DGAVrKFgHpOArZbdFd78VqHr5Iw65f2guwjE2NlCFbPFDoez3D3/6ZvhI/rwQ==
+
 workbox-expiration@6.3.0:
   version "6.3.0"
   resolved "https://registry.npmjs.org/workbox-expiration/-/workbox-expiration-6.3.0.tgz"
@@ -4651,13 +4656,13 @@ workbox-strategies@6.3.0, workbox-strategies@^6.1.5:
   dependencies:
     workbox-core "6.3.0"
 
-workbox-window@^6.1.5:
-  version "6.3.0"
-  resolved "https://registry.npmjs.org/workbox-window/-/workbox-window-6.3.0.tgz"
-  integrity sha512-CFP84assX9srH/TOx4OD8z4EBPO/Cq4WKdV2YLcJIFJmVTS/cB63XKeidKl2KJk8qOOLVIKnaO7BLmb0MxGFtA==
+workbox-window@^7.0.0:
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/workbox-window/-/workbox-window-7.0.0.tgz#a683ab33c896e4f16786794eac7978fc98a25d08"
+  integrity sha512-j7P/bsAWE/a7sxqTzXo3P2ALb1reTfZdvVp6OJ/uLr/C2kZAMvjeWGm8V4htQhor7DOvYg0sSbFN2+flT5U0qA==
   dependencies:
     "@types/trusted-types" "^2.0.2"
-    workbox-core "6.3.0"
+    workbox-core "7.0.0"
 
 wrap-ansi@^6.2.0:
   version "6.2.0"
