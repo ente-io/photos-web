@@ -15,7 +15,7 @@
     "dependencies": {
         "@date-io/date-fns": "^2.14.0",
         "@emotion/cache": "^11.10.5",
-        "@emotion/react": "^11.10.6",
+        "@emotion/react": "^11.11.1",
         "@emotion/server": "^11.11.0",
         "@emotion/styled": "^11.11.0",
         "@mui/icons-material": "^5.14.1",
