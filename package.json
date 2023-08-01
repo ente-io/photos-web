@@ -20,7 +20,7 @@
     "dependencies": {},
     "devDependencies": {
         "eslint": "^8.28.0",
-        "husky": "^7.0.1",
+        "husky": "^8.0.3",
         "lint-staged": "^13.2.3",
         "prettier": "2.3.2",
         "turbo": "^1.10.3"
