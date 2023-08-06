@@ -1,6 +1,6 @@
 import DialogBoxV2 from '@/components/DialogBoxV2';
 import EnteButton from '@/components/EnteButton';
-import { Stepper, Step, StepLabel, Stack } from '@mui/material';
+import { Stepper, Step, StepLabel, Stack, Dialog } from '@mui/material';
 import { useState } from 'react';
 
 interface IProps {
@@ -12,7 +12,7 @@ const TutorialDialog = (props: IProps) => {
     const steps = [
         {
             title: "What's locker?",
-            text: 'Hey, welcome to Locker! For a long time now, ente has been all about photos, but we recognize you may have other files you want to keep backed up securely. Locker is just that, your personal locker for important documents. This is your Home collection where all your sub-collections and uncategorized files will live.',
+            text: 'Locker serves as your personal document storage, providing a safe place for important files. This Home collection is where all your sub-collections and uncategorized files will be stored.',
             images: ['/images/tutorial/city.png'],
         },
         {
@@ -23,10 +23,7 @@ const TutorialDialog = (props: IProps) => {
         {
             title: 'Files',
             text: 'Files can be selected by clicking on their checkboxes, revealing a list of options, like renaming, moving and more.',
-            images: [
-                '/images/tutorial/selected_file.svg',
-                '/images/tutorial/selected_options.jpg',
-            ],
+            images: ['/images/tutorial/selected_file.svg'],
         },
     ];
 
@@ -34,13 +31,14 @@ const TutorialDialog = (props: IProps) => {
 
     return (
         <DialogBoxV2
-            sx={{ zIndex: 1600 }}
-            attributes={{
-                title: `Locker Introduction`,
-            }}
+            disablePortal
             open={props.open}
             onClose={props.onHide}
-            dialogMaxWidth="40rem">
+            sx={{ zIndex: 1600 }}
+            dialogMaxWidth="30rem"
+            attributes={{
+                title: `Locker Introduction`,
+            }}>
             <Stepper activeStep={activeStep} alternativeLabel>
                 {steps.map((step) => (
                     <Step key={step.title}>
@@ -49,12 +47,35 @@ const TutorialDialog = (props: IProps) => {
                 ))}
             </Stepper>
 
-            <Stack gap="1rem">
-                {steps[activeStep].text && <p>{steps[activeStep].text}</p>}
-                {steps[activeStep].images &&
-                    steps[activeStep].images.map((image, index) => (
-                        <img key={index} src={image} alt="" />
-                    ))}
+            <Stack gap="1rem" alignItems="space-between" height="100%">
+                <div
+                    style={{
+                        height: '8rem',
+                    }}>
+                    {steps[activeStep].text && <p>{steps[activeStep].text}</p>}
+                </div>
+                <div
+                    style={{
+                        height: '10rem',
+                        width: '100%',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}>
+                    {steps[activeStep].images &&
+                        steps[activeStep].images.map((image, index) => (
+                            <img
+                                key={index}
+                                src={image}
+                                alt=""
+                                style={{
+                                    height: '100%',
+                                    width: '100%',
+                                    objectFit: 'contain',
+                                }}
+                            />
+                        ))}
+                </div>
                 <EnteButton
                     onClick={() => {
                         if (activeStep === steps.length - 1) {
