@@ -47,6 +47,8 @@ const FileInfoDrawer = ({
         useState<boolean>(false);
 
     useEffect(() => {
+        if (!selectedFile) return;
+
         const timer = setTimeout(async () => {
             setCaptionSaveInProgress(true);
             // save value
@@ -65,7 +67,7 @@ const FileInfoDrawer = ({
             }
         }, 500);
         return () => clearTimeout(timer);
-    }, [caption]);
+    }, [caption, selectedFile, syncFiles]);
 
     const onCaptionChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
         setCaption(event.target.value || '');
@@ -124,7 +126,7 @@ const FileInfoDrawer = ({
                     </ListItemIcon>
                     <ListItemText>
                         {convertBytesToHumanReadable(
-                            selectedFile?.info.fileSize
+                            selectedFile?.info?.fileSize
                         )}
                     </ListItemText>
                 </ListItem>
