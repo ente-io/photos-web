@@ -265,27 +265,35 @@ const Locker = () => {
                             height="100%"
                             padding="1rem"
                             boxSizing="border-box">
-                            {currentCollection?.id !==
-                                uncategorizedCollection?.id && (
-                                <Box display="flex" alignItems="center">
-                                    {collectionsPath.map((collection, i) => (
-                                        <Fragment key={collection.id}>
-                                            <Button
-                                                variant="text"
-                                                onClick={() => {
-                                                    setCurrentCollection(
-                                                        collection
-                                                    );
-                                                }}>
-                                                {collection.name}
-                                            </Button>
-                                            {collectionsPath.length - 1 !==
-                                                i && (
-                                                <ChevronRightRoundedIcon />
+                            {dashboardView === 'locker' && (
+                                <>
+                                    {currentCollection?.id !==
+                                        uncategorizedCollection?.id && (
+                                        <Box display="flex" alignItems="center">
+                                            {collectionsPath.map(
+                                                (collection, i) => (
+                                                    <Fragment
+                                                        key={collection.id}>
+                                                        <Button
+                                                            variant="text"
+                                                            onClick={() => {
+                                                                setCurrentCollection(
+                                                                    collection
+                                                                );
+                                                            }}>
+                                                            {collection.name}
+                                                        </Button>
+                                                        {collectionsPath.length -
+                                                            1 !==
+                                                            i && (
+                                                            <ChevronRightRoundedIcon />
+                                                        )}
+                                                    </Fragment>
+                                                )
                                             )}
-                                        </Fragment>
-                                    ))}
-                                </Box>
+                                        </Box>
+                                    )}
+                                </>
                             )}
                             {collections.length > 0 &&
                                 currentCollection?.id ===
