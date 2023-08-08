@@ -30,9 +30,8 @@ const UploaderFile = (props: IProps) => {
     useEffect(() => {
         if (currentInProgressUpload) {
             // if it's finished, set to 100
-            if (!finishedUploads) return;
             if (
-                finishedUploads.get(UPLOAD_RESULT.UPLOADED) ||
+                finishedUploads?.get(UPLOAD_RESULT.UPLOADED) ||
                 uploadStage === UPLOAD_STAGES.FINISH
             ) {
                 if (
