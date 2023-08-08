@@ -281,7 +281,10 @@ const Locker = () => {
                                                                     collection
                                                                 );
                                                             }}>
-                                                            {collection.name}
+                                                            {collection.name ===
+                                                            'Uncategorized'
+                                                                ? 'Home'
+                                                                : collection.name}
                                                         </Button>
                                                         {collectionsPath.length -
                                                             1 !==
