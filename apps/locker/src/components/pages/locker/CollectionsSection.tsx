@@ -10,7 +10,7 @@ const CollectionsSection = () => {
 
     return (
         <>
-            <h3>Collections</h3>
+            <h3>Sub-Collections</h3>
             <Box gap="1rem" flexWrap="wrap" display="flex">
                 {collections
                     .filter((r) => r.id !== uncategorizedCollection?.id)

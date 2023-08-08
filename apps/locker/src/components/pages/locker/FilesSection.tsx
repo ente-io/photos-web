@@ -4,11 +4,16 @@ import { useContext } from 'react';
 import { LockerDashboardContext } from '@/pages/locker';
 
 const FilesSection = () => {
-    const { filteredFiles } = useContext(LockerDashboardContext);
+    const { filteredFiles, currentCollection, uncategorizedCollection } =
+        useContext(LockerDashboardContext);
 
     return (
         <>
-            <h3>Files</h3>
+            <h3>
+                {currentCollection?.id === uncategorizedCollection?.id &&
+                    'Uncategorized'}{' '}
+                Files
+            </h3>
             <Box
                 display="grid"
                 gridTemplateColumns={'repeat(auto-fill, minmax(200px, 1fr))'}
