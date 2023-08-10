@@ -136,7 +136,7 @@ const defaultGalleryContext: GalleryContextType = {
     thumbs: new Map(),
     files: new Map(),
     showPlanSelectorModal: () => null,
-    setActiveCollection: () => null,
+    setActiveCollectionID: () => null,
     syncWithRemote: () => null,
     setBlockingLoad: () => null,
     setIsInSearchMode: () => null,
@@ -180,6 +180,7 @@ export default function Gallery() {
     const [collectionNamerView, setCollectionNamerView] = useState(false);
     const [search, setSearch] = useState<Search>(null);
     const [shouldDisableDropzone, setShouldDisableDropzone] = useState(false);
+    const [isPhotoSwipeOpen, setIsPhotoSwipeOpen] = useState(false);
 
     const {
         getRootProps: getDragAndDropRootProps,
@@ -224,7 +225,8 @@ export default function Gallery() {
     const [userIDToEmailMap, setUserIDToEmailMap] =
         useState<Map<number, string>>(null);
     const [emailList, setEmailList] = useState<string[]>(null);
-    const [activeCollection, setActiveCollection] = useState<number>(undefined);
+    const [activeCollectionID, setActiveCollectionID] =
+        useState<number>(undefined);
     const [fixCreationTimeView, setFixCreationTimeView] = useState(false);
     const [fixCreationTimeAttributes, setFixCreationTimeAttributes] =
         useState<FixCreationTimeAttributes>(null);
@@ -275,7 +277,8 @@ export default function Gallery() {
             if (!valid) {
                 return;
             }
-            setActiveCollection(ALL_SECTION);
+            setupSelectAllKeyBoardShortcutHandler();
+            setActiveCollectionID(ALL_SECTION);
             setIsFirstLoad(isFirstLogin());
             setIsFirstFetch(true);
             if (justSignedUp()) {
@@ -350,22 +353,22 @@ export default function Gallery() {
     }, [fixCreationTimeAttributes]);
 
     useEffect(() => {
-        if (typeof activeCollection === 'undefined') {
+        if (typeof activeCollectionID === 'undefined') {
             return;
         }
         let collectionURL = '';
-        if (activeCollection !== ALL_SECTION) {
+        if (activeCollectionID !== ALL_SECTION) {
             collectionURL += '?collection=';
-            if (activeCollection === ARCHIVE_SECTION) {
+            if (activeCollectionID === ARCHIVE_SECTION) {
                 collectionURL += t('ARCHIVE_SECTION_NAME');
-            } else if (activeCollection === TRASH_SECTION) {
+            } else if (activeCollectionID === TRASH_SECTION) {
                 collectionURL += t('TRASH');
-            } else if (activeCollection === DUMMY_UNCATEGORIZED_SECTION) {
+            } else if (activeCollectionID === DUMMY_UNCATEGORIZED_SECTION) {
                 collectionURL += t('UNCATEGORIZED');
-            } else if (activeCollection === HIDDEN_SECTION) {
+            } else if (activeCollectionID === HIDDEN_SECTION) {
                 collectionURL += t('HIDDEN');
             } else {
-                collectionURL += activeCollection;
+                collectionURL += activeCollectionID;
             }
         }
         const href = `/gallery${collectionURL}`;
@@ -376,7 +379,7 @@ export default function Gallery() {
         };
 
         delayRouteChange();
-    }, [activeCollection]);
+    }, [activeCollectionID]);
 
     useEffect(() => {
         const key = getKey(SESSION_KEYS.ENCRYPTION_KEY);
@@ -403,6 +406,12 @@ export default function Gallery() {
         }
     }, [isInSearchMode, searchResultSummary]);
 
+    const activeCollection = useMemo(() => {
+        return collections?.find(
+            (collection) => collection.id === activeCollectionID
+        );
+    }, [collections, activeCollectionID]);
+
     const filteredData = useMemoSingleThreaded((): EnteFile[] => {
         if (
             !files ||
@@ -414,24 +423,24 @@ export default function Gallery() {
             return;
         }
 
-        if (activeCollection === HIDDEN_SECTION && !isInSearchMode) {
+        if (activeCollectionID === HIDDEN_SECTION && !isInSearchMode) {
             return getUniqueFiles([
                 ...hiddenFiles,
                 ...files.filter((file) => hiddenFileIds?.has(file.id)),
             ]);
         }
 
-        if (activeCollection === TRASH_SECTION && !isInSearchMode) {
+        if (activeCollectionID === TRASH_SECTION && !isInSearchMode) {
             return getUniqueFiles([
                 ...trashedFiles,
                 ...files.filter((file) => deletedFileIds?.has(file.id)),
             ]);
         }
         let sortAsc = false;
-        if (activeCollection > 0) {
+        if (activeCollectionID > 0) {
             // find matching collection in collections
             for (const collection of collections) {
-                if (collection.id === activeCollection) {
+                if (collection.id === activeCollectionID) {
                     sortAsc = collection?.pubMagicMetadata?.data?.asc ?? false;
                     break;
                 }
@@ -496,7 +505,7 @@ export default function Gallery() {
 
                 // archived collections files can only be seen in their respective collection
                 if (archivedCollections.has(item.collectionID)) {
-                    if (activeCollection === item.collectionID) {
+                    if (activeCollectionID === item.collectionID) {
                         return true;
                     } else {
                         return false;
@@ -506,8 +515,8 @@ export default function Gallery() {
                 // Archived files can only be seen in archive section or their respective collection
                 if (isArchivedFile(item)) {
                     if (
-                        activeCollection === ARCHIVE_SECTION ||
-                        activeCollection === item.collectionID
+                        activeCollectionID === ARCHIVE_SECTION ||
+                        activeCollectionID === item.collectionID
                     ) {
                         return true;
                     } else {
@@ -516,12 +525,12 @@ export default function Gallery() {
                 }
 
                 // ALL SECTION - show all files
-                if (activeCollection === ALL_SECTION) {
+                if (activeCollectionID === ALL_SECTION) {
                     return true;
                 }
 
                 // COLLECTION SECTION - show files in the active collection
-                if (activeCollection === item.collectionID) {
+                if (activeCollectionID === item.collectionID) {
                     return true;
                 } else {
                     return false;
@@ -536,13 +545,69 @@ export default function Gallery() {
         deletedFileIds,
         hiddenFileIds,
         search,
-        activeCollection,
+        activeCollectionID,
         archivedCollections,
     ]);
 
+    const selectAll = (e: KeyboardEvent) => {
+        // ignore ctrl/cmd + a if the user is typing in a text field
+        if (
+            e.target instanceof HTMLInputElement ||
+            e.target instanceof HTMLTextAreaElement
+        ) {
+            return;
+        }
+        // if any of the modals are open, don't select all
+        if (
+            sidebarView ||
+            uploadTypeSelectorView ||
+            collectionSelectorView ||
+            collectionNamerView ||
+            fixCreationTimeView ||
+            planModalView ||
+            exportModalView ||
+            authenticateUserModalView ||
+            isPhotoSwipeOpen ||
+            !filteredData?.length ||
+            !user
+        ) {
+            return;
+        }
+        e.preventDefault();
+        const selected = {
+            ownCount: 0,
+            count: 0,
+            collectionID: activeCollectionID,
+        };
+
+        filteredData.forEach((item) => {
+            if (item.ownerID === user.id) {
+                selected.ownCount++;
+            }
+            selected.count++;
+            selected[item.id] = true;
+        });
+        setSelected(selected);
+    };
+
+    const clearSelection = () => {
+        if (!selected?.count) {
+            return;
+        }
+        setSelected({ ownCount: 0, count: 0, collectionID: 0 });
+    };
+
+    const keyboardShortcutHandlerRef = useRef({
+        selectAll,
+        clearSelection,
+    });
+
     useEffect(() => {
-        return setupCtrlAHandler(filteredData);
-    }, [filteredData]);
+        keyboardShortcutHandlerRef.current = {
+            selectAll,
+            clearSelection,
+        };
+    }, [selectAll, clearSelection]);
 
     const fileToCollectionsMap = useMemoSingleThreaded(() => {
         return constructFileToCollectionMap(files);
@@ -609,22 +674,22 @@ export default function Gallery() {
         }
     };
 
-    const setupCtrlAHandler = (filteredData) => {
-        const ctrlAHandler = (e: KeyboardEvent) => {
-            // setup ctrl/cmd + a handler
-            if (
-                (e.ctrlKey || e.metaKey) &&
-                e.key.toLowerCase() === 'a' &&
-                !e.shiftKey &&
-                !e.altKey
-            ) {
-                e.preventDefault();
-                selectAll(filteredData);
+    const setupSelectAllKeyBoardShortcutHandler = () => {
+        const handleKeyUp = (e: KeyboardEvent) => {
+            switch (e.key) {
+                case 'Escape':
+                    keyboardShortcutHandlerRef.current.clearSelection();
+                    break;
+                case 'a':
+                    if (e.ctrlKey || e.metaKey) {
+                        keyboardShortcutHandlerRef.current.selectAll(e);
+                    }
+                    break;
             }
         };
-        document.addEventListener('keydown', ctrlAHandler);
+        document.addEventListener('keydown', handleKeyUp);
         return () => {
-            document.removeEventListener('keydown', ctrlAHandler);
+            document.removeEventListener('keydown', handleKeyUp);
         };
     };
 
@@ -648,27 +713,6 @@ export default function Gallery() {
             archivedCollections
         );
         setCollectionSummaries(collectionSummaries);
-    };
-
-    const clearSelection = function () {
-        setSelected({ ownCount: 0, count: 0, collectionID: 0 });
-    };
-
-    const selectAll = function (filteredData) {
-        const selected = {
-            ownCount: 0,
-            count: 0,
-            collectionID: activeCollection,
-        };
-
-        filteredData.forEach((item) => {
-            if (item.ownerID === user.id) {
-                selected.ownCount++;
-            }
-            selected.count++;
-            selected[item.id] = true;
-        });
-        setSelected(selected);
     };
 
     if (!collectionSummaries || !filteredData) {
@@ -698,7 +742,7 @@ export default function Gallery() {
 
                 clearSelection();
                 await syncWithRemote(false, true);
-                setActiveCollection(collection.id);
+                setActiveCollectionID(collection.id);
             } catch (e) {
                 logError(e, 'collection ops failed', { ops });
                 setDialogMessage({
@@ -773,7 +817,7 @@ export default function Gallery() {
 
     const updateSearch: UpdateSearch = (newSearch, summary) => {
         if (newSearch?.collection) {
-            setActiveCollection(newSearch?.collection);
+            setActiveCollectionID(newSearch?.collection);
         } else {
             setSearch(newSearch);
         }
@@ -810,7 +854,7 @@ export default function Gallery() {
             value={{
                 ...defaultGalleryContext,
                 showPlanSelectorModal,
-                setActiveCollection,
+                setActiveCollectionID,
                 syncWithRemote,
                 setBlockingLoad,
                 setIsInSearchMode,
@@ -871,21 +915,21 @@ export default function Gallery() {
                     isInSearchMode={isInSearchMode}
                     collections={collections}
                     files={files}
-                    setActiveCollection={setActiveCollection}
                     updateSearch={updateSearch}
                 />
 
                 <Collections
-                    collections={collections}
+                    activeCollection={activeCollection}
                     isInSearchMode={isInSearchMode}
-                    activeCollectionID={activeCollection}
-                    setActiveCollectionID={setActiveCollection}
+                    activeCollectionID={activeCollectionID}
+                    setActiveCollectionID={setActiveCollectionID}
                     collectionSummaries={collectionSummaries}
                     setCollectionNamerAttributes={setCollectionNamerAttributes}
                     setPhotoListHeader={setPhotoListHeader}
                 />
 
                 <Uploader
+                    activeCollection={activeCollection}
                     syncWithRemote={syncWithRemote}
                     showCollectionSelector={setCollectionSelectorView.bind(
                         null,
@@ -928,7 +972,7 @@ export default function Gallery() {
                 !isFirstLoad &&
                 !files?.length &&
                 !hiddenFiles?.length &&
-                activeCollection === ALL_SECTION ? (
+                activeCollectionID === ALL_SECTION ? (
                     <GalleryEmptyState openUploader={openUploader} />
                 ) : (
                     <PhotoFrame
@@ -939,7 +983,8 @@ export default function Gallery() {
                         selected={selected}
                         deletedFileIds={deletedFileIds}
                         setDeletedFileIds={setDeletedFileIds}
-                        activeCollection={activeCollection}
+                        setIsPhotoSwipeOpen={setIsPhotoSwipeOpen}
+                        activeCollectionID={activeCollectionID}
                         enableDownload={true}
                         fileToCollectionsMap={fileToCollectionsMap}
                         collectionNameMap={collectionNameMap}
@@ -949,7 +994,7 @@ export default function Gallery() {
                     />
                 )}
                 {selected.count > 0 &&
-                    selected.collectionID === activeCollection && (
+                    selected.collectionID === activeCollectionID && (
                         <SelectedFileOptions
                             handleCollectionOps={collectionOpsHelper}
                             handleFileOps={fileOpsHelper}
@@ -962,25 +1007,25 @@ export default function Gallery() {
                             count={selected.count}
                             ownCount={selected.ownCount}
                             clearSelection={clearSelection}
-                            activeCollection={activeCollection}
+                            activeCollectionID={activeCollectionID}
                             selectedCollection={getSelectedCollection(
                                 selected.collectionID,
                                 collections
                             )}
                             isFavoriteCollection={
-                                collectionSummaries.get(activeCollection)
+                                collectionSummaries.get(activeCollectionID)
                                     ?.type === CollectionSummaryType.favorites
                             }
                             isUncategorizedCollection={
-                                collectionSummaries.get(activeCollection)
+                                collectionSummaries.get(activeCollectionID)
                                     ?.type ===
                                 CollectionSummaryType.uncategorized
                             }
                             isIncomingSharedCollection={
-                                collectionSummaries.get(activeCollection)
+                                collectionSummaries.get(activeCollectionID)
                                     ?.type ===
                                     CollectionSummaryType.incomingShareCollaborator ||
-                                collectionSummaries.get(activeCollection)
+                                collectionSummaries.get(activeCollectionID)
                                     ?.type ===
                                     CollectionSummaryType.incomingShareViewer
                             }
