@@ -152,7 +152,7 @@ const Locker = () => {
     };
 
     const doSyncTrash = async () => {
-        await syncTrash(collections, files, setFiles);
+        await syncTrash(collections, files, () => {});
 
         if (dashboardView !== 'trash') {
             return;
