@@ -14,7 +14,7 @@ const CollectionEmptyMessage = () => {
             alignItems="center"
             flexDirection={'column'}
             gap="2rem"
-            marginTop="1rem">
+            marginTop="10rem">
             {dashboardView === 'locker' && (
                 <Image
                     src="/images/empty-state/ente_duck.png"
