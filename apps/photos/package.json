@@ -62,7 +62,7 @@
         "next": "^13.1.2",
         "next-transpile-modules": "^10.0.0",
         "otpauth": "^9.0.2",
-        "p-queue": "^7.1.0",
+        "p-queue": "^7.4.0",
         "photoswipe": "file:./thirdparty/photoswipe",
         "piexifjs": "^1.0.6",
         "react": "^18.2.0",
