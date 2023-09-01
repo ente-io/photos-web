@@ -9,6 +9,7 @@ import {
     ListItemIcon,
     ListItemText,
     Box,
+    Typography,
 } from '@mui/material';
 import { Dispatch, SetStateAction, useContext } from 'react';
 import CloseIcon from '@mui/icons-material/Close';
@@ -48,8 +49,17 @@ const LockerDrawer = ({
                     </IconButton>
                 </ListItem>
                 <ListItem>
+                    <Typography
+                        variant="large"
+                        px={0.5}
+                        fontWeight={'medium'}
+                        color="text.muted">
+                        {userDetails?.email}
+                    </Typography>
+                </ListItem>
+                <ListItem>
                     {userDetails && (
-                        <Box px={0.5} mt={2} pb={1.5} mb={1}>
+                        <Box px={0.5} mt={0.5} pb={1.5} mb={1}>
                             <SubscriptionCard
                                 userDetails={userDetails}
                                 onClick={() => {
