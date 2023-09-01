@@ -15,12 +15,14 @@ const CollectionEmptyMessage = () => {
             flexDirection={'column'}
             gap="2rem"
             marginTop="1rem">
-            <Image
-                src="/images/empty-state/ente_duck.png"
-                height={288}
-                width={376}
-                alt="Yellow duck smiling and dancing with the word ente in the background"
-            />
+            {dashboardView === 'locker' && (
+                <Image
+                    src="/images/empty-state/ente_duck.png"
+                    height={288}
+                    width={376}
+                    alt="Yellow duck smiling and dancing with the word ente in the background"
+                />
+            )}
             <Typography fontSize={24} lineHeight={1.25} textAlign="center">
                 {t(
                     dashboardView === 'trash'
