@@ -40,7 +40,11 @@ const FileComponent = ({ file }: { file: EnteFile }) => {
                         setSelectedFiles([...selectedFiles, file]);
                     }
                 }}>
-                {isSelected ? <CheckBoxIcon /> : <CheckBoxOutlineBlankIcon />}
+                {isSelected ? (
+                    <CheckBoxIcon color="accent" />
+                ) : (
+                    <CheckBoxOutlineBlankIcon />
+                )}
             </IconButton>
             <Typography
                 textOverflow="ellipsis"
