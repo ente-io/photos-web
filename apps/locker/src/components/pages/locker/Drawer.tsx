@@ -11,7 +11,7 @@ import {
     Box,
 } from '@mui/material';
 import { Dispatch, SetStateAction, useContext } from 'react';
-import MenuIcon from '@mui/icons-material/Menu';
+import CloseIcon from '@mui/icons-material/Close';
 import CloudIcon from '@mui/icons-material/Cloud';
 import FolderDeleteIcon from '@mui/icons-material/FolderDelete';
 // import SettingsIcon from '@mui/icons-material/Settings';
@@ -44,7 +44,7 @@ const LockerDrawer = ({
                         onClick={() => {
                             setIsOpen(false);
                         }}>
-                        <MenuIcon />
+                        <CloseIcon />
                     </IconButton>
                 </ListItem>
                 <ListItem>
