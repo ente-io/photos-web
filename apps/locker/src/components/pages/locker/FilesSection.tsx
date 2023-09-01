@@ -2,6 +2,7 @@ import { Box } from '@mui/material';
 import FileComponent from './File';
 import { useContext } from 'react';
 import { LockerDashboardContext } from '@/pages/locker';
+import { t } from 'i18next';
 
 const FilesSection = () => {
     const { filteredFiles, currentCollection, uncategorizedCollection } =
@@ -11,8 +12,8 @@ const FilesSection = () => {
         <>
             <h3>
                 {currentCollection?.id === uncategorizedCollection?.id &&
-                    'Uncategorized'}{' '}
-                Files
+                    t('UNCATEGORIZED')}{' '}
+                {t('FILES')}
             </h3>
             <Box
                 display="grid"

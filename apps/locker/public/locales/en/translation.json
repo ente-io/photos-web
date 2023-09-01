@@ -531,5 +531,6 @@
     "CLEAR_IN_PROGRESS_UPLOADS": "Clear and cancel in-progress uploads?",
     "NO_REGISTRATION": "does not support registration",
     "NO_REGISTRATION_MESSAGE": "ente Locker does not support registration during beta. You must first create your account with ente Photos, and then you can return to Locker to sign in.",
-    "CONTINUE": "Continue"
+    "CONTINUE": "Continue",
+    "SUB_LOCKERS": "Sub-Lockers"
 }

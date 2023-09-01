@@ -2,6 +2,7 @@ import { Box } from '@mui/material';
 import CollectionComponent from './Collection';
 import { LockerDashboardContext } from '@/pages/locker';
 import { useContext } from 'react';
+import { t } from 'i18next';
 
 const CollectionsSection = () => {
     const { collections, uncategorizedCollection } = useContext(
@@ -10,7 +11,7 @@ const CollectionsSection = () => {
 
     return (
         <>
-            <h3>Sub-Collections</h3>
+            <h3>{t('SUB_LOCKERS')}</h3>
             <Box gap="1rem" flexWrap="wrap" display="flex">
                 {collections
                     .filter((r) => r.id !== uncategorizedCollection?.id)
