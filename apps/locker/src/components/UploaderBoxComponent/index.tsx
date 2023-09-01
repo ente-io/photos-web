@@ -209,6 +209,7 @@ const UploaderBoxComponent = (props: IProps) => {
                         gap="0.5rem"
                         paddingTop="0.5rem"
                         paddingBottom="0.5rem"
+                        maxHeight="20vh"
                         sx={{
                             overflowY: 'auto',
                         }}>
