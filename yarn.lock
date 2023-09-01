@@ -1096,10 +1096,10 @@
   resolved "https://registry.yarnpkg.com/@webgpu/types/-/types-0.1.30.tgz#b6406dc4a1c1e0d469028ceb30ddffbbd2fa706c"
   integrity sha512-9AXJSmL3MzY8ZL//JjudA//q+2kBRGhLBFpkdGksWIuxrMy81nFrCzj2Am+mbh8WoU6rXmv7cY5E3rdlyru2Qg==
 
-"@zip.js/zip.js@^2.4.2":
-  version "2.4.2"
-  resolved "https://registry.npmjs.org/@zip.js/zip.js/-/zip.js-2.4.2.tgz"
-  integrity sha512-D4xr9g7U625Q01lQASr9g1sQWEGhndyd+G3v3OvY/qH3pwaJDpbVDy+TO6yEq7c8teQdjjTiiBvlcQcVtT+itg==
+"@zip.js/zip.js@^2.7.27":
+  version "2.7.27"
+  resolved "https://registry.yarnpkg.com/@zip.js/zip.js/-/zip.js-2.7.27.tgz#ac5ea72c17d00bc386478abaa3c0148634df707a"
+  integrity sha512-hKNtKPXkkcz2D4QWzaampsZf4yISRvmU3By35+yLfD73fd68YGF/WAYMJi5VEWJtApEy0mPWHWVqODSymwGykQ==
 
 acorn-jsx@^5.3.2:
   version "5.3.2"
