@@ -43,7 +43,7 @@ const DeleteCollectionsModal = (props: IProps) => {
                 <EnteButton
                     type="submit"
                     size="large"
-                    color="critical"
+                    color="warning"
                     onClick={async () => {
                         for await (const collection of selectedCollections) {
                             await deleteCollection(collection.id, true);
