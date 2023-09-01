@@ -6,7 +6,10 @@ import { Fragment, useContext, useEffect, useState } from 'react';
 import CollectionComponent from './Collection';
 import EnteButton from '@/components/EnteButton';
 import { LockerDashboardContext } from '@/pages/locker';
-import { moveToCollection } from '@/services/collectionService';
+import {
+    moveToCollection,
+    restoreToCollection,
+} from '@/services/collectionService';
 import { t } from 'i18next';
 
 interface IProps {
@@ -19,7 +22,7 @@ const MoveFilesModal = (props: IProps) => {
         null
     );
 
-    const { selectedFiles } = useContext(LockerDashboardContext);
+    const { selectedFiles, dashboardView } = useContext(LockerDashboardContext);
 
     const [filteredCollections, setFilteredCollections] = useState<
         Collection[]
@@ -67,8 +70,9 @@ const MoveFilesModal = (props: IProps) => {
                         <>
                             {filteredCollections.map((collection) => (
                                 <Fragment key={collection.id}>
-                                    {collection.id !==
-                                        selectedFiles[0].collectionID && (
+                                    {(dashboardView === 'trash' ||
+                                        collection.id !==
+                                            selectedFiles[0].collectionID) && (
                                         <CollectionComponent
                                             collection={collection}
                                             sx={{
@@ -96,11 +100,18 @@ const MoveFilesModal = (props: IProps) => {
                         color={'accent'}
                         onClick={async () => {
                             for (const file of selectedFiles) {
-                                await moveToCollection(
-                                    targetCollection,
-                                    file.collectionID,
-                                    [file]
-                                );
+                                if (dashboardView === 'trash') {
+                                    await restoreToCollection(
+                                        targetCollection,
+                                        [file]
+                                    );
+                                } else {
+                                    await moveToCollection(
+                                        targetCollection,
+                                        file.collectionID,
+                                        [file]
+                                    );
+                                }
                             }
                             props.onHide();
                         }}>
