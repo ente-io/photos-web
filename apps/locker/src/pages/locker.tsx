@@ -139,7 +139,7 @@ const Locker = () => {
             setCollectionsPath([]);
             setCurrentCollection(null);
 
-            await syncTrash(collections, files, setFiles);
+            await syncTrash(collections, files, () => {});
 
             const localTrash = await getLocalTrash();
 
@@ -182,7 +182,7 @@ const Locker = () => {
 
     const filteredFiles = useMemo(() => {
         if (dashboardView === 'trash') return files;
-        if (!currentCollection) return [];
+        if (!currentCollection) return files;
 
         const filtered = files.filter((file) => {
             return file.collectionID === currentCollection.id;
@@ -298,6 +298,7 @@ const Locker = () => {
                                     )}
                                 </>
                             )}
+
                             {collections.length > 0 &&
                                 currentCollection?.id ===
                                     uncategorizedCollection?.id && (
