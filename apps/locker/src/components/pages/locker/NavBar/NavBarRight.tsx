@@ -24,8 +24,7 @@ import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import { isMobileDisplay } from '@/utils/resolution/isMobile';
 import dynamic from 'next/dynamic';
 import InfoIcon from '@mui/icons-material/Info';
-import RestoreIcon from '@mui/icons-material/Restore';
-
+import RestoreFromTrashIcon from '@mui/icons-material/RestoreFromTrash';
 const NewCollectionModal = dynamic(() => import('../NewCollectionModal'));
 const TrashFilesModal = dynamic(() => import('../TrashFilesModal'));
 const RenameFileModal = dynamic(() => import('../RenameFileModal'));
@@ -328,7 +327,7 @@ const NavBarRight = () => {
                                     <>
                                         <IconButton onClick={moveFilesHandler}>
                                             {dashboardView === 'trash' ? (
-                                                <RestoreIcon />
+                                                <RestoreFromTrashIcon />
                                             ) : (
                                                 <DriveFileMoveIcon />
                                             )}
