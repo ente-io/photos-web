@@ -15,7 +15,9 @@ import MenuIcon from '@mui/icons-material/Menu';
 import CloudIcon from '@mui/icons-material/Cloud';
 import FolderDeleteIcon from '@mui/icons-material/FolderDelete';
 // import SettingsIcon from '@mui/icons-material/Settings';
+import LogoutIcon from '@mui/icons-material/Logout';
 import { t } from 'i18next';
+import { logoutUser } from '@/services/userService';
 
 const LockerDrawer = ({
     isOpen,
@@ -79,6 +81,17 @@ const LockerDrawer = ({
                             <FolderDeleteIcon />
                         </ListItemIcon>
                         <ListItemText primary={t('TRASH')} />
+                    </ListItemButton>
+                </ListItem>
+                <ListItem>
+                    <ListItemButton
+                        onClick={() => {
+                            logoutUser();
+                        }}>
+                        <ListItemIcon>
+                            <LogoutIcon />
+                        </ListItemIcon>
+                        <ListItemText primary={t('LOGOUT')} />
                     </ListItemButton>
                 </ListItem>
                 {/* <ListItem>
