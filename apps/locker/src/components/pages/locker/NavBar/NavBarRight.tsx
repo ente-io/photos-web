@@ -433,7 +433,11 @@ const NavBarRight = () => {
                 onHide={() => {
                     setShowMoveFilesModal(false);
                     setSelectedFiles([]);
-                    syncFiles();
+                    if (dashboardView === 'locker') {
+                        syncFiles();
+                    } else if (dashboardView === 'trash') {
+                        syncTrash();
+                    }
                 }}
             />
             <PermanentlyDeleteFilesModal
