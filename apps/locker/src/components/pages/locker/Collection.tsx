@@ -85,7 +85,7 @@ const CollectionComponent = ({
             {isHover || selectedCollections.length > 0 ? (
                 <>
                     {isSelected ? (
-                        <CheckBoxIcon />
+                        <CheckBoxIcon color="accent" />
                     ) : (
                         <CheckBoxOutlineBlankIcon />
                     )}
