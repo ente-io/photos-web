@@ -208,7 +208,10 @@ const UploaderBoxComponent = (props: IProps) => {
                         flexDirection="column"
                         gap="0.5rem"
                         paddingTop="0.5rem"
-                        paddingBottom="0.5rem">
+                        paddingBottom="0.5rem"
+                        sx={{
+                            overflowY: 'auto',
+                        }}>
                         {uploadingFiles.map((file, index) => (
                             <UploaderFile
                                 key={index}
