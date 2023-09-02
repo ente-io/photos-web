@@ -55,6 +55,8 @@ interface lockerDashboardContextProps {
     showUploaderBoxComponent: boolean;
     setShowUploaderBoxComponent: Dispatch<SetStateAction<boolean>>;
     filteredFiles: EnteFile[];
+    nameSearchQuery: string;
+    setNameSearchQuery: Dispatch<SetStateAction<string>>;
 }
 
 export const LockerDashboardContext =
@@ -93,6 +95,8 @@ const Locker = () => {
     const [initialLoadFinished, setInitialLoadFinished] = useState(false);
 
     const [showTutorialDialog, setShowTutorialDialog] = useState(false);
+
+    const [nameSearchQuery, setNameSearchQuery] = useState('');
 
     const router = useRouter();
 
@@ -184,12 +188,20 @@ const Locker = () => {
         if (dashboardView === 'trash') return files;
         if (!currentCollection) return files;
 
-        const filtered = files.filter((file) => {
+        let filtered = files.filter((file) => {
             return file.collectionID === currentCollection.id;
         });
 
+        if (nameSearchQuery.trim().length > 0) {
+            filtered = filtered.filter((file) => {
+                return file.metadata.title
+                    .toLowerCase()
+                    .includes(nameSearchQuery.toLowerCase());
+            });
+        }
+
         return filtered;
-    }, [files, currentCollection, dashboardView]);
+    }, [files, currentCollection, dashboardView, nameSearchQuery]);
 
     useEffect(() => {
         setSelectedCollections([]);
@@ -248,6 +260,8 @@ const Locker = () => {
                     showUploaderBoxComponent,
                     setShowUploaderBoxComponent,
                     filteredFiles,
+                    nameSearchQuery,
+                    setNameSearchQuery,
                 }}>
                 <Box
                     height="100vh"

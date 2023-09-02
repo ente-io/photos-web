@@ -2,6 +2,7 @@ import { Box } from '@mui/material';
 import { borderProperty } from '@/constants/ui/locker/border';
 import NavBarLeft from './NavBarLeft';
 import NavBarRight from './NavBarRight';
+import NavBarMiddle from './NavBarMiddle';
 const NavBar = () => {
     return (
         <>
@@ -13,6 +14,7 @@ const NavBar = () => {
                     justifyContent: 'space-between',
                 }}>
                 <NavBarLeft />
+                <NavBarMiddle />
                 <NavBarRight />
             </Box>
         </>
