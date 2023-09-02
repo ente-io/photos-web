@@ -185,12 +185,16 @@ const Locker = () => {
     };
 
     const filteredFiles = useMemo(() => {
-        if (dashboardView === 'trash') return files;
-        if (!currentCollection) return files;
+        // if (dashboardView === 'trash') return files;
+        if (!currentCollection && dashboardView !== 'trash') return files;
 
-        let filtered = files.filter((file) => {
-            return file.collectionID === currentCollection.id;
-        });
+        let filtered: EnteFile[] = files;
+
+        if (currentCollection) {
+            filtered = filtered.filter((file) => {
+                return file.collectionID === currentCollection.id;
+            });
+        }
 
         if (nameSearchQuery.trim().length > 0) {
             filtered = filtered.filter((file) => {
