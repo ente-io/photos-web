@@ -12,6 +12,8 @@ const NavBar = () => {
                     borderBottom: borderProperty,
                     display: 'flex',
                     justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: '1rem',
                 }}>
                 <NavBarLeft />
                 <NavBarMiddle />

@@ -1,7 +1,7 @@
 import { TextField } from '@mui/material';
-import { SearchBarWrapper, SearchInputWrapper } from './styledComponents';
 import { useContext } from 'react';
 import { LockerDashboardContext } from '@/pages/locker';
+import { t } from 'i18next';
 
 const SearchBar = () => {
     const { nameSearchQuery, setNameSearchQuery } = useContext(
@@ -13,12 +13,13 @@ const SearchBar = () => {
             <TextField
                 variant="outlined"
                 value={nameSearchQuery}
+                size="small"
+                sx={{
+                    width: '20rem',
+                }}
+                placeholder={t('LOCKER_SEARCH_HINT')}
                 onChange={(e) => setNameSearchQuery(e.target.value)}
             />
-            {/* <SearchBarWrapper>
-                <SearchInputWrapper isOpen={true}>
-                </SearchInputWrapper>
-            </SearchBarWrapper> */}
         </>
     );
 };
