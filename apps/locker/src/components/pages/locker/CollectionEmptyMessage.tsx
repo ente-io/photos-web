@@ -5,7 +5,9 @@ import Image from 'next/image';
 import { useContext } from 'react';
 
 const CollectionEmptyMessage = () => {
-    const { dashboardView } = useContext(LockerDashboardContext);
+    const { dashboardView, nameSearchQuery } = useContext(
+        LockerDashboardContext
+    );
 
     return (
         <Box
@@ -15,7 +17,7 @@ const CollectionEmptyMessage = () => {
             flexDirection={'column'}
             gap="2rem"
             marginTop="10rem">
-            {dashboardView === 'locker' && (
+            {dashboardView === 'locker' && nameSearchQuery.length < 1 && (
                 <Image
                     src="/images/empty-state/ente_duck.png"
                     height={288}
@@ -25,7 +27,9 @@ const CollectionEmptyMessage = () => {
             )}
             <Typography fontSize={24} lineHeight={1.25} textAlign="center">
                 {t(
-                    dashboardView === 'trash'
+                    nameSearchQuery.length > 0
+                        ? 'NO_RESULTS'
+                        : dashboardView === 'trash'
                         ? 'NO_TRASH_FILES'
                         : 'NO_FILES_GET_STARTED'
                 )}
