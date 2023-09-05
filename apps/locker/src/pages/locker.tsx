@@ -32,6 +32,7 @@ import CollectionsSection from '@/components/pages/locker/CollectionsSection';
 import CollectionEmptyMessage from '@/components/pages/locker/CollectionEmptyMessage';
 import TutorialDialog from '@/components/pages/locker/TutorialDialog';
 import { LS_KEYS, getData, setData } from '@/utils/storage/localStorage';
+import { FILE_SORT_DIRECTION, FILE_SORT_FIELD } from '@/interfaces/sort';
 
 interface lockerDashboardContextProps {
     currentCollection: Collection;
@@ -57,6 +58,10 @@ interface lockerDashboardContextProps {
     filteredFiles: EnteFile[];
     nameSearchQuery: string;
     setNameSearchQuery: Dispatch<SetStateAction<string>>;
+    fileSortField: FILE_SORT_FIELD;
+    setFileSortField: Dispatch<SetStateAction<FILE_SORT_FIELD>>;
+    fileSortDirection: FILE_SORT_DIRECTION;
+    setFileSortDirection: Dispatch<SetStateAction<FILE_SORT_DIRECTION>>;
 }
 
 export const LockerDashboardContext =
@@ -97,6 +102,12 @@ const Locker = () => {
     const [showTutorialDialog, setShowTutorialDialog] = useState(false);
 
     const [nameSearchQuery, setNameSearchQuery] = useState('');
+
+    const [fileSortField, setFileSortField] = useState<FILE_SORT_FIELD>(
+        FILE_SORT_FIELD.DATE_ADDED
+    );
+    const [fileSortDirection, setFileSortDirection] =
+        useState<FILE_SORT_DIRECTION>(FILE_SORT_DIRECTION.ASC);
 
     const router = useRouter();
 
@@ -204,8 +215,35 @@ const Locker = () => {
             });
         }
 
+        switch (fileSortField) {
+            // case FILE_SORT_FIELD.DATE_ADDED: already done by default
+            case FILE_SORT_FIELD.SIZE:
+                filtered = filtered.sort((a, b) => {
+                    return a.info.fileSize - b.info.fileSize;
+                });
+                break;
+            case FILE_SORT_FIELD.NAME:
+                filtered = filtered.sort((a, b) => {
+                    return a.metadata.title.localeCompare(b.metadata.title);
+                });
+                break;
+            default:
+                break;
+        }
+
+        if (fileSortDirection === FILE_SORT_DIRECTION.DESC) {
+            filtered.reverse();
+        }
+
         return filtered;
-    }, [files, currentCollection, dashboardView, nameSearchQuery]);
+    }, [
+        files,
+        currentCollection,
+        dashboardView,
+        nameSearchQuery,
+        fileSortField,
+        fileSortDirection,
+    ]);
 
     useEffect(() => {
         setSelectedCollections([]);
@@ -266,6 +304,10 @@ const Locker = () => {
                     filteredFiles,
                     nameSearchQuery,
                     setNameSearchQuery,
+                    fileSortField,
+                    setFileSortField,
+                    fileSortDirection,
+                    setFileSortDirection,
                 }}>
                 <Box
                     height="100vh"
