@@ -2926,6 +2926,11 @@ formik@^2.3.2:
     tiny-warning "^1.0.2"
     tslib "^1.10.0"
 
+friendly-mimes@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/friendly-mimes/-/friendly-mimes-2.0.0.tgz#1cb68d2abe721fccb1a035dda3b81e980d155d38"
+  integrity sha512-hOQZ1pfkGi8z4yfOlVjQmugb/2WhqQDAYmBP7zr3eHRoRZdt207Pur8AAbVrPYoerWUZqdUUz9p8Mvji6u9OcQ==
+
 fs-minipass@^2.0.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/fs-minipass/-/fs-minipass-2.1.0.tgz#7f5036fdbf12c63c169190cbe4199c852271f9fb"

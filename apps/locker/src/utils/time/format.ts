@@ -85,3 +85,25 @@ export function formatDateRelative(date: number) {
                 u as Intl.RelativeTimeFormatUnit
             );
 }
+
+export const getFriendlyHumanReadableDate = (date: Date): string => {
+    const now = new Date();
+    const diffInMilliseconds = now.getTime() - date.getTime();
+    const diffInDays = Math.floor(diffInMilliseconds / (1000 * 60 * 60 * 24));
+
+    if (diffInDays === 0) {
+        return 'Today';
+    } else if (diffInDays === 1) {
+        return 'Yesterday';
+    } else if (diffInDays <= 7) {
+        return `${diffInDays} days ago`;
+    } else {
+        return date.toLocaleDateString('en-GB', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+        });
+    }
+};

@@ -1,4 +1,13 @@
-import { Box } from '@mui/material';
+import {
+    Box,
+    Paper,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+} from '@mui/material';
 import FileComponent from './File';
 import { useContext } from 'react';
 import { LockerDashboardContext } from '@/pages/locker';
@@ -15,15 +24,24 @@ const FilesSection = () => {
                     t('UNCATEGORIZED')}{' '}
                 {t('FILES')}
             </h3>
-            <Box
-                display="grid"
-                gridTemplateColumns={'repeat(auto-fill, minmax(200px, 1fr))'}
-                gap="1rem"
-                width="100%">
-                {filteredFiles.map((file) => (
-                    <FileComponent file={file} key={file.id} />
-                ))}
-            </Box>
+            <TableContainer component={Paper}>
+                <Table sx={{ minWidth: 650 }} size="medium">
+                    <TableHead>
+                        <TableRow>
+                            <TableCell> </TableCell>
+                            <TableCell>Name</TableCell>
+                            <TableCell>Date Added</TableCell>
+                            <TableCell>Size</TableCell>
+                            <TableCell>Kind</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {filteredFiles.map((file) => (
+                            <FileComponent file={file} key={file.id} />
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
         </>
     );
 };
