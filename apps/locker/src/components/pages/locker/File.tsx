@@ -1,17 +1,18 @@
 import { EnteFile } from '@/interfaces/file';
-import { IconButton, TableRow, TableCell } from '@mui/material';
-import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
-import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import { TableRow, TableCell } from '@mui/material';
 import { useContext, useMemo } from 'react';
 import { LockerDashboardContext } from '@/pages/locker';
 import { getFriendlyHumanReadableDate } from '@/utils/time/format';
 import { convertBytesToHumanReadable } from '../../../utils/file/size';
 import { resolveFileType } from 'friendly-mimes';
+import { AppContext } from '@/pages/_app';
 
-const FileComponent = ({ file }: { file: EnteFile }) => {
-    const { selectedFiles, setSelectedFiles } = useContext(
+const FileComponent = ({ file, index }: { file: EnteFile; index: number }) => {
+    const { selectedFiles, setSelectedFiles, filteredFiles } = useContext(
         LockerDashboardContext
     );
+
+    const { shiftKeyHeld, ctrlCmdKeyHeld } = useContext(AppContext);
 
     const isSelected = useMemo(() => {
         return selectedFiles.find(
@@ -39,35 +40,60 @@ const FileComponent = ({ file }: { file: EnteFile }) => {
     return (
         <TableRow
             sx={{
-                '&:last-child td, &:last-child th': {
-                    border: 0,
+                border: 0,
+                '&:nth-child(odd)': {
+                    backgroundColor: '#232425',
                 },
-            }}>
-            <TableCell>
-                <IconButton
-                    onClick={() => {
-                        if (isSelected) {
+                backgroundColor: isSelected ? '#57B660 !important' : 'inherit',
+                userSelect: 'none',
+            }}
+            onClick={() => {
+                if (selectedFiles.length > 0) {
+                    if (shiftKeyHeld) {
+                        // if there is at least one selected file and the shift key is held down, select all within the range of the two files
+                        // get the index of the first selected file
+                        const firstSelectedFileIndex = selectedFiles.findIndex(
+                            (selectedFile) =>
+                                selectedFile.id === selectedFiles[0].id
+                        );
+
+                        const filesInBetween = filteredFiles.slice(
+                            firstSelectedFileIndex,
+                            index + 1
+                        );
+
+                        setSelectedFiles(filesInBetween);
+
+                        return;
+                    }
+
+                    if (ctrlCmdKeyHeld) {
+                        // if the ctrl/cmd key is held down:
+                        // if the file clicked is not selected, add it to the selected files
+                        // otherwise, remove it.
+                        if (!isSelected) {
+                            setSelectedFiles([...selectedFiles, file]);
+                        } else {
                             setSelectedFiles(
                                 selectedFiles.filter(
                                     (selectedFile) =>
                                         selectedFile.id !== file.id
                                 )
                             );
-                        } else {
-                            setSelectedFiles([...selectedFiles, file]);
                         }
-                    }}
-                    sx={{
-                        padding: 0,
-                        margin: 0,
-                    }}>
-                    {isSelected ? (
-                        <CheckBoxIcon color="accent" />
-                    ) : (
-                        <CheckBoxOutlineBlankIcon />
-                    )}
-                </IconButton>
-            </TableCell>
+                    }
+                }
+
+                if (isSelected) {
+                    setSelectedFiles(
+                        selectedFiles.filter(
+                            (selectedFile) => selectedFile.id !== file.id
+                        )
+                    );
+                } else {
+                    setSelectedFiles([file]);
+                }
+            }}>
             <TableCell>{file.metadata.title}</TableCell>
             <TableCell>
                 {getFriendlyHumanReadableDate(

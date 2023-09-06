@@ -57,7 +57,6 @@ const FilesSection = () => {
                 <Table sx={{ minWidth: 650 }} size="medium">
                     <TableHead>
                         <TableRow>
-                            <TableCell> </TableCell>
                             {fileDataCategories.map((category) => (
                                 <TableCell
                                     key={category.sortFieldEnum}
@@ -92,8 +91,12 @@ const FilesSection = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {filteredFiles.map((file) => (
-                            <FileComponent file={file} key={file.id} />
+                        {filteredFiles.map((file, index) => (
+                            <FileComponent
+                                file={file}
+                                key={file.id}
+                                index={index}
+                            />
                         ))}
                     </TableBody>
                 </Table>
