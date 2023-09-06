@@ -260,7 +260,7 @@ export function PhotoList({
     const listRef = useRef(null);
 
     const fittableColumns = getFractionFittableColumns(width);
-    let columns = Math.floor(fittableColumns);
+    let columns = Math.ceil(fittableColumns);
 
     let skipMerge = false;
     if (columns < MIN_COLUMNS) {
@@ -336,9 +336,6 @@ export function PhotoList({
         displayFiles,
         deduplicateContext.isOnDeduplicatePage,
         deduplicateContext.fileSizeMap,
-        deduplicateContext.clubSameTimeFilesOnly,
-        galleryContext.photoListHeader,
-        publicCollectionGalleryContext.photoListHeader,
     ]);
 
     useEffect(() => {

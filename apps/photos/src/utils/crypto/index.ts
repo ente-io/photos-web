@@ -1,4 +1,4 @@
-import { KeyAttributes, SRPSetupAttributes } from 'types/user';
+import { KeyAttributes } from 'types/user';
 import { SESSION_KEYS, setKey } from 'utils/storage/sessionStorage';
 import { getData, LS_KEYS, setData } from 'utils/storage/localStorage';
 import { getActualKey, getToken } from 'utils/common/key';
@@ -9,23 +9,10 @@ import safeStorageService from 'services/electron/safeStorage';
 import ComlinkCryptoWorker from 'utils/comlink/ComlinkCryptoWorker';
 import { PasswordStrength } from 'constants/crypto';
 import zxcvbn from 'zxcvbn';
-import { SRP, SrpClient } from 'fast-srp-hap';
-import { convertBase64ToBuffer, convertBufferToBase64 } from 'utils/user';
-import { v4 as uuidv4 } from 'uuid';
-import { addLocalLog } from 'utils/logging';
 
-const SRP_PARAMS = SRP.params['4096'];
-
-const LOGIN_SUB_KEY_LENGTH = 32;
-const LOGIN_SUB_KEY_ID = 1;
-const LOGIN_SUB_KEY_CONTEXT = 'loginctx';
-const LOGIN_SUB_KEY_BYTE_LENGTH = 16;
-
-export async function generateKeyAndSRPAttributes(passphrase: string): Promise<{
-    keyAttributes: KeyAttributes;
-    masterKey: string;
-    srpSetupAttributes: SRPSetupAttributes;
-}> {
+export async function generateKeyAttributes(
+    passphrase: string
+): Promise<{ keyAttributes: KeyAttributes; masterKey: string }> {
     const cryptoWorker = await ComlinkCryptoWorker.getInstance();
     const masterKey = await cryptoWorker.generateEncryptionKey();
     const recoveryKey = await cryptoWorker.generateEncryptionKey();
@@ -51,10 +38,6 @@ export async function generateKeyAndSRPAttributes(passphrase: string): Promise<{
         masterKey
     );
 
-    const loginSubKey = await generateLoginSubKey(kek.key);
-
-    const srpSetupAttributes = await generateSRPSetupAttributes(loginSubKey);
-
     const keyAttributes: KeyAttributes = {
         kekSalt,
         encryptedKey: masterKeyEncryptedWithKek.encryptedData,
@@ -72,11 +55,7 @@ export async function generateKeyAndSRPAttributes(passphrase: string): Promise<{
         recoveryKeyDecryptionNonce: recoveryKeyEncryptedWithMasterKey.nonce,
     };
 
-    return {
-        keyAttributes,
-        masterKey,
-        srpSetupAttributes,
-    };
+    return { keyAttributes, masterKey };
 }
 
 // We encrypt the masterKey, with an intermediate key derived from the
@@ -120,11 +99,7 @@ export const saveKeyInSessionStore = async (
         key
     );
     setKey(keyType, sessionKeyAttributes);
-    if (
-        isElectron() &&
-        !fromDesktop &&
-        keyType === SESSION_KEYS.ENCRYPTION_KEY
-    ) {
+    if (isElectron() && !fromDesktop) {
         safeStorageService.setEncryptionKey(key);
     }
 };
@@ -191,12 +166,10 @@ async function createNewRecoveryKey() {
     return recoveryKey;
 }
 
-export async function decryptAndStoreToken(
-    keyAttributes: KeyAttributes,
-    masterKey: string
-) {
+export async function decryptAndStoreToken(masterKey: string) {
     const cryptoWorker = await ComlinkCryptoWorker.getInstance();
     const user = getData(LS_KEYS.USER);
+    const keyAttributes = getData(LS_KEYS.KEY_ATTRIBUTES);
     let decryptedToken = null;
     const { encryptedToken } = user;
     if (encryptedToken && encryptedToken.length > 0) {
@@ -267,99 +240,4 @@ export function estimatePasswordStrength(password: string): PasswordStrength {
 
 export const isWeakPassword = (password: string) => {
     return estimatePasswordStrength(password) === PasswordStrength.WEAK;
-};
-
-export const generateLoginSubKey = async (kek: string) => {
-    const cryptoWorker = await ComlinkCryptoWorker.getInstance();
-    const kekSubKeyString = await cryptoWorker.generateSubKey(
-        kek,
-        LOGIN_SUB_KEY_LENGTH,
-        LOGIN_SUB_KEY_ID,
-        LOGIN_SUB_KEY_CONTEXT
-    );
-    const kekSubKey = await cryptoWorker.fromB64(kekSubKeyString);
-
-    // use first 16 bytes of generated kekSubKey as loginSubKey
-    const loginSubKey = await cryptoWorker.toB64(
-        kekSubKey.slice(0, LOGIN_SUB_KEY_BYTE_LENGTH)
-    );
-
-    return loginSubKey;
-};
-
-export const generateSRPSetupAttributes = async (
-    loginSubKey: string
-): Promise<SRPSetupAttributes> => {
-    const cryptoWorker = await ComlinkCryptoWorker.getInstance();
-
-    const srpSalt = await cryptoWorker.generateSaltToDeriveKey();
-
-    const srpUserID = uuidv4();
-
-    const srpVerifierBuffer = SRP.computeVerifier(
-        SRP_PARAMS,
-        convertBase64ToBuffer(srpSalt),
-        Buffer.from(srpUserID),
-        convertBase64ToBuffer(loginSubKey)
-    );
-
-    const srpVerifier = convertBufferToBase64(srpVerifierBuffer);
-
-    addLocalLog(
-        () => `SRP setup attributes generated',
-        ${JSON.stringify({
-            srpSalt,
-            srpUserID,
-            srpVerifier,
-            loginSubKey,
-        })}`
-    );
-
-    return {
-        srpUserID,
-        srpSalt,
-        srpVerifier,
-        loginSubKey,
-    };
-};
-
-export const computeVerifierHelper = (
-    srpSalt: string,
-    srpUserID: string,
-    loginSubKey: string
-) => {
-    const srpVerifierBuffer = SRP.computeVerifier(
-        SRP_PARAMS,
-        convertBase64ToBuffer(srpSalt),
-        Buffer.from(srpUserID),
-        convertBase64ToBuffer(loginSubKey)
-    );
-    return convertBufferToBase64(srpVerifierBuffer);
-};
-export const generateSRPClient = async (
-    srpSalt: string,
-    srpUserID: string,
-    loginSubKey: string
-) => {
-    return new Promise<SrpClient>((resolve, reject) => {
-        SRP.genKey(function (err, secret1) {
-            try {
-                if (err) {
-                    reject(err);
-                }
-                const srpClient = new SrpClient(
-                    SRP_PARAMS,
-                    convertBase64ToBuffer(srpSalt),
-                    Buffer.from(srpUserID),
-                    convertBase64ToBuffer(loginSubKey),
-                    secret1,
-                    false
-                );
-
-                resolve(srpClient);
-            } catch (e) {
-                reject(e);
-            }
-        });
-    });
 };

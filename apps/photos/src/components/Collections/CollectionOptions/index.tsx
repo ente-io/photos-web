@@ -6,9 +6,8 @@ import {
     changeCollectionOrder,
     changeCollectionSortOrder,
     changeCollectionVisibility,
-    downloadCollectionHelper,
-    downloadDefaultHiddenCollectionHelper,
-    isHiddenCollection,
+    downloadAllCollectionFiles,
+    downloadHiddenFiles,
 } from 'utils/collection';
 import { SetCollectionNamerAttributes } from '../CollectionNamer';
 import { Collection } from 'types/collection';
@@ -18,11 +17,7 @@ import { logError } from 'utils/sentry';
 import { VISIBILITY_STATE } from 'types/magicMetadata';
 import { AppContext } from 'pages/_app';
 import OverflowMenu from 'components/OverflowMenu/menu';
-import {
-    ALL_SECTION,
-    CollectionSummaryType,
-    HIDDEN_ITEMS_SECTION,
-} from 'constants/collection';
+import { CollectionSummaryType } from 'constants/collection';
 import { TrashCollectionOption } from './TrashCollectionOption';
 import { SharedCollectionOption } from './SharedCollectionOption';
 import { OnlyDownloadCollectionOption } from './OnlyDownloadCollectionOption';
@@ -33,23 +28,19 @@ import { Trans } from 'react-i18next';
 import { t } from 'i18next';
 import { Box } from '@mui/material';
 import CollectionSortOrderMenu from './CollectionSortOrderMenu';
-import { SetCollectionDownloadProgressAttributes } from 'types/gallery';
 
 interface CollectionOptionsProps {
     setCollectionNamerAttributes: SetCollectionNamerAttributes;
-    setCollectionDownloadProgressAttributesCreator: (
-        collectionID: number
-    ) => SetCollectionDownloadProgressAttributes;
-    isActiveCollectionDownloadInProgress: () => boolean;
     activeCollection: Collection;
     collectionSummaryType: CollectionSummaryType;
     showCollectionShareModal: () => void;
-    setActiveCollectionID: (collectionID: number) => void;
+    redirectToAll: () => void;
 }
 
 export enum CollectionActions {
     SHOW_RENAME_DIALOG,
     RENAME,
+    CONFIRM_DOWNLOAD,
     DOWNLOAD,
     ARCHIVE,
     UNARCHIVE,
@@ -63,21 +54,17 @@ export enum CollectionActions {
     LEAVE_SHARED_ALBUM,
     SHOW_SORT_ORDER_MENU,
     UPDATE_COLLECTION_SORT_ORDER,
-    PIN,
-    UNPIN,
-    HIDE,
-    UNHIDE,
+    PIN_ALBUM,
+    UNPIN_ALBUM,
 }
 
 const CollectionOptions = (props: CollectionOptionsProps) => {
     const {
         activeCollection,
         collectionSummaryType,
-        setActiveCollectionID,
+        redirectToAll,
         setCollectionNamerAttributes,
         showCollectionShareModal,
-        setCollectionDownloadProgressAttributesCreator,
-        isActiveCollectionDownloadInProgress,
     } = props;
 
     const { startLoading, finishLoading, setDialogMessage } =
@@ -105,6 +92,9 @@ const CollectionOptions = (props: CollectionOptionsProps) => {
                 break;
             case CollectionActions.RENAME:
                 callback = renameCollection;
+                break;
+            case CollectionActions.CONFIRM_DOWNLOAD:
+                callback = confirmDownloadCollection;
                 break;
             case CollectionActions.DOWNLOAD:
                 callback = downloadCollection;
@@ -145,19 +135,12 @@ const CollectionOptions = (props: CollectionOptionsProps) => {
             case CollectionActions.UPDATE_COLLECTION_SORT_ORDER:
                 callback = updateCollectionSortOrder;
                 break;
-            case CollectionActions.PIN:
+            case CollectionActions.PIN_ALBUM:
                 callback = pinAlbum;
                 break;
-            case CollectionActions.UNPIN:
+            case CollectionActions.UNPIN_ALBUM:
                 callback = unPinAlbum;
                 break;
-            case CollectionActions.HIDE:
-                callback = hideAlbum;
-                break;
-            case CollectionActions.UNHIDE:
-                callback = unHideAlbum;
-                break;
-
             default:
                 logError(
                     Error('invalid collection action '),
@@ -172,7 +155,6 @@ const CollectionOptions = (props: CollectionOptionsProps) => {
                 loader && startLoading();
                 await callback(...args);
             } catch (e) {
-                logError(e, 'collection action failed', { action });
                 setDialogMessage({
                     title: t('ERROR'),
                     content: t('UNKNOWN_ERROR'),
@@ -193,17 +175,17 @@ const CollectionOptions = (props: CollectionOptionsProps) => {
 
     const deleteCollectionAlongWithFiles = async () => {
         await CollectionAPI.deleteCollection(activeCollection.id, false);
-        setActiveCollectionID(ALL_SECTION);
+        redirectToAll();
     };
 
     const deleteCollectionButKeepFiles = async () => {
         await CollectionAPI.deleteCollection(activeCollection.id, true);
-        setActiveCollectionID(ALL_SECTION);
+        redirectToAll();
     };
 
     const leaveSharedAlbum = async () => {
         await CollectionAPI.leaveSharedAlbum(activeCollection.id);
-        setActiveCollectionID(ALL_SECTION);
+        redirectToAll();
     };
 
     const archiveCollection = () => {
@@ -215,33 +197,17 @@ const CollectionOptions = (props: CollectionOptionsProps) => {
     };
 
     const downloadCollection = () => {
-        if (isActiveCollectionDownloadInProgress()) {
-            return;
-        }
-        if (collectionSummaryType === CollectionSummaryType.hiddenItems) {
-            const setCollectionDownloadProgressAttributes =
-                setCollectionDownloadProgressAttributesCreator(
-                    HIDDEN_ITEMS_SECTION
-                );
-            downloadDefaultHiddenCollectionHelper(
-                setCollectionDownloadProgressAttributes
-            );
+        if (collectionSummaryType === CollectionSummaryType.hidden) {
+            downloadHiddenFiles();
         } else {
-            const setCollectionDownloadProgressAttributes =
-                setCollectionDownloadProgressAttributesCreator(
-                    activeCollection.id
-                );
-            downloadCollectionHelper(
-                activeCollection.id,
-                setCollectionDownloadProgressAttributes
-            );
+            downloadAllCollectionFiles(activeCollection.id);
         }
     };
 
     const emptyTrash = async () => {
         await TrashService.emptyTrash();
         await TrashService.clearLocalTrash();
-        setActiveCollectionID(ALL_SECTION);
+        redirectToAll();
     };
 
     const showRenameCollectionModal = () => {
@@ -277,6 +243,21 @@ const CollectionOptions = (props: CollectionOptionsProps) => {
                     CollectionActions.DELETE_BUT_KEEP_FILES
                 ),
                 variant: 'primary',
+            },
+            close: {
+                text: t('CANCEL'),
+            },
+        });
+    };
+
+    const confirmDownloadCollection = () => {
+        setDialogMessage({
+            title: t('DOWNLOAD_COLLECTION'),
+            content: <Trans i18nKey={'DOWNLOAD_COLLECTION_MESSAGE'} />,
+            proceed: {
+                text: t('DOWNLOAD'),
+                action: handleCollectionAction(CollectionActions.DOWNLOAD),
+                variant: 'accent',
             },
             close: {
                 text: t('CANCEL'),
@@ -326,27 +307,11 @@ const CollectionOptions = (props: CollectionOptionsProps) => {
         await changeCollectionOrder(activeCollection, 0);
     };
 
-    const hideAlbum = async () => {
-        await changeCollectionVisibility(
-            activeCollection,
-            VISIBILITY_STATE.HIDDEN
-        );
-        setActiveCollectionID(ALL_SECTION);
-    };
-    const unHideAlbum = async () => {
-        await changeCollectionVisibility(
-            activeCollection,
-            VISIBILITY_STATE.VISIBLE
-        );
-        setActiveCollectionID(HIDDEN_ITEMS_SECTION);
-    };
-
     return (
         <HorizontalFlex sx={{ display: 'inline-flex', gap: '16px' }}>
             <QuickOptions
                 handleCollectionAction={handleCollectionAction}
                 collectionSummaryType={collectionSummaryType}
-                isDownloadInProgress={isActiveCollectionDownloadInProgress()}
             />
 
             <OverflowMenu
@@ -359,7 +324,6 @@ const CollectionOptions = (props: CollectionOptionsProps) => {
                 ) : collectionSummaryType ===
                   CollectionSummaryType.favorites ? (
                     <OnlyDownloadCollectionOption
-                        isDownloadInProgress={isActiveCollectionDownloadInProgress()}
                         handleCollectionAction={handleCollectionAction}
                         downloadOptionText={t('DOWNLOAD_FAVORITES')}
                     />
@@ -369,11 +333,10 @@ const CollectionOptions = (props: CollectionOptionsProps) => {
                         handleCollectionAction={handleCollectionAction}
                         downloadOptionText={t('DOWNLOAD_UNCATEGORIZED')}
                     />
-                ) : collectionSummaryType ===
-                  CollectionSummaryType.hiddenItems ? (
+                ) : collectionSummaryType === CollectionSummaryType.hidden ? (
                     <OnlyDownloadCollectionOption
                         handleCollectionAction={handleCollectionAction}
-                        downloadOptionText={t('DOWNLOAD_HIDDEN_ITEMS')}
+                        downloadOptionText={t('DOWNLOAD_HIDDEN')}
                     />
                 ) : collectionSummaryType ===
                       CollectionSummaryType.incomingShareViewer ||
@@ -386,7 +349,6 @@ const CollectionOptions = (props: CollectionOptionsProps) => {
                 ) : (
                     <AlbumCollectionOption
                         isArchived={isArchivedCollection(activeCollection)}
-                        isHidden={isHiddenCollection(activeCollection)}
                         isPinned={isPinnedCollection(activeCollection)}
                         handleCollectionAction={handleCollectionAction}
                     />

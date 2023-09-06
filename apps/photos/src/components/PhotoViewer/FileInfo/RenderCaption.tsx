@@ -20,7 +20,6 @@ export function RenderCaption({
     file,
     scheduleUpdate,
     refreshPhotoswipe,
-    shouldDisableEdits,
 }: {
     shouldDisableEdits: boolean;
     file: EnteFile;
@@ -60,9 +59,6 @@ export function RenderCaption({
             setLoading(false);
         }
     };
-    if (!caption?.length && shouldDisableEdits) {
-        return <></>;
-    }
     return (
         <Box p={1}>
             <Formik<formValues>
@@ -95,7 +91,7 @@ export function RenderCaption({
                             onChange={handleChange('caption')}
                             error={Boolean(errors.caption)}
                             helperText={errors.caption}
-                            disabled={loading || shouldDisableEdits}
+                            disabled={loading}
                         />
                         {values.caption !== caption && (
                             <FlexWrapper justifyContent={'flex-end'}>

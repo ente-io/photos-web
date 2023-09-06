@@ -615,7 +615,7 @@ class watchFolderService {
 
     async selectFolder(): Promise<string> {
         try {
-            const folderPath = await this.electronAPIs.selectDirectory();
+            const folderPath = await this.electronAPIs.selectRootDirectory();
             return folderPath;
         } catch (e) {
             logError(e, 'error while selecting folder');

@@ -17,7 +17,9 @@ import {
 } from 'constants/export';
 import sanitize from 'sanitize-filename';
 import { formatDateTimeShort } from 'utils/time/format';
-import { getCollectionUserFacingName } from 'utils/collection';
+import { HIDDEN_COLLECTION_NAME } from 'services/collectionService';
+
+const PROPER_CASED_HIDDEN_COLLECTION_NAME = '.Hidden';
 
 export const getExportRecordFileUID = (file: EnteFile) =>
     `${file.id}_${file.collectionID}_${file.updationTime}`;
@@ -25,6 +27,9 @@ export const getExportRecordFileUID = (file: EnteFile) =>
 export const getCollectionIDFromFileUID = (fileUID: string) =>
     Number(fileUID.split('_')[1]);
 
+export const getHiddenCollectionProperCasedName = () => {
+    return PROPER_CASED_HIDDEN_COLLECTION_NAME;
+};
 export const convertCollectionIDExportNameObjectToMap = (
     collectionExportNames: CollectionExportNames
 ): Map<number, string> => {
@@ -60,11 +65,10 @@ export const getRenamedExportedCollections = (
             const currentExportName = collectionIDExportNameMap.get(
                 collection.id
             );
-
-            const collectionExportName =
-                getCollectionUserFacingName(collection);
-
-            if (currentExportName === collectionExportName) {
+            if (collection.name === HIDDEN_COLLECTION_NAME) {
+                collection.name = getHiddenCollectionProperCasedName();
+            }
+            if (currentExportName === collection.name) {
                 return false;
             }
             const hasNumberedSuffix = currentExportName.match(/\(\d+\)$/);
@@ -72,9 +76,7 @@ export const getRenamedExportedCollections = (
                 ? currentExportName.replace(/\(\d+\)$/, '')
                 : currentExportName;
 
-            return (
-                collectionExportName !== currentExportNameWithoutNumberedSuffix
-            );
+            return collection.name !== currentExportNameWithoutNumberedSuffix;
         }
         return false;
     });
@@ -201,6 +203,9 @@ export const getUniqueCollectionExportName = (
     dir: string,
     collectionName: string
 ): string => {
+    if (collectionName === HIDDEN_COLLECTION_NAME) {
+        collectionName = getHiddenCollectionProperCasedName();
+    }
     let collectionExportName = sanitizeName(collectionName);
     let count = 1;
     while (

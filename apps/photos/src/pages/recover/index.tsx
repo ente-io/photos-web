@@ -1,7 +1,12 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { t } from 'i18next';
 
-import { getData, LS_KEYS, setData } from 'utils/storage/localStorage';
+import {
+    clearData,
+    getData,
+    LS_KEYS,
+    setData,
+} from 'utils/storage/localStorage';
 import { useRouter } from 'next/router';
 import { PAGES } from 'constants/pages';
 import { decryptAndStoreToken, saveKeyInSessionStore } from 'utils/crypto';
@@ -18,7 +23,6 @@ import FormPaperTitle from 'components/Form/FormPaper/Title';
 import FormPaperFooter from 'components/Form/FormPaper/Footer';
 import LinkButton from 'components/pages/gallery/LinkButton';
 import ComlinkCryptoWorker from 'utils/comlink/ComlinkCryptoWorker';
-import { sendOtt } from 'services/userService';
 const bip39 = require('bip39');
 // mobile client library only supports english.
 bip39.setDefaultWordlist('english');
@@ -33,17 +37,13 @@ export default function Recover() {
         const user: User = getData(LS_KEYS.USER);
         const keyAttributes: KeyAttributes = getData(LS_KEYS.KEY_ATTRIBUTES);
         const key = getKey(SESSION_KEYS.ENCRYPTION_KEY);
-        if (!user?.email) {
+        if (
+            (!user?.token && !user?.encryptedToken) ||
+            !keyAttributes?.memLimit
+        ) {
+            clearData();
             router.push(PAGES.ROOT);
-            return;
-        }
-        if (!user?.encryptedToken && !user?.token) {
-            sendOtt(user.email);
-            appContext.setRedirectURL(PAGES.RECOVER);
-            router.push(PAGES.VERIFY);
-            return;
-        }
-        if (!keyAttributes) {
+        } else if (!keyAttributes) {
             router.push(PAGES.GENERATE);
         } else if (key) {
             router.push(PAGES.GALLERY);
@@ -78,7 +78,7 @@ export default function Recover() {
                 await cryptoWorker.fromHex(recoveryKey)
             );
             await saveKeyInSessionStore(SESSION_KEYS.ENCRYPTION_KEY, masterKey);
-            await decryptAndStoreToken(keyAttributes, masterKey);
+            await decryptAndStoreToken(masterKey);
 
             setData(LS_KEYS.SHOW_BACK_BUTTON, { value: false });
             router.push(PAGES.CHANGE_PASSWORD);

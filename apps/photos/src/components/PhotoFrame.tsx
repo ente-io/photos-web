@@ -6,7 +6,7 @@ import { styled } from '@mui/material';
 import DownloadManager from 'services/downloadManager';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import PhotoViewer from 'components/PhotoViewer';
-import { TRASH_SECTION } from 'constants/collection';
+import { HIDDEN_SECTION, TRASH_SECTION } from 'constants/collection';
 import { updateFileMsrcProps, updateFileSrcProps } from 'utils/photoFrame';
 import { PhotoList } from './PhotoList';
 import { MergedSourceURL, SelectedState } from 'types/gallery';
@@ -50,7 +50,6 @@ interface Props {
     collectionNameMap: Map<number, string>;
     showAppDownloadBanner?: boolean;
     setIsPhotoSwipeOpen?: (value: boolean) => void;
-    isInHiddenSection?: boolean;
 }
 
 const PhotoFrame = ({
@@ -67,7 +66,6 @@ const PhotoFrame = ({
     collectionNameMap,
     showAppDownloadBanner,
     setIsPhotoSwipeOpen,
-    isInHiddenSection,
 }: Props) => {
     const [open, setOpen] = useState(false);
     const [currentIndex, setCurrentIndex] = useState<number>(0);
@@ -537,7 +535,7 @@ const PhotoFrame = ({
                 deletedFileIds={deletedFileIds}
                 setDeletedFileIds={setDeletedFileIds}
                 isTrashCollection={activeCollectionID === TRASH_SECTION}
-                isInHiddenSection={isInHiddenSection}
+                isHiddenCollection={activeCollectionID === HIDDEN_SECTION}
                 enableDownload={enableDownload}
                 isSourceLoaded={isSourceLoaded}
                 conversionFailed={conversionFailed}

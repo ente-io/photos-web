@@ -10,18 +10,12 @@ import {
     logoutUser,
     clearFiles,
     putAttributes,
-    configureSRP,
 } from 'services/userService';
 import { setIsFirstLogin } from 'utils/storage';
 import { clearKeys } from 'utils/storage/sessionStorage';
 import { AppContext } from 'pages/_app';
 import { PAGES } from 'constants/pages';
-import {
-    KeyAttributes,
-    UserVerificationResponse,
-    User,
-    SRPSetupAttributes,
-} from 'types/user';
+import { KeyAttributes, EmailVerificationResponse, User } from 'types/user';
 import { Box, Typography } from '@mui/material';
 import FormPaperTitle from 'components/Form/FormPaper/Title';
 import FormPaper from 'components/Form/FormPaper';
@@ -75,7 +69,7 @@ export default function Verify() {
                 token,
                 id,
                 twoFactorSessionID,
-            } = resp.data as UserVerificationResponse;
+            } = resp.data as EmailVerificationResponse;
             if (twoFactorSessionID) {
                 setData(LS_KEYS.USER, {
                     email,
@@ -95,29 +89,19 @@ export default function Verify() {
                 if (keyAttributes) {
                     setData(LS_KEYS.KEY_ATTRIBUTES, keyAttributes);
                     setData(LS_KEYS.ORIGINAL_KEY_ATTRIBUTES, keyAttributes);
-                } else {
-                    if (getData(LS_KEYS.ORIGINAL_KEY_ATTRIBUTES)) {
-                        await putAttributes(
-                            token,
-                            getData(LS_KEYS.ORIGINAL_KEY_ATTRIBUTES)
-                        );
-                    }
-                    if (getData(LS_KEYS.SRP_SETUP_ATTRIBUTES)) {
-                        const srpSetupAttributes: SRPSetupAttributes = getData(
-                            LS_KEYS.SRP_SETUP_ATTRIBUTES
-                        );
-                        await configureSRP(srpSetupAttributes);
-                    }
+                } else if (getData(LS_KEYS.ORIGINAL_KEY_ATTRIBUTES)) {
+                    await putAttributes(
+                        token,
+                        getData(LS_KEYS.ORIGINAL_KEY_ATTRIBUTES)
+                    );
                 }
                 clearFiles();
                 setIsFirstLogin(true);
-                const redirectURL = appContext.redirectURL;
-                appContext.setRedirectURL(null);
                 if (keyAttributes?.encryptedKey) {
                     clearKeys();
-                    router.push(redirectURL ?? PAGES.CREDENTIALS);
+                    router.push(PAGES.CREDENTIALS);
                 } else {
-                    router.push(redirectURL ?? PAGES.GENERATE);
+                    router.push(PAGES.GENERATE);
                 }
             }
         } catch (e) {

@@ -15,7 +15,7 @@ import { CollectionSelectorIntent } from 'types/gallery';
 import {
     COLLECTION_SORT_ORDER,
     CollectionSummaryType,
-    DUMMY_UNCATEGORIZED_COLLECTION,
+    DUMMY_UNCATEGORIZED_SECTION,
 } from 'constants/collection';
 import { t } from 'i18next';
 import { createUnCategorizedCollection } from 'services/collectionService';
@@ -70,13 +70,6 @@ function CollectionSelector({
                             isMoveToAllowedCollection(type) ||
                             type === CollectionSummaryType.uncategorized
                         );
-                    } else if (
-                        attributes.intent === CollectionSelectorIntent.restore
-                    ) {
-                        return (
-                            isMoveToAllowedCollection(type) ||
-                            type === CollectionSummaryType.uncategorized
-                        );
                     } else {
                         return isMoveToAllowedCollection(type);
                     }
@@ -105,7 +98,7 @@ function CollectionSelector({
 
     const handleCollectionClick = async (collectionID: number) => {
         let selectedCollection: Collection;
-        if (collectionID === DUMMY_UNCATEGORIZED_COLLECTION) {
+        if (collectionID === DUMMY_UNCATEGORIZED_SECTION) {
             const uncategorizedCollection =
                 await createUnCategorizedCollection();
             selectedCollection = uncategorizedCollection;

@@ -30,7 +30,9 @@ export default function Home() {
 
     return loading ? (
         <VerticallyCentered>
-            <EnteSpinner />
+            <EnteSpinner>
+                <span className="sr-only">Loading...</span>
+            </EnteSpinner>
         </VerticallyCentered>
     ) : (
         <VerticallyCentered>
