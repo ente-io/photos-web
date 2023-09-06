@@ -34,17 +34,21 @@ const ENDPOINT = getEndpoint();
 const FILES_TABLE = 'files';
 const HIDDEN_FILES_TABLE = 'hidden-files';
 
-export const getLocalFiles = async (type: 'normal' | 'hidden' = 'normal') => {
-    const tableName = type === 'normal' ? FILES_TABLE : HIDDEN_FILES_TABLE;
+export const getLocalFiles = async () => {
     const files: Array<EnteFile> =
-        (await localForage.getItem<EnteFile[]>(tableName)) || [];
+        (await localForage.getItem<EnteFile[]>(FILES_TABLE)) || [];
     return files;
 };
 
-const setLocalFiles = async (type: 'normal' | 'hidden', files: EnteFile[]) => {
+export const getLocalHiddenFiles = async () => {
+    const files: Array<EnteFile> =
+        (await localForage.getItem<EnteFile[]>(HIDDEN_FILES_TABLE)) || [];
+    return files;
+};
+
+const setLocalFiles = async (files: EnteFile[]) => {
     try {
-        const tableName = type === 'normal' ? FILES_TABLE : HIDDEN_FILES_TABLE;
-        await localForage.setItem(tableName, files);
+        await localForage.setItem(FILES_TABLE, files);
         try {
             eventBus.emit(Events.LOCAL_FILES_UPDATED);
         } catch (e) {
@@ -65,21 +69,50 @@ const setLocalFiles = async (type: 'normal' | 'hidden', files: EnteFile[]) => {
     }
 };
 
-export const getAllLocalFiles = async () => {
-    const normalFiles = await getLocalFiles('normal');
-    const hiddenFiles = await getLocalFiles('hidden');
-    return [...normalFiles, ...hiddenFiles];
+const setLocalHiddenFiles = async (files: EnteFile[]) => {
+    try {
+        await localForage.setItem(HIDDEN_FILES_TABLE, files);
+    } catch (e1) {
+        try {
+            const storageEstimate = await navigator.storage.estimate();
+            logError(e1, 'failed to save files to indexedDB', {
+                storageEstimate,
+            });
+            addLogLine(`storage estimate ${JSON.stringify(storageEstimate)}`);
+        } catch (e2) {
+            logError(e1, 'failed to save files to indexedDB');
+            logError(e2, 'failed to get storage stats');
+        }
+        throw e1;
+    }
 };
 
-export const syncFiles = async (
-    type: 'normal' | 'hidden',
+export const syncHiddenFiles = async (
     collections: Collection[],
     setFiles: SetFiles
 ) => {
-    const localFiles = await getLocalFiles(type);
+    return await syncFilesHelper(collections, setFiles, 'hidden');
+};
+
+export const syncFiles = async (
+    collections: Collection[],
+    setFiles: SetFiles
+) => {
+    return await syncFilesHelper(collections, setFiles, 'normal');
+};
+
+const syncFilesHelper = async (
+    collections: Collection[],
+    setFiles: SetFiles,
+    type: 'normal' | 'hidden'
+) => {
+    const localFiles =
+        type === 'normal' ? await getLocalFiles() : await getLocalHiddenFiles();
     let files = await removeDeletedCollectionFiles(collections, localFiles);
     if (files.length !== localFiles.length) {
-        await setLocalFiles(type, files);
+        type === 'normal'
+            ? await setLocalFiles(files)
+            : await setLocalHiddenFiles(files);
         setFiles(sortFiles(mergeMetadata(files)));
     }
     for (const collection of collections) {
@@ -93,7 +126,9 @@ export const syncFiles = async (
 
         const newFiles = await getFiles(collection, lastSyncTime, setFiles);
         files = getLatestVersionFiles([...files, ...newFiles]);
-        await setLocalFiles(type, files);
+        type === 'normal'
+            ? await setLocalFiles(files)
+            : await setLocalHiddenFiles(files);
         setCollectionLastSyncTime(collection, collection.updationTime);
     }
     return files;

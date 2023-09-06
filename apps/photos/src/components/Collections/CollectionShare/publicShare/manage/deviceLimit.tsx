@@ -56,11 +56,7 @@ export function ManageDeviceLimit({
             <EnteMenuItem
                 label={t('LINK_DEVICE_LIMIT')}
                 variant="captioned"
-                subText={
-                    publicShareProp.deviceLimit === 0
-                        ? t('NO_DEVICE_LIMIT')
-                        : publicShareProp.deviceLimit.toString()
-                }
+                subText={publicShareProp.deviceLimit.toString()}
                 onClick={openDeviceLimitChangeModalView}
                 endIcon={<ChevronRight />}
             />

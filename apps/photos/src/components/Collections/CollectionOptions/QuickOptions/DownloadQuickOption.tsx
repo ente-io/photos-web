@@ -24,14 +24,13 @@ export function DownloadQuickOption({
                     : collectionSummaryType ===
                       CollectionSummaryType.uncategorized
                     ? t('DOWNLOAD_UNCATEGORIZED')
-                    : collectionSummaryType ===
-                      CollectionSummaryType.hiddenItems
-                    ? t('DOWNLOAD_HIDDEN_ITEMS')
+                    : collectionSummaryType === CollectionSummaryType.hidden
+                    ? t('DOWNLOAD_HIDDEN')
                     : t('DOWNLOAD_COLLECTION')
             }>
             <IconButton
                 onClick={handleCollectionAction(
-                    CollectionActions.DOWNLOAD,
+                    CollectionActions.CONFIRM_DOWNLOAD,
                     false
                 )}>
                 <FileDownloadOutlinedIcon />

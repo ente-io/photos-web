@@ -73,7 +73,7 @@ interface Iprops {
     deletedFileIds: Set<number>;
     setDeletedFileIds?: (value: Set<number>) => void;
     isTrashCollection: boolean;
-    isInHiddenSection: boolean;
+    isHiddenCollection: boolean;
     enableDownload: boolean;
     isSourceLoaded: boolean;
     conversionFailed: boolean;
@@ -177,6 +177,7 @@ function PhotoViewer(props: Iprops) {
 
     useEffect(() => {
         if (photoSwipe) {
+            photoSwipe.options.arrowKeys = !showInfo;
             photoSwipe.options.escKey = !showInfo;
         }
     }, [showInfo]);
@@ -388,7 +389,7 @@ function PhotoViewer(props: Iprops) {
                 !file ||
                 props.isTrashCollection ||
                 !isOwnFile ||
-                props.isInHiddenSection
+                props.isHiddenCollection
             ) {
                 return;
             }
@@ -513,16 +514,12 @@ function PhotoViewer(props: Iprops) {
     const downloadFileHelper = async (file) => {
         if (file && props.enableDownload) {
             appContext.startLoading();
-            try {
-                await downloadFile(
-                    file,
-                    publicCollectionGalleryContext.accessedThroughSharedURL,
-                    publicCollectionGalleryContext.token,
-                    publicCollectionGalleryContext.passwordToken
-                );
-            } catch (e) {
-                // do nothing
-            }
+            await downloadFile(
+                file,
+                publicCollectionGalleryContext.accessedThroughSharedURL,
+                publicCollectionGalleryContext.token,
+                publicCollectionGalleryContext.passwordToken
+            );
             appContext.finishLoading();
         }
     };
@@ -644,7 +641,7 @@ function PhotoViewer(props: Iprops) {
                             </button>
                             {isOwnFile &&
                                 !props.isTrashCollection &&
-                                !props.isInHiddenSection && (
+                                !props.isHiddenCollection && (
                                     <button
                                         title={
                                             isFav
@@ -697,7 +694,7 @@ function PhotoViewer(props: Iprops) {
                 showCollectionChips={
                     !props.isTrashCollection &&
                     isOwnFile &&
-                    !props.isInHiddenSection
+                    !props.isHiddenCollection
                 }
                 showInfo={showInfo}
                 handleCloseInfo={handleCloseInfo}

@@ -1,6 +1,5 @@
 export enum SESSION_KEYS {
     ENCRYPTION_KEY = 'encryptionKey',
-    KEY_ENCRYPTION_KEY = 'keyEncryptionKey',
 }
 
 export const setKey = (key: SESSION_KEYS, value: object) => {
@@ -15,13 +14,6 @@ export const getKey = (key: SESSION_KEYS) => {
         return null;
     }
     return JSON.parse(sessionStorage.getItem(key));
-};
-
-export const removeKey = (key: SESSION_KEYS) => {
-    if (typeof sessionStorage === 'undefined') {
-        return null;
-    }
-    sessionStorage.removeItem(key);
 };
 
 export const clearKeys = () => {

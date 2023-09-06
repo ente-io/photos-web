@@ -41,13 +41,10 @@ export default function Recover() {
     useEffect(() => {
         router.prefetch(PAGES.GALLERY);
         const user = getData(LS_KEYS.USER);
-        if (!user || !user.email || !user.twoFactorSessionID) {
-            router.push(PAGES.ROOT);
-        } else if (
-            !user.isTwoFactorEnabled &&
-            (user.encryptedToken || user.token)
-        ) {
+        if (!user.isTwoFactorEnabled && (user.encryptedToken || user.token)) {
             router.push(PAGES.GENERATE);
+        } else if (!user.email || !user.twoFactorSessionID) {
+            router.push(PAGES.ROOT);
         } else {
             setSessionID(user.twoFactorSessionID);
         }

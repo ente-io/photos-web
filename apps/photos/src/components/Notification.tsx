@@ -3,21 +3,21 @@ import {
     Box,
     Button,
     ButtonProps,
+    IconButton,
     Snackbar,
     Stack,
     SxProps,
     Theme,
     Typography,
 } from '@mui/material';
+import React from 'react';
 import { NotificationAttributes } from 'types/Notification';
 
-import InfoIcon from '@mui/icons-material/InfoOutlined';
-import { IconButtonWithBG } from './Container';
+import InfoIcon from '@mui/icons-material/Info';
 
 interface Iprops {
     open: boolean;
     onClose: () => void;
-    keepOpenOnClick?: boolean;
     attributes: NotificationAttributes;
     horizontal?: 'left' | 'right';
     vertical?: 'top' | 'bottom';
@@ -31,7 +31,6 @@ export default function Notification({
     vertical,
     sx,
     attributes,
-    keepOpenOnClick,
 }: Iprops) {
     if (!attributes) {
         return <></>;
@@ -44,9 +43,7 @@ export default function Notification({
 
     const handleClick = () => {
         attributes.onClick();
-        if (!keepOpenOnClick) {
-            onClose();
-        }
+        onClose();
     };
     return (
         <Snackbar
@@ -89,28 +86,18 @@ export default function Notification({
                                 {attributes.message}
                             </Typography>
                         )}
-                        {attributes.title && (
-                            <Typography fontWeight="bold">
-                                {attributes.title}
-                            </Typography>
-                        )}
-                        {attributes.caption && (
-                            <Typography variant="small">
-                                {attributes.caption}
-                            </Typography>
-                        )}
                     </Stack>
 
                     {attributes.endIcon ? (
-                        <IconButtonWithBG
+                        <IconButton
                             onClick={attributes.onClick}
                             sx={{ fontSize: '36px' }}>
                             {attributes?.endIcon}
-                        </IconButtonWithBG>
+                        </IconButton>
                     ) : (
-                        <IconButtonWithBG onClick={handleClose}>
+                        <IconButton onClick={handleClose}>
                             <CloseIcon />
-                        </IconButtonWithBG>
+                        </IconButton>
                     )}
                 </Stack>
             </Button>

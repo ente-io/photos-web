@@ -25,7 +25,6 @@ import ScrollButton from './ScrollButton';
 
 interface IProps {
     activeCollectionID?: number;
-    isInHiddenSection: boolean;
     setActiveCollectionID: (id?: number) => void;
     collectionSummaries: CollectionSummary[];
     showAllCollections: () => void;
@@ -86,7 +85,6 @@ const CollectionListBar = (props: IProps) => {
         setActiveCollectionID,
         collectionSummaries,
         showAllCollections,
-        isInHiddenSection,
     } = props;
 
     const appContext = useContext(AppContext);
@@ -128,9 +126,7 @@ const CollectionListBar = (props: IProps) => {
     return (
         <CollectionListBarWrapper>
             <SpaceBetweenFlex mb={1}>
-                <Typography>
-                    {isInHiddenSection ? t('HIDDEN_ALBUMS') : t('ALBUMS')}
-                </Typography>
+                <Typography>{t('ALBUMS')}</Typography>
                 {appContext.isMobile && (
                     <Box display="flex" alignItems={'center'} gap={1}>
                         <CollectionListSortBy
