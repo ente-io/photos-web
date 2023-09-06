@@ -41,7 +41,7 @@ const FileComponent = ({ file, index }: { file: EnteFile; index: number }) => {
         <TableRow
             sx={{
                 border: 0,
-                '&:nth-child(odd)': {
+                '&:nth-of-type(odd)': {
                     backgroundColor: '#232425',
                 },
                 backgroundColor: isSelected ? '#57B660 !important' : 'inherit',
@@ -63,7 +63,6 @@ const FileComponent = ({ file, index }: { file: EnteFile; index: number }) => {
                         );
 
                         setSelectedFiles(filesInBetween);
-
                         return;
                     }
 
@@ -81,6 +80,7 @@ const FileComponent = ({ file, index }: { file: EnteFile; index: number }) => {
                                 )
                             );
                         }
+                        return;
                     }
                 }
 

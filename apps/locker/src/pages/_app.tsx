@@ -35,16 +35,18 @@ const App = ({ Component, pageProps }: AppProps) => {
         setupI18n().finally(() => setIsI18nReady(true));
     }, []);
 
-    const keyDownListener = (e: KeyboardEvent) => {
+    const keyListener = (e: KeyboardEvent) => {
         setShiftKeyHeld(e.shiftKey);
-        setCtrlCmdKeyHeld(e.ctrlKey);
+        setCtrlCmdKeyHeld(e.ctrlKey || e.metaKey);
     };
 
     useEffect(() => {
-        window.addEventListener('keydown', keyDownListener);
+        window.addEventListener('keydown', keyListener);
+        window.addEventListener('keyup', keyListener);
 
         return () => {
-            window.removeEventListener('keydown', keyDownListener);
+            window.removeEventListener('keydown', keyListener);
+            window.removeEventListener('keyup', keyListener);
         };
     }, []);
 
