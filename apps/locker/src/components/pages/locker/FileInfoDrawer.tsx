@@ -50,6 +50,8 @@ const FileInfoDrawer = ({
         if (!selectedFile) return;
 
         const timer = setTimeout(async () => {
+            if (caption === selectedFile?.pubMagicMetadata?.data.caption)
+                return;
             setCaptionSaveInProgress(true);
             // save value
             try {
