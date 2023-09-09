@@ -46,6 +46,7 @@ const FileComponent = ({ file, index }: { file: EnteFile; index: number }) => {
                 },
                 backgroundColor: isSelected ? '#57B660 !important' : 'inherit',
                 userSelect: 'none',
+                whiteSpace: 'nowrap',
             }}
             onClick={() => {
                 if (selectedFiles.length > 0) {
