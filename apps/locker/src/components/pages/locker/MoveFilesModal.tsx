@@ -1,9 +1,8 @@
 import { FlexWrapper } from '@/components/Container';
 import DialogBoxV2 from '@/components/DialogBoxV2';
 import { Collection } from '@/interfaces/collection';
-import { Button, TextField } from '@mui/material';
+import { Box, Button, TextField, Typography } from '@mui/material';
 import { Fragment, useContext, useEffect, useState } from 'react';
-import CollectionComponent from './Collection';
 import EnteButton from '@/components/EnteButton';
 import { LockerDashboardContext } from '@/pages/locker';
 import {
@@ -11,6 +10,7 @@ import {
     restoreToCollection,
 } from '@/services/collectionService';
 import { t } from 'i18next';
+import FolderIcon from '@mui/icons-material/Folder';
 
 interface IProps {
     show: boolean;
@@ -68,28 +68,47 @@ const MoveFilesModal = (props: IProps) => {
                 <FlexWrapper flexDirection="column" width="100%" gap=".5rem">
                     {selectedFiles.length > 0 && (
                         <>
-                            {filteredCollections.map((collection) => (
-                                <Fragment key={collection.id}>
-                                    {(dashboardView === 'trash' ||
-                                        collection.id !==
-                                            selectedFiles[0].collectionID) && (
-                                        <CollectionComponent
-                                            collection={collection}
-                                            sx={{
-                                                width: '100%',
-                                                border: '1px solid #b1b1b1',
-                                            }}
-                                            focus={
-                                                targetCollection?.id ===
-                                                collection.id
-                                            }
-                                            onClick={() => {
-                                                setTargetCollection(collection);
-                                            }}
-                                        />
-                                    )}
-                                </Fragment>
-                            ))}
+                            {filteredCollections.map((collection) => {
+                                return (
+                                    <Fragment key={collection.id}>
+                                        {(dashboardView === 'trash' ||
+                                            collection.id !==
+                                                selectedFiles[0]
+                                                    .collectionID) && (
+                                            <Box
+                                                width="100%"
+                                                height="3rem"
+                                                borderRadius="10px"
+                                                padding="1rem"
+                                                boxSizing={'border-box'}
+                                                display="flex"
+                                                alignItems="center"
+                                                gap=".5rem"
+                                                onClick={() => {
+                                                    setTargetCollection(
+                                                        collection
+                                                    );
+                                                }}
+                                                border="1px solid white"
+                                                sx={{
+                                                    cursor: 'pointer',
+                                                    backgroundColor:
+                                                        targetCollection?.id ===
+                                                        collection?.id
+                                                            ? '#1DB954'
+                                                            : 'inherit',
+                                                    userSelect: 'none',
+                                                }}>
+                                                <FolderIcon />
+
+                                                <Typography>
+                                                    {collection.name}
+                                                </Typography>
+                                            </Box>
+                                        )}
+                                    </Fragment>
+                                );
+                            })}
                         </>
                     )}
                 </FlexWrapper>
