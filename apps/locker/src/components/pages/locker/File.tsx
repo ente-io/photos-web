@@ -1,11 +1,15 @@
 import { EnteFile } from '@/interfaces/file';
-import { TableRow, TableCell } from '@mui/material';
+import { TableRow, TableCell, styled } from '@mui/material';
 import { useContext, useMemo } from 'react';
 import { LockerDashboardContext } from '@/pages/locker';
 import { getFriendlyHumanReadableDate } from '@/utils/time/format';
 import { convertBytesToHumanReadable } from '../../../utils/file/size';
 import { resolveFileType } from 'friendly-mimes';
 import { AppContext } from '@/pages/_app';
+
+const TableRowBorderControlled = styled(TableCell)`
+    border: none;
+`;
 
 const FileComponent = ({ file, index }: { file: EnteFile; index: number }) => {
     const { selectedFiles, setSelectedFiles, filteredFiles } = useContext(
@@ -95,16 +99,20 @@ const FileComponent = ({ file, index }: { file: EnteFile; index: number }) => {
                     setSelectedFiles([file]);
                 }
             }}>
-            <TableCell>{file.metadata.title}</TableCell>
-            <TableCell>
+            <TableRowBorderControlled>
+                {file.metadata.title}
+            </TableRowBorderControlled>
+            <TableRowBorderControlled>
                 {getFriendlyHumanReadableDate(
                     new Date(file.metadata.creationTime / 1000)
                 )}
-            </TableCell>
-            <TableCell>
-                {convertBytesToHumanReadable(file.info.fileSize)}
-            </TableCell>
-            <TableCell>{friendlyMimeType}</TableCell>
+            </TableRowBorderControlled>
+            <TableRowBorderControlled>
+                {convertBytesToHumanReadable(file?.info?.fileSize)}
+            </TableRowBorderControlled>
+            <TableRowBorderControlled>
+                {friendlyMimeType}
+            </TableRowBorderControlled>
         </TableRow>
     );
 };
