@@ -6,7 +6,12 @@ import { getFriendlyHumanReadableDate } from '@/utils/time/format';
 import { convertBytesToHumanReadable } from '../../../utils/file/size';
 import { resolveFileType } from 'friendly-mimes';
 import { AppContext } from '@/pages/_app';
-
+import InventoryIcon from '@mui/icons-material/Inventory';
+import TextSnippetIcon from '@mui/icons-material/TextSnippet';
+import CloudDoneIcon from '@mui/icons-material/CloudDone';
+import SlideshowIcon from '@mui/icons-material/Slideshow';
+import ImageIcon from '@mui/icons-material/Image';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 const TableRowBorderControlled = styled(TableCell)`
     border: none;
 `;
@@ -40,6 +45,25 @@ const FileComponent = ({ file, index }: { file: EnteFile; index: number }) => {
 
         return fileTypeObj.name;
     }, [file.metadata.title]);
+
+    const fileTypeIcon = useMemo(() => {
+        if (friendlyMimeType.includes('Video')) {
+            return <SlideshowIcon />;
+        } else if (friendlyMimeType.includes('Image')) {
+            return <ImageIcon />;
+        }
+
+        switch (friendlyMimeType) {
+            case 'Text File':
+                return <TextSnippetIcon />;
+            case 'Zip Archive':
+                return <InventoryIcon />;
+            case 'Adobe Portable Document Format':
+                return <PictureAsPdfIcon />;
+            default:
+                return <CloudDoneIcon />;
+        }
+    }, [friendlyMimeType]);
 
     return (
         <TableRow
@@ -99,8 +123,13 @@ const FileComponent = ({ file, index }: { file: EnteFile; index: number }) => {
                     setSelectedFiles([file]);
                 }
             }}>
-            <TableRowBorderControlled>
-                {file.metadata.title}
+            <TableRowBorderControlled
+                sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1rem',
+                }}>
+                {fileTypeIcon} {file.metadata.title}
             </TableRowBorderControlled>
             <TableRowBorderControlled>
                 {getFriendlyHumanReadableDate(
