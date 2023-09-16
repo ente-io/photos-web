@@ -1,8 +1,8 @@
 import DialogBoxV2 from '@/components/DialogBoxV2';
 import { LockerUploaderContext } from '@/pages/locker';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, useTheme } from '@mui/material';
 import { t } from 'i18next';
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 
 interface IProps {
     show: boolean;
@@ -11,6 +11,30 @@ interface IProps {
 
 const DragAndDropModal = (props: IProps) => {
     const { setFilesToUpload } = useContext(LockerUploaderContext);
+
+    const [isDraggedOver, setIsDraggedOver] = useState(false);
+
+    const theme = useTheme();
+
+    const [dragCounter, setDragCounter] = useState(0);
+
+    const onDragEnter = (e) => {
+        e.preventDefault();
+        setDragCounter((counter) => counter + 1);
+    };
+
+    const onDragLeave = (e) => {
+        e.preventDefault();
+        setDragCounter((counter) => counter - 1);
+    };
+
+    useEffect(() => {
+        if (dragCounter > 0) {
+            setIsDraggedOver(true);
+        } else if (dragCounter === 0) {
+            setIsDraggedOver(false);
+        }
+    }, [dragCounter]);
 
     return (
         <>
@@ -32,19 +56,18 @@ const DragAndDropModal = (props: IProps) => {
                 }}
                 onDrop={(e) => {
                     e.preventDefault();
-                }}
-                // onDragLeave={(e) => {
-                //     e.preventDefault();
-                //     props.onHide();
-                // }}
-            >
+                }}>
                 <Box
                     width="100%"
                     height="10rem"
                     padding="1rem 0"
                     boxSizing="border-box"
-                    border="3px dashed white"
+                    border={`3px dashed ${
+                        isDraggedOver ? theme.colors.accent.A700 : 'white'
+                    }`}
                     borderRadius="0.5rem"
+                    onDragEnter={onDragEnter}
+                    onDragLeave={onDragLeave}
                     onDrop={(e) => {
                         e.preventDefault();
 
