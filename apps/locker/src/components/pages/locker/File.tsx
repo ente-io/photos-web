@@ -17,9 +17,13 @@ const TableRowBorderControlled = styled(TableCell)`
 `;
 
 const FileComponent = ({ file, index }: { file: EnteFile; index: number }) => {
-    const { selectedFiles, setSelectedFiles, filteredFiles } = useContext(
-        LockerDashboardContext
-    );
+    const {
+        selectedFiles,
+        setSelectedFiles,
+        filteredFiles,
+        selectedCollections,
+        setSelectedCollections,
+    } = useContext(LockerDashboardContext);
 
     const { shiftKeyHeld, ctrlCmdKeyHeld } = useContext(AppContext);
 
@@ -77,6 +81,9 @@ const FileComponent = ({ file, index }: { file: EnteFile; index: number }) => {
                 whiteSpace: 'nowrap',
             }}
             onClick={() => {
+                if (selectedCollections.length > 0) {
+                    setSelectedCollections([]);
+                }
                 if (selectedFiles.length > 0) {
                     if (shiftKeyHeld) {
                         // if there is at least one selected file and the shift key is held down, select all within the range of the two files

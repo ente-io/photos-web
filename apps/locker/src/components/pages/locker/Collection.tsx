@@ -21,6 +21,8 @@ const CollectionComponent = ({
         setCurrentCollection,
         selectedCollections,
         setSelectedCollections,
+        selectedFiles,
+        setSelectedFiles,
     } = useContext(LockerDashboardContext);
 
     const [isHover, setIsHover] = useState(false);
@@ -67,6 +69,9 @@ const CollectionComponent = ({
                 if (onClick) {
                     onClick();
                     return;
+                }
+                if (selectedFiles.length > 0) {
+                    setSelectedFiles([]);
                 }
                 if (isSelected) {
                     setSelectedCollections(
