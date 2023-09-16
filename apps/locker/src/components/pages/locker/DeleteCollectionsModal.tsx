@@ -30,19 +30,6 @@ const DeleteCollectionsModal = (props: IProps) => {
                 <EnteButton
                     type="submit"
                     size="large"
-                    color="critical"
-                    onClick={async () => {
-                        for await (const collection of selectedCollections) {
-                            await deleteCollection(collection.id, false);
-                        }
-                        setSelectedCollections([]);
-                        props.onHide();
-                    }}>
-                    {t('DELETE_AND_DISCARD')}
-                </EnteButton>
-                <EnteButton
-                    type="submit"
-                    size="large"
                     color="warning"
                     onClick={async () => {
                         for await (const collection of selectedCollections) {
@@ -51,7 +38,20 @@ const DeleteCollectionsModal = (props: IProps) => {
                         setSelectedCollections([]);
                         props.onHide();
                     }}>
-                    {t('DELETE_AND_PRESERVE')}
+                    {t('KEEP_FILES')}
+                </EnteButton>
+                <EnteButton
+                    type="submit"
+                    size="large"
+                    color="critical"
+                    onClick={async () => {
+                        for await (const collection of selectedCollections) {
+                            await deleteCollection(collection.id, false);
+                        }
+                        setSelectedCollections([]);
+                        props.onHide();
+                    }}>
+                    {t('DELETE_FILES')}
                 </EnteButton>
                 <Button size="large" color={'secondary'} onClick={props.onHide}>
                     {t('CANCEL')}
