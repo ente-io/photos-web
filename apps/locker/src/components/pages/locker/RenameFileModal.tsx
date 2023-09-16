@@ -30,8 +30,8 @@ const RenameFileModal = (props: IProps) => {
         LockerDashboardContext
     );
 
-    const [filename, setFilename] = useState<string>();
-    const [extension, setExtension] = useState<string>();
+    const [filename, setFilename] = useState<string>('');
+    const [extension, setExtension] = useState<string>('');
 
     useEffect(() => {
         if (selectedFiles.length !== 1) return;
@@ -48,12 +48,18 @@ const RenameFileModal = (props: IProps) => {
         setFieldError
     ) => {
         try {
-            if (inputValue === filename) {
+            if (
+                inputValue ===
+                `${filename}${extension?.length > 0 ? `.${extension}` : ''}`
+            ) {
+                console.log('same, ignoring');
                 props.onHide();
                 return;
             }
-            const newTitle = getFileTitle(inputValue, extension);
-            let updatedFile = await changeFileName(selectedFiles[0], newTitle);
+            let updatedFile = await changeFileName(
+                selectedFiles[0],
+                inputValue
+            );
             updatedFile = (
                 await updateFilePublicMagicMetadata([updatedFile])
             )[0];
@@ -75,7 +81,9 @@ const RenameFileModal = (props: IProps) => {
             }}>
             {selectedFiles.length === 1 && (
                 <SingleInputForm
-                    initialValue={selectedFiles[0].title}
+                    initialValue={`${filename}${
+                        extension?.length > 0 ? `.${extension}` : ''
+                    }`}
                     callback={callback}
                     placeholder={t('FILE_NAME')}
                     buttonText={t('RENAME')}
