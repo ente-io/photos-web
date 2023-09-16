@@ -194,9 +194,29 @@ const Locker = () => {
         init();
     }, [dashboardView]);
 
+    const [dragCounter, setDragCounter] = useState(0);
+
+    const onDragEnter = (e) => {
+        e.preventDefault();
+        setDragCounter((counter) => counter + 1);
+    };
+
+    const onDragLeave = (e) => {
+        e.preventDefault();
+        setDragCounter((counter) => counter - 1);
+    };
+
     useEffect(() => {
         init();
     }, []);
+
+    useEffect(() => {
+        if (dragCounter > 0) {
+            setShowDragAndDropModal(true);
+        } else if (dragCounter === 0) {
+            setShowDragAndDropModal(false);
+        }
+    }, [dragCounter]);
 
     const doSyncFiles = async () => {
         if (!currentCollection) return;
@@ -326,14 +346,12 @@ const Locker = () => {
                     width="100vw"
                     display="flex"
                     flexDirection="column"
-                    onDragEnter={(e) => {
-                        e.preventDefault();
-                        setShowDragAndDropModal(true);
-                    }}
-                    onDragEnd={(e) => {
-                        e.preventDefault();
-                        setShowDragAndDropModal(false);
-                    }}
+                    // onDragEnter={(e) => {
+                    //     e.preventDefault();
+                    //     setShowDragAndDropModal(true);
+                    // }}
+                    onDragEnter={onDragEnter}
+                    onDragLeave={onDragLeave}
                     onDrop={(e) => {
                         e.preventDefault();
                     }}>

@@ -32,7 +32,12 @@ const DragAndDropModal = (props: IProps) => {
                 }}
                 onDrop={(e) => {
                     e.preventDefault();
-                }}>
+                }}
+                // onDragLeave={(e) => {
+                //     e.preventDefault();
+                //     props.onHide();
+                // }}
+            >
                 <Box
                     width="100%"
                     height="10rem"
@@ -42,7 +47,6 @@ const DragAndDropModal = (props: IProps) => {
                     borderRadius="0.5rem"
                     onDrop={(e) => {
                         e.preventDefault();
-                        e.stopPropagation();
 
                         const fileList = e.dataTransfer.files;
 
