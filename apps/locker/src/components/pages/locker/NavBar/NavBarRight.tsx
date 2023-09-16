@@ -10,7 +10,7 @@ import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import { useContext, useEffect, useRef, useState, MouseEvent } from 'react';
 import { UPLOAD_STAGES } from '@/constants/upload';
-import { LockerDashboardContext } from '@/pages/locker';
+import { LockerDashboardContext, LockerUploaderContext } from '@/pages/locker';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DriveFileMoveIcon from '@mui/icons-material/DriveFileMove';
 import DownloadIcon from '@mui/icons-material/Download';
@@ -41,8 +41,6 @@ const FileInfoDrawer = dynamic(() => import('../FileInfoDrawer'));
 
 const NavBarRight = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
-
-    const [files, setFiles] = useState<File[]>([]);
 
     const [showNewCollectionModal, setShowNewCollectionModal] = useState(false);
     const [showTrashFilesModal, setShowTrashFilesModal] = useState(false);
@@ -78,6 +76,10 @@ const NavBarRight = () => {
         setOverflowMenuAnchorEl(null);
     };
 
+    const { filesToUpload, setFilesToUpload } = useContext(
+        LockerUploaderContext
+    );
+
     const {
         syncCollections,
         syncFiles,
@@ -100,10 +102,10 @@ const NavBarRight = () => {
     }, [uploadStage]);
 
     useEffect(() => {
-        if (files.length > 0) {
+        if (filesToUpload.length > 0) {
             setShowUploaderBoxComponent(true);
         }
-    }, [files]);
+    }, [filesToUpload]);
 
     const checkIsMobile = () => {
         const isMobileDisplay_ = isMobileDisplay();
@@ -401,7 +403,7 @@ const NavBarRight = () => {
                     // get files as File[]
                     const files = Array.from(e.target.files || []);
                     if (files.length === 0) return;
-                    setFiles(files);
+                    setFilesToUpload(files);
                 }}
             />
             <NewCollectionModal
@@ -466,9 +468,7 @@ const NavBarRight = () => {
                 isOpen={showFileInfoDrawer}
                 setIsOpen={setShowFileInfoDrawer}
             />
-            {showUploaderBoxComponent && (
-                <UploaderBoxComponent filesToUpload={files} />
-            )}
+            {showUploaderBoxComponent && <UploaderBoxComponent />}
         </>
     );
 };

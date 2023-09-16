@@ -33,6 +33,7 @@ import CollectionEmptyMessage from '@/components/pages/locker/CollectionEmptyMes
 import TutorialDialog from '@/components/pages/locker/TutorialDialog';
 import { LS_KEYS, getData, setData } from '@/utils/storage/localStorage';
 import { FILE_SORT_DIRECTION, FILE_SORT_FIELD } from '@/interfaces/sort';
+import DragAndDropModal from '@/components/pages/locker/DragAndDropModal';
 
 interface lockerDashboardContextProps {
     currentCollection: Collection;
@@ -63,6 +64,13 @@ interface lockerDashboardContextProps {
     fileSortDirection: FILE_SORT_DIRECTION;
     setFileSortDirection: Dispatch<SetStateAction<FILE_SORT_DIRECTION>>;
 }
+
+export const LockerUploaderContext = createContext(
+    {} as {
+        filesToUpload: File[];
+        setFilesToUpload: Dispatch<SetStateAction<File[]>>;
+    }
+);
 
 export const LockerDashboardContext =
     createContext<lockerDashboardContextProps>(
@@ -108,6 +116,10 @@ const Locker = () => {
     );
     const [fileSortDirection, setFileSortDirection] =
         useState<FILE_SORT_DIRECTION>(FILE_SORT_DIRECTION.ASC);
+
+    const [showDragAndDropModal, setShowDragAndDropModal] = useState(false);
+
+    const [filesToUpload, setFilesToUpload] = useState<File[]>([]);
 
     const router = useRouter();
 
@@ -313,8 +325,28 @@ const Locker = () => {
                     height="100vh"
                     width="100vw"
                     display="flex"
-                    flexDirection="column">
-                    <NavBar />
+                    flexDirection="column"
+                    onDragEnter={(e) => {
+                        e.preventDefault();
+                        setShowDragAndDropModal(true);
+                    }}
+                    onDragEnd={(e) => {
+                        e.preventDefault();
+                        setShowDragAndDropModal(false);
+                    }}
+                    onDrop={(e) => {
+                        e.preventDefault();
+                    }}>
+                    <LockerUploaderContext.Provider
+                        value={{ filesToUpload, setFilesToUpload }}>
+                        <NavBar />
+                        <DragAndDropModal
+                            show={showDragAndDropModal}
+                            onHide={() => {
+                                setShowDragAndDropModal(false);
+                            }}
+                        />
+                    </LockerUploaderContext.Provider>
                     <Box width="100%" height="100%" display="flex">
                         <LockerDrawer
                             isOpen={leftDrawerOpened}
