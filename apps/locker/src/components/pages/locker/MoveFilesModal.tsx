@@ -38,7 +38,7 @@ const MoveFilesModal = (props: IProps) => {
 
         setFilteredCollections(
             props.collections.filter((collection) =>
-                collection.name.toLowerCase().includes(searchTerm)
+                collection.name.toLowerCase().includes(searchTerm.toLowerCase())
             )
         );
     }, [searchTerm, props.collections]);
