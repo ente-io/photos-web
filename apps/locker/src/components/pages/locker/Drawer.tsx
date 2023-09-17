@@ -1,7 +1,7 @@
 import SubscriptionCard from '@/components/Sidebar/SubscriptionCard';
 import { DrawerSidebar } from '@/components/Sidebar/drawer';
 import { LockerDashboardContext } from '@/pages/locker';
-import { ListItem, Box, Typography, Stack, Divider } from '@mui/material';
+import { Box, Typography, Stack, Divider } from '@mui/material';
 import { Dispatch, SetStateAction, useContext, useMemo } from 'react';
 import CloudIcon from '@mui/icons-material/Cloud';
 // import SettingsIcon from '@mui/icons-material/Settings';
@@ -13,7 +13,7 @@ import HelpSection from '@/components/Sidebar/HelpSection';
 import HeaderSection from '@/components/Sidebar/Header';
 import { openLink } from '@/utils/common';
 import { NoStyleAnchor } from '@/components/Sidebar/styledComponents';
-
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 const LockerDrawer = ({
     isOpen,
     setIsOpen,
@@ -72,7 +72,7 @@ const LockerDrawer = ({
                     ).toString()}
                 />
                 <EnteMenuItem
-                    startIcon={<CloudIcon />}
+                    startIcon={<DeleteOutlineIcon />}
                     label={t('TRASH')}
                     onClick={() => {
                         setDashboardView('trash');
