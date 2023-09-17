@@ -535,5 +535,6 @@
     "SUB_LOCKERS": "Sub-Lockers",
     "LOCKER_SEARCH_HINT": "Search for sub-lockers and files...",
     "DRAG_AND_DROP": "Drag and Drop",
-    "DRAG_YOUR_FILES_HERE": "Drag your files here and they'll be securely uploaded with end-to-end encryption."
+    "DRAG_YOUR_FILES_HERE": "Drag your files here and they'll be securely uploaded with end-to-end encryption.",
+    "ACCOUNT_SETTINGS": "Account Settings"
 }
