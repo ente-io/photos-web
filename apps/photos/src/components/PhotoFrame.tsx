@@ -16,7 +16,6 @@ import { useRouter } from 'next/router';
 import { logError } from 'utils/sentry';
 import { addLogLine } from 'utils/logging';
 import PhotoSwipe from 'photoswipe';
-import useMemoSingleThreaded from 'hooks/useMemoSingleThreaded';
 import { getPlayableVideo } from 'utils/file';
 import { FILE_TYPE } from 'constants/file';
 
@@ -90,31 +89,9 @@ const PhotoFrame = ({
         ? publicCollectionGalleryContext.files
         : galleryContext.files;
 
-    const displayFiles = useMemoSingleThreaded(() => {
-        return files.map((item) => {
-            const filteredItem = {
-                ...item,
-                w: window.innerWidth,
-                h: window.innerHeight,
-                title: item.pubMagicMetadata?.data.caption,
-            };
-            try {
-                if (thumbsStore.has(item.id)) {
-                    updateFileMsrcProps(filteredItem, thumbsStore.get(item.id));
-                }
-                if (filesStore.has(item.id)) {
-                    updateFileSrcProps(filteredItem, filesStore.get(item.id));
-                }
-            } catch (e) {
-                logError(e, 'PhotoFrame url prefill failed');
-            }
-            return filteredItem;
-        });
-    }, [files]);
-
     useEffect(() => {
         setFetching({});
-    }, [displayFiles]);
+    }, [files]);
 
     useEffect(() => {
         const currentURL = new URL(window.location.href);
@@ -172,13 +149,13 @@ const PhotoFrame = ({
         }
     }, [selected]);
 
-    if (!displayFiles) {
+    if (!files) {
         return <div />;
     }
 
     const updateURL =
         (index: number) => (id: number, url: string, forceUpdate?: boolean) => {
-            const file = displayFiles[index];
+            const file = files[index];
             // this is to prevent outdated updateURL call from updating the wrong file
             if (file.id !== id) {
                 addLogLine(
@@ -207,7 +184,7 @@ const PhotoFrame = ({
         mergedSrcURL: MergedSourceURL,
         forceUpdate?: boolean
     ) => {
-        const file = displayFiles[index];
+        const file = files[index];
         // this is to prevent outdate updateSrcURL call from updating the wrong file
         if (file.id !== id) {
             addLogLine(
@@ -314,7 +291,7 @@ const PhotoFrame = ({
                 (index - i) * direction >= 0;
                 i += direction
             ) {
-                checked = checked && !!selected[displayFiles[i].id];
+                checked = checked && !!selected[files[i].id];
             }
             for (
                 let i = rangeStart;
@@ -322,13 +299,13 @@ const PhotoFrame = ({
                 i += direction
             ) {
                 handleSelect(
-                    displayFiles[i].id,
-                    displayFiles[i].ownerID === galleryContext.user?.id
+                    files[i].id,
+                    files[i].ownerID === galleryContext.user?.id
                 )(!checked);
             }
             handleSelect(
-                displayFiles[index].id,
-                displayFiles[index].ownerID === galleryContext.user?.id,
+                files[index].id,
+                files[index].ownerID === galleryContext.user?.id,
                 index
             )(!checked);
         }
@@ -607,7 +584,7 @@ const PhotoFrame = ({
                         width={width}
                         height={height}
                         getThumbnail={getThumbnail}
-                        displayFiles={displayFiles}
+                        files={files}
                         activeCollectionID={activeCollectionID}
                         showAppDownloadBanner={showAppDownloadBanner}
                     />
@@ -615,7 +592,7 @@ const PhotoFrame = ({
             </AutoSizer>
             <PhotoViewer
                 isOpen={open}
-                items={displayFiles}
+                items={files}
                 currentIndex={currentIndex}
                 onClose={handleClose}
                 gettingData={getSlideData}
