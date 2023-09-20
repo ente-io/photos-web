@@ -58,6 +58,9 @@ interface PhotoswipeFullscreenAPI {
 }
 
 const CaptionContainer = styled('div')(({ theme }) => ({
+    position: 'absolute',
+    bottom: '56px',
+    right: '0',
     padding: theme.spacing(2),
     wordBreak: 'break-word',
     textAlign: 'right',
@@ -771,8 +774,17 @@ function PhotoViewer(props: Iprops) {
                             <ChevronRight sx={{ pointerEvents: 'none' }} />
                         </button>
                         <div className="pswp__caption pswp-custom-caption-container">
-                            <CaptionContainer />
+                            <div />
                         </div>
+                        {(photoSwipe?.currItem as EnteFile)?.pubMagicMetadata
+                            ?.data?.caption && (
+                            <CaptionContainer>
+                                {
+                                    (photoSwipe?.currItem as EnteFile)
+                                        ?.pubMagicMetadata?.data?.caption
+                                }
+                            </CaptionContainer>
+                        )}
                     </div>
                 </div>
             </div>
