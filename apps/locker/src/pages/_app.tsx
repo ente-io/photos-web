@@ -17,6 +17,7 @@ import Head from 'next/head';
 import { createContext, useEffect, useState } from 'react';
 import { setupI18n } from '@/i18n';
 import FullScreenLoader from '@/components/FullScreenLoader';
+import HTTPService from '@/services/HTTPService';
 
 export const AppContext = createContext(
     {} as {
@@ -33,6 +34,12 @@ const App = ({ Component, pageProps }: AppProps) => {
 
     useEffect(() => {
         setupI18n().finally(() => setIsI18nReady(true));
+    }, []);
+
+    useEffect(() => {
+        HTTPService.setHeaders({
+            'X-Client-Package': 'io.ente.locker',
+        });
     }, []);
 
     const keyListener = (e: KeyboardEvent) => {
