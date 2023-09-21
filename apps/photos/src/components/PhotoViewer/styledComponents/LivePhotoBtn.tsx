@@ -1,15 +1,10 @@
-import { styled } from '@mui/material';
-export const LivePhotoBtn = styled('button')`
+import { Paper } from '@mui/material';
+import { styled } from '@mui/material/styles';
+
+export const LivePhotoBtnContainer = styled(Paper)`
+    border-radius: 4px;
     position: absolute;
-    bottom: 6vh;
+    bottom: 10vh;
     right: 6vh;
-    height: 40px;
-    width: 80px;
-    background: #d7d7d7;
-    outline: none;
-    border: none;
-    border-radius: 10%;
     z-index: 10;
-    cursor: ${(props) => (props.disabled ? 'not-allowed' : 'pointer')};
-    }
 `;

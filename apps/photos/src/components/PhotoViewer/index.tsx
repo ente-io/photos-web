@@ -13,7 +13,6 @@ import {
     getFileExtension,
     getFileFromURL,
 } from 'utils/file';
-import { livePhotoBtnHTML } from 'components/LivePhotoBtn';
 import { logError } from 'utils/sentry';
 
 import { FILE_TYPE } from 'constants/file';
@@ -26,7 +25,7 @@ import {
     defaultLivePhotoDefaultOptions,
     photoSwipeV4Events,
 } from 'constants/photoViewer';
-import { LivePhotoBtn } from './styledComponents/LivePhotoBtn';
+import { LivePhotoBtnContainer } from './styledComponents/LivePhotoBtn';
 import DownloadIcon from '@mui/icons-material/Download';
 import InfoIcon from '@mui/icons-material/InfoOutlined';
 import FavoriteIcon from '@mui/icons-material/FavoriteRounded';
@@ -35,7 +34,7 @@ import ChevronRight from '@mui/icons-material/ChevronRight';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { trashFiles } from 'services/fileService';
 import { getTrashFileMessage } from 'utils/ui';
-import { styled } from '@mui/material';
+import { Box, Button, styled } from '@mui/material';
 import { addLocalLog } from 'utils/logging';
 import ContentCopy from '@mui/icons-material/ContentCopy';
 import ChevronLeft from '@mui/icons-material/ChevronLeft';
@@ -44,6 +43,14 @@ import { getParsedExifData } from 'services/upload/exifService';
 import { getFileType } from 'services/typeDetectionService';
 import { ConversionFailedNotification } from './styledComponents/ConversionFailedNotification';
 import { GalleryContext } from 'pages/gallery';
+import { ConvertBtnContainer } from './styledComponents/ConvertBtn';
+import downloadManager from 'services/downloadManager';
+import publicCollectionDownloadManager from 'services/publicCollectionDownloadManager';
+import CircularProgressWithLabel from './styledComponents/CircularProgressWithLabel';
+import EnteSpinner from 'components/EnteSpinner';
+import AlbumOutlined from '@mui/icons-material/AlbumOutlined';
+import { FlexWrapper } from 'components/Container';
+import isElectron from 'is-electron';
 
 interface PhotoswipeFullscreenAPI {
     enter: () => void;
@@ -67,6 +74,7 @@ interface Iprops {
     currentIndex?: number;
     onClose?: (needUpdate: boolean) => void;
     gettingData: (instance: any, index: number, item: EnteFile) => void;
+    getConvertedItem: (instance: any, index: number, item: EnteFile) => void;
     id?: string;
     className?: string;
     favItemIds: Set<number>;
@@ -75,18 +83,22 @@ interface Iprops {
     isTrashCollection: boolean;
     isInHiddenSection: boolean;
     enableDownload: boolean;
-    isSourceLoaded: boolean;
-    conversionFailed: boolean;
     fileToCollectionsMap: Map<number, number[]>;
     collectionNameMap: Map<number, string>;
 }
 
 function PhotoViewer(props: Iprops) {
+    const galleryContext = useContext(GalleryContext);
+    const appContext = useContext(AppContext);
+    const publicCollectionGalleryContext = useContext(
+        PublicCollectionGalleryContext
+    );
+
+    const { isOpen, items } = props;
+
     const pswpElement = useRef<HTMLDivElement>();
     const [photoSwipe, setPhotoSwipe] =
         useState<Photoswipe<Photoswipe.Options>>();
-
-    const { isOpen, items, isSourceLoaded, conversionFailed } = props;
     const [isFav, setIsFav] = useState(false);
     const [showInfo, setShowInfo] = useState(false);
     const [exif, setExif] =
@@ -95,18 +107,32 @@ function PhotoViewer(props: Iprops) {
     const [livePhotoBtnOptions, setLivePhotoBtnOptions] = useState(
         defaultLivePhotoDefaultOptions
     );
+    const [isOwnFile, setIsOwnFile] = useState(false);
+    const [showConvertBtn, setShowConvertBtn] = useState(false);
+    const [isSourceLoaded, setIsSourceLoaded] = useState(false);
+
     const needUpdate = useRef(false);
-    const publicCollectionGalleryContext = useContext(
-        PublicCollectionGalleryContext
-    );
-
-    const galleryContext = useContext(GalleryContext);
-    const appContext = useContext(AppContext);
-
     const exifExtractionInProgress = useRef<string>(null);
     const shouldShowCopyOption = useMemo(() => isClipboardItemPresent(), []);
 
-    const [isOwnFile, setIsOwnFile] = useState(false);
+    const [
+        conversionFailedNotificationOpen,
+        setConversionFailedNotificationOpen,
+    ] = useState(false);
+
+    const [fileDownloadProgress, setFileDownloadProgress] = useState<
+        Map<number, number>
+    >(new Map());
+
+    useEffect(() => {
+        if (publicCollectionGalleryContext.accessedThroughSharedURL) {
+            publicCollectionDownloadManager.setProgressUpdater(
+                setFileDownloadProgress
+            );
+        } else {
+            downloadManager.setProgressUpdater(setFileDownloadProgress);
+        }
+    }, []);
 
     useEffect(() => {
         if (!pswpElement) return;
@@ -255,6 +281,41 @@ function PhotoViewer(props: Iprops) {
         setIsOwnFile(isOwnFile);
     }
 
+    function updateExif(file: EnteFile) {
+        if (file.metadata.fileType !== FILE_TYPE.IMAGE) {
+            setExif({ key: file.src, value: null });
+            return;
+        }
+        if (
+            !file ||
+            !exifCopy?.current?.value === null ||
+            exifCopy?.current?.key === file.src
+        ) {
+            return;
+        }
+        setExif({ key: file.src, value: undefined });
+        checkExifAvailable(file);
+    }
+
+    function updateShowConvertBtn(file: EnteFile) {
+        const shouldShowConvertBtn =
+            isElectron() &&
+            (file.metadata.fileType === FILE_TYPE.VIDEO ||
+                file.metadata.fileType === FILE_TYPE.LIVE_PHOTO) &&
+            !file.isConverted &&
+            file.isSourceLoaded &&
+            !file.conversionFailed;
+        setShowConvertBtn(shouldShowConvertBtn);
+    }
+
+    function updateConversionFailedNotification(file: EnteFile) {
+        setConversionFailedNotificationOpen(file.conversionFailed);
+    }
+
+    function updateIsSourceLoaded(file: EnteFile) {
+        setIsSourceLoaded(file.isSourceLoaded);
+    }
+
     const openPhotoSwipe = () => {
         const { items, currentIndex } = props;
         const options = {
@@ -323,36 +384,18 @@ function PhotoViewer(props: Iprops) {
             }
             updateFavButton(currItem);
             updateIsOwnFile(currItem);
-            if (currItem.metadata.fileType !== FILE_TYPE.IMAGE) {
-                setExif({ key: currItem.src, value: null });
-                return;
-            }
-            if (
-                !currItem ||
-                !exifCopy?.current?.value === null ||
-                exifCopy?.current?.key === currItem.src
-            ) {
-                return;
-            }
-            setExif({ key: currItem.src, value: undefined });
-            checkExifAvailable(currItem);
+            updateConversionFailedNotification(currItem);
+            updateExif(currItem);
+            updateShowConvertBtn(currItem);
+            updateIsSourceLoaded(currItem);
         });
         photoSwipe.listen('resize', () => {
             if (!photoSwipe?.currItem) return;
             const currItem = photoSwipe.currItem as EnteFile;
-            if (currItem.metadata.fileType !== FILE_TYPE.IMAGE) {
-                setExif({ key: currItem.src, value: null });
-                return;
-            }
-            if (
-                !currItem ||
-                !exifCopy?.current?.value === null ||
-                exifCopy?.current?.key === currItem.src
-            ) {
-                return;
-            }
-            setExif({ key: currItem.src, value: undefined });
-            checkExifAvailable(currItem);
+            updateExif(currItem);
+            updateConversionFailedNotification(currItem);
+            updateShowConvertBtn(currItem);
+            updateIsSourceLoaded(currItem);
         });
         photoSwipe.init();
         needUpdate.current = false;
@@ -547,6 +590,15 @@ function PhotoViewer(props: Iprops) {
             fullScreenApi.enter();
         }
     };
+
+    const triggerManualConvert = () => {
+        props.getConvertedItem(
+            photoSwipe,
+            photoSwipe.getCurrentIndex(),
+            photoSwipe.currItem as EnteFile
+        );
+    };
+
     const scheduleUpdate = () => (needUpdate.current = true);
     const { id } = props;
     let { className } = props;
@@ -563,21 +615,55 @@ function PhotoViewer(props: Iprops) {
                 <div className="pswp__bg" />
                 <div className="pswp__scroll-wrap">
                     {livePhotoBtnOptions.visible && (
-                        <LivePhotoBtn
-                            onClick={livePhotoBtnOptions.click}
-                            onMouseEnter={livePhotoBtnOptions.show}
-                            onMouseLeave={livePhotoBtnOptions.hide}
-                            disabled={livePhotoBtnOptions.loading}>
-                            {livePhotoBtnHTML} {t('LIVE')}
-                        </LivePhotoBtn>
+                        <LivePhotoBtnContainer>
+                            <Button
+                                color="secondary"
+                                onClick={livePhotoBtnOptions.click}
+                                onMouseEnter={livePhotoBtnOptions.show}
+                                onMouseLeave={livePhotoBtnOptions.hide}
+                                disabled={livePhotoBtnOptions.loading}>
+                                <FlexWrapper gap={'4px'}>
+                                    {<AlbumOutlined />} {t('LIVE')}
+                                </FlexWrapper>
+                            </Button>
+                        </LivePhotoBtnContainer>
                     )}
-                    {conversionFailed && (
-                        <ConversionFailedNotification
-                            onClick={() =>
-                                downloadFileHelper(photoSwipe.currItem)
-                            }
-                        />
+                    <ConversionFailedNotification
+                        open={conversionFailedNotificationOpen}
+                        onClose={() =>
+                            setConversionFailedNotificationOpen(false)
+                        }
+                        onClick={() => downloadFileHelper(photoSwipe.currItem)}
+                    />
+                    {showConvertBtn && (
+                        <ConvertBtnContainer>
+                            <Button
+                                color="secondary"
+                                onClick={triggerManualConvert}>
+                                {t('CONVERT')}
+                            </Button>
+                        </ConvertBtnContainer>
                     )}
+
+                    <Box
+                        sx={{
+                            position: 'absolute',
+                            top: '10vh',
+                            right: '2vh',
+                            zIndex: 10,
+                        }}>
+                        {fileDownloadProgress.has(
+                            (photoSwipe?.currItem as EnteFile)?.id
+                        ) ? (
+                            <CircularProgressWithLabel
+                                value={fileDownloadProgress.get(
+                                    (photoSwipe.currItem as EnteFile)?.id
+                                )}
+                            />
+                        ) : (
+                            !isSourceLoaded && <EnteSpinner />
+                        )}
+                    </Box>
 
                     <div className="pswp__container">
                         <div className="pswp__item" />
