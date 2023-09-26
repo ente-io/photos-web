@@ -96,6 +96,8 @@ export declare type ObjectDetectionMethod = 'SSDMobileNetV2';
 
 export declare type SceneDetectionMethod = 'ImageScene';
 
+export declare type ClipMethod = 'ClipVit32';
+
 export declare type FaceCropMethod = 'ArcFace';
 
 export declare type FaceAlignmentMethod =
@@ -196,6 +198,14 @@ export interface RealWorldObject extends DetectedObject {
     className: string;
 }
 
+export interface ClipImageEmbeddingExtractionResult {
+    imageEmbedding: Float32Array;
+}
+
+export interface ClipImageEmbedding extends ClipImageEmbeddingExtractionResult {
+    fileId: number;
+}
+
 export interface Thing {
     id: number;
     name: string;
@@ -213,12 +223,14 @@ export interface MlFileData {
     objects?: RealWorldObject[];
     imageSource?: ImageType;
     imageDimensions?: Dimensions;
+    ClipImageEmbedding?: ClipImageEmbedding;
     faceDetectionMethod?: Versioned<FaceDetectionMethod>;
     faceCropMethod?: Versioned<FaceCropMethod>;
     faceAlignmentMethod?: Versioned<FaceAlignmentMethod>;
     faceEmbeddingMethod?: Versioned<FaceEmbeddingMethod>;
     objectDetectionMethod?: Versioned<ObjectDetectionMethod>;
     sceneDetectionMethod?: Versioned<SceneDetectionMethod>;
+    clipMethod?: Versioned<ClipMethod>;
     mlVersion: number;
     errorCount: number;
     lastErrorMessage?: string;
@@ -238,6 +250,10 @@ export interface ObjectDetectionConfig {
 export interface SceneDetectionConfig {
     method: SceneDetectionMethod;
     minScore: number;
+}
+
+export interface ClipConfig {
+    method: ClipMethod;
 }
 
 export interface FaceCropConfig {
@@ -285,6 +301,7 @@ export interface MLSyncConfig extends Config {
     faceClustering: FaceClusteringConfig;
     objectDetection: ObjectDetectionConfig;
     sceneDetection: SceneDetectionConfig;
+    clip: ClipConfig;
     tsne?: TSNEConfig;
     mlVersion: number;
 }
@@ -306,6 +323,7 @@ export interface MLSyncContext {
     faceClusteringService: ClusteringService;
     objectDetectionService: ObjectDetectionService;
     sceneDetectionService: SceneDetectionService;
+    clipService: ClipService;
 
     localFilesMap: Map<number, EnteFile>;
     outOfSyncFiles: EnteFile[];
@@ -373,6 +391,14 @@ export interface SceneDetectionService {
         image: ImageBitmap,
         minScore: number
     ): Promise<ObjectDetection[]>;
+}
+
+export interface ClipService {
+    method: Versioned<ClipMethod>;
+    // init(): Promise<void>;
+    computeImageEmbeddings(
+        image: ImageBitmap
+    ): Promise<ClipImageEmbeddingExtractionResult>;
 }
 
 export interface FaceCropService {

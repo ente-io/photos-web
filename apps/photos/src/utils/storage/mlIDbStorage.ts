@@ -71,7 +71,7 @@ class MLIDbStorage {
     }
 
     private openDB(): Promise<IDBPDatabase<MLDb>> {
-        return openDB<MLDb>(MLDATA_DB_NAME, 3, {
+        return openDB<MLDb>(MLDATA_DB_NAME, 4, {
             terminated: async () => {
                 console.error('ML Indexed DB terminated');
                 logError(new Error(), 'ML Indexed DB terminated');
@@ -129,6 +129,11 @@ class MLIDbStorage {
                     await tx
                         .objectStore('configs')
                         .add(DEFAULT_ML_SEARCH_CONFIG, ML_SEARCH_CONFIG_NAME);
+                }
+                if (oldVersion < 4) {
+                    await tx
+                        .objectStore('configs')
+                        .put(DEFAULT_ML_SYNC_CONFIG, ML_SYNC_CONFIG_NAME);
                 }
                 addLogLine(
                     `Ml DB upgraded to version: ${newVersion} from version: ${oldVersion}`

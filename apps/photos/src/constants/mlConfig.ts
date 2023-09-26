@@ -52,6 +52,9 @@ export const DEFAULT_ML_SYNC_CONFIG: MLSyncConfig = {
         method: 'ImageScene',
         minScore: 0.1,
     },
+    clip: {
+        method: 'ClipVit32',
+    },
     // tsne: {
     //     samples: 200,
     //     dim: 2,
@@ -59,7 +62,7 @@ export const DEFAULT_ML_SYNC_CONFIG: MLSyncConfig = {
     //     learningRate: 10.0,
     //     metric: 'euclidean',
     // },
-    mlVersion: 3,
+    mlVersion: 4,
 };
 
 export const DEFAULT_ML_SEARCH_CONFIG: MLSearchConfig = {
@@ -91,3 +94,5 @@ export const SCENE_DETECTION_IMAGE_SIZE = 224;
 export const OBJECT_DETECTION_IMAGE_SIZE = 320;
 
 export const BATCHES_BEFORE_SYNCING_INDEX = 5;
+
+export const CLIP_IMAGE_SIZE = 224;

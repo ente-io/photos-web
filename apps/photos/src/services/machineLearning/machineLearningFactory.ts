@@ -19,6 +19,8 @@ import {
     ObjectDetectionMethod,
     SceneDetectionService,
     SceneDetectionMethod,
+    ClipService,
+    ClipMethod,
 } from 'types/machineLearning';
 import { getConcurrency } from 'utils/common/concurrency';
 import { logQueueStats } from 'utils/machineLearning';
@@ -30,6 +32,7 @@ import mobileFaceNetEmbeddingService from './mobileFaceNetEmbeddingService';
 import dbscanClusteringService from './dbscanClusteringService';
 import ssdMobileNetV2Service from './ssdMobileNetV2Service';
 import imageSceneService from './imageSceneService';
+import clipVit32Service from './clipVit32Service';
 import { getDedicatedCryptoWorker } from 'utils/comlink/ComlinkCryptoWorker';
 import { ComlinkWorker } from 'utils/comlink/comlinkWorker';
 import { DedicatedCryptoWorker } from 'worker/crypto.worker';
@@ -64,6 +67,14 @@ export class MLFactory {
         }
 
         throw Error('Unknown scene detection method: ' + method);
+    }
+
+    public static getClipService(method: ClipMethod): ClipService {
+        if (method === 'ClipVit32') {
+            return clipVit32Service;
+        }
+
+        throw Error('Unknown clip method: ' + method);
     }
 
     public static getFaceCropService(method: FaceCropMethod) {
@@ -135,6 +146,7 @@ export class LocalMLSyncContext implements MLSyncContext {
     public faceClusteringService: ClusteringService;
     public objectDetectionService: ObjectDetectionService;
     public sceneDetectionService: SceneDetectionService;
+    public clipService: ClipService;
 
     public localFilesMap: Map<number, EnteFile>;
     public outOfSyncFiles: EnteFile[];
@@ -164,6 +176,7 @@ export class LocalMLSyncContext implements MLSyncContext {
         shouldUpdateMLVersion: boolean = true,
         concurrency?: number
     ) {
+        console.log('LocalMLSyncContext constructor', config);
         this.token = token;
         this.userID = userID;
         this.config = config;
@@ -191,6 +204,7 @@ export class LocalMLSyncContext implements MLSyncContext {
         this.sceneDetectionService = MLFactory.getSceneDetectionService(
             this.config.sceneDetection.method
         );
+        this.clipService = MLFactory.getClipService(this.config.clip.method);
 
         this.outOfSyncFiles = [];
         this.nSyncedFiles = 0;

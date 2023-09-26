@@ -29,6 +29,7 @@ import { MAX_ML_SYNC_ERROR_COUNT } from 'constants/mlConfig';
 import FaceService from './faceService';
 import PeopleService from './peopleService';
 import ObjectService from './objectService';
+import ClipService from './clipService';
 // import TextService from './textService';
 import ReaderService from './readerService';
 import { logError } from 'utils/sentry';
@@ -442,6 +443,10 @@ class MachineLearningService {
             await Promise.all([
                 this.syncFaceDetections(syncContext, fileContext),
                 ObjectService.syncFileObjectDetections(
+                    syncContext,
+                    fileContext
+                ),
+                ClipService.syncFileClipImageEmbeddings(
                     syncContext,
                     fileContext
                 ),
