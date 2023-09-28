@@ -365,7 +365,11 @@ const Locker = () => {
                             }}
                         />
                     </LockerUploaderContext.Provider>
-                    <Box width="100%" height="100%" display="flex">
+                    <Box
+                        width="100%"
+                        height="100%"
+                        display="flex"
+                        paddingTop="5rem">
                         <LockerDrawer
                             isOpen={leftDrawerOpened}
                             setIsOpen={setLeftDrawerOpened}

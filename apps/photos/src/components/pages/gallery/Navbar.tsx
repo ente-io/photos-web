@@ -29,7 +29,12 @@ export function GalleryNavbar({
     setIsInSearchMode,
 }: Iprops) {
     return (
-        <NavbarBase sx={{ background: 'transparent', position: 'absolute' }}>
+        <NavbarBase
+            sx={{
+                backgroundColor: 'rgb(0,0,0, 0.75);',
+                position: 'fixed',
+                backdropFilter: 'blur(5px)',
+            }}>
             {!isInSearchMode && <SidebarToggler openSidebar={openSidebar} />}
             <SearchBar
                 isInSearchMode={isInSearchMode}
