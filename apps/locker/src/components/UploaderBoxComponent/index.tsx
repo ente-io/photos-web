@@ -151,7 +151,7 @@ const UploaderBoxComponent = () =>
                     <Box
                         sx={{
                             width: '40rem',
-                            position: 'absolute',
+                            position: 'fixed',
                             zIndex: 100,
                             bottom: '1rem',
                             right: '1rem',
