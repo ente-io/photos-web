@@ -14,6 +14,10 @@ const NavBar = () => {
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     gap: '1rem',
+                    backgroundColor: 'rgb(0,0,0, 0.75)',
+                    position: 'fixed',
+                    backdropFilter: 'blur(5px)',
+                    width: '100%',
                 }}>
                 <NavBarLeft />
                 <NavBarMiddle />
