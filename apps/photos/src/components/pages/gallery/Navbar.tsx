@@ -31,9 +31,10 @@ export function GalleryNavbar({
     return (
         <NavbarBase
             sx={{
-                backgroundColor: 'rgb(0,0,0, 0.75);',
+                backgroundColor: 'rgb(0,0,0, 0.75)',
                 position: 'fixed',
                 backdropFilter: 'blur(5px)',
+                width: '100%',
             }}>
             {!isInSearchMode && <SidebarToggler openSidebar={openSidebar} />}
             <SearchBar
