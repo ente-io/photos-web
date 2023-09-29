@@ -14,6 +14,7 @@ import ImageIcon from '@mui/icons-material/Image';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import { ExplorerItem } from '@/interfaces/explorer';
 import Folder from '@mui/icons-material/Folder';
+import { Collection } from '@/interfaces/collection';
 const TableRowBorderControlled = styled(TableCell)`
     border: none;
 `;
@@ -31,8 +32,10 @@ const ExplorerRow = ({
         // filteredFiles,
         // selectedCollections,
         // setSelectedCollections,
+        explorerItems,
         selectedExplorerItems,
         setSelectedExplorerItems,
+        setCurrentCollection,
     } = useContext(LockerDashboardContext);
 
     const { shiftKeyHeld, ctrlCmdKeyHeld } = useContext(AppContext);
@@ -94,25 +97,25 @@ const ExplorerRow = ({
                 userSelect: 'none',
                 whiteSpace: 'nowrap',
             }}
+            onDoubleClick={() => {
+                if (item.type !== 'collection') return;
+
+                setCurrentCollection(item.originalItem as Collection);
+            }}
             onClick={() => {
-                // if (selectedCollections.length > 0) {
-                //     setSelectedCollections([]);
-                // }
                 if (selectedExplorerItems.length > 0) {
                     if (shiftKeyHeld) {
-                        // if there is at least one selected file and the shift key is held down, select all within the range of the two files
-                        // get the index of the first selected file
-                        const firstSelectedFileIndex =
-                            selectedExplorerItems.findIndex(
-                                (selectedFile) =>
-                                    selectedFile.id ===
-                                    selectedExplorerItems[0].id
-                            );
-                        const filesInBetween = selectedExplorerItems.slice(
-                            firstSelectedFileIndex,
+                        // if there is at least one selected item and the shift key is held down, select all within the range of the two items
+                        // get the index of the first selected item
+                        const firstSelectedItemIndex = explorerItems.findIndex(
+                            (selectedItem) =>
+                                selectedItem.id === selectedExplorerItems[0].id
+                        );
+                        const itemsInBetween = explorerItems.slice(
+                            firstSelectedItemIndex,
                             index + 1
                         );
-                        setSelectedExplorerItems(filesInBetween);
+                        setSelectedExplorerItems(itemsInBetween);
                         return;
                     }
                     if (ctrlCmdKeyHeld) {
