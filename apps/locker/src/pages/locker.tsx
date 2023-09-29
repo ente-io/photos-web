@@ -305,6 +305,7 @@ const Locker = () => {
 
         if (currentCollection?.id === uncategorizedCollection?.id) {
             for (const collection of collections) {
+                if (collection.id === uncategorizedCollection?.id) continue;
                 let newExplorerItem: ExplorerItem = {
                     name: collection.name,
                     id: collection.id,
