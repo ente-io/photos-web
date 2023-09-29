@@ -136,6 +136,7 @@ const Locker = () => {
         try {
             userDetails = await getUserDetailsV2();
         } catch {
+            console.error('Failed to get user details');
             router.push('/login');
             return;
         }

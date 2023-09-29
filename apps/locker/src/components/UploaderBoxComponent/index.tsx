@@ -170,11 +170,18 @@ const UploaderBoxComponent = () =>
                                 borderTopRightRadius: '10px',
                                 borderTopLeftRadius: '10px',
                             }}
-                            padding=".5rem"
+                            padding="0 1rem"
                             boxSizing="border-box"
                             display="flex"
-                            justifyContent="flex-end"
+                            justifyContent="space-between"
                             alignItems="center">
+                            <Box>
+                                <Typography
+                                    color="text.primary"
+                                    fontWeight="bold">
+                                    Uploads
+                                </Typography>
+                            </Box>
                             <Box display="flex" gap=".5rem">
                                 <IconButton
                                     size="small"
@@ -213,8 +220,7 @@ const UploaderBoxComponent = () =>
                             display={showUploadingFiles ? 'flex' : 'none'}
                             flexDirection="column"
                             gap="0.5rem"
-                            paddingTop="0.5rem"
-                            paddingBottom="0.5rem"
+                            padding="0.5rem"
                             maxHeight="20vh"
                             sx={{
                                 overflowY: 'auto',

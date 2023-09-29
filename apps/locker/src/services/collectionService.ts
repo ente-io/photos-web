@@ -143,7 +143,6 @@ const getCollections = async (
             `${ENDPOINT}/collections`,
             {
                 sinceTime,
-                app: 'locker',
             },
             { 'X-Auth-Token': token }
         );

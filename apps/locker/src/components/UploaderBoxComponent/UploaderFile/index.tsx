@@ -52,21 +52,45 @@ const UploaderFile = (props: IProps) => {
 
     return (
         <>
-            <Box width="100%">
+            <Box
+                width="100%"
+                bgcolor="#3E3E3E"
+                borderRadius="5px"
+                paddingTop="0.5rem"
+                boxSizing="border-box">
                 <Box
                     paddingLeft="1rem"
                     paddingRight="1rem"
-                    boxSizing="border-box">
-                    <Typography color="text.primary">
+                    boxSizing="border-box"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="space-between"
+                    gap="0.5rem">
+                    <Typography
+                        color="text.primary"
+                        textOverflow="ellipsis"
+                        overflow="hidden"
+                        whiteSpace="nowrap">
                         {props.file.name}
+                    </Typography>
+                    <Typography
+                        color="text.muted"
+                        textAlign="right"
+                        minWidth={'fit-content'}
+                        fontStyle="italic">
+                        {progress < 100 ? `${progress}%` : 'Complete (100%)'}
                     </Typography>
                 </Box>
                 <Box
                     width={`${progress}%`}
                     height="0.5rem"
-                    borderBottom={`1px solid ${
+                    borderBottom={`4px solid ${
                         progress === 100 ? '#2AB954' : '#42BDF2'
                     }`}
+                    sx={{
+                        borderBottomRightRadius: '5px',
+                        borderBottomLeftRadius: '5px',
+                    }}
                 />
             </Box>
         </>
