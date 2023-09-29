@@ -1,5 +1,5 @@
 import { EnteFile } from '@/interfaces/file';
-import { TableRow, TableCell, styled } from '@mui/material';
+import { TableRow, TableCell, styled, useTheme } from '@mui/material';
 import { useContext, useMemo } from 'react';
 import { LockerDashboardContext } from '@/pages/locker';
 import { getFriendlyHumanReadableDate } from '@/utils/time/format';
@@ -65,7 +65,7 @@ const ExplorerRow = ({
 
     const fileTypeIcon = useMemo(() => {
         if (item.type === 'collection') {
-            return <Folder />;
+            return null;
         }
 
         if (friendlyMimeType.includes('Video')) {
@@ -154,7 +154,12 @@ const ExplorerRow = ({
                     alignItems: 'center',
                     gap: '1rem',
                 }}>
-                {fileTypeIcon} {item.name}
+                {item.type === 'collection' ? (
+                    <Folder color={isSelected ? 'primary' : 'accent'} />
+                ) : (
+                    fileTypeIcon
+                )}
+                {item.name}
             </TableRowBorderControlled>
             <TableRowBorderControlled>
                 {getFriendlyHumanReadableDate(
