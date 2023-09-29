@@ -27,13 +27,13 @@ import { useRouter } from 'next/router';
 import LockerDrawer from '@/components/pages/locker/Drawer';
 import { getLocalTrash, syncTrash } from '@/services/trashService';
 import FullScreenLoader from '@/components/FullScreenLoader';
-import FilesSection from '@/components/pages/locker/FilesSection';
 import CollectionsSection from '@/components/pages/locker/CollectionsSection';
-import CollectionEmptyMessage from '@/components/pages/locker/CollectionEmptyMessage';
+// import CollectionEmptyMessage from '@/components/pages/locker/CollectionEmptyMessage';
 import TutorialDialog from '@/components/pages/locker/TutorialDialog';
 import { LS_KEYS, getData, setData } from '@/utils/storage/localStorage';
 import { FILE_SORT_DIRECTION, FILE_SORT_FIELD } from '@/interfaces/sort';
 import DragAndDropModal from '@/components/pages/locker/DragAndDropModal';
+import ExplorerSection from '@/components/pages/locker/ExplorerSection';
 
 interface lockerDashboardContextProps {
     currentCollection: Collection;
@@ -59,10 +59,10 @@ interface lockerDashboardContextProps {
     filteredFiles: EnteFile[];
     nameSearchQuery: string;
     setNameSearchQuery: Dispatch<SetStateAction<string>>;
-    fileSortField: FILE_SORT_FIELD;
-    setFileSortField: Dispatch<SetStateAction<FILE_SORT_FIELD>>;
-    fileSortDirection: FILE_SORT_DIRECTION;
-    setFileSortDirection: Dispatch<SetStateAction<FILE_SORT_DIRECTION>>;
+    // fileSortField: FILE_SORT_FIELD;
+    // setFileSortField: Dispatch<SetStateAction<FILE_SORT_FIELD>>;
+    // fileSortDirection: FILE_SORT_DIRECTION;
+    // setFileSortDirection: Dispatch<SetStateAction<FILE_SORT_DIRECTION>>;
 }
 
 export const LockerUploaderContext = createContext(
@@ -110,12 +110,6 @@ const Locker = () => {
     const [showTutorialDialog, setShowTutorialDialog] = useState(false);
 
     const [nameSearchQuery, setNameSearchQuery] = useState('');
-
-    const [fileSortField, setFileSortField] = useState<FILE_SORT_FIELD>(
-        FILE_SORT_FIELD.DATE_ADDED
-    );
-    const [fileSortDirection, setFileSortDirection] =
-        useState<FILE_SORT_DIRECTION>(FILE_SORT_DIRECTION.ASC);
 
     const [showDragAndDropModal, setShowDragAndDropModal] = useState(false);
 
@@ -248,25 +242,25 @@ const Locker = () => {
             });
         }
 
-        switch (fileSortField) {
-            // case FILE_SORT_FIELD.DATE_ADDED: already done by default
-            case FILE_SORT_FIELD.SIZE:
-                filtered = filtered.sort((a, b) => {
-                    return a.info.fileSize - b.info.fileSize;
-                });
-                break;
-            case FILE_SORT_FIELD.NAME:
-                filtered = filtered.sort((a, b) => {
-                    return a.metadata.title.localeCompare(b.metadata.title);
-                });
-                break;
-            default:
-                break;
-        }
+        // switch (fileSortField) {
+        //     // case FILE_SORT_FIELD.DATE_ADDED: already done by default
+        //     case FILE_SORT_FIELD.SIZE:
+        //         filtered = filtered.sort((a, b) => {
+        //             return a.info.fileSize - b.info.fileSize;
+        //         });
+        //         break;
+        //     case FILE_SORT_FIELD.NAME:
+        //         filtered = filtered.sort((a, b) => {
+        //             return a.metadata.title.localeCompare(b.metadata.title);
+        //         });
+        //         break;
+        //     default:
+        //         break;
+        // }
 
-        if (fileSortDirection === FILE_SORT_DIRECTION.DESC) {
-            filtered.reverse();
-        }
+        // if (fileSortDirection === FILE_SORT_DIRECTION.DESC) {
+        //     filtered.reverse();
+        // }
 
         return filtered;
     }, [
@@ -274,8 +268,8 @@ const Locker = () => {
         currentCollection,
         dashboardView,
         nameSearchQuery,
-        fileSortField,
-        fileSortDirection,
+        // fileSortField,
+        // fileSortDirection,
     ]);
 
     useEffect(() => {
@@ -337,10 +331,10 @@ const Locker = () => {
                     filteredFiles,
                     nameSearchQuery,
                     setNameSearchQuery,
-                    fileSortField,
-                    setFileSortField,
-                    fileSortDirection,
-                    setFileSortDirection,
+                    // fileSortField,
+                    // setFileSortField,
+                    // fileSortDirection,
+                    // setFileSortDirection,
                 }}>
                 <Box
                     height="100vh"
@@ -414,17 +408,13 @@ const Locker = () => {
                                 </>
                             )}
 
-                            {collections.length > 0 &&
+                            {/* {collections.length > 0 &&
                                 currentCollection?.id ===
                                     uncategorizedCollection?.id && (
                                     <CollectionsSection />
-                                )}
+                                )} */}
 
-                            {filteredFiles.length > 0 ? (
-                                <FilesSection />
-                            ) : (
-                                <CollectionEmptyMessage />
-                            )}
+                            <ExplorerSection />
                         </Box>
                     </Box>
                 </Box>
