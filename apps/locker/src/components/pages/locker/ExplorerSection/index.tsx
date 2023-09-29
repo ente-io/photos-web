@@ -7,13 +7,14 @@ import {
     TableContainer,
     TableHead,
     TableRow,
+    Typography,
 } from '@mui/material';
 import { useContext, useMemo, useState } from 'react';
 import { LockerDashboardContext } from '@/pages/locker';
 import { t } from 'i18next';
 import { FILE_SORT_DIRECTION, FILE_SORT_FIELD } from '@/interfaces/sort';
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { ExplorerItem } from '@/interfaces/explorer';
 import ExplorerRow from './ExplorerRow';
 
@@ -81,16 +82,19 @@ const ExplorerSection = () => {
                                         cursor: 'pointer',
                                         fontWeight: 'bold',
                                     }}>
-                                    {category.name}
-                                    {sortField === category.sortFieldEnum &&
-                                        ((sortDirection ===
-                                            FILE_SORT_DIRECTION.ASC && (
-                                            <ArrowUpwardIcon />
-                                        )) ||
+                                    <Box
+                                        display="flex"
+                                        alignItems="center"
+                                        justifyContent="space-between">
+                                        {category.name}
+                                        {sortField === category.sortFieldEnum &&
                                             (sortDirection ===
-                                                FILE_SORT_DIRECTION.DESC && (
-                                                <ArrowDownwardIcon />
-                                            )))}
+                                            FILE_SORT_DIRECTION.DESC ? (
+                                                <ArrowDropUpIcon />
+                                            ) : (
+                                                <ArrowDropDownIcon />
+                                            ))}
+                                    </Box>
                                 </TableCell>
                             ))}
                         </TableRow>
