@@ -101,7 +101,10 @@ const MoveFilesModal = (props: IProps) => {
                                                 }}>
                                                 <FolderIcon />
 
-                                                <Typography>
+                                                <Typography
+                                                    textOverflow="ellipsis"
+                                                    overflow="hidden"
+                                                    whiteSpace="nowrap">
                                                     {collection.name}
                                                 </Typography>
                                             </Box>
