@@ -2,6 +2,7 @@ import DialogBoxV2 from '@/components/DialogBoxV2';
 import SingleInputForm, {
     SingleInputFormProps,
 } from '@/components/SingleInputForm';
+import { EnteFile } from '@/interfaces/file';
 import { LockerDashboardContext } from '@/pages/locker';
 import { updateFilePublicMagicMetadata } from '@/services/fileService';
 import {
@@ -26,7 +27,7 @@ const getFileTitle = (filename: string, extension: string) => {
 };
 
 const RenameFileModal = (props: IProps) => {
-    const { selectedFiles, setSelectedFiles } = useContext(
+    const { selectedExplorerItems, setSelectedExplorerItems } = useContext(
         LockerDashboardContext
     );
 
@@ -34,14 +35,14 @@ const RenameFileModal = (props: IProps) => {
     const [extension, setExtension] = useState<string>('');
 
     useEffect(() => {
-        if (selectedFiles.length !== 1) return;
+        if (selectedExplorerItems.length !== 1) return;
 
         const [filename, extension] = splitFilenameAndExtension(
-            selectedFiles[0].metadata.title
+            selectedExplorerItems[0].name
         );
         setFilename(filename);
         setExtension(extension);
-    }, [selectedFiles]);
+    }, [selectedExplorerItems]);
 
     const callback: SingleInputFormProps['callback'] = async (
         inputValue,
@@ -57,15 +58,16 @@ const RenameFileModal = (props: IProps) => {
                 return;
             }
             let updatedFile = await changeFileName(
-                selectedFiles[0],
+                selectedExplorerItems[0].originalItem as EnteFile,
                 inputValue
             );
             updatedFile = (
                 await updateFilePublicMagicMetadata([updatedFile])
             )[0];
-            const existingFile = selectedFiles[0];
+            const existingFile = selectedExplorerItems[0]
+                .originalItem as EnteFile;
             updateExistingFilePubMetadata(existingFile, updatedFile);
-            setSelectedFiles([]);
+            setSelectedExplorerItems([]);
             props.onHide();
         } catch (e) {
             setFieldError(e.message);
@@ -79,7 +81,7 @@ const RenameFileModal = (props: IProps) => {
             attributes={{
                 title: t('RENAME_FILE'),
             }}>
-            {selectedFiles.length === 1 && (
+            {selectedExplorerItems.length === 1 && (
                 <SingleInputForm
                     initialValue={`${filename}${
                         extension?.length > 0 ? `.${extension}` : ''

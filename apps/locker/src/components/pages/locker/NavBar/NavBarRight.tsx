@@ -8,7 +8,14 @@ import {
 } from '@mui/material';
 import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
-import { useContext, useEffect, useRef, useState, MouseEvent } from 'react';
+import {
+    useContext,
+    useEffect,
+    useRef,
+    useState,
+    MouseEvent,
+    useMemo,
+} from 'react';
 import { UPLOAD_STAGES } from '@/constants/upload';
 import { LockerDashboardContext, LockerUploaderContext } from '@/pages/locker';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -25,6 +32,7 @@ import { isMobileDisplay } from '@/utils/resolution/isMobile';
 import dynamic from 'next/dynamic';
 import InfoIcon from '@mui/icons-material/Info';
 import RestoreFromTrashIcon from '@mui/icons-material/RestoreFromTrash';
+import { EnteFile } from '@/interfaces/file';
 const NewCollectionModal = dynamic(() => import('../NewCollectionModal'));
 const TrashFilesModal = dynamic(() => import('../TrashFilesModal'));
 const RenameFileModal = dynamic(() => import('../RenameFileModal'));
@@ -83,16 +91,19 @@ const NavBarRight = () => {
     const {
         syncCollections,
         syncFiles,
-        selectedFiles,
-        setSelectedFiles,
+        // selectedFiles,
+        // setSelectedFiles,
         collections,
         dashboardView,
-        selectedCollections,
-        setSelectedCollections,
+        // selectedCollections,
+        // setSelectedCollections,
+        selectedExplorerItems,
+        setSelectedExplorerItems,
+        explorerItems,
         syncTrash,
         showUploaderBoxComponent,
         setShowUploaderBoxComponent,
-        filteredFiles,
+        // filteredFiles,
     } = useContext(LockerDashboardContext);
 
     useEffect(() => {
@@ -123,13 +134,12 @@ const NavBarRight = () => {
     }, []);
 
     const selectAllHandler = () => {
-        if (selectedFiles.length === filteredFiles.length) {
-            setSelectedFiles([]);
-            setSelectedCollections([]);
+        if (selectedExplorerItems.length === explorerItems.length) {
+            setSelectedExplorerItems([]);
             return;
         }
 
-        setSelectedFiles(filteredFiles);
+        setSelectedExplorerItems(explorerItems);
     };
 
     const moveFilesHandler = () => {
@@ -137,7 +147,11 @@ const NavBarRight = () => {
     };
 
     const renameFileHandler = () => {
-        setShowFileRenameModal(true);
+        if (selectedExplorerItems[0].type === 'file') {
+            setShowFileRenameModal(true);
+        } else {
+            setShowRenameCollectionModal(true);
+        }
     };
 
     const renameCollectionHandler = () => {
@@ -153,12 +167,15 @@ const NavBarRight = () => {
     };
 
     const downloadFilesHandler = async () => {
-        if (selectedFiles.length > 1) {
-            await downloadFilesAsZip(selectedFiles);
+        const files = selectedExplorerItems.map((item) => {
+            return item.originalItem as EnteFile;
+        });
+
+        if (files.length > 1) {
+            await downloadFilesAsZip(files);
             return;
         }
-
-        await downloadFile(selectedFiles[0]);
+        await downloadFile(files[0]);
     };
 
     const deleteCollectionHandler = () => {
@@ -173,222 +190,100 @@ const NavBarRight = () => {
         setShowFileInfoDrawer(true);
     };
 
+    const allSelectedAreFiles = useMemo(() => {
+        return (
+            selectedExplorerItems.filter((item) => item.type === 'file')
+                .length === selectedExplorerItems.length
+        );
+    }, [selectedExplorerItems]);
+
+    const allSelectedAreCollections = useMemo(() => {
+        return (
+            selectedExplorerItems.filter((item) => item.type === 'collection')
+                .length === selectedExplorerItems.length
+        );
+    }, [selectedExplorerItems]);
+
     return (
         <>
             <Box>
-                {showMobileLayout ? (
+                {selectedExplorerItems.length === 0 ? (
+                    <IconButton onClick={selectAllHandler}>
+                        <CheckBoxOutlineBlankIcon />
+                    </IconButton>
+                ) : (
+                    <IconButton onClick={selectAllHandler}>
+                        {selectedExplorerItems.length ===
+                        explorerItems.length ? (
+                            <CheckBoxIcon />
+                        ) : (
+                            <IndeterminateCheckBoxIcon />
+                        )}
+                    </IconButton>
+                )}
+
+                {selectedExplorerItems.length > 0 ? (
                     <>
-                        <IconButton onClick={handleMobileDotsMenuClick}>
-                            <MoreHorizIcon />
-                        </IconButton>
-                        <Menu
-                            open={open}
-                            onClose={handleMobileDotsMenuClose}
-                            anchorEl={overflowMenuAnchorEl}>
-                            {selectedFiles.length === 0
-                                ? [
-                                      <MenuItem
-                                          key="select-all"
-                                          onClick={selectAllHandler}>
-                                          <ListItemIcon>
-                                              <CheckBoxOutlineBlankIcon />
-                                          </ListItemIcon>
-                                          <ListItemText>
-                                              Select All
-                                          </ListItemText>
-                                      </MenuItem>,
-                                  ]
-                                : [
-                                      <MenuItem
-                                          key="deselect-all"
-                                          onClick={selectAllHandler}>
-                                          <ListItemIcon>
-                                              {selectedFiles.length ===
-                                              filteredFiles.length ? (
-                                                  <CheckBoxIcon />
-                                              ) : (
-                                                  <IndeterminateCheckBoxIcon />
-                                              )}
-                                          </ListItemIcon>
-                                          <ListItemText>
-                                              De-select All
-                                          </ListItemText>
-                                      </MenuItem>,
-                                      selectedFiles.length === 1 && [
-                                          <MenuItem
-                                              key="rename-file"
-                                              onClick={renameFileHandler}>
-                                              <ListItemIcon>
-                                                  <DriveFileRenameOutlineIcon />
-                                              </ListItemIcon>
-                                              <ListItemText>
-                                                  Rename
-                                              </ListItemText>
-                                          </MenuItem>,
-                                          <MenuItem
-                                              key="file-info"
-                                              onClick={fileInfoHandler}>
-                                              <ListItemIcon>
-                                                  <InfoIcon />
-                                              </ListItemIcon>
-                                              <ListItemText>
-                                                  File Info
-                                              </ListItemText>
-                                          </MenuItem>,
-                                      ],
-                                      <MenuItem
-                                          key="move-files"
-                                          onClick={moveFilesHandler}>
-                                          <ListItemIcon>
-                                              <DriveFileMoveIcon />
-                                          </ListItemIcon>
-                                          <ListItemText>Move</ListItemText>
-                                      </MenuItem>,
-                                      <MenuItem
-                                          key="trash-files"
-                                          onClick={trashAndDeleteFilesHandler}>
-                                          <ListItemIcon>
-                                              <DeleteIcon />
-                                          </ListItemIcon>
-                                          <ListItemText>Trash</ListItemText>
-                                      </MenuItem>,
-                                      <MenuItem
-                                          key="download-files"
-                                          onClick={downloadFilesHandler}>
-                                          <ListItemIcon>
-                                              <DownloadIcon />
-                                          </ListItemIcon>
-                                          <ListItemText>Download</ListItemText>
-                                      </MenuItem>,
-                                  ]}
-                            {selectedCollections.length === 1 && (
-                                <MenuItem
-                                    key="rename-collection"
-                                    onClick={renameCollectionHandler}>
-                                    <ListItemIcon>
+                        {allSelectedAreFiles ? (
+                            <>
+                                <IconButton onClick={moveFilesHandler}>
+                                    {dashboardView === 'trash' ? (
+                                        <RestoreFromTrashIcon />
+                                    ) : (
+                                        <DriveFileMoveIcon />
+                                    )}
+                                </IconButton>
+                                {selectedExplorerItems.length === 1 && (
+                                    <>
+                                        <IconButton onClick={renameFileHandler}>
+                                            <DriveFileRenameOutlineIcon />
+                                        </IconButton>
+
+                                        {allSelectedAreFiles && (
+                                            <IconButton
+                                                onClick={fileInfoHandler}>
+                                                <InfoIcon />
+                                            </IconButton>
+                                        )}
+                                    </>
+                                )}
+                                <IconButton
+                                    onClick={trashAndDeleteFilesHandler}>
+                                    <DeleteIcon />
+                                </IconButton>
+                            </>
+                        ) : (
+                            <>
+                                {selectedExplorerItems.length === 1 && (
+                                    <IconButton
+                                        onClick={renameCollectionHandler}>
                                         <DriveFileRenameOutlineIcon />
-                                    </ListItemIcon>
-                                    <ListItemText>Rename</ListItemText>
-                                </MenuItem>
-                            )}
-                            {selectedCollections.length > 0 && (
-                                <MenuItem
-                                    key="delete-collection"
-                                    onClick={deleteCollectionHandler}>
-                                    <ListItemIcon>
-                                        <DeleteIcon />
-                                    </ListItemIcon>
-                                    <ListItemText>Delete</ListItemText>
-                                </MenuItem>
-                            )}
-                            {selectedFiles.length === 0 && [
-                                <MenuItem
-                                    key="create-collection"
-                                    onClick={createCollectionHandler}>
-                                    <ListItemIcon>
-                                        <CreateNewFolderIcon />
-                                    </ListItemIcon>
-                                    <ListItemText>
-                                        Create New Collection
-                                    </ListItemText>
-                                </MenuItem>,
-                                <MenuItem
-                                    key="upload-files"
-                                    onClick={() => {
-                                        fileInputRef.current?.click();
-                                    }}>
-                                    <ListItemIcon>
-                                        <FileUploadIcon />
-                                    </ListItemIcon>
-                                    <ListItemText>Upload Files</ListItemText>
-                                </MenuItem>,
-                            ]}
-                        </Menu>
+                                    </IconButton>
+                                )}
+
+                                <IconButton onClick={deleteCollectionHandler}>
+                                    <DeleteIcon />
+                                </IconButton>
+                            </>
+                        )}
+
+                        {allSelectedAreFiles && (
+                            <IconButton onClick={downloadFilesHandler}>
+                                <DownloadIcon />
+                            </IconButton>
+                        )}
                     </>
                 ) : (
                     <>
-                        {selectedFiles.length === 0 ? (
-                            <IconButton onClick={selectAllHandler}>
-                                <CheckBoxOutlineBlankIcon />
-                            </IconButton>
-                        ) : (
-                            <IconButton onClick={selectAllHandler}>
-                                {selectedFiles.length ===
-                                filteredFiles.length ? (
-                                    <CheckBoxIcon />
-                                ) : (
-                                    <IndeterminateCheckBoxIcon />
-                                )}
-                            </IconButton>
-                        )}
-
-                        {selectedFiles.length > 0 ||
-                        selectedCollections.length > 0 ? (
-                            <>
-                                {selectedFiles.length > 0 ? (
-                                    <>
-                                        <IconButton onClick={moveFilesHandler}>
-                                            {dashboardView === 'trash' ? (
-                                                <RestoreFromTrashIcon />
-                                            ) : (
-                                                <DriveFileMoveIcon />
-                                            )}
-                                        </IconButton>
-                                        {selectedFiles.length === 1 && (
-                                            <>
-                                                <IconButton
-                                                    onClick={renameFileHandler}>
-                                                    <DriveFileRenameOutlineIcon />
-                                                </IconButton>
-
-                                                <IconButton
-                                                    onClick={fileInfoHandler}>
-                                                    <InfoIcon />
-                                                </IconButton>
-                                            </>
-                                        )}
-                                        <IconButton
-                                            onClick={
-                                                trashAndDeleteFilesHandler
-                                            }>
-                                            <DeleteIcon />
-                                        </IconButton>
-                                        <IconButton
-                                            onClick={downloadFilesHandler}>
-                                            <DownloadIcon />
-                                        </IconButton>
-                                    </>
-                                ) : (
-                                    <>
-                                        {selectedCollections.length === 1 && (
-                                            <IconButton
-                                                onClick={
-                                                    renameCollectionHandler
-                                                }>
-                                                <DriveFileRenameOutlineIcon />
-                                            </IconButton>
-                                        )}
-
-                                        <IconButton
-                                            onClick={deleteCollectionHandler}>
-                                            <DeleteIcon />
-                                        </IconButton>
-                                    </>
-                                )}
-                            </>
-                        ) : (
-                            <>
-                                <IconButton onClick={createCollectionHandler}>
-                                    <CreateNewFolderIcon />
-                                </IconButton>
-                                <IconButton
-                                    onClick={() => {
-                                        fileInputRef.current?.click();
-                                    }}>
-                                    <FileUploadIcon />
-                                </IconButton>
-                            </>
-                        )}
+                        <IconButton onClick={createCollectionHandler}>
+                            <CreateNewFolderIcon />
+                        </IconButton>
+                        <IconButton
+                            onClick={() => {
+                                fileInputRef.current?.click();
+                            }}>
+                            <FileUploadIcon />
+                        </IconButton>
                     </>
                 )}
             </Box>
@@ -413,42 +308,50 @@ const NavBarRight = () => {
                     syncCollections();
                 }}
             />
-            <TrashFilesModal
-                show={showTrashFilesModal}
-                onHide={() => {
-                    setSelectedFiles([]);
-                    setShowTrashFilesModal(false);
-                    syncFiles();
-                }}
-            />
-            <RenameFileModal
-                show={showFileRenameModal}
-                onHide={() => {
-                    setShowFileRenameModal(false);
-                    syncFiles();
-                }}
-            />
-            <MoveFilesModal
-                show={showMoveFilesModal}
-                collections={collections}
-                onHide={() => {
-                    setShowMoveFilesModal(false);
-                    setSelectedFiles([]);
-                    if (dashboardView === 'locker') {
-                        syncFiles();
-                    } else if (dashboardView === 'trash') {
-                        syncTrash();
-                    }
-                }}
-            />
-            <PermanentlyDeleteFilesModal
-                show={showPermanentlyDeleteFilesModal}
-                onHide={() => {
-                    setShowPermanentlyDeleteFilesModal(false);
-                    setSelectedFiles([]);
-                    syncTrash();
-                }}
-            />
+            {allSelectedAreFiles && (
+                <>
+                    <TrashFilesModal
+                        show={showTrashFilesModal}
+                        onHide={() => {
+                            setSelectedExplorerItems([]);
+                            setShowTrashFilesModal(false);
+                            syncFiles();
+                        }}
+                    />
+                    <RenameFileModal
+                        show={showFileRenameModal}
+                        onHide={() => {
+                            setShowFileRenameModal(false);
+                            syncFiles();
+                        }}
+                    />
+                    <MoveFilesModal
+                        show={showMoveFilesModal}
+                        collections={collections}
+                        onHide={() => {
+                            setShowMoveFilesModal(false);
+                            setSelectedExplorerItems([]);
+                            if (dashboardView === 'locker') {
+                                syncFiles();
+                            } else if (dashboardView === 'trash') {
+                                syncTrash();
+                            }
+                        }}
+                    />
+                    <PermanentlyDeleteFilesModal
+                        show={showPermanentlyDeleteFilesModal}
+                        onHide={() => {
+                            setShowPermanentlyDeleteFilesModal(false);
+                            setSelectedExplorerItems([]);
+                            syncTrash();
+                        }}
+                    />
+                    <FileInfoDrawer
+                        isOpen={showFileInfoDrawer}
+                        setIsOpen={setShowFileInfoDrawer}
+                    />
+                </>
+            )}
             <DeleteCollectionsModal
                 show={showDeleteCollectionsModal}
                 onHide={() => {
@@ -460,13 +363,9 @@ const NavBarRight = () => {
                 show={showRenameCollectionModal}
                 onHide={() => {
                     setShowRenameCollectionModal(false);
-                    setSelectedCollections([]);
+                    setSelectedExplorerItems([]);
                     syncCollections();
                 }}
-            />
-            <FileInfoDrawer
-                isOpen={showFileInfoDrawer}
-                setIsOpen={setShowFileInfoDrawer}
             />
             {showUploaderBoxComponent && <UploaderBoxComponent />}
         </>

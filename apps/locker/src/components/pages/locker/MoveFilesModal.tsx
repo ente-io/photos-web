@@ -11,6 +11,7 @@ import {
 } from '@/services/collectionService';
 import { t } from 'i18next';
 import FolderIcon from '@mui/icons-material/Folder';
+import { EnteFile } from '@/interfaces/file';
 
 interface IProps {
     show: boolean;
@@ -22,7 +23,9 @@ const MoveFilesModal = (props: IProps) => {
         null
     );
 
-    const { selectedFiles, dashboardView } = useContext(LockerDashboardContext);
+    const { selectedExplorerItems, dashboardView } = useContext(
+        LockerDashboardContext
+    );
 
     const [filteredCollections, setFilteredCollections] = useState<
         Collection[]
@@ -50,8 +53,8 @@ const MoveFilesModal = (props: IProps) => {
                 open={props.show}
                 onClose={props.onHide}
                 attributes={{
-                    title: `${t('MOVE')} ${selectedFiles.length} ${
-                        selectedFiles.length > 1
+                    title: `${t('MOVE')} ${selectedExplorerItems.length} ${
+                        selectedExplorerItems.length > 1
                             ? t('FILES')
                             : t('UPLOAD_FILES')
                     }`,
@@ -66,15 +69,17 @@ const MoveFilesModal = (props: IProps) => {
                     }}
                 />
                 <FlexWrapper flexDirection="column" width="100%" gap=".5rem">
-                    {selectedFiles.length > 0 && (
+                    {selectedExplorerItems.length > 0 && (
                         <>
                             {filteredCollections.map((collection) => {
                                 return (
                                     <Fragment key={collection.id}>
                                         {(dashboardView === 'trash' ||
                                             collection.id !==
-                                                selectedFiles[0]
-                                                    .collectionID) && (
+                                                (
+                                                    selectedExplorerItems[0]
+                                                        .originalItem as EnteFile
+                                                ).collectionID) && (
                                             <Box
                                                 width="100%"
                                                 height="3rem"
@@ -121,7 +126,8 @@ const MoveFilesModal = (props: IProps) => {
                         size="large"
                         color={'accent'}
                         onClick={async () => {
-                            for (const file of selectedFiles) {
+                            for (const item of selectedExplorerItems) {
+                                const file = item.originalItem as EnteFile;
                                 if (dashboardView === 'trash') {
                                     await restoreToCollection(
                                         targetCollection,

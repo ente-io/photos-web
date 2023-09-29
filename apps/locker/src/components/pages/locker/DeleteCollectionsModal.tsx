@@ -12,7 +12,7 @@ interface IProps {
 }
 
 const DeleteCollectionsModal = (props: IProps) => {
-    const { selectedCollections, setSelectedCollections } = useContext(
+    const { selectedExplorerItems, setSelectedExplorerItems } = useContext(
         LockerDashboardContext
     );
 
@@ -22,7 +22,7 @@ const DeleteCollectionsModal = (props: IProps) => {
             onClose={props.onHide}
             sx={{ zIndex: 1600 }}
             attributes={{
-                title: `${t('DELETE')} ${selectedCollections.length} ${t(
+                title: `${t('DELETE')} ${selectedExplorerItems.length} ${t(
                     'COLLECTIONS'
                 )}?`,
             }}>
@@ -32,10 +32,10 @@ const DeleteCollectionsModal = (props: IProps) => {
                     size="large"
                     color="warning"
                     onClick={async () => {
-                        for await (const collection of selectedCollections) {
+                        for await (const collection of selectedExplorerItems) {
                             await deleteCollection(collection.id, true);
                         }
-                        setSelectedCollections([]);
+                        setSelectedExplorerItems([]);
                         props.onHide();
                     }}>
                     {t('KEEP_FILES')}
@@ -45,10 +45,10 @@ const DeleteCollectionsModal = (props: IProps) => {
                     size="large"
                     color="critical"
                     onClick={async () => {
-                        for await (const collection of selectedCollections) {
+                        for await (const collection of selectedExplorerItems) {
                             await deleteCollection(collection.id, false);
                         }
-                        setSelectedCollections([]);
+                        setSelectedExplorerItems([]);
                         props.onHide();
                     }}>
                     {t('DELETE_FILES')}

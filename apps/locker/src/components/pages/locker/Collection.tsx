@@ -19,10 +19,12 @@ const CollectionComponent = ({
 }) => {
     const {
         setCurrentCollection,
-        selectedCollections,
-        setSelectedCollections,
-        selectedFiles,
-        setSelectedFiles,
+        // selectedCollections,
+        // setSelectedCollections,
+        // selectedFiles,
+        // setSelectedFiles,
+        selectedExplorerItems,
+        setSelectedExplorerItems,
     } = useContext(LockerDashboardContext);
 
     const [isHover, setIsHover] = useState(false);
@@ -31,11 +33,11 @@ const CollectionComponent = ({
     const bgColorHover = `#282828`;
     const bgColorSelected = `#1DB954`;
 
-    const isSelected = useMemo(() => {
-        return selectedCollections.find(
-            (selectedCollection) => selectedCollection.id === collection.id
-        );
-    }, [selectedCollections, collection]);
+    // const isSelected = useMemo(() => {
+    //     return selectedCollections.find(
+    //         (selectedCollection) => selectedCollection.id === collection.id
+    //     );
+    // }, [selectedCollections, collection]);
 
     return (
         <Box
@@ -70,30 +72,30 @@ const CollectionComponent = ({
                     onClick();
                     return;
                 }
-                if (selectedFiles.length > 0) {
-                    setSelectedFiles([]);
+                if (selectedExplorerItems.length > 0) {
+                    setSelectedExplorerItems([]);
                 }
-                if (isSelected) {
-                    setSelectedCollections(
-                        selectedCollections.filter(
-                            (selectedCollection) =>
-                                selectedCollection.id !== collection.id
-                        )
-                    );
-                } else {
-                    setSelectedCollections([
-                        ...selectedCollections,
-                        collection,
-                    ]);
-                }
+                // if (isSelected) {
+                //     setSelectedExplorerItems(
+                //         selectedExplorerItems.filter(
+                //             (selectedCollection) =>
+                //                 selectedCollection.id !== collection.id
+                //         )
+                //     );
+                // } else {
+                // setSelectedExplorerItems([
+                //     ...selectedExplorerItems,
+                //     collection,
+                // ]);
+                // }
             }}>
-            {isHover || selectedCollections.length > 0 ? (
+            {isHover || selectedExplorerItems.length > 0 ? (
                 <>
-                    {isSelected ? (
+                    {/* {isSelected ? (
                         <CheckBoxIcon color="accent" />
                     ) : (
                         <CheckBoxOutlineBlankIcon />
-                    )}
+                    )} */}
                 </>
             ) : (
                 <FolderIcon />

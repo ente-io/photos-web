@@ -12,7 +12,7 @@ interface IProps {
 }
 
 const PermanentlyDeleteFilesModal = (props: IProps) => {
-    const { selectedFiles } = useContext(LockerDashboardContext);
+    const { selectedExplorerItems } = useContext(LockerDashboardContext);
 
     return (
         <DialogBoxV2
@@ -20,9 +20,9 @@ const PermanentlyDeleteFilesModal = (props: IProps) => {
             onClose={props.onHide}
             sx={{ zIndex: 1600 }}
             attributes={{
-                title: `${t('PERMANENTLY_DELETE')} ${selectedFiles.length} ${t(
-                    'FILES'
-                )}?`,
+                title: `${t('PERMANENTLY_DELETE')} ${
+                    selectedExplorerItems.length
+                } ${t('FILES')}?`,
             }}>
             <Stack spacing={'8px'}>
                 <EnteButton
@@ -31,7 +31,9 @@ const PermanentlyDeleteFilesModal = (props: IProps) => {
                     color="critical"
                     onClick={async () => {
                         await deleteFromTrash(
-                            selectedFiles.map((selectedFile) => selectedFile.id)
+                            selectedExplorerItems.map(
+                                (selectedFile) => selectedFile.id
+                            )
                         );
                         props.onHide();
                     }}>

@@ -11,15 +11,17 @@ const NavBarLeft = () => {
         setCurrentCollection,
         uncategorizedCollection,
         setLeftDrawerOpened,
-        selectedFiles,
-        setSelectedFiles,
-        selectedCollections,
-        setSelectedCollections,
+        // selectedFiles,
+        // setSelectedFiles,
+        // selectedCollections,
+        // setSelectedCollections,
+        selectedExplorerItems,
+        setSelectedExplorerItems,
     } = useContext(LockerDashboardContext);
 
     return (
         <>
-            {selectedFiles.length > 0 || selectedCollections.length > 0 ? (
+            {selectedExplorerItems.length > 0 ? (
                 <Box
                     height="inherit"
                     display="flex"
@@ -27,19 +29,19 @@ const NavBarLeft = () => {
                     gap="1rem">
                     <IconButton
                         onClick={() => {
-                            setSelectedFiles([]);
-                            setSelectedCollections([]);
+                            setSelectedExplorerItems([]);
                         }}>
                         <ClearIcon />
                     </IconButton>
                     <Typography>
                         <b>
-                            {selectedFiles.length > 0
-                                ? selectedFiles.length
+                            {/* {selectedExplorerItems.length > 0
+                                ? selectedExplorerItems.length
                                 : selectedCollections.length}{' '}
                             {selectedFiles.length > 0
                                 ? t('FILES')
-                                : t('COLLECTIONS')}
+                                : t('COLLECTIONS')} */}
+                            ITEMS
                         </b>{' '}
                         {t('SELECTED')}
                     </Typography>

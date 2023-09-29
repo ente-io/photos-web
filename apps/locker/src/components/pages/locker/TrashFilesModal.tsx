@@ -1,5 +1,6 @@
 import DialogBoxV2 from '@/components/DialogBoxV2';
 import EnteButton from '@/components/EnteButton';
+import { EnteFile } from '@/interfaces/file';
 import { LockerDashboardContext } from '@/pages/locker';
 import { trashFiles } from '@/services/fileService';
 import { Button, Stack } from '@mui/material';
@@ -12,7 +13,7 @@ interface IProps {
 }
 
 const TrashFilesModal = (props: IProps) => {
-    const { selectedFiles } = useContext(LockerDashboardContext);
+    const { selectedExplorerItems } = useContext(LockerDashboardContext);
 
     return (
         <DialogBoxV2
@@ -20,7 +21,9 @@ const TrashFilesModal = (props: IProps) => {
             onClose={props.onHide}
             sx={{ zIndex: 1600 }}
             attributes={{
-                title: `${t('TRASH')} ${selectedFiles.length} ${t('FILES')}?`,
+                title: `${t('TRASH')} ${selectedExplorerItems.length} ${t(
+                    'FILES'
+                )}?`,
             }}>
             <Stack spacing={'8px'}>
                 <EnteButton
@@ -28,7 +31,11 @@ const TrashFilesModal = (props: IProps) => {
                     size="large"
                     color="critical"
                     onClick={async () => {
-                        await trashFiles(selectedFiles);
+                        await trashFiles(
+                            selectedExplorerItems.map((selectedFile) => {
+                                return selectedFile.originalItem as EnteFile;
+                            })
+                        );
                         props.onHide();
                     }}>
                     {t('TRASH')}

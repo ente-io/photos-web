@@ -26,20 +26,22 @@ const ExplorerRow = ({
     index: number;
 }) => {
     const {
-        selectedFiles,
-        setSelectedFiles,
-        filteredFiles,
-        selectedCollections,
-        setSelectedCollections,
+        // selectedFiles,
+        // setSelectedFiles,
+        // filteredFiles,
+        // selectedCollections,
+        // setSelectedCollections,
+        selectedExplorerItems,
+        setSelectedExplorerItems,
     } = useContext(LockerDashboardContext);
 
     const { shiftKeyHeld, ctrlCmdKeyHeld } = useContext(AppContext);
 
     const isSelected = useMemo(() => {
-        return selectedFiles.find(
+        return selectedExplorerItems.find(
             (selectedFile) => selectedFile.id === item.id
         );
-    }, [selectedFiles, item]);
+    }, [selectedExplorerItems, item]);
 
     const friendlyMimeType = useMemo(() => {
         // check if it has an extension
@@ -96,47 +98,52 @@ const ExplorerRow = ({
                 // if (selectedCollections.length > 0) {
                 //     setSelectedCollections([]);
                 // }
-                // if (selectedFiles.length > 0) {
-                //     if (shiftKeyHeld) {
-                //         // if there is at least one selected file and the shift key is held down, select all within the range of the two files
-                //         // get the index of the first selected file
-                //         const firstSelectedFileIndex = selectedFiles.findIndex(
-                //             (selectedFile) =>
-                //                 selectedFile.id === selectedFiles[0].id
-                //         );
-                //         const filesInBetween = filteredFiles.slice(
-                //             firstSelectedFileIndex,
-                //             index + 1
-                //         );
-                //         setSelectedFiles(filesInBetween);
-                //         return;
-                //     }
-                //     if (ctrlCmdKeyHeld) {
-                //         // if the ctrl/cmd key is held down:
-                //         // if the file clicked is not selected, add it to the selected files
-                //         // otherwise, remove it.
-                //         if (!isSelected) {
-                //             setSelectedFiles([...selectedFiles, item]);
-                //         } else {
-                //             setSelectedFiles(
-                //                 selectedFiles.filter(
-                //                     (selectedFile) =>
-                //                         selectedFile.id !== item.id
-                //                 )
-                //             );
-                //         }
-                //         return;
-                //     }
-                // }
-                // if (isSelected) {
-                //     setSelectedFiles(
-                //         selectedFiles.filter(
-                //             (selectedFile) => selectedFile.id !== item.id
-                //         )
-                //     );
-                // } else {
-                //     setSelectedFiles([item]);
-                // }
+                if (selectedExplorerItems.length > 0) {
+                    if (shiftKeyHeld) {
+                        // if there is at least one selected file and the shift key is held down, select all within the range of the two files
+                        // get the index of the first selected file
+                        const firstSelectedFileIndex =
+                            selectedExplorerItems.findIndex(
+                                (selectedFile) =>
+                                    selectedFile.id ===
+                                    selectedExplorerItems[0].id
+                            );
+                        const filesInBetween = selectedExplorerItems.slice(
+                            firstSelectedFileIndex,
+                            index + 1
+                        );
+                        setSelectedExplorerItems(filesInBetween);
+                        return;
+                    }
+                    if (ctrlCmdKeyHeld) {
+                        // if the ctrl/cmd key is held down:
+                        // if the file clicked is not selected, add it to the selected files
+                        // otherwise, remove it.
+                        if (!isSelected) {
+                            setSelectedExplorerItems([
+                                ...selectedExplorerItems,
+                                item,
+                            ]);
+                        } else {
+                            setSelectedExplorerItems(
+                                selectedExplorerItems.filter(
+                                    (selectedFile) =>
+                                        selectedFile.id !== item.id
+                                )
+                            );
+                        }
+                        return;
+                    }
+                }
+                if (isSelected) {
+                    setSelectedExplorerItems(
+                        selectedExplorerItems.filter(
+                            (selectedFile) => selectedFile.id !== item.id
+                        )
+                    );
+                } else {
+                    setSelectedExplorerItems([item]);
+                }
             }}>
             <TableRowBorderControlled
                 sx={{

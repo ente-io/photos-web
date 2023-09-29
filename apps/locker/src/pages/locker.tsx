@@ -34,6 +34,7 @@ import { LS_KEYS, getData, setData } from '@/utils/storage/localStorage';
 import { FILE_SORT_DIRECTION, FILE_SORT_FIELD } from '@/interfaces/sort';
 import DragAndDropModal from '@/components/pages/locker/DragAndDropModal';
 import ExplorerSection from '@/components/pages/locker/ExplorerSection';
+import { ExplorerItem } from '@/interfaces/explorer';
 
 interface lockerDashboardContextProps {
     currentCollection: Collection;
@@ -49,20 +50,23 @@ interface lockerDashboardContextProps {
     userDetails: UserDetails;
     dashboardView: 'locker' | 'trash';
     setDashboardView: Dispatch<SetStateAction<'locker' | 'trash'>>;
-    selectedFiles: EnteFile[];
-    setSelectedFiles: Dispatch<SetStateAction<EnteFile[]>>;
-    selectedCollections: Collection[];
-    setSelectedCollections: Dispatch<SetStateAction<Collection[]>>;
+    // selectedFiles: EnteFile[];
+    // setSelectedFiles: Dispatch<SetStateAction<EnteFile[]>>;
+    // selectedCollections: Collection[];
+    // setSelectedCollections: Dispatch<SetStateAction<Collection[]>>;
     syncTrash: () => Promise<void>;
     showUploaderBoxComponent: boolean;
     setShowUploaderBoxComponent: Dispatch<SetStateAction<boolean>>;
     filteredFiles: EnteFile[];
     nameSearchQuery: string;
     setNameSearchQuery: Dispatch<SetStateAction<string>>;
-    // fileSortField: FILE_SORT_FIELD;
-    // setFileSortField: Dispatch<SetStateAction<FILE_SORT_FIELD>>;
-    // fileSortDirection: FILE_SORT_DIRECTION;
-    // setFileSortDirection: Dispatch<SetStateAction<FILE_SORT_DIRECTION>>;
+    sortField: FILE_SORT_FIELD;
+    setSortField: Dispatch<SetStateAction<FILE_SORT_FIELD>>;
+    sortDirection: FILE_SORT_DIRECTION;
+    setSortDirection: Dispatch<SetStateAction<FILE_SORT_DIRECTION>>;
+    selectedExplorerItems: ExplorerItem[];
+    setSelectedExplorerItems: Dispatch<SetStateAction<ExplorerItem[]>>;
+    explorerItems: ExplorerItem[];
 }
 
 export const LockerUploaderContext = createContext(
@@ -97,9 +101,13 @@ const Locker = () => {
         'locker'
     );
 
-    const [selectedFiles, setSelectedFiles] = useState<EnteFile[]>([]);
-    const [selectedCollections, setSelectedCollections] = useState<
-        Collection[]
+    // const [selectedFiles, setSelectedFiles] = useState<EnteFile[]>([]);
+    // const [selectedCollections, setSelectedCollections] = useState<
+    //     Collection[]
+    // >([]);
+
+    const [selectedExplorerItems, setSelectedExplorerItems] = useState<
+        ExplorerItem[]
     >([]);
 
     const [showUploaderBoxComponent, setShowUploaderBoxComponent] =
@@ -116,6 +124,13 @@ const Locker = () => {
     const [filesToUpload, setFilesToUpload] = useState<File[]>([]);
 
     const router = useRouter();
+
+    const [sortField, setSortField] = useState<FILE_SORT_FIELD>(
+        FILE_SORT_FIELD.DATE_ADDED
+    );
+    const [sortDirection, setSortDirection] = useState<FILE_SORT_DIRECTION>(
+        FILE_SORT_DIRECTION.DESC
+    );
 
     const doSyncCollections = async () => {
         const collections = await syncCollections();
@@ -272,9 +287,67 @@ const Locker = () => {
         // fileSortDirection,
     ]);
 
+    const explorerItems = useMemo(() => {
+        let explorerItems: ExplorerItem[] = [];
+
+        for (const file of filteredFiles) {
+            let newExplorerItem: ExplorerItem = {
+                name: file.metadata.title,
+                id: file.id,
+                type: 'file',
+                creationTime: file.metadata.creationTime,
+                size: file.info.fileSize,
+                originalItem: file,
+            };
+
+            explorerItems.push(newExplorerItem);
+        }
+
+        if (currentCollection?.id === uncategorizedCollection?.id) {
+            for (const collection of collections) {
+                let newExplorerItem: ExplorerItem = {
+                    name: collection.name,
+                    id: collection.id,
+                    type: 'collection',
+                    creationTime: collection.updationTime,
+                    size: 0,
+                    originalItem: collection,
+                };
+
+                explorerItems.push(newExplorerItem);
+            }
+        }
+
+        switch (sortField) {
+            case FILE_SORT_FIELD.SIZE:
+                explorerItems = explorerItems.sort((a, b) => {
+                    return a.size - b.size;
+                });
+                break;
+            case FILE_SORT_FIELD.NAME:
+                explorerItems = explorerItems.sort((a, b) => {
+                    return a.name.localeCompare(b.name);
+                });
+                break;
+            case FILE_SORT_FIELD.DATE_ADDED:
+                explorerItems = explorerItems.sort((a, b) => {
+                    return a.creationTime - b.creationTime;
+                });
+            default:
+                break;
+        }
+
+        if (sortDirection === FILE_SORT_DIRECTION.DESC) {
+            explorerItems.reverse();
+        }
+
+        return explorerItems;
+    }, [filteredFiles, collections, sortField, sortDirection]);
+
     useEffect(() => {
-        setSelectedCollections([]);
-        setSelectedFiles([]);
+        // setSelectedCollections([]);
+        // setSelectedFiles([]);
+        setSelectedExplorerItems([]);
 
         doSyncFiles();
 
@@ -320,21 +393,24 @@ const Locker = () => {
                     userDetails,
                     dashboardView,
                     setDashboardView,
-                    selectedFiles,
-                    setSelectedFiles,
+                    // selectedFiles,
+                    // setSelectedFiles,
                     collections,
-                    selectedCollections,
-                    setSelectedCollections,
+                    // selectedCollections,
+                    // setSelectedCollections,
+                    selectedExplorerItems,
+                    setSelectedExplorerItems,
                     syncTrash: doSyncTrash,
                     showUploaderBoxComponent,
                     setShowUploaderBoxComponent,
                     filteredFiles,
                     nameSearchQuery,
                     setNameSearchQuery,
-                    // fileSortField,
-                    // setFileSortField,
-                    // fileSortDirection,
-                    // setFileSortDirection,
+                    sortField,
+                    setSortField,
+                    sortDirection,
+                    setSortDirection,
+                    explorerItems,
                 }}>
                 <Box
                     height="100vh"

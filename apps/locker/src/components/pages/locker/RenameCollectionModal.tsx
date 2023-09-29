@@ -2,6 +2,7 @@ import DialogBoxV2 from '@/components/DialogBoxV2';
 import SingleInputForm, {
     SingleInputFormProps,
 } from '@/components/SingleInputForm';
+import { Collection } from '@/interfaces/collection';
 import { LockerDashboardContext } from '@/pages/locker';
 import { renameCollection } from '@/services/collectionService';
 import { t } from 'i18next';
@@ -13,15 +14,15 @@ interface IProps {
 }
 
 const RenameCollectionModal = (props: IProps) => {
-    const { selectedCollections } = useContext(LockerDashboardContext);
+    const { selectedExplorerItems } = useContext(LockerDashboardContext);
 
     const [originalCollectionName, setOriginalCollectionName] =
         useState<string>();
 
     useEffect(() => {
-        if (selectedCollections.length !== 1) return;
-        setOriginalCollectionName(selectedCollections[0].name);
-    }, [selectedCollections]);
+        if (selectedExplorerItems.length !== 1) return;
+        setOriginalCollectionName(selectedExplorerItems[0].name);
+    }, [selectedExplorerItems]);
 
     const callback: SingleInputFormProps['callback'] = async (
         inputValue,
@@ -32,7 +33,10 @@ const RenameCollectionModal = (props: IProps) => {
                 props.onHide();
                 return;
             }
-            await renameCollection(selectedCollections[0], inputValue);
+            await renameCollection(
+                selectedExplorerItems[0].originalItem as Collection,
+                inputValue
+            );
             props.onHide();
         } catch (e) {
             setFieldError(e.message);
@@ -46,9 +50,9 @@ const RenameCollectionModal = (props: IProps) => {
             attributes={{
                 title: t('RENAME_COLLECTION'),
             }}>
-            {selectedCollections.length === 1 && (
+            {selectedExplorerItems.length === 1 && (
                 <SingleInputForm
-                    initialValue={selectedCollections[0].name}
+                    initialValue={selectedExplorerItems[0].name}
                     callback={callback}
                     placeholder={t('COLLECTION_NAME')}
                     buttonText={t('RENAME')}

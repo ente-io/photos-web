@@ -38,79 +38,20 @@ const fileDataCategories = [
 
 const ExplorerSection = () => {
     const {
-        filteredFiles,
-        currentCollection,
-        uncategorizedCollection,
+        // filteredFiles,
+        // currentCollection,
+        // uncategorizedCollection,
         // fileSortDirection,
         // fileSortField,
         // setFileSortDirection,
         // setFileSortField,
-        collections,
+        sortField,
+        sortDirection,
+        setSortDirection,
+        setSortField,
+        // collections,
+        explorerItems,
     } = useContext(LockerDashboardContext);
-
-    const [sortField, setSortField] = useState<FILE_SORT_FIELD>(
-        FILE_SORT_FIELD.DATE_ADDED
-    );
-    const [sortDirection, setSortDirection] = useState<FILE_SORT_DIRECTION>(
-        FILE_SORT_DIRECTION.DESC
-    );
-
-    const explorerItems = useMemo(() => {
-        let explorerItems: ExplorerItem[] = [];
-
-        for (const file of filteredFiles) {
-            let newExplorerItem: ExplorerItem = {
-                name: file.metadata.title,
-                id: file.id,
-                type: 'file',
-                creationTime: file.metadata.creationTime,
-                size: file.info.fileSize,
-                originalItem: file,
-            };
-
-            explorerItems.push(newExplorerItem);
-        }
-
-        if (currentCollection?.id === uncategorizedCollection?.id) {
-            for (const collection of collections) {
-                let newExplorerItem: ExplorerItem = {
-                    name: collection.name,
-                    id: collection.id,
-                    type: 'collection',
-                    creationTime: collection.updationTime,
-                    size: 0,
-                    originalItem: collection,
-                };
-
-                explorerItems.push(newExplorerItem);
-            }
-        }
-
-        switch (sortField) {
-            case FILE_SORT_FIELD.SIZE:
-                explorerItems = explorerItems.sort((a, b) => {
-                    return a.size - b.size;
-                });
-                break;
-            case FILE_SORT_FIELD.NAME:
-                explorerItems = explorerItems.sort((a, b) => {
-                    return a.name.localeCompare(b.name);
-                });
-                break;
-            case FILE_SORT_FIELD.DATE_ADDED:
-                explorerItems = explorerItems.sort((a, b) => {
-                    return a.creationTime - b.creationTime;
-                });
-            default:
-                break;
-        }
-
-        if (sortDirection === FILE_SORT_DIRECTION.DESC) {
-            explorerItems.reverse();
-        }
-
-        return explorerItems;
-    }, [filteredFiles, collections, sortField, sortDirection]);
 
     return (
         <>

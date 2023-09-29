@@ -37,7 +37,9 @@ const FileInfoDrawer = ({
     isOpen: boolean;
     setIsOpen: Dispatch<SetStateAction<boolean>>;
 }) => {
-    const { selectedFiles, syncFiles } = useContext(LockerDashboardContext);
+    const { selectedExplorerItems, syncFiles } = useContext(
+        LockerDashboardContext
+    );
 
     const [selectedFile, setSelectedFile] = useState<EnteFile | null>(null);
 
@@ -76,12 +78,17 @@ const FileInfoDrawer = ({
     };
 
     useEffect(() => {
-        if (selectedFiles.length === 1) {
-            setSelectedFile(selectedFiles[0]);
+        if (selectedExplorerItems.length === 1) {
+            // setSelectedFile(selectedExplorerItems[0].originalItem);
+            if (selectedExplorerItems[0].originalItem) {
+                setSelectedFile(
+                    selectedExplorerItems[0].originalItem as EnteFile
+                );
+            }
         } else {
             setSelectedFile(null);
         }
-    }, [selectedFiles]);
+    }, [selectedExplorerItems]);
 
     useEffect(() => {
         setCaption(selectedFile?.pubMagicMetadata?.data.caption);
