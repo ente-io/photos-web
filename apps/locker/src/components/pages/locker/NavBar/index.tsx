@@ -18,6 +18,7 @@ const NavBar = () => {
                     position: 'fixed',
                     backdropFilter: 'blur(5px)',
                     width: '100%',
+                    boxSizing: 'border-box',
                 }}>
                 <NavBarLeft />
                 <NavBarMiddle />
