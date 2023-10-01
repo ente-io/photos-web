@@ -86,6 +86,15 @@ const TutorialDialog = (props: IProps) => {
                     }}>
                     {activeStep === steps.length - 1 ? 'Finish' : 'Next'}
                 </EnteButton>
+                {activeStep !== 0 && (
+                    <EnteButton
+                        onClick={() => {
+                            setActiveStep((prev) => prev - 1);
+                        }}
+                        variant="outlined">
+                        Back
+                    </EnteButton>
+                )}
             </Stack>
         </DialogBoxV2>
     );
