@@ -14,6 +14,7 @@ import { FILE_SORT_DIRECTION, FILE_SORT_FIELD } from '@/interfaces/sort';
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import ExplorerRow from './ExplorerRow';
+import { Collection } from '@/interfaces/collection';
 
 const fileDataCategories = [
     {
@@ -51,6 +52,7 @@ const ExplorerSection = () => {
         explorerItems,
         selectedExplorerItems,
         setSelectedExplorerItems,
+        setCurrentCollection,
     } = useContext(LockerDashboardContext);
 
     const upKeyHandler = (currentSelectedIndex: number) => {
@@ -64,7 +66,18 @@ const ExplorerSection = () => {
     };
 
     useEffect(() => {
-        const keydownHandler = (event) => {
+        const keydownHandler = (event: KeyboardEvent) => {
+            if (event.key === 'Enter') {
+                if (selectedExplorerItems.length !== 1) return;
+
+                if (selectedExplorerItems[0].type === 'collection') {
+                    setCurrentCollection(
+                        selectedExplorerItems[0].originalItem as Collection
+                    );
+                    return;
+                }
+            }
+
             if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return;
 
             if (selectedExplorerItems.length !== 1) {
