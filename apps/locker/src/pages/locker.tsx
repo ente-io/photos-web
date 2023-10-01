@@ -455,7 +455,10 @@ const Locker = () => {
                                 <>
                                     {currentCollection?.id !==
                                         uncategorizedCollection?.id && (
-                                        <Box display="flex" alignItems="center">
+                                        <Box
+                                            display="flex"
+                                            alignItems="center"
+                                            marginBottom="1rem">
                                             {collectionsPath.map(
                                                 (collection, i) => (
                                                     <Fragment
