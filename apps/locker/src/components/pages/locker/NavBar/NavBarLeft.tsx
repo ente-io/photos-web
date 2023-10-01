@@ -35,7 +35,10 @@ const NavBarLeft = () => {
                     </IconButton>
                     <Typography>
                         <b>
-                            {selectedExplorerItems.length} {t('ITEMS')}
+                            {selectedExplorerItems.length}{' '}
+                            {selectedExplorerItems.length > 1
+                                ? t('ITEMS')
+                                : t('ITEM')}
                         </b>{' '}
                         {t('SELECTED')}
                     </Typography>
