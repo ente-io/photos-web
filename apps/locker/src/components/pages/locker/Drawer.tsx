@@ -2,7 +2,13 @@ import SubscriptionCard from '@/components/Sidebar/SubscriptionCard';
 import { DrawerSidebar } from '@/components/Sidebar/drawer';
 import { LockerDashboardContext } from '@/pages/locker';
 import { Box, Typography, Stack, Divider } from '@mui/material';
-import { Dispatch, SetStateAction, useContext, useMemo } from 'react';
+import {
+    Dispatch,
+    SetStateAction,
+    useContext,
+    useEffect,
+    useState,
+} from 'react';
 import CloudIcon from '@mui/icons-material/Cloud';
 // import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -14,6 +20,8 @@ import HeaderSection from '@/components/Sidebar/Header';
 import { openLink } from '@/utils/common';
 import { NoStyleAnchor } from '@/components/Sidebar/styledComponents';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import { getLocalFiles } from '@/services/fileService';
+import { getLocalTrash } from '@/services/trashService';
 const LockerDrawer = ({
     isOpen,
     setIsOpen,
@@ -25,15 +33,20 @@ const LockerDrawer = ({
         LockerDashboardContext
     );
 
-    const { files, collections } = useContext(LockerDashboardContext);
+    const { collections } = useContext(LockerDashboardContext);
 
-    const nonTrashFilesCount = useMemo(() => {
-        return files.filter((file) => !file.isTrashed).length;
-    }, [files]);
+    const [localFilesCount, setLocalFilesCount] = useState<number>(0);
+    const [localTrashCount, setLocalTrashCount] = useState<number>(0);
 
-    const trashFilesCount = useMemo(() => {
-        return files.filter((file) => file.isTrashed).length;
-    }, [files]);
+    useEffect(() => {
+        getLocalFiles().then((files) => {
+            setLocalFilesCount(files.length);
+        });
+
+        getLocalTrash().then((trash) => {
+            setLocalTrashCount(trash.length);
+        });
+    }, []);
 
     return (
         <DrawerSidebar
@@ -67,9 +80,7 @@ const LockerDrawer = ({
                         setIsOpen(false);
                     }}
                     variant="captioned"
-                    subText={(
-                        nonTrashFilesCount + collections.length
-                    ).toString()}
+                    subText={(localFilesCount + collections.length).toString()}
                 />
                 <EnteMenuItem
                     startIcon={<DeleteOutlineIcon />}
@@ -79,7 +90,7 @@ const LockerDrawer = ({
                         setIsOpen(false);
                     }}
                     variant="captioned"
-                    subText={trashFilesCount.toString()}
+                    subText={localTrashCount.toString()}
                 />
                 <EnteMenuItem
                     labelComponent={
