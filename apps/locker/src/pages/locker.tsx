@@ -35,6 +35,7 @@ import { FILE_SORT_DIRECTION, FILE_SORT_FIELD } from '@/interfaces/sort';
 import DragAndDropModal from '@/components/pages/locker/DragAndDropModal';
 import ExplorerSection from '@/components/pages/locker/ExplorerSection';
 import { ExplorerItem } from '@/interfaces/explorer';
+import CollectionEmptyMessage from '@/components/pages/locker/CollectionEmptyMessage';
 
 interface lockerDashboardContextProps {
     currentCollection: Collection;
@@ -494,7 +495,11 @@ const Locker = () => {
                                     <CollectionsSection />
                                 )} */}
 
-                            <ExplorerSection />
+                            {explorerItems.length > 0 ? (
+                                <ExplorerSection />
+                            ) : (
+                                <CollectionEmptyMessage />
+                            )}
                         </Box>
                     </Box>
                 </Box>
