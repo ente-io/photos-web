@@ -7,15 +7,12 @@ import {
     TableContainer,
     TableHead,
     TableRow,
-    Typography,
 } from '@mui/material';
-import { useContext, useMemo, useState } from 'react';
+import { useContext, useEffect } from 'react';
 import { LockerDashboardContext } from '@/pages/locker';
-import { t } from 'i18next';
 import { FILE_SORT_DIRECTION, FILE_SORT_FIELD } from '@/interfaces/sort';
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
-import { ExplorerItem } from '@/interfaces/explorer';
 import ExplorerRow from './ExplorerRow';
 
 const fileDataCategories = [
@@ -52,7 +49,48 @@ const ExplorerSection = () => {
         setSortField,
         // collections,
         explorerItems,
+        selectedExplorerItems,
+        setSelectedExplorerItems,
     } = useContext(LockerDashboardContext);
+
+    const upKeyHandler = (currentSelectedIndex: number) => {
+        if (currentSelectedIndex === 0) return;
+        setSelectedExplorerItems([explorerItems[currentSelectedIndex - 1]]);
+    };
+
+    const downKeyHandler = (currentSelectedIndex: number) => {
+        if (currentSelectedIndex === explorerItems.length - 1) return;
+        setSelectedExplorerItems([explorerItems[currentSelectedIndex + 1]]);
+    };
+
+    useEffect(() => {
+        const keydownHandler = (event) => {
+            if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return;
+
+            if (selectedExplorerItems.length !== 1) {
+                if (explorerItems.length > 0) {
+                    setSelectedExplorerItems([explorerItems[0]]);
+                }
+                return;
+            }
+
+            const currentSelectedIndex = explorerItems.findIndex(
+                (item) => item.id === selectedExplorerItems[0].id
+            );
+
+            if (event.key === 'ArrowUp') {
+                upKeyHandler(currentSelectedIndex);
+            } else if (event.key === 'ArrowDown') {
+                downKeyHandler(currentSelectedIndex);
+            }
+        };
+
+        window.addEventListener('keydown', keydownHandler);
+
+        return () => {
+            window.removeEventListener('keydown', keydownHandler);
+        };
+    }, [explorerItems, selectedExplorerItems]);
 
     return (
         <>
