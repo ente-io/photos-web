@@ -167,7 +167,9 @@ const ExplorerRow = ({
                 )}
             </TableRowBorderControlled>
             <TableRowBorderControlled>
-                {convertBytesToHumanReadable(item.size || 0)}
+                {item.type === 'collection'
+                    ? '—'
+                    : convertBytesToHumanReadable(item.size || 0)}
             </TableRowBorderControlled>
             <TableRowBorderControlled>
                 {friendlyMimeType}
