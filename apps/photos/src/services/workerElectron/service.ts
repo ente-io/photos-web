@@ -9,13 +9,13 @@ import {
 import { ProxiedLimitedCache, WorkerElectronAPIs } from 'types/workerElectron';
 
 class WorkerElectronService implements WorkerElectronAPIs {
-    proxiedElectronService: Comlink.Remote<WorkerElectronClient>;
-    ready: Promise<any>;
+    private proxiedElectronService: Comlink.Remote<WorkerElectronClient>;
+    private ready: Promise<any>;
 
     constructor() {
         this.ready = this.init();
     }
-    async init() {
+    private async init() {
         const proxiedElectronService = wrap<typeof WorkerElectronClient>(self);
 
         this.proxiedElectronService = await new proxiedElectronService();
