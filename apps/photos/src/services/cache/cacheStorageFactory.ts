@@ -1,18 +1,20 @@
 import { LimitedCacheStorage } from 'types/cache/index';
 import { ElectronCacheStorage } from 'services/electron/cache';
 import { runningInElectron, runningInWorker } from 'utils/common';
-import { WorkerElectronCacheStorageService } from 'services/workerElectronCache/service';
+import WorkerElectronService from 'services/workerElectron/service';
 
 class cacheStorageFactory {
-    workerElectronCacheStorageServiceInstance: WorkerElectronCacheStorageService;
     getCacheStorage(): LimitedCacheStorage {
         if (runningInElectron()) {
             if (runningInWorker()) {
-                if (!this.workerElectronCacheStorageServiceInstance) {
-                    this.workerElectronCacheStorageServiceInstance =
-                        new WorkerElectronCacheStorageService();
-                }
-                return this.workerElectronCacheStorageServiceInstance;
+                return {
+                    open: WorkerElectronService.openDiskCache.bind(
+                        WorkerElectronService
+                    ),
+                    delete: WorkerElectronService.deleteDiskCache.bind(
+                        WorkerElectronService
+                    ),
+                };
             } else {
                 return ElectronCacheStorage;
             }
