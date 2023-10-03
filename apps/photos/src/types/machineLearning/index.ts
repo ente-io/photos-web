@@ -199,7 +199,7 @@ export interface RealWorldObject extends DetectedObject {
 }
 
 export interface ClipImageEmbeddingExtractionResult {
-    imageEmbedding: Float32Array;
+    imageEmbeddings: Float32Array;
 }
 
 export interface ClipImageEmbedding extends ClipImageEmbeddingExtractionResult {

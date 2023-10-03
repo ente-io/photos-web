@@ -4,6 +4,7 @@ import {
     ClipMethod,
     ClipImageEmbeddingExtractionResult,
 } from 'types/machineLearning';
+import WorkerElectronService from 'services/workerElectron/service';
 
 class ClipVit32Service implements ClipService {
     public method: Versioned<ClipMethod>;
@@ -15,21 +16,25 @@ class ClipVit32Service implements ClipService {
         };
     }
 
-    private async initImageModel() {
-        throw Error('Not implemented yet');
-    }
-
-    private async getClipVit32ImageModel() {
-        throw Error('Not implemented yet');
-    }
-
     public async computeImageEmbeddings(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         image: ImageBitmap
     ): Promise<ClipImageEmbeddingExtractionResult> {
-        //
-        throw Error('Not implemented yet');
+        const imageData = convertBitMapToUint8Array(image);
+        const imageEmbeddings =
+            await WorkerElectronService.computeImageEmbeddings(imageData);
+        return {
+            imageEmbeddings,
+        };
     }
 }
 
 export default new ClipVit32Service();
+
+const convertBitMapToUint8Array = (image: ImageBitmap) => {
+    const canvas = new OffscreenCanvas(image.width, image.height);
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(image, 0, 0);
+    const imageData = ctx.getImageData(0, 0, image.width, image.height);
+    const imageUintArray = new Uint8Array(imageData.data.buffer);
+    return imageUintArray;
+};
