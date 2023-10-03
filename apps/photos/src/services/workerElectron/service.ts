@@ -7,12 +7,16 @@ import {
     serializeResponse,
 } from 'utils/workerElectronCache/proxy';
 import { ProxiedLimitedCache, WorkerElectronAPIs } from 'types/workerElectron';
+import { runningInWorker } from 'utils/common';
 
 class WorkerElectronService implements WorkerElectronAPIs {
     private proxiedElectronService: Comlink.Remote<WorkerElectronClient>;
     private ready: Promise<any>;
 
     constructor() {
+        if (!runningInWorker()) {
+            return;
+        }
         this.ready = this.init();
     }
     private async init() {

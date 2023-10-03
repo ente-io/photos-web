@@ -5,6 +5,7 @@ import {
     ClipImageEmbeddingExtractionResult,
 } from 'types/machineLearning';
 import WorkerElectronService from 'services/workerElectron/service';
+import { imageBitmapToBlob } from 'utils/image';
 
 class ClipVit32Service implements ClipService {
     public method: Versioned<ClipMethod>;
@@ -19,7 +20,9 @@ class ClipVit32Service implements ClipService {
     public async computeImageEmbeddings(
         image: ImageBitmap
     ): Promise<ClipImageEmbeddingExtractionResult> {
-        const imageData = convertBitMapToUint8Array(image);
+        const imageData = new Uint8Array(
+            await (await imageBitmapToBlob(image)).arrayBuffer()
+        );
         const imageEmbeddings =
             await WorkerElectronService.computeImageEmbeddings(imageData);
         return {
@@ -29,12 +32,3 @@ class ClipVit32Service implements ClipService {
 }
 
 export default new ClipVit32Service();
-
-const convertBitMapToUint8Array = (image: ImageBitmap) => {
-    const canvas = new OffscreenCanvas(image.width, image.height);
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(image, 0, 0);
-    const imageData = ctx.getImageData(0, 0, image.width, image.height);
-    const imageUintArray = new Uint8Array(imageData.data.buffer);
-    return imageUintArray;
-};
