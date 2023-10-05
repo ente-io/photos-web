@@ -27,11 +27,10 @@ import UploaderBoxComponent from '@/components/UploaderBoxComponent';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import IndeterminateCheckBoxIcon from '@mui/icons-material/IndeterminateCheckBox';
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import { isMobileDisplay } from '@/utils/resolution/isMobile';
 import dynamic from 'next/dynamic';
 import InfoIcon from '@mui/icons-material/Info';
-import RestoreFromTrashIcon from '@mui/icons-material/RestoreFromTrash';
+import RestoreIcon from '@mui/icons-material/Restore';
 import { EnteFile } from '@/interfaces/file';
 const NewCollectionModal = dynamic(() => import('../NewCollectionModal'));
 const TrashFilesModal = dynamic(() => import('../TrashFilesModal'));
@@ -228,7 +227,7 @@ const NavBarRight = () => {
                             <>
                                 <IconButton onClick={moveFilesHandler}>
                                     {dashboardView === 'trash' ? (
-                                        <RestoreFromTrashIcon />
+                                        <RestoreIcon />
                                     ) : (
                                         <DriveFileMoveIcon />
                                     )}
