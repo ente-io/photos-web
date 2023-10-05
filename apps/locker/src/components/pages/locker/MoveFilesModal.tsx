@@ -12,6 +12,7 @@ import {
 import { t } from 'i18next';
 import FolderIcon from '@mui/icons-material/Folder';
 import { EnteFile } from '@/interfaces/file';
+import { useTheme } from '@mui/material';
 
 interface IProps {
     show: boolean;
@@ -32,6 +33,8 @@ const MoveFilesModal = (props: IProps) => {
     >([]);
 
     const [searchTerm, setSearchTerm] = useState('');
+
+    const theme = useTheme();
 
     useEffect(() => {
         if (searchTerm.length === 0) {
@@ -100,7 +103,8 @@ const MoveFilesModal = (props: IProps) => {
                                                     backgroundColor:
                                                         targetCollection?.id ===
                                                         collection?.id
-                                                            ? '#1DB954'
+                                                            ? theme.colors
+                                                                  .accent.A500
                                                             : 'inherit',
                                                     userSelect: 'none',
                                                 }}>

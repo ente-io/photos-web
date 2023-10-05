@@ -1,22 +1,24 @@
 import { FixedColors, ThemeColorsOptions } from '@mui/material';
 
+const lockerAccentColor = {
+    A700: '#03045eff',
+    A500: '#0077b6ff',
+    A400: '#00b4d8ff',
+    A300: '#48cae4ff',
+};
+
 export const getFixesColors = (
     appName: string
 ): Pick<ThemeColorsOptions, keyof FixedColors> => {
     return {
         ...commonFixedColors,
-        accent: photosAccentColor,
+        accent: lockerAccentColor,
     };
 };
 
 const commonFixedColors: Partial<Pick<ThemeColorsOptions, keyof FixedColors>> =
     {
-        accent: {
-            A700: '#00B33C',
-            A500: '#1DB954',
-            A400: '#26CB5F',
-            A300: '#01DE4D',
-        },
+        accent: lockerAccentColor,
         warning: {
             A500: '#FFC247',
         },
@@ -35,17 +37,3 @@ const commonFixedColors: Partial<Pick<ThemeColorsOptions, keyof FixedColors>> =
         white: { base: '#fff', muted: 'rgba(255, 255, 255, 0.48)' },
         black: { base: '#000', muted: 'rgba(0, 0, 0, 0.65)' },
     };
-
-const authAccentColor = {
-    A700: 'rgb(164, 0, 182)',
-    A500: 'rgb(150, 13, 214)',
-    A400: 'rgb(122, 41, 193)',
-    A300: 'rgb(152, 77, 244)',
-};
-
-const photosAccentColor = {
-    A700: '#00B33C',
-    A500: '#1DB954',
-    A400: '#26CB5F',
-    A300: '#01DE4D',
-};

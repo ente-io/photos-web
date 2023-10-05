@@ -40,6 +40,8 @@ const ExplorerRow = ({
 
     const { shiftKeyHeld, ctrlCmdKeyHeld } = useContext(AppContext);
 
+    const theme = useTheme();
+
     const isSelected = useMemo(() => {
         return selectedExplorerItems.find(
             (selectedFile) => selectedFile.id === item.id
@@ -93,7 +95,9 @@ const ExplorerRow = ({
                 '&:nth-of-type(odd)': {
                     backgroundColor: '#232425',
                 },
-                backgroundColor: isSelected ? '#57B660 !important' : 'inherit',
+                backgroundColor: isSelected
+                    ? theme.colors.accent.A500 + ' !important'
+                    : 'inherit',
                 userSelect: 'none',
                 whiteSpace: 'nowrap',
             }}
