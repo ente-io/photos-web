@@ -250,34 +250,6 @@ const Locker = () => {
             });
         }
 
-        if (nameSearchQuery.trim().length > 0) {
-            filtered = filtered.filter((file) => {
-                return file.metadata.title
-                    .toLowerCase()
-                    .includes(nameSearchQuery.toLowerCase());
-            });
-        }
-
-        // switch (fileSortField) {
-        //     // case FILE_SORT_FIELD.DATE_ADDED: already done by default
-        //     case FILE_SORT_FIELD.SIZE:
-        //         filtered = filtered.sort((a, b) => {
-        //             return a.info.fileSize - b.info.fileSize;
-        //         });
-        //         break;
-        //     case FILE_SORT_FIELD.NAME:
-        //         filtered = filtered.sort((a, b) => {
-        //             return a.metadata.title.localeCompare(b.metadata.title);
-        //         });
-        //         break;
-        //     default:
-        //         break;
-        // }
-
-        // if (fileSortDirection === FILE_SORT_DIRECTION.DESC) {
-        //     filtered.reverse();
-        // }
-
         return filtered;
     }, [
         files,
@@ -318,6 +290,14 @@ const Locker = () => {
 
                 explorerItems.push(newExplorerItem);
             }
+        }
+
+        if (nameSearchQuery.trim().length > 0) {
+            explorerItems = explorerItems.filter((item) => {
+                return item.name
+                    .toLowerCase()
+                    .includes(nameSearchQuery.toLowerCase());
+            });
         }
 
         switch (sortField) {
