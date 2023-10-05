@@ -20,8 +20,9 @@ import HeaderSection from '@/components/Sidebar/Header';
 import { openLink } from '@/utils/common';
 import { NoStyleAnchor } from '@/components/Sidebar/styledComponents';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import { getLocalFiles } from '@/services/fileService';
-import { getLocalTrash } from '@/services/trashService';
+import { getLocalFiles, syncFiles } from '@/services/fileService';
+import { getLocalTrash, syncTrash } from '@/services/trashService';
+import { syncCollections } from '@/services/collectionService';
 const LockerDrawer = ({
     isOpen,
     setIsOpen,
@@ -33,20 +34,28 @@ const LockerDrawer = ({
         LockerDashboardContext
     );
 
-    const { collections } = useContext(LockerDashboardContext);
+    const { collections, files } = useContext(LockerDashboardContext);
 
     const [localFilesCount, setLocalFilesCount] = useState<number>(0);
     const [localTrashCount, setLocalTrashCount] = useState<number>(0);
 
     useEffect(() => {
-        getLocalFiles().then((files) => {
-            setLocalFilesCount(files.length);
+        syncCollections().then((collections) => {
+            syncFiles(collections)
+                .then(() => {
+                    getLocalFiles().then((files) => {
+                        setLocalFilesCount(files.length);
+                    });
+                })
+                .then(() => {
+                    syncTrash(collections, files, () => {}).then(() => {
+                        getLocalTrash().then((trash) => {
+                            setLocalTrashCount(trash.length);
+                        });
+                    });
+                });
         });
-
-        getLocalTrash().then((trash) => {
-            setLocalTrashCount(trash.length);
-        });
-    }, []);
+    }, [files, isOpen]);
 
     return (
         <DrawerSidebar
