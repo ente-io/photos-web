@@ -239,6 +239,7 @@ const Locker = () => {
     };
 
     const filteredFiles = useMemo(() => {
+        if (!initialLoadFinished) return [];
         // if (dashboardView === 'trash') return files;
         if (!currentCollection && dashboardView !== 'trash') return files;
 
@@ -256,11 +257,14 @@ const Locker = () => {
         currentCollection,
         dashboardView,
         nameSearchQuery,
+        initialLoadFinished,
         // fileSortField,
         // fileSortDirection,
     ]);
 
     const explorerItems = useMemo(() => {
+        if (!initialLoadFinished) return [];
+
         let explorerItems: ExplorerItem[] = [];
 
         for (const file of filteredFiles) {
@@ -324,9 +328,17 @@ const Locker = () => {
         }
 
         return explorerItems;
-    }, [filteredFiles, collections, sortField, sortDirection]);
+    }, [
+        filteredFiles,
+        collections,
+        sortField,
+        sortDirection,
+        initialLoadFinished,
+    ]);
 
     useEffect(() => {
+        if (!initialLoadFinished) return;
+
         // setSelectedCollections([]);
         // setSelectedFiles([]);
         setSelectedExplorerItems([]);
@@ -356,143 +368,150 @@ const Locker = () => {
                 ]);
             }
         }
-    }, [currentCollection]);
+    }, [initialLoadFinished, currentCollection]);
 
     return (
         <>
-            {!initialLoadFinished && <FullScreenLoader />}
-            <LockerDashboardContext.Provider
-                value={{
-                    currentCollection,
-                    setCurrentCollection,
-                    files,
-                    setFiles,
-                    syncCollections: doSyncCollections,
-                    uncategorizedCollection,
-                    syncFiles: doSyncFiles,
-                    leftDrawerOpened,
-                    setLeftDrawerOpened,
-                    userDetails,
-                    dashboardView,
-                    setDashboardView,
-                    // selectedFiles,
-                    // setSelectedFiles,
-                    collections,
-                    // selectedCollections,
-                    // setSelectedCollections,
-                    selectedExplorerItems,
-                    setSelectedExplorerItems,
-                    syncTrash: doSyncTrash,
-                    showUploaderBoxComponent,
-                    setShowUploaderBoxComponent,
-                    filteredFiles,
-                    nameSearchQuery,
-                    setNameSearchQuery,
-                    sortField,
-                    setSortField,
-                    sortDirection,
-                    setSortDirection,
-                    explorerItems,
-                }}>
-                <Box
-                    height="100vh"
-                    width="100vw"
-                    display="flex"
-                    flexDirection="column"
-                    // onDragEnter={(e) => {
-                    //     e.preventDefault();
-                    //     setShowDragAndDropModal(true);
-                    // }}
-                    onDragEnter={onDragEnter}
-                    onDragLeave={onDragLeave}
-                    onDrop={(e) => {
-                        e.preventDefault();
-                    }}>
-                    <LockerUploaderContext.Provider
-                        value={{ filesToUpload, setFilesToUpload }}>
-                        <NavBar />
-                        <DragAndDropModal
-                            show={showDragAndDropModal}
-                            onHide={() => {
-                                setShowDragAndDropModal(false);
-                            }}
-                        />
-                    </LockerUploaderContext.Provider>
-                    <Box
-                        width="100%"
-                        height="100%"
-                        display="flex"
-                        paddingTop="5rem">
-                        <LockerDrawer
-                            isOpen={leftDrawerOpened}
-                            setIsOpen={setLeftDrawerOpened}
-                        />
+            {!initialLoadFinished ? (
+                <FullScreenLoader />
+            ) : (
+                <>
+                    <LockerDashboardContext.Provider
+                        value={{
+                            currentCollection,
+                            setCurrentCollection,
+                            files,
+                            setFiles,
+                            syncCollections: doSyncCollections,
+                            uncategorizedCollection,
+                            syncFiles: doSyncFiles,
+                            leftDrawerOpened,
+                            setLeftDrawerOpened,
+                            userDetails,
+                            dashboardView,
+                            setDashboardView,
+                            // selectedFiles,
+                            // setSelectedFiles,
+                            collections,
+                            // selectedCollections,
+                            // setSelectedCollections,
+                            selectedExplorerItems,
+                            setSelectedExplorerItems,
+                            syncTrash: doSyncTrash,
+                            showUploaderBoxComponent,
+                            setShowUploaderBoxComponent,
+                            filteredFiles,
+                            nameSearchQuery,
+                            setNameSearchQuery,
+                            sortField,
+                            setSortField,
+                            sortDirection,
+                            setSortDirection,
+                            explorerItems,
+                        }}>
                         <Box
-                            width="100%"
-                            height="100%"
-                            padding="1rem"
-                            boxSizing="border-box">
-                            {dashboardView === 'locker' && (
-                                <>
-                                    {currentCollection?.id !==
-                                        uncategorizedCollection?.id && (
-                                        <Box
-                                            display="flex"
-                                            alignItems="center"
-                                            marginBottom="1rem">
-                                            {collectionsPath.map(
-                                                (collection, i) => (
-                                                    <Fragment
-                                                        key={collection.id}>
-                                                        <Button
-                                                            variant="text"
-                                                            onClick={() => {
-                                                                setCurrentCollection(
-                                                                    collection
-                                                                );
-                                                            }}>
-                                                            {collection.name ===
-                                                            'Uncategorized'
-                                                                ? 'Home'
-                                                                : collection.name}
-                                                        </Button>
-                                                        {collectionsPath.length -
-                                                            1 !==
-                                                            i && (
-                                                            <ChevronRightRoundedIcon />
-                                                        )}
-                                                    </Fragment>
-                                                )
+                            height="100vh"
+                            width="100vw"
+                            display="flex"
+                            flexDirection="column"
+                            // onDragEnter={(e) => {
+                            //     e.preventDefault();
+                            //     setShowDragAndDropModal(true);
+                            // }}
+                            onDragEnter={onDragEnter}
+                            onDragLeave={onDragLeave}
+                            onDrop={(e) => {
+                                e.preventDefault();
+                            }}>
+                            <LockerUploaderContext.Provider
+                                value={{ filesToUpload, setFilesToUpload }}>
+                                <NavBar />
+                                <DragAndDropModal
+                                    show={showDragAndDropModal}
+                                    onHide={() => {
+                                        setShowDragAndDropModal(false);
+                                    }}
+                                />
+                            </LockerUploaderContext.Provider>
+                            <Box
+                                width="100%"
+                                height="100%"
+                                display="flex"
+                                paddingTop="5rem">
+                                <LockerDrawer
+                                    isOpen={leftDrawerOpened}
+                                    setIsOpen={setLeftDrawerOpened}
+                                />
+                                <Box
+                                    width="100%"
+                                    height="100%"
+                                    padding="1rem"
+                                    boxSizing="border-box">
+                                    {dashboardView === 'locker' && (
+                                        <>
+                                            {currentCollection?.id !==
+                                                uncategorizedCollection?.id && (
+                                                <Box
+                                                    display="flex"
+                                                    alignItems="center"
+                                                    marginBottom="1rem">
+                                                    {collectionsPath.map(
+                                                        (collection, i) => (
+                                                            <Fragment
+                                                                key={
+                                                                    collection.id
+                                                                }>
+                                                                <Button
+                                                                    variant="text"
+                                                                    onClick={() => {
+                                                                        setCurrentCollection(
+                                                                            collection
+                                                                        );
+                                                                    }}>
+                                                                    {collection.name ===
+                                                                    'Uncategorized'
+                                                                        ? 'Home'
+                                                                        : collection.name}
+                                                                </Button>
+                                                                {collectionsPath.length -
+                                                                    1 !==
+                                                                    i && (
+                                                                    <ChevronRightRoundedIcon />
+                                                                )}
+                                                            </Fragment>
+                                                        )
+                                                    )}
+                                                </Box>
                                             )}
-                                        </Box>
+                                        </>
                                     )}
-                                </>
-                            )}
 
-                            {/* {collections.length > 0 &&
+                                    {/* {collections.length > 0 &&
                                 currentCollection?.id ===
                                     uncategorizedCollection?.id && (
                                     <CollectionsSection />
                                 )} */}
 
-                            {explorerItems.length > 0 ? (
-                                <ExplorerSection />
-                            ) : (
-                                <CollectionEmptyMessage />
-                            )}
+                                    {explorerItems.length > 0 ? (
+                                        <ExplorerSection />
+                                    ) : (
+                                        <CollectionEmptyMessage />
+                                    )}
+                                </Box>
+                            </Box>
                         </Box>
-                    </Box>
-                </Box>
-            </LockerDashboardContext.Provider>
-            <TutorialDialog
-                open={showTutorialDialog}
-                onHide={() => {
-                    setShowTutorialDialog(false);
-                    setData(LS_KEYS.TUTORIAL, {
-                        viewed: true,
-                    });
-                }}
-            />
+                    </LockerDashboardContext.Provider>
+                    <TutorialDialog
+                        open={showTutorialDialog}
+                        onHide={() => {
+                            setShowTutorialDialog(false);
+                            setData(LS_KEYS.TUTORIAL, {
+                                viewed: true,
+                            });
+                        }}
+                    />
+                </>
+            )}
         </>
     );
 };
