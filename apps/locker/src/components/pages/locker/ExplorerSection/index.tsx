@@ -17,25 +17,6 @@ import ExplorerRow from './ExplorerRow';
 import { Collection } from '@/interfaces/collection';
 import { t } from 'i18next';
 
-const fileDataCategories = [
-    {
-        name: t('SORT_BY_NAME'),
-        sortFieldEnum: FILE_SORT_FIELD.NAME,
-    },
-    {
-        name: t('LAST_MODIFIED'),
-        sortFieldEnum: FILE_SORT_FIELD.LAST_MODIFIED,
-    },
-    {
-        name: t('SIZE'),
-        sortFieldEnum: FILE_SORT_FIELD.SIZE,
-    },
-    {
-        name: t('FILE_KIND'),
-        sortFieldEnum: FILE_SORT_FIELD.FILE_TYPE,
-    },
-];
-
 const ExplorerSection = () => {
     const {
         // filteredFiles,
@@ -65,6 +46,25 @@ const ExplorerSection = () => {
         if (currentSelectedIndex === explorerItems.length - 1) return;
         setSelectedExplorerItems([explorerItems[currentSelectedIndex + 1]]);
     };
+
+    const fileDataCategories = [
+        {
+            name: t('SORT_BY_NAME'),
+            sortFieldEnum: FILE_SORT_FIELD.NAME,
+        },
+        {
+            name: t('LAST_MODIFIED'),
+            sortFieldEnum: FILE_SORT_FIELD.LAST_MODIFIED,
+        },
+        {
+            name: t('SIZE'),
+            sortFieldEnum: FILE_SORT_FIELD.SIZE,
+        },
+        {
+            name: t('FILE_KIND'),
+            sortFieldEnum: FILE_SORT_FIELD.FILE_TYPE,
+        },
+    ];
 
     useEffect(() => {
         const keydownHandler = (event: KeyboardEvent) => {
