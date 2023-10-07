@@ -264,7 +264,7 @@ const NavBarRight = () => {
             icon: <DeleteIcon />,
             onClick: deleteCollectionHandler,
             condition:
-                selectedExplorerItems.length === 1 && allSelectedAreCollections,
+                selectedExplorerItems.length > 0 && allSelectedAreCollections,
         },
         {
             label: 'Create Collection',
