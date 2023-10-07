@@ -119,10 +119,24 @@ const ExplorerRow = ({
                             (selectedItem) =>
                                 selectedItem.id === selectedExplorerItems[0].id
                         );
-                        const itemsInBetween = explorerItems.slice(
-                            firstSelectedItemIndex,
-                            index + 1
-                        );
+
+                        // if the first selected item index is less than the index of the second selected item, select all items between.
+                        // otherwise, select all items before.
+
+                        let itemsInBetween = [];
+
+                        if (firstSelectedItemIndex < index) {
+                            itemsInBetween = explorerItems.slice(
+                                firstSelectedItemIndex,
+                                index + 1
+                            );
+                        } else {
+                            itemsInBetween = explorerItems.slice(
+                                index,
+                                firstSelectedItemIndex + 1
+                            );
+                        }
+
                         setSelectedExplorerItems(itemsInBetween);
                         return;
                     }
