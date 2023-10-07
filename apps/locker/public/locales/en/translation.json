@@ -376,6 +376,7 @@
     "NO_DUPLICATES_FOUND": "You've no duplicate files that can be cleared",
     "CLUB_BY_CAPTURE_TIME": "Club by capture time",
     "FILES": "Files",
+    "FILE": "File",
     "EACH": "Each",
     "DEDUPLICATE_BASED_ON_SIZE": "The following files were clubbed based on their sizes, please review and delete items you believe are duplicates",
     "DEDUPLICATE_BASED_ON_SIZE_AND_CAPTURE_TIME": "The following files were clubbed based on their sizes and capture time, please review and delete items you believe are duplicates",
