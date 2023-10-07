@@ -1,13 +1,4 @@
-import {
-    Box,
-    Icon,
-    IconButton,
-    ListItemIcon,
-    ListItemText,
-    Menu,
-    MenuItem,
-    Tooltip,
-} from '@mui/material';
+import { Box, IconButton, Menu, MenuItem, Tooltip } from '@mui/material';
 import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import {
@@ -25,7 +16,6 @@ import DriveFileMoveIcon from '@mui/icons-material/DriveFileMove';
 import DownloadIcon from '@mui/icons-material/Download';
 import { downloadFile, downloadFilesAsZip } from '@/utils/file';
 import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline';
-import UploaderBoxComponent from '@/components/UploaderBoxComponent';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import IndeterminateCheckBoxIcon from '@mui/icons-material/IndeterminateCheckBox';
@@ -35,6 +25,7 @@ import InfoIcon from '@mui/icons-material/Info';
 import RestoreIcon from '@mui/icons-material/Restore';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { EnteFile } from '@/interfaces/file';
+
 const NewCollectionModal = dynamic(() => import('../NewCollectionModal'));
 const TrashFilesModal = dynamic(() => import('../TrashFilesModal'));
 const RenameFileModal = dynamic(() => import('../RenameFileModal'));
@@ -442,7 +433,6 @@ const NavBarRight = () => {
                     syncCollections();
                 }}
             />
-            {showUploaderBoxComponent && <UploaderBoxComponent />}
         </>
     );
 };

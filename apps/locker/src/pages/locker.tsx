@@ -36,6 +36,7 @@ import DragAndDropModal from '@/components/pages/locker/DragAndDropModal';
 import ExplorerSection from '@/components/pages/locker/ExplorerSection';
 import { ExplorerItem } from '@/interfaces/explorer';
 import CollectionEmptyMessage from '@/components/pages/locker/CollectionEmptyMessage';
+import UploaderBoxComponent from '@/components/UploaderBoxComponent';
 
 interface lockerDashboardContextProps {
     currentCollection: Collection;
@@ -425,6 +426,10 @@ const Locker = () => {
                             }}>
                             <LockerUploaderContext.Provider
                                 value={{ filesToUpload, setFilesToUpload }}>
+                                {showUploaderBoxComponent && (
+                                    <UploaderBoxComponent />
+                                )}
+
                                 <NavBar />
                                 <DragAndDropModal
                                     show={showDragAndDropModal}
