@@ -18,6 +18,7 @@ import { createContext, useEffect, useState } from 'react';
 import { setupI18n } from '@/i18n';
 import FullScreenLoader from '@/components/FullScreenLoader';
 import HTTPService from '@/services/HTTPService';
+import { CLIENT_PACKAGE_NAME } from '@/constants/package';
 
 export const AppContext = createContext(
     {} as {
@@ -38,7 +39,7 @@ const App = ({ Component, pageProps }: AppProps) => {
 
     useEffect(() => {
         HTTPService.setHeaders({
-            'X-Client-Package': 'io.ente.locker',
+            'X-Client-Package': CLIENT_PACKAGE_NAME,
         });
     }, []);
 

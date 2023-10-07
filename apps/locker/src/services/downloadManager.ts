@@ -17,6 +17,7 @@ import { CacheStorageService } from './cache/cacheStorageService';
 import { CACHES } from '@/constants/cache';
 import { Remote } from 'comlink';
 import { DedicatedCryptoWorker } from 'worker/crypto.worker';
+import { CLIENT_PACKAGE_NAME } from '@/constants/package';
 
 const MAX_PARALLEL_DOWNLOADS = 10;
 
@@ -196,6 +197,7 @@ class DownloadManager {
         const resp = await fetch(getFileURL(file.id), {
             headers: {
                 'X-Auth-Token': token,
+                'x-client-package': CLIENT_PACKAGE_NAME,
             },
         });
         const reader = resp.body.getReader();

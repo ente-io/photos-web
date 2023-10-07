@@ -21,9 +21,9 @@ const TrashFilesModal = (props: IProps) => {
             onClose={props.onHide}
             sx={{ zIndex: 1600 }}
             attributes={{
-                title: `${t('TRASH')} ${selectedExplorerItems.length} ${t(
-                    'FILES'
-                )}?`,
+                title: `${t('TRASH')} ${selectedExplorerItems.length} ${
+                    selectedExplorerItems.length > 1 ? t('FILES') : t('FILE')
+                }?`,
             }}>
             <Stack spacing={'8px'}>
                 <EnteButton

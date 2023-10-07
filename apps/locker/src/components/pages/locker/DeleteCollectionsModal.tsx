@@ -22,9 +22,11 @@ const DeleteCollectionsModal = (props: IProps) => {
             onClose={props.onHide}
             sx={{ zIndex: 1600 }}
             attributes={{
-                title: `${t('DELETE')} ${selectedExplorerItems.length} ${t(
-                    'COLLECTIONS'
-                )}?`,
+                title: `${t('DELETE')} ${selectedExplorerItems.length} ${
+                    selectedExplorerItems.length > 1
+                        ? t('COLLECTIONS')
+                        : t('COLLECTION')
+                }?`,
             }}>
             <Stack spacing={'8px'}>
                 <EnteButton
