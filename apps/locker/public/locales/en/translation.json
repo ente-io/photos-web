@@ -521,6 +521,7 @@
     "NO_FILES_GET_STARTED":"No files in this collection. Upload some files to get started!",
     "NO_TRASH_FILES": "Nothing to see here.",
     "COLLECTIONS": "Collections",
+    "COLLECTION": "Collection",
     "KEEP_FILES": "Keep files",
     "DELETE_FILES": "Delete files",
     "CREATE_LOCKER_COLLECTION": "New collection",
