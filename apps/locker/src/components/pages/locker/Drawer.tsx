@@ -13,7 +13,6 @@ import CloudIcon from '@mui/icons-material/Cloud';
 // import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { t } from 'i18next';
-import { logoutUser } from '@/services/userService';
 import { EnteMenuItem } from '@/components/Menu/EnteMenuItem';
 import HelpSection from '@/components/Sidebar/HelpSection';
 import HeaderSection from '@/components/Sidebar/Header';
@@ -23,6 +22,7 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { getLocalFiles, syncFiles } from '@/services/fileService';
 import { getLocalTrash, syncTrash } from '@/services/trashService';
 import { syncCollections } from '@/services/collectionService';
+import LogoutConfirmationDialog from './LogoutConfirmationDialog';
 const LockerDrawer = ({
     isOpen,
     setIsOpen,
@@ -38,6 +38,8 @@ const LockerDrawer = ({
 
     const [localFilesCount, setLocalFilesCount] = useState<number>(0);
     const [localTrashCount, setLocalTrashCount] = useState<number>(0);
+
+    const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
 
     useEffect(() => {
         syncCollections().then((collections) => {
@@ -58,74 +60,82 @@ const LockerDrawer = ({
     }, [files, isOpen]);
 
     return (
-        <DrawerSidebar
-            disablePortal
-            anchor="left"
-            open={isOpen}
-            onClose={() => {
-                setIsOpen(false);
-            }}>
-            <HeaderSection closeSidebar={() => setIsOpen(false)} />
-            <Divider />
-            <Typography padding={1} fontWeight={'medium'} color="text.muted">
-                {userDetails?.email}
-            </Typography>
-            {userDetails && (
-                <Box px={0.5} mt={0.5} pb={1.5} mb={1}>
-                    <SubscriptionCard
-                        userDetails={userDetails}
+        <>
+            <DrawerSidebar
+                disablePortal
+                anchor="left"
+                open={isOpen}
+                onClose={() => {
+                    setIsOpen(false);
+                }}>
+                <HeaderSection closeSidebar={() => setIsOpen(false)} />
+                <Divider />
+                <Typography
+                    padding={1}
+                    fontWeight={'medium'}
+                    color="text.muted">
+                    {userDetails?.email}
+                </Typography>
+                {userDetails && (
+                    <Box px={0.5} mt={0.5} pb={1.5} mb={1}>
+                        <SubscriptionCard
+                            userDetails={userDetails}
+                            onClick={() => {
+                                window.open('https://web.ente.io');
+                            }}
+                        />
+                    </Box>
+                )}
+                <Stack spacing={0.5} mb={3}>
+                    <EnteMenuItem
+                        startIcon={<CloudIcon />}
+                        label={t('LOCKER')}
                         onClick={() => {
-                            window.open('https://web.ente.io');
+                            setDashboardView('locker');
+                            setIsOpen(false);
                         }}
+                        variant="captioned"
+                        subText={(
+                            localFilesCount + collections.length
+                        ).toString()}
                     />
-                </Box>
-            )}
-            <Stack spacing={0.5} mb={3}>
-                <EnteMenuItem
-                    startIcon={<CloudIcon />}
-                    label={t('LOCKER')}
-                    onClick={() => {
-                        setDashboardView('locker');
-                        setIsOpen(false);
-                    }}
-                    variant="captioned"
-                    subText={(localFilesCount + collections.length).toString()}
-                />
-                <EnteMenuItem
-                    startIcon={<DeleteOutlineIcon />}
-                    label={t('TRASH')}
-                    onClick={() => {
-                        setDashboardView('trash');
-                        setIsOpen(false);
-                    }}
-                    variant="captioned"
-                    subText={localTrashCount.toString()}
-                />
-                <EnteMenuItem
-                    labelComponent={
-                        <NoStyleAnchor href="https://web.ente.io">
-                            <Typography fontWeight={'bold'}>
-                                {t('ACCOUNT_SETTINGS')}
-                            </Typography>
-                        </NoStyleAnchor>
-                    }
-                    variant="secondary"
-                    onClick={() => openLink('https://web.ente.io', true)}
-                />
+                    <EnteMenuItem
+                        startIcon={<DeleteOutlineIcon />}
+                        label={t('TRASH')}
+                        onClick={() => {
+                            setDashboardView('trash');
+                            setIsOpen(false);
+                        }}
+                        variant="captioned"
+                        subText={localTrashCount.toString()}
+                    />
+                    <EnteMenuItem
+                        labelComponent={
+                            <NoStyleAnchor href="https://web.ente.io">
+                                <Typography fontWeight={'bold'}>
+                                    {t('ACCOUNT_SETTINGS')}
+                                </Typography>
+                            </NoStyleAnchor>
+                        }
+                        variant="secondary"
+                        onClick={() => openLink('https://web.ente.io', true)}
+                    />
 
-                <Divider />
-                <HelpSection />
-                <Divider />
-                <EnteMenuItem
-                    startIcon={<LogoutIcon />}
-                    label={t('LOGOUT')}
-                    onClick={logoutUser}
-                    color="critical"
-                    variant="secondary"
-                />
-            </Stack>{' '}
-            {/* </Stack> */}
-            {/* <ListItem>
+                    <Divider />
+                    <HelpSection />
+                    <Divider />
+                    <EnteMenuItem
+                        startIcon={<LogoutIcon />}
+                        label={t('LOGOUT')}
+                        onClick={() => {
+                            setShowLogoutConfirmation(true);
+                        }}
+                        color="critical"
+                        variant="secondary"
+                    />
+                </Stack>{' '}
+                {/* </Stack> */}
+                {/* <ListItem>
                     <ListItemButton>
                         <ListItemIcon>
                             <SettingsIcon />
@@ -133,8 +143,15 @@ const LockerDrawer = ({
                         <ListItemText primary="Settings" />
                     </ListItemButton>
                 </ListItem> */}
-            {/* </List> */}
-        </DrawerSidebar>
+                {/* </List> */}
+            </DrawerSidebar>
+            <LogoutConfirmationDialog
+                show={showLogoutConfirmation}
+                onHide={() => {
+                    setShowLogoutConfirmation(false);
+                }}
+            />
+        </>
     );
 };
 
