@@ -16,6 +16,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import { resolveFileType } from 'friendly-mimes';
 import AudioPreviewer from './AudioPreviewer';
 import VideoPreviewer from './VideoPreviewer';
+import PDFPreviewer from './PDFPreviewer';
 
 interface IProps {
     file: EnteFile | null;
@@ -50,8 +51,11 @@ const Previewer = (props: IProps) => {
 
     const previewElement: JSX.Element | null = useMemo(() => {
         if (!renderableFileURL) return null;
+        if (!props.file) return null;
 
-        const extension = '.' + props.file?.metadata.title.split('.').pop();
+        const name = props.file.metadata.title;
+
+        const extension = '.' + name.split('.').pop();
 
         if (!extension) return null;
 
@@ -61,6 +65,7 @@ const Previewer = (props: IProps) => {
             fileTypeObj = resolveFileType(extension);
         } catch (e) {
             console.log(e);
+            setRenderableFileURL(null);
             return null;
         }
 
@@ -76,6 +81,10 @@ const Previewer = (props: IProps) => {
 
         if (mime.startsWith('video')) {
             return <VideoPreviewer url={renderableFileURL} />;
+        }
+
+        if (mime === 'application/pdf') {
+            return <PDFPreviewer url={renderableFileURL} />;
         }
 
         return null;

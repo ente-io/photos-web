@@ -1,5 +1,5 @@
 const AudioPreviewer = ({ url }: { url: string }) => {
-    return <source src={url} type="audio/mp3" />;
+    return <audio src={url} controls />;
 };
 
 export default AudioPreviewer;
