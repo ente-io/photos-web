@@ -96,7 +96,7 @@ const FileInfoDrawer = ({
 
     return (
         <DrawerSidebar
-            disablePortal
+            // disablePortal
             anchor="right"
             open={isOpen}
             onClose={() => {

@@ -46,7 +46,7 @@ export default function DialogBoxV2({
 
     return (
         <Dialog
-            disablePortal
+            // disablePortal
             open={open}
             onClose={handleClose}
             PaperProps={{
@@ -54,6 +54,7 @@ export default function DialogBoxV2({
                     padding: '8px 12px',
                     maxWidth: dialogMaxWidth,
                     ...paperStyles,
+                    fontFamily: "'Inter', sans-serif",
                 },
             }}
             {...props}>
