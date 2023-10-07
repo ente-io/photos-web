@@ -6,7 +6,9 @@ const ImagePreviewer = ({ url }: { url: string }) => {
                 borderRadius: '10px',
                 maxHeight: '90%',
                 maxWidth: '90%',
+                userSelect: 'none',
             }}
+            draggable={false}
         />
     );
 };
