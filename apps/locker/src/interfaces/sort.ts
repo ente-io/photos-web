@@ -6,6 +6,6 @@ export enum FILE_SORT_DIRECTION {
 export enum FILE_SORT_FIELD {
     NAME,
     SIZE,
-    DATE_ADDED,
+    LAST_MODIFIED,
     FILE_TYPE,
 }

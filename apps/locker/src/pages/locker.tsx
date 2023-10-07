@@ -127,7 +127,7 @@ const Locker = () => {
     const router = useRouter();
 
     const [sortField, setSortField] = useState<FILE_SORT_FIELD>(
-        FILE_SORT_FIELD.DATE_ADDED
+        FILE_SORT_FIELD.LAST_MODIFIED
     );
     const [sortDirection, setSortDirection] = useState<FILE_SORT_DIRECTION>(
         FILE_SORT_DIRECTION.DESC
@@ -311,7 +311,7 @@ const Locker = () => {
                     return a.name.localeCompare(b.name);
                 });
                 break;
-            case FILE_SORT_FIELD.DATE_ADDED:
+            case FILE_SORT_FIELD.LAST_MODIFIED:
                 explorerItems = explorerItems.sort((a, b) => {
                     return a.creationTime - b.creationTime;
                 });

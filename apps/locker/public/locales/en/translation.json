@@ -538,5 +538,8 @@
     "DRAG_YOUR_FILES_HERE": "Drag your files here and they'll be securely uploaded with end-to-end encryption.",
     "ACCOUNT_SETTINGS": "Account Settings",
     "ITEMS": "items",
-    "ITEM": "item"
+    "ITEM": "item",
+    "LAST_MODIFIED": "Last Modified",
+    "SIZE": "Size",
+    "FILE_KIND": "Kind"
 }

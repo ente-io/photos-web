@@ -15,22 +15,23 @@ import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import ExplorerRow from './ExplorerRow';
 import { Collection } from '@/interfaces/collection';
+import { t } from 'i18next';
 
 const fileDataCategories = [
     {
-        name: 'Name',
+        name: t('SORT_BY_NAME'),
         sortFieldEnum: FILE_SORT_FIELD.NAME,
     },
     {
-        name: 'Date Added',
-        sortFieldEnum: FILE_SORT_FIELD.DATE_ADDED,
+        name: t('LAST_MODIFIED'),
+        sortFieldEnum: FILE_SORT_FIELD.LAST_MODIFIED,
     },
     {
-        name: 'Size',
+        name: t('SIZE'),
         sortFieldEnum: FILE_SORT_FIELD.SIZE,
     },
     {
-        name: 'Kind',
+        name: t('FILE_KIND'),
         sortFieldEnum: FILE_SORT_FIELD.FILE_TYPE,
     },
 ];
