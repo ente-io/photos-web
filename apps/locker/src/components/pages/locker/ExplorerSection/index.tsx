@@ -132,7 +132,10 @@ const ExplorerSection = () => {
                                     }}
                                     sx={{
                                         cursor: 'pointer',
-                                        fontWeight: 'bold',
+                                        fontWeight:
+                                            sortField === category.sortFieldEnum
+                                                ? 'bold'
+                                                : 'normal',
                                     }}>
                                     <Box
                                         display="flex"
