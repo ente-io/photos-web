@@ -15,6 +15,7 @@ import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import { ExplorerItem } from '@/interfaces/explorer';
 import Folder from '@mui/icons-material/Folder';
 import { Collection } from '@/interfaces/collection';
+import { downloadFile } from '@/utils/file';
 const TableRowBorderControlled = styled(TableCell)`
     border: none;
 `;
@@ -102,9 +103,12 @@ const ExplorerRow = ({
                 whiteSpace: 'nowrap',
             }}
             onDoubleClick={() => {
-                if (item.type !== 'collection') return;
-
-                setCurrentCollection(item.originalItem as Collection);
+                if (item.type === 'collection') {
+                    setCurrentCollection(item.originalItem as Collection);
+                } else if (item.type === 'file') {
+                    // download the file
+                    downloadFile(item.originalItem as EnteFile);
+                }
             }}
             onClick={() => {
                 if (selectedExplorerItems.length > 0) {
