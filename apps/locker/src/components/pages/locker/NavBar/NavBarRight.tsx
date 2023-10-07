@@ -1,5 +1,6 @@
 import {
     Box,
+    Icon,
     IconButton,
     ListItemIcon,
     ListItemText,
@@ -31,6 +32,7 @@ import { isMobileDisplay } from '@/utils/resolution/isMobile';
 import dynamic from 'next/dynamic';
 import InfoIcon from '@mui/icons-material/Info';
 import RestoreIcon from '@mui/icons-material/Restore';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { EnteFile } from '@/interfaces/file';
 const NewCollectionModal = dynamic(() => import('../NewCollectionModal'));
 const TrashFilesModal = dynamic(() => import('../TrashFilesModal'));
@@ -103,6 +105,8 @@ const NavBarRight = () => {
         showUploaderBoxComponent,
         setShowUploaderBoxComponent,
         // filteredFiles,
+        currentCollection,
+        uncategorizedCollection,
     } = useContext(LockerDashboardContext);
 
     useEffect(() => {
@@ -190,6 +194,8 @@ const NavBarRight = () => {
     };
 
     const allSelectedAreFiles = useMemo(() => {
+        if (!selectedExplorerItems.length) return false;
+
         return (
             selectedExplorerItems.filter((item) => item.type === 'file')
                 .length === selectedExplorerItems.length
@@ -197,94 +203,161 @@ const NavBarRight = () => {
     }, [selectedExplorerItems]);
 
     const allSelectedAreCollections = useMemo(() => {
+        if (!selectedExplorerItems.length) return false;
+
         return (
             selectedExplorerItems.filter((item) => item.type === 'collection')
                 .length === selectedExplorerItems.length
         );
     }, [selectedExplorerItems]);
 
+    const menuItems = [
+        {
+            label: 'Select All',
+            icon:
+                selectedExplorerItems.length === 0 ? (
+                    <CheckBoxOutlineBlankIcon />
+                ) : selectedExplorerItems.length === explorerItems.length ? (
+                    <CheckBoxIcon />
+                ) : (
+                    <IndeterminateCheckBoxIcon />
+                ),
+            onClick: selectAllHandler,
+        },
+        {
+            label: 'Move',
+            icon:
+                dashboardView === 'trash' ? (
+                    <RestoreIcon />
+                ) : (
+                    <DriveFileMoveIcon />
+                ),
+            onClick: moveFilesHandler,
+            condition: selectedExplorerItems.length > 0 && allSelectedAreFiles,
+        },
+        {
+            label: 'Rename',
+            icon: <DriveFileRenameOutlineIcon />,
+            onClick: renameFileHandler,
+            condition:
+                selectedExplorerItems.length === 1 && allSelectedAreFiles,
+        },
+        {
+            label: 'File Info',
+            icon: <InfoIcon />,
+            onClick: fileInfoHandler,
+            condition: allSelectedAreFiles,
+        },
+        {
+            label: dashboardView === 'trash' ? 'Permanently Delete' : 'Delete',
+            icon: <DeleteIcon />,
+            onClick: trashAndDeleteFilesHandler,
+            condition: selectedExplorerItems.length > 0 && allSelectedAreFiles,
+        },
+        {
+            label: 'Download',
+            icon: <DownloadIcon />,
+            onClick: downloadFilesHandler,
+            condition: allSelectedAreFiles,
+        },
+        {
+            label: 'Rename Collection',
+            icon: <DriveFileRenameOutlineIcon />,
+            onClick: renameCollectionHandler,
+            condition:
+                selectedExplorerItems.length === 1 && !allSelectedAreFiles,
+        },
+        {
+            label: 'Delete Collection',
+            icon: <DeleteIcon />,
+            onClick: deleteCollectionHandler,
+            condition:
+                selectedExplorerItems.length === 1 && allSelectedAreCollections,
+        },
+        {
+            label: 'Create Collection',
+            icon: <CreateNewFolderIcon />,
+            onClick: createCollectionHandler,
+            condition:
+                selectedExplorerItems.length === 0 &&
+                currentCollection?.id === uncategorizedCollection?.id,
+        },
+        {
+            label: 'Upload File',
+            icon: <FileUploadIcon />,
+            onClick: () => {
+                fileInputRef.current?.click();
+            },
+            condition: selectedExplorerItems.length === 0,
+        },
+    ];
+
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+    const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleMenuClose = () => {
+        setAnchorEl(null);
+    };
+
     return (
         <>
             <Box>
-                {selectedExplorerItems.length === 0 ? (
-                    <IconButton onClick={selectAllHandler}>
-                        <CheckBoxOutlineBlankIcon />
-                    </IconButton>
-                ) : (
-                    <IconButton onClick={selectAllHandler}>
-                        {selectedExplorerItems.length ===
-                        explorerItems.length ? (
-                            <CheckBoxIcon />
-                        ) : (
-                            <IndeterminateCheckBoxIcon />
-                        )}
-                    </IconButton>
-                )}
-
-                {selectedExplorerItems.length > 0 ? (
-                    <>
-                        {allSelectedAreFiles ? (
-                            <>
-                                <IconButton onClick={moveFilesHandler}>
-                                    {dashboardView === 'trash' ? (
-                                        <RestoreIcon />
-                                    ) : (
-                                        <DriveFileMoveIcon />
-                                    )}
-                                </IconButton>
-                                {selectedExplorerItems.length === 1 && (
-                                    <>
-                                        <IconButton onClick={renameFileHandler}>
-                                            <DriveFileRenameOutlineIcon />
-                                        </IconButton>
-
-                                        {allSelectedAreFiles && (
-                                            <IconButton
-                                                onClick={fileInfoHandler}>
-                                                <InfoIcon />
-                                            </IconButton>
-                                        )}
-                                    </>
-                                )}
-                                <IconButton
-                                    onClick={trashAndDeleteFilesHandler}>
-                                    <DeleteIcon />
-                                </IconButton>
-                            </>
-                        ) : (
-                            <>
-                                {selectedExplorerItems.length === 1 && (
-                                    <IconButton
-                                        onClick={renameCollectionHandler}>
-                                        <DriveFileRenameOutlineIcon />
-                                    </IconButton>
-                                )}
-
-                                <IconButton onClick={deleteCollectionHandler}>
-                                    <DeleteIcon />
-                                </IconButton>
-                            </>
-                        )}
-
-                        {allSelectedAreFiles && (
-                            <IconButton onClick={downloadFilesHandler}>
-                                <DownloadIcon />
+                <Box
+                    sx={{
+                        '@media only screen and (max-width: 800px)': {
+                            display: 'none',
+                        },
+                    }}>
+                    {menuItems.map((menuItem, index) =>
+                        menuItem.condition === undefined ||
+                        menuItem.condition ? (
+                            <IconButton key={index} onClick={menuItem.onClick}>
+                                {menuItem.icon}
                             </IconButton>
-                        )}
-                    </>
-                ) : (
-                    <>
-                        <IconButton onClick={createCollectionHandler}>
-                            <CreateNewFolderIcon />
-                        </IconButton>
-                        <IconButton
-                            onClick={() => {
-                                fileInputRef.current?.click();
-                            }}>
-                            <FileUploadIcon />
-                        </IconButton>
-                    </>
-                )}
+                        ) : null
+                    )}
+                </Box>
+                <Box
+                    sx={{
+                        '@media only screen and (min-width: 800px)': {
+                            display: 'none',
+                        },
+                    }}>
+                    <IconButton
+                        onClick={handleMenuOpen}
+                        sx={{
+                            color: '#fff',
+                        }}>
+                        <MoreVertIcon />
+                    </IconButton>
+                </Box>
+                <Menu
+                    anchorEl={anchorEl}
+                    open={Boolean(anchorEl)}
+                    onClose={handleMenuClose}>
+                    {menuItems.map((menuItem, index) =>
+                        menuItem.condition === undefined ||
+                        menuItem.condition ? (
+                            <MenuItem
+                                key={index}
+                                onClick={() => {
+                                    handleMenuClose();
+                                    menuItem.onClick();
+                                }}
+                                sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                }}>
+                                {menuItem.icon}
+                                {menuItem.label}
+                            </MenuItem>
+                        ) : null
+                    )}
+                </Menu>
             </Box>
             <input
                 ref={fileInputRef}
