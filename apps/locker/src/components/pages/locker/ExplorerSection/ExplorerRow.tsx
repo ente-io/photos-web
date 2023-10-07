@@ -1,7 +1,7 @@
 import { EnteFile } from '@/interfaces/file';
 import { TableRow, TableCell, styled, useTheme } from '@mui/material';
 import { useContext, useMemo } from 'react';
-import { LockerDashboardContext } from '@/pages/locker';
+import { LockerDashboardContext, LockerExplorerContext } from '@/pages/locker';
 import { getFriendlyHumanReadableDate } from '@/utils/time/format';
 import { convertBytesToHumanReadable } from '../../../../utils/file/size';
 import { resolveFileType } from 'friendly-mimes';
@@ -38,6 +38,8 @@ const ExplorerRow = ({
         setSelectedExplorerItems,
         setCurrentCollection,
     } = useContext(LockerDashboardContext);
+
+    const { setShowPreviewer } = useContext(LockerExplorerContext);
 
     const { shiftKeyHeld, ctrlCmdKeyHeld } = useContext(AppContext);
 
@@ -106,6 +108,9 @@ const ExplorerRow = ({
                 if (item.type === 'collection') {
                     setCurrentCollection(item.originalItem as Collection);
                 } else if (item.type === 'file') {
+                    setSelectedExplorerItems([item]);
+                    setShowPreviewer(true);
+                    return;
                     // download the file
                     downloadFile(item.originalItem as EnteFile);
                 }

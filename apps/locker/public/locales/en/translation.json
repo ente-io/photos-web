@@ -541,5 +541,6 @@
     "ITEM": "item",
     "LAST_MODIFIED": "Last Modified",
     "SIZE": "Size",
-    "FILE_KIND": "Kind"
+    "FILE_KIND": "Kind",
+    "UNABLE_TO_PREVIEW": "This file can't be previewed."
 }

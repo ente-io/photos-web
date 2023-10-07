@@ -117,7 +117,7 @@ export async function downloadFile(
     }
 }
 
-const downloadFileAsBlob = async (file: EnteFile): Promise<Blob> => {
+export const downloadFileAsBlob = async (file: EnteFile): Promise<Blob> => {
     try {
         let fileBlob: Blob;
         const fileReader = new FileReader();

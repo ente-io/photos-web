@@ -36,6 +36,7 @@ import DragAndDropModal from '@/components/pages/locker/DragAndDropModal';
 import ExplorerSection from '@/components/pages/locker/ExplorerSection';
 import { ExplorerItem } from '@/interfaces/explorer';
 import CollectionEmptyMessage from '@/components/pages/locker/CollectionEmptyMessage';
+import Previewer from '@/components/pages/locker/Previewer';
 
 interface lockerDashboardContextProps {
     currentCollection: Collection;
@@ -81,6 +82,12 @@ export const LockerDashboardContext =
     createContext<lockerDashboardContextProps>(
         {} as lockerDashboardContextProps
     );
+
+export const LockerExplorerContext = createContext(
+    {} as {
+        setShowPreviewer: Dispatch<SetStateAction<boolean>>;
+    }
+);
 
 const Locker = () => {
     const [collections, setCollections] = useState<Collection[]>([]);
@@ -132,6 +139,8 @@ const Locker = () => {
     const [sortDirection, setSortDirection] = useState<FILE_SORT_DIRECTION>(
         FILE_SORT_DIRECTION.DESC
     );
+
+    const [showPreviewer, setShowPreviewer] = useState(false);
 
     const doSyncCollections = async () => {
         const collections = await syncCollections();
@@ -493,7 +502,27 @@ const Locker = () => {
                                 )} */}
 
                                     {explorerItems.length > 0 ? (
-                                        <ExplorerSection />
+                                        <LockerExplorerContext.Provider
+                                            value={{
+                                                setShowPreviewer,
+                                            }}>
+                                            <ExplorerSection />
+                                            <Previewer
+                                                show={showPreviewer}
+                                                onHide={() => {
+                                                    setShowPreviewer(false);
+                                                }}
+                                                file={
+                                                    selectedExplorerItems.length ===
+                                                        1 &&
+                                                    selectedExplorerItems[0]
+                                                        .type === 'file'
+                                                        ? (selectedExplorerItems[0]
+                                                              .originalItem as EnteFile)
+                                                        : null
+                                                }
+                                            />
+                                        </LockerExplorerContext.Provider>
                                     ) : (
                                         <CollectionEmptyMessage />
                                     )}
