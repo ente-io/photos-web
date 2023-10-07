@@ -35,8 +35,6 @@ const Previewer = (props: IProps) => {
         if (!props.show) return setLoading(false);
         if (!props.file) return setLoading(false);
 
-        setLoading(true);
-
         downloadFileAsBlob(props.file).then((blob) => {
             try {
                 const url = URL.createObjectURL(blob);
@@ -147,7 +145,10 @@ const Previewer = (props: IProps) => {
                                 ) : (
                                     <Box textAlign="center">
                                         <Typography>
-                                            {t('UNABLE_TO_PREVIEW')}
+                                            {props.file?.info?.fileSize >
+                                            20000000
+                                                ? t('FILE_TOO_LARGE_TO_PREVIEW')
+                                                : t('UNABLE_TO_PREVIEW')}
                                         </Typography>
                                         <Button
                                             onClick={() => {

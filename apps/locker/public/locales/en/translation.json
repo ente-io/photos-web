@@ -544,5 +544,6 @@
     "LAST_MODIFIED": "Last Modified",
     "SIZE": "Size",
     "FILE_KIND": "Kind",
-    "UNABLE_TO_PREVIEW": "This file can't be previewed."
+    "UNABLE_TO_PREVIEW": "This file can't be previewed.",
+    "FILE_TOO_LARGE_TO_PREVIEW": "This file is too large to be previewed."
 }
