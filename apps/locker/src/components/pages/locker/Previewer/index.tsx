@@ -9,10 +9,13 @@ import {
     Tooltip,
     Typography,
 } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import ImagePreviewer from './ImagePreviewer';
 import { t } from 'i18next';
 import CloseIcon from '@mui/icons-material/Close';
+import { resolveFileType } from 'friendly-mimes';
+import AudioPreviewer from './AudioPreviewer';
+import VideoPreviewer from './VideoPreviewer';
 
 interface IProps {
     file: EnteFile | null;
@@ -25,9 +28,13 @@ const Previewer = (props: IProps) => {
         null
     );
 
+    const [loading, setLoading] = useState(true);
+
     useEffect(() => {
-        if (!props.show) return;
-        if (!props.file) return;
+        if (!props.show) return setLoading(false);
+        if (!props.file) return setLoading(false);
+
+        setLoading(true);
 
         downloadFileAsBlob(props.file).then((blob) => {
             try {
@@ -36,8 +43,43 @@ const Previewer = (props: IProps) => {
             } catch (e) {
                 console.error(e);
             }
+
+            setLoading(false);
         });
     }, [props.file]);
+
+    const previewElement: JSX.Element | null = useMemo(() => {
+        if (!renderableFileURL) return null;
+
+        const extension = '.' + props.file?.metadata.title.split('.').pop();
+
+        if (!extension) return null;
+
+        let fileTypeObj: any = {};
+
+        try {
+            fileTypeObj = resolveFileType(extension);
+        } catch (e) {
+            console.log(e);
+            return null;
+        }
+
+        const mime = fileTypeObj.mime;
+
+        if (mime.startsWith('image')) {
+            return <ImagePreviewer url={renderableFileURL} />;
+        }
+
+        if (mime.startsWith('audio')) {
+            return <AudioPreviewer url={renderableFileURL} />;
+        }
+
+        if (mime.startsWith('video')) {
+            return <VideoPreviewer url={renderableFileURL} />;
+        }
+
+        return null;
+    }, [renderableFileURL, props.file]);
 
     return (
         <>
@@ -78,25 +120,38 @@ const Previewer = (props: IProps) => {
                         justifyContent="center"
                         height="100%"
                         width="100%">
-                        {renderableFileURL ? (
-                            <>
-                                <ImagePreviewer url={renderableFileURL} />
-                            </>
+                        {loading ? (
+                            <CircularProgress />
                         ) : (
-                            <Box textAlign="center">
-                                <Typography>
-                                    {t('UNABLE_TO_PREVIEW')}
-                                </Typography>
-                                <Button
-                                    onClick={() => {
-                                        downloadFile(props.file);
-                                    }}
-                                    sx={{
-                                        marginTop: '1rem',
-                                    }}>
-                                    {t('DOWNLOAD')}
-                                </Button>
-                            </Box>
+                            <>
+                                {renderableFileURL ? (
+                                    <Box
+                                        sx={{
+                                            maxHeight: '90%',
+                                            maxWidth: '90%',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                        }}>
+                                        {previewElement}
+                                    </Box>
+                                ) : (
+                                    <Box textAlign="center">
+                                        <Typography>
+                                            {t('UNABLE_TO_PREVIEW')}
+                                        </Typography>
+                                        <Button
+                                            onClick={() => {
+                                                downloadFile(props.file);
+                                            }}
+                                            sx={{
+                                                marginTop: '1rem',
+                                            }}>
+                                            {t('DOWNLOAD')}
+                                        </Button>
+                                    </Box>
+                                )}
+                            </>
                         )}
                     </Box>
                 </Box>
