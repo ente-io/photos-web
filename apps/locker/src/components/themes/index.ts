@@ -3,6 +3,11 @@ import { getColors } from './colors';
 import { getComponents } from './components';
 import { getPallette } from './palette';
 import { typography } from './typography';
+import { Inter } from 'next/font/google';
+
+const inter = Inter({
+    preload: false,
+});
 
 export const getTheme = (themeColor: string) => {
     const colors = getColors(themeColor);
@@ -11,7 +16,10 @@ export const getTheme = (themeColor: string) => {
     const theme = createTheme({
         colors,
         palette,
-        typography,
+        typography: {
+            ...typography,
+            fontFamily: inter.style.fontFamily,
+        },
         components,
         shape: {
             borderRadius: 8,
