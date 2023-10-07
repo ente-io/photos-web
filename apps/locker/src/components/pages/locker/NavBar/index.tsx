@@ -19,10 +19,6 @@ const NavBar = () => {
                     backdropFilter: 'blur(5px)',
                     width: '100%',
                     boxSizing: 'border-box',
-                    '@media only screen and (max-width: 800px)': {
-                        flexDirection: 'column',
-                        alignItems: 'flex-start',
-                    },
                 }}>
                 <NavBarLeft />
                 <NavBarMiddle />
