@@ -6,6 +6,7 @@ import {
     ListItemText,
     Menu,
     MenuItem,
+    Tooltip,
 } from '@mui/material';
 import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
@@ -314,9 +315,11 @@ const NavBarRight = () => {
                     {menuItems.map((menuItem, index) =>
                         menuItem.condition === undefined ||
                         menuItem.condition ? (
-                            <IconButton key={index} onClick={menuItem.onClick}>
-                                {menuItem.icon}
-                            </IconButton>
+                            <Tooltip key={index} title={menuItem.label}>
+                                <IconButton onClick={menuItem.onClick}>
+                                    {menuItem.icon}
+                                </IconButton>
+                            </Tooltip>
                         ) : null
                     )}
                 </Box>
