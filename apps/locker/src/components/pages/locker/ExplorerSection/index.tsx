@@ -7,6 +7,7 @@ import {
     TableContainer,
     TableHead,
     TableRow,
+    TableSortLabel,
 } from '@mui/material';
 import { useContext, useEffect } from 'react';
 import { LockerDashboardContext } from '@/pages/locker';
@@ -16,6 +17,7 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import ExplorerRow from './ExplorerRow';
 import { Collection } from '@/interfaces/collection';
 import { t } from 'i18next';
+import { visuallyHidden } from '@mui/utils';
 
 const ExplorerSection = () => {
     const {
@@ -114,22 +116,13 @@ const ExplorerSection = () => {
                 {t('FILES')}
             </h3> */}
             <TableContainer component={Paper}>
-                <Table sx={{ minWidth: 650 }} size="medium">
+                <Table sx={{ width: '100%' }} size="medium">
                     <TableHead>
                         <TableRow>
                             {fileDataCategories.map((category) => (
                                 <TableCell
                                     key={category.sortFieldEnum}
                                     align="left"
-                                    onClick={() => {
-                                        setSortField(category.sortFieldEnum);
-                                        setSortDirection(
-                                            sortDirection ===
-                                                FILE_SORT_DIRECTION.ASC
-                                                ? FILE_SORT_DIRECTION.DESC
-                                                : FILE_SORT_DIRECTION.ASC
-                                        );
-                                    }}
                                     sx={{
                                         cursor: 'pointer',
                                         fontWeight:
@@ -137,19 +130,40 @@ const ExplorerSection = () => {
                                                 ? 'bold'
                                                 : 'normal',
                                     }}>
-                                    <Box
-                                        display="flex"
-                                        alignItems="center"
-                                        justifyContent="space-between">
+                                    <TableSortLabel
+                                        active={
+                                            sortField === category.sortFieldEnum
+                                        }
+                                        direction={
+                                            sortDirection ===
+                                            FILE_SORT_DIRECTION.DESC
+                                                ? 'desc'
+                                                : 'asc'
+                                        }
+                                        onClick={() => {
+                                            setSortField(
+                                                category.sortFieldEnum
+                                            );
+                                            setSortDirection(
+                                                sortDirection ===
+                                                    FILE_SORT_DIRECTION.ASC
+                                                    ? FILE_SORT_DIRECTION.DESC
+                                                    : FILE_SORT_DIRECTION.ASC
+                                            );
+                                        }}>
                                         {category.name}
-                                        {sortField === category.sortFieldEnum &&
-                                            (sortDirection ===
-                                            FILE_SORT_DIRECTION.DESC ? (
-                                                <ArrowDropUpIcon />
-                                            ) : (
-                                                <ArrowDropDownIcon />
-                                            ))}
-                                    </Box>
+                                        {sortField ===
+                                        category.sortFieldEnum ? (
+                                            <Box
+                                                component="span"
+                                                sx={visuallyHidden}>
+                                                {sortDirection ===
+                                                FILE_SORT_DIRECTION.DESC
+                                                    ? 'sorted descending'
+                                                    : 'sorted ascending'}
+                                            </Box>
+                                        ) : null}
+                                    </TableSortLabel>
                                 </TableCell>
                             ))}
                         </TableRow>

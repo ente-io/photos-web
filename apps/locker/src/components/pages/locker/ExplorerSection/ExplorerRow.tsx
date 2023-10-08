@@ -1,4 +1,3 @@
-import { EnteFile } from '@/interfaces/file';
 import { TableRow, TableCell, styled, useTheme } from '@mui/material';
 import { useContext, useMemo } from 'react';
 import { LockerDashboardContext, LockerExplorerContext } from '@/pages/locker';
@@ -15,7 +14,6 @@ import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import { ExplorerItem } from '@/interfaces/explorer';
 import Folder from '@mui/icons-material/Folder';
 import { Collection } from '@/interfaces/collection';
-import { downloadFile } from '@/utils/file';
 const TableRowBorderControlled = styled(TableCell)`
     border: none;
 `;
@@ -110,9 +108,6 @@ const ExplorerRow = ({
                 } else if (item.type === 'file') {
                     setSelectedExplorerItems([item]);
                     setShowPreviewer(true);
-                    return;
-                    // download the file
-                    downloadFile(item.originalItem as EnteFile);
                 }
             }}
             onClick={() => {
