@@ -31,28 +31,32 @@ const Previewer = (props: IProps) => {
 
     const [loading, setLoading] = useState(true);
 
+    const [downloading, setDownloading] = useState(false);
+
     useEffect(() => {
         if (!props.show) return setLoading(false);
         if (!props.file) return setLoading(false);
 
-        downloadFileAsBlob(props.file).then((blob) => {
-            try {
-                const url = URL.createObjectURL(blob);
-                setRenderableFileURL(url);
-            } catch (e) {
-                console.error(e);
-            }
+        const mime = getMime(props.file?.metadata.title);
 
+        if (mime && getPreviewElement(mime, '')) {
+            downloadFileAsBlob(props.file).then((blob) => {
+                try {
+                    const url = URL.createObjectURL(blob);
+                    setRenderableFileURL(url);
+                } catch (e) {
+                    console.error(e);
+                }
+
+                setLoading(false);
+            });
+        } else {
+            setRenderableFileURL(null);
             setLoading(false);
-        });
+        }
     }, [props.file]);
 
-    const previewElement: JSX.Element | null = useMemo(() => {
-        if (!renderableFileURL) return null;
-        if (!props.file) return null;
-
-        const name = props.file.metadata.title;
-
+    const getMime = (name: string) => {
         const extension = '.' + name.split('.').pop();
 
         if (!extension) return null;
@@ -67,8 +71,19 @@ const Previewer = (props: IProps) => {
             return null;
         }
 
-        const mime = fileTypeObj.mime;
+        return fileTypeObj.mime;
+    };
 
+    const previewElement: JSX.Element | null = useMemo(() => {
+        if (!renderableFileURL) return null;
+        if (!props.file) return null;
+
+        const mime = getMime(props.file.metadata.title);
+
+        return getPreviewElement(mime, renderableFileURL);
+    }, [renderableFileURL, props.file]);
+
+    const getPreviewElement = (mime: string, renderableFileURL: string) => {
         if (mime.startsWith('image')) {
             return <ImagePreviewer url={renderableFileURL} />;
         }
@@ -86,7 +101,7 @@ const Previewer = (props: IProps) => {
         }
 
         return null;
-    }, [renderableFileURL, props.file]);
+    };
 
     return (
         <>
@@ -152,12 +167,22 @@ const Previewer = (props: IProps) => {
                                         </Typography>
                                         <Button
                                             onClick={() => {
-                                                downloadFile(props.file);
+                                                setDownloading(true);
+                                                downloadFile(props.file).then(
+                                                    () => {
+                                                        setDownloading(false);
+                                                    }
+                                                );
                                             }}
                                             sx={{
                                                 marginTop: '1rem',
-                                            }}>
-                                            {t('DOWNLOAD')}
+                                            }}
+                                            disabled={downloading}>
+                                            {downloading ? (
+                                                <CircularProgress />
+                                            ) : (
+                                                t('DOWNLOAD')
+                                            )}
                                         </Button>
                                     </Box>
                                 )}
