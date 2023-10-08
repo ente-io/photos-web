@@ -5,6 +5,7 @@ const ImagePreviewer = ({ url }: { url: string }) => {
             style={{
                 borderRadius: '10px',
                 userSelect: 'none',
+                overflow: 'hidden',
             }}
             draggable={false}
         />

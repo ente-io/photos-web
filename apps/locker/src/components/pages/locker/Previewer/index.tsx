@@ -37,7 +37,7 @@ const Previewer = (props: IProps) => {
         if (!props.show) return setLoading(false);
         if (!props.file) return setLoading(false);
 
-        const mime = getMime(props.file?.metadata.title);
+        const mime = getMime(props.file?.metadata?.title);
 
         if (mime && getPreviewElement(mime, '')) {
             downloadFileAsBlob(props.file).then((blob) => {
@@ -74,15 +74,6 @@ const Previewer = (props: IProps) => {
         return fileTypeObj.mime;
     };
 
-    const previewElement: JSX.Element | null = useMemo(() => {
-        if (!renderableFileURL) return null;
-        if (!props.file) return null;
-
-        const mime = getMime(props.file.metadata.title);
-
-        return getPreviewElement(mime, renderableFileURL);
-    }, [renderableFileURL, props.file]);
-
     const getPreviewElement = (mime: string, renderableFileURL: string) => {
         if (mime.startsWith('image')) {
             return <ImagePreviewer url={renderableFileURL} />;
@@ -102,6 +93,15 @@ const Previewer = (props: IProps) => {
 
         return null;
     };
+
+    const previewElement: JSX.Element | null = useMemo(() => {
+        if (!renderableFileURL) return null;
+        if (!props.file) return null;
+
+        const mime = getMime(props.file.metadata.title);
+
+        return getPreviewElement(mime, renderableFileURL);
+    }, [renderableFileURL, props.file, getMime, getPreviewElement]);
 
     return (
         <>
