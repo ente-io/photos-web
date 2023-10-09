@@ -127,7 +127,10 @@ const Previewer = (props: IProps) => {
                             justifyContent: 'space-between',
                             width: '100%',
                         }}>
-                        <Typography fontWeight={'bold'}>
+                        <Typography
+                            fontWeight={'bold'}
+                            textOverflow="ellipsis"
+                            overflow="hidden">
                             {props.file?.metadata.title}
                         </Typography>
                         <Box>
