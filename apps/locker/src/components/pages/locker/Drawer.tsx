@@ -34,7 +34,7 @@ const LockerDrawer = ({
         LockerDashboardContext
     );
 
-    const { collections, files } = useContext(LockerDashboardContext);
+    const { files } = useContext(LockerDashboardContext);
 
     const [localFilesCount, setLocalFilesCount] = useState<number>(0);
     const [localTrashCount, setLocalTrashCount] = useState<number>(0);
@@ -95,11 +95,7 @@ const LockerDrawer = ({
                             setIsOpen(false);
                         }}
                         variant="captioned"
-                        subText={(
-                            localFilesCount +
-                            collections.length -
-                            1
-                        ).toString()}
+                        subText={localFilesCount.toString()}
                     />
                     <EnteMenuItem
                         startIcon={<DeleteOutlineIcon />}
