@@ -37,6 +37,8 @@ const Previewer = (props: IProps) => {
         if (!props.show) return setLoading(false);
         if (!props.file) return setLoading(false);
 
+        setLoading(true);
+
         const mime = getMime(props.file?.metadata?.title);
 
         if (mime && getPreviewElement(mime, '')) {
