@@ -115,6 +115,7 @@ const Previewer = (props: IProps) => {
             <Backdrop
                 sx={{
                     zIndex: (theme) => theme.zIndex.drawer + 1,
+                    backdropFilter: 'blur(5px)',
                 }}
                 open={props.show}>
                 <Box
