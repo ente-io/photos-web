@@ -1,4 +1,11 @@
-import { Box, IconButton, Menu, MenuItem, Tooltip } from '@mui/material';
+import {
+    Box,
+    CircularProgress,
+    IconButton,
+    Menu,
+    MenuItem,
+    Tooltip,
+} from '@mui/material';
 import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import {
@@ -65,6 +72,8 @@ const NavBarRight = () => {
 
     const [overflowMenuAnchorEl, setOverflowMenuAnchorEl] =
         useState<null | HTMLElement>(null);
+
+    const [downloadingFile, setDownloadingFile] = useState(false);
 
     const open = Boolean(overflowMenuAnchorEl);
 
@@ -166,11 +175,16 @@ const NavBarRight = () => {
             return item.originalItem as EnteFile;
         });
 
+        setDownloadingFile(true);
         if (files.length > 1) {
-            await downloadFilesAsZip(files);
+            downloadFilesAsZip(files).then(() => {
+                setDownloadingFile(false);
+            });
             return;
         }
-        await downloadFile(files[0]);
+        downloadFile(files[0]).then(() => {
+            setDownloadingFile(false);
+        });
     };
 
     const deleteCollectionHandler = () => {
@@ -249,7 +263,11 @@ const NavBarRight = () => {
         },
         {
             label: 'Download',
-            icon: <DownloadIcon />,
+            icon: downloadingFile ? (
+                <CircularProgress size={20} />
+            ) : (
+                <DownloadIcon />
+            ),
             onClick: downloadFilesHandler,
             condition: allSelectedAreFiles,
         },
