@@ -17,14 +17,14 @@ const CollectionEmptyMessage = () => {
             flexDirection={'column'}
             gap="2rem"
             marginTop="10rem">
-            {dashboardView === 'locker' && nameSearchQuery.length < 1 && (
+            {/* {dashboardView === 'locker' && nameSearchQuery.length < 1 && (
                 <Image
                     src="/images/empty-state/ente_duck.png"
                     height={288}
                     width={376}
                     alt="Yellow duck smiling and dancing with the word ente in the background"
                 />
-            )}
+            )} */}
             <Typography fontSize={24} lineHeight={1.25} textAlign="center">
                 {t(
                     nameSearchQuery.length > 0
