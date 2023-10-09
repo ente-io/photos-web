@@ -96,7 +96,9 @@ const LockerDrawer = ({
                         }}
                         variant="captioned"
                         subText={(
-                            localFilesCount + collections.length
+                            localFilesCount +
+                            collections.length -
+                            1
                         ).toString()}
                     />
                     <EnteMenuItem
