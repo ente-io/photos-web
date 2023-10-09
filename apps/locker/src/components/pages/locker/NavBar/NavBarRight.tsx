@@ -238,7 +238,8 @@ const NavBarRight = () => {
             label: 'File Info',
             icon: <InfoIcon />,
             onClick: fileInfoHandler,
-            condition: allSelectedAreFiles,
+            condition:
+                selectedExplorerItems.length === 1 && allSelectedAreFiles,
         },
         {
             label: dashboardView === 'trash' ? 'Permanently Delete' : 'Delete',
