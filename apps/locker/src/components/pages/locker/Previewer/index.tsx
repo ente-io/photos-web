@@ -77,7 +77,11 @@ const Previewer = (props: IProps) => {
         return fileTypeObj.mime;
     };
 
-    const getPreviewElement = (mime: string, renderableFileURL: string) => {
+    const getPreviewElement = (
+        mime: string | null,
+        renderableFileURL: string
+    ) => {
+        if (!mime) return null;
         if (mime.startsWith('image')) {
             return <ImagePreviewer url={renderableFileURL} />;
         }
