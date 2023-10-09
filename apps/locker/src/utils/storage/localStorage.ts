@@ -23,6 +23,7 @@ export enum LS_KEYS {
     API_ENDPOINT = 'apiEndpoint',
     LOCALE = 'locale',
     TUTORIAL = 'tutorial',
+    BETA_WARNING = 'betaWarning',
 }
 
 export const setData = (key: LS_KEYS, value: object) => {

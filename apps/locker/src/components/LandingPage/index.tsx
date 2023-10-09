@@ -4,10 +4,20 @@ import Image from 'next/image';
 import styles from './styles.module.scss';
 import { Button, Typography } from '@mui/material';
 import BetaWarningDialog from './BetaWarningDialog';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { LS_KEYS, getData, setData } from '@/utils/storage/localStorage';
+import { useRouter } from 'next/router';
 
 const LandingPage = () => {
     const [showBetaWarningDialog, setShowBetaWarningDialog] = useState(false);
+
+    const router = useRouter();
+
+    useEffect(() => {
+        if (getData(LS_KEYS.BETA_WARNING)?.viewed) {
+            router.push('/locker');
+        }
+    }, []);
 
     return (
         <>
@@ -36,7 +46,12 @@ const LandingPage = () => {
             </div>
             <BetaWarningDialog
                 show={showBetaWarningDialog}
-                onHide={() => setShowBetaWarningDialog(false)}
+                onHide={() => {
+                    setShowBetaWarningDialog(false);
+                    setData(LS_KEYS.BETA_WARNING, {
+                        viewed: true,
+                    });
+                }}
             />
         </>
     );
