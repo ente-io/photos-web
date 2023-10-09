@@ -48,6 +48,7 @@ const Previewer = (props: IProps) => {
                     setRenderableFileURL(url);
                 } catch (e) {
                     console.error(e);
+                    setRenderableFileURL(null);
                 }
 
                 setLoading(false);
