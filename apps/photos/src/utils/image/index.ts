@@ -148,3 +148,9 @@ export async function imageBitmapToBlob(
 export async function imageBitmapFromBlob(blob: Blob) {
     return createImageBitmap(blob);
 }
+
+export async function imageBitmapToUint8Array(imageBitmap: ImageBitmap) {
+    const blob = await imageBitmapToBlob(imageBitmap);
+    const arrayBuffer = await blob.arrayBuffer();
+    return new Uint8Array(arrayBuffer);
+}

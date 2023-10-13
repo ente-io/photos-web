@@ -198,12 +198,9 @@ export interface RealWorldObject extends DetectedObject {
     className: string;
 }
 
-export interface ClipImageEmbeddingExtractionResult {
-    imageEmbeddings: Float32Array;
-}
-
-export interface ClipImageEmbedding extends ClipImageEmbeddingExtractionResult {
+export interface ClipImageEmbedding {
     fileId: number;
+    embedding: Float32Array;
 }
 
 export interface Thing {
@@ -396,9 +393,8 @@ export interface SceneDetectionService {
 export interface ClipService {
     method: Versioned<ClipMethod>;
     // init(): Promise<void>;
-    computeImageEmbeddings(
-        image: ImageBitmap
-    ): Promise<ClipImageEmbeddingExtractionResult>;
+    computeImageEmbedding(image: ImageBitmap): Promise<Float32Array>;
+    computeTextEmbedding(text: string): Promise<Float32Array>;
 }
 
 export interface FaceCropService {

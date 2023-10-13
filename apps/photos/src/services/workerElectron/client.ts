@@ -22,8 +22,12 @@ export class WorkerElectronClient implements ProxiedElectronAPIs {
         return ElectronCacheStorage.delete(cacheName);
     }
 
-    async computeImageEmbeddings(imageData: Uint8Array) {
-        return ElectronClipService.computeImageEmbeddings(imageData);
+    async computeImageEmbedding(imageData: Uint8Array) {
+        return ElectronClipService.computeImageEmbedding(imageData);
+    }
+
+    async computeTextEmbedding(text: string) {
+        return ElectronClipService.computeTextEmbedding(text);
     }
 }
 

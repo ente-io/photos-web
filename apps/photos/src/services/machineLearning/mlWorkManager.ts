@@ -90,6 +90,13 @@ class MLWorkManager {
         }
     }
 
+    public async generateTextEmbedding(text: string) {
+        const token = getToken();
+        const userID = getUserID();
+        const mlWorker = await this.getLiveSyncWorker();
+        return mlWorker.generateTextEmbedding(token, userID, text);
+    }
+
     // Handlers
     private async appStartHandler() {
         addLogLine('appStartHandler');

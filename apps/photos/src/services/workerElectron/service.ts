@@ -41,11 +41,15 @@ class WorkerElectronService implements WorkerElectronAPIs {
         return await this.proxiedElectronService.deleteDiskCache(cacheName);
     }
 
-    async computeImageEmbeddings(imageFile: Uint8Array): Promise<Float32Array> {
+    async computeImageEmbedding(imageFile: Uint8Array): Promise<Float32Array> {
         await this.ready;
-        return await this.proxiedElectronService.computeImageEmbeddings(
+        return await this.proxiedElectronService.computeImageEmbedding(
             imageFile
         );
+    }
+    async computeTextEmbedding(text: string): Promise<Float32Array> {
+        await this.ready;
+        return await this.proxiedElectronService.computeTextEmbedding(text);
     }
 }
 

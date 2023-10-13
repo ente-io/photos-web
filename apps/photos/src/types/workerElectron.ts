@@ -9,10 +9,10 @@ export interface ProxiedLimitedCache {
 export interface ProxiedElectronAPIs {
     openDiskCache: (cacheName: string) => Promise<ProxiedLimitedCache>;
     deleteDiskCache: (cacheName: string) => Promise<boolean>;
-    computeImageEmbeddings: (imageData: Uint8Array) => Promise<Float32Array>;
+    computeImageEmbedding: (imageData: Uint8Array) => Promise<Float32Array>;
 }
 
 export type WorkerElectronAPIs = Pick<
     ElectronAPIs,
-    'openDiskCache' | 'deleteDiskCache' | 'computeImageEmbeddings'
+    'openDiskCache' | 'deleteDiskCache' | 'computeImageEmbedding'
 >;

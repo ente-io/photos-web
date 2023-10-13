@@ -14,6 +14,7 @@ import {
 } from 'idb';
 import { Config } from 'types/common/config';
 import {
+    ClipImageEmbedding,
     Face,
     MlFileData,
     MLLibraryData,
@@ -339,6 +340,7 @@ class MLIDbStorage {
         const db = await this.db;
         return db.getAll('things');
     }
+
     public async putThing(thing: Thing) {
         const db = await this.db;
         return db.put('things', thing);
@@ -347,6 +349,11 @@ class MLIDbStorage {
     public async clearAllThings() {
         const db = await this.db;
         return db.clear('things');
+    }
+
+    public async getAllClipImageEmbeddings(): Promise<ClipImageEmbedding[]> {
+        const allFiles = await this.getAllFiles();
+        return allFiles.map((f) => f.ClipImageEmbedding).filter((f) => !!f);
     }
 
     public async getIndexVersion(index: string) {

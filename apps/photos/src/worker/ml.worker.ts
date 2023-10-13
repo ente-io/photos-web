@@ -37,6 +37,14 @@ export class DedicatedMLWorker implements MachineLearningWorker {
         return mlService.sync(token, userID);
     }
 
+    public async generateTextEmbedding(
+        token: string,
+        userID: number,
+        text: string
+    ) {
+        return mlService.generateTextEmbedding(token, userID, text);
+    }
+
     public close() {
         self.close();
     }

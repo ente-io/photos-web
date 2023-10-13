@@ -1,11 +1,6 @@
-import {
-    ClipService,
-    Versioned,
-    ClipMethod,
-    ClipImageEmbeddingExtractionResult,
-} from 'types/machineLearning';
+import { ClipService, Versioned, ClipMethod } from 'types/machineLearning';
 import WorkerElectronService from 'services/workerElectron/service';
-import { imageBitmapToBlob } from 'utils/image';
+import { imageBitmapToUint8Array } from 'utils/image';
 
 class ClipVit32Service implements ClipService {
     public method: Versioned<ClipMethod>;
@@ -17,17 +12,20 @@ class ClipVit32Service implements ClipService {
         };
     }
 
-    public async computeImageEmbeddings(
+    public async computeImageEmbedding(
         image: ImageBitmap
-    ): Promise<ClipImageEmbeddingExtractionResult> {
-        const imageData = new Uint8Array(
-            await (await imageBitmapToBlob(image)).arrayBuffer()
+    ): Promise<Float32Array> {
+        const imageData = await imageBitmapToUint8Array(image);
+        const embedding = await WorkerElectronService.computeImageEmbedding(
+            imageData
         );
-        const imageEmbeddings =
-            await WorkerElectronService.computeImageEmbeddings(imageData);
-        return {
-            imageEmbeddings,
-        };
+        return embedding;
+    }
+    public async computeTextEmbedding(text: string): Promise<Float32Array> {
+        const embedding = await WorkerElectronService.computeTextEmbedding(
+            text
+        );
+        return embedding;
     }
 }
 

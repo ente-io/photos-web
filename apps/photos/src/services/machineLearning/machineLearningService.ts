@@ -446,7 +446,7 @@ class MachineLearningService {
                     syncContext,
                     fileContext
                 ),
-                ClipService.syncFileClipImageEmbeddings(
+                ClipService.syncFileClipImageEmbedding(
                     syncContext,
                     fileContext
                 ),
@@ -595,6 +595,13 @@ class MachineLearningService {
             `face detection time taken ${fileContext.enteFile.id}`,
             Date.now() - startTime,
             'ms'
+        );
+    }
+
+    async generateTextEmbedding(token, userID, text: string) {
+        return await ClipService.generateTextEmbedding(
+            await this.getSyncContext(token, userID),
+            text
         );
     }
 }
