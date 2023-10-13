@@ -94,5 +94,6 @@ export interface ElectronAPIs {
     deleteFile: (path: string) => void;
     rename: (oldPath: string, newPath: string) => Promise<void>;
     updateOptOutOfCrashReports: (optOut: boolean) => Promise<void>;
-    computeImageEmbeddings: (imageData: Uint8Array) => Promise<Float32Array>;
+    computeImageEmbedding: (imageData: Uint8Array) => Promise<Float32Array>;
+    computeTextEmbedding: (text: string) => Promise<Float32Array>;
 }

@@ -7,12 +7,18 @@ class ElectronClipService {
         this.electronAPIs = globalThis['ElectronAPIs'];
     }
 
-    async computeImageEmbeddings(imageData: Uint8Array): Promise<Float32Array> {
-        // compute image embeddings
-        const embeddings = await this.electronAPIs.computeImageEmbeddings(
+    async computeImageEmbedding(imageData: Uint8Array): Promise<Float32Array> {
+        // compute image embedding
+        const embedding = await this.electronAPIs.computeImageEmbedding(
             imageData
         );
-        return embeddings;
+        return embedding;
+    }
+
+    async computeTextEmbedding(text: string): Promise<Float32Array> {
+        // compute text embedding
+        const embedding = await this.electronAPIs.computeTextEmbedding(text);
+        return embedding;
     }
 }
 
