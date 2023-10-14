@@ -61,7 +61,7 @@ class ClipService {
         return embedding;
     }
 
-    async getAllClipImageEmbeddings() {
+    async getAllImageEmbeddings() {
         return await mlIDbStorage.getAllClipImageEmbeddings();
     }
 
