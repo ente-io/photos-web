@@ -13,6 +13,7 @@ import {
     SearchOption,
     Suggestion,
     SuggestionType,
+    ClipSearchScores,
 } from 'types/search';
 import ObjectService from './machineLearning/objectService';
 import {
@@ -26,6 +27,8 @@ import { getLatestEntities } from './entityService';
 import { LocationTag, LocationTagData, EntityType } from 'types/entity';
 import { addLogLine } from 'utils/logging';
 import { FILE_TYPE } from 'constants/file';
+import clipService from './machineLearning/clipService';
+import mlWorkManager from './machineLearning/mlWorkManager';
 
 const DIGITS = new Set(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
 
@@ -54,6 +57,7 @@ export const getAutoCompleteSuggestions =
                 getFileCaptionSuggestion(searchPhrase, files),
                 ...(await getLocationTagSuggestions(searchPhrase)),
                 ...(await getThingSuggestion(searchPhrase)),
+                await getClipSuggestion(searchPhrase),
             ];
 
             return convertSuggestionsToOptions(suggestions, files);
@@ -271,6 +275,15 @@ async function getThingSuggestion(searchPhrase: string): Promise<Suggestion[]> {
     );
 }
 
+async function getClipSuggestion(searchPhrase: string): Promise<Suggestion> {
+    const clipResults = await searchClip(searchPhrase);
+    return {
+        type: SuggestionType.CLIP,
+        value: clipResults,
+        label: searchPhrase,
+    };
+}
+
 function searchCollection(
     searchPhrase: string,
     collections: Collection[]
@@ -343,6 +356,28 @@ async function searchThing(searchPhrase: string) {
     );
 }
 
+async function searchClip(searchPhrase: string): Promise<ClipSearchScores> {
+    const imageEmbeddings = await clipService.getAllImageEmbeddings();
+    const textEmbedding = await mlWorkManager.generateTextEmbedding(
+        searchPhrase
+    );
+    const clipSearchResult = new Map<number, number>(
+        await Promise.all(
+            imageEmbeddings.map(
+                async (imageEmbedding): Promise<[number, number]> => [
+                    imageEmbedding.fileId,
+                    await clipService.computeScore(
+                        imageEmbedding.embedding,
+                        textEmbedding
+                    ),
+                ]
+            )
+        )
+    );
+
+    return clipSearchResult;
+}
+
 function isSearchedFile(file: EnteFile, search: Search) {
     if (search?.collection) {
         return search.collection === file.collectionID;
@@ -379,6 +414,9 @@ function isSearchedFile(file: EnteFile, search: Search) {
     if (typeof search?.fileType !== 'undefined') {
         return search.fileType === file.metadata.fileType;
     }
+    if (typeof search?.clip !== 'undefined') {
+        return search.clip.has(file.id);
+    }
     return false;
 }
 
@@ -410,5 +448,7 @@ function convertSuggestionToSearchQuery(option: Suggestion): Search {
             return { thing: option.value as Thing };
         case SuggestionType.FILE_TYPE:
             return { fileType: option.value as FILE_TYPE };
+        case SuggestionType.CLIP:
+            return { clip: option.value as ClipSearchScores };
     }
 }
