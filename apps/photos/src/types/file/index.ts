@@ -23,6 +23,7 @@ export interface EncryptedEnteFile {
     id: number;
     collectionID: number;
     ownerID: number;
+    collectionOwnerID: number;
     file: S3FileAttributes;
     thumbnail: S3FileAttributes;
     metadata: MetadataFileAttributes;

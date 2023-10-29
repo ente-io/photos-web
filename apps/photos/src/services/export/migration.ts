@@ -21,7 +21,7 @@ import {
 } from 'utils/export';
 import {
     getIDBasedSortedFiles,
-    getPersonalFiles,
+    getOwnedFilesInOwnedCollection,
     mergeMetadata,
 } from 'utils/file';
 import { addLocalLog, addLogLine } from 'utils/logging';
@@ -117,7 +117,7 @@ async function migrationV0ToV1(
     const localFiles = mergeMetadata(await getAllLocalFiles());
     const localCollections = await getLocalCollections();
     const personalFiles = getIDBasedSortedFiles(
-        getPersonalFiles(localFiles, user)
+        getOwnedFilesInOwnedCollection(localFiles, user)
     );
     const nonEmptyPersonalCollections = getNonEmptyPersonalCollections(
         localCollections,
@@ -153,7 +153,7 @@ async function migrationV2ToV3(
     const user: User = getData(LS_KEYS.USER);
     const localFiles = mergeMetadata(await getAllLocalFiles());
     const personalFiles = getIDBasedSortedFiles(
-        getPersonalFiles(localFiles, user)
+        getOwnedFilesInOwnedCollection(localFiles, user)
     );
 
     const collectionExportNames =

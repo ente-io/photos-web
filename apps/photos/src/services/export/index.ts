@@ -32,7 +32,7 @@ import { EnteFile } from 'types/file';
 import { decodeLivePhoto } from '../livePhotoService';
 import {
     generateStreamFromArrayBuffer,
-    getPersonalFiles,
+    getOwnedFilesInOwnedCollection,
     getUpdatedEXIFFileForDownload,
     mergeMetadata,
 } from 'utils/file';
@@ -234,7 +234,10 @@ class ExportService {
         try {
             const user: User = getData(LS_KEYS.USER);
             const files = await getAllLocalFiles();
-            const userPersonalFiles = getPersonalFiles(files, user);
+            const userPersonalFiles = getOwnedFilesInOwnedCollection(
+                files,
+                user
+            );
 
             const unExportedFiles = getUnExportedFiles(
                 userPersonalFiles,
@@ -347,7 +350,7 @@ class ExportService {
         try {
             const user: User = getData(LS_KEYS.USER);
             const files = mergeMetadata(await getAllLocalFiles());
-            const personalFiles = getPersonalFiles(files, user);
+            const personalFiles = getOwnedFilesInOwnedCollection(files, user);
 
             const collections = await getAllLocalCollections();
             const nonEmptyPersonalCollections = getNonEmptyPersonalCollections(
