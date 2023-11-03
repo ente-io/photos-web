@@ -23,10 +23,8 @@
         "husky": "^7.0.1",
         "lint-staged": "^13.2.3",
         "prettier": "2.3.2",
-        "turbo": "^1.10.3"
-    },
-    "standard": {
-        "parser": "babel-eslint"
+        "turbo": "^1.10.3",
+        "typescript": "5.1.3"
     },
     "lint-staged": {
         "apps/**/*.{js,jsx,ts,tsx}": [
