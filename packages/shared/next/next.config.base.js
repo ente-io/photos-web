@@ -21,6 +21,7 @@ module.exports = (phase) =>
             sentry: {
                 widenClientFileUpload: true,
                 disableServerWebpackPlugin: true,
+                autoInstrumentServerFunctions: false,
             },
             output: 'export',
             compiler: {
