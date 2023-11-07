@@ -59,10 +59,15 @@ class UploadManager {
     public async init(
         progressUpdater: ProgressUpdater,
         setFiles: SetFiles,
-        publicCollectProps: PublicUploadProps
+        publicCollectProps: PublicUploadProps,
+        isCFUploadProxyDisabled: boolean
     ) {
         UIService.init(progressUpdater);
-        const isCFUploadProxyDisabled = await getDisableCFUploadProxyFlag();
+        const remoteIsCFUploadProxyDisabled =
+            await getDisableCFUploadProxyFlag();
+        if (remoteIsCFUploadProxyDisabled) {
+            isCFUploadProxyDisabled = remoteIsCFUploadProxyDisabled;
+        }
         UploadService.init(publicCollectProps, isCFUploadProxyDisabled);
         this.setFiles = setFiles;
         this.publicUploadProps = publicCollectProps;
@@ -340,7 +345,6 @@ class UploadManager {
                     break;
                 case UPLOAD_RESULT.UNSUPPORTED:
                 case UPLOAD_RESULT.TOO_LARGE:
-                case UPLOAD_RESULT.CANCELLED:
                     // no-op
                     break;
                 default:
