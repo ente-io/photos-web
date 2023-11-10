@@ -1,23 +1,23 @@
-import { getToken } from '@/utils/common/key';
-import { getFileURL, getThumbnailURL } from '@/utils/common/apiUtil';
+import { getToken } from 'utils/common/key';
+import { getFileURL, getThumbnailURL } from 'utils/common/apiUtil';
 import {
     generateStreamFromArrayBuffer,
     getRenderableFileURL,
     createTypedObjectURL,
-} from '@/utils/file';
+} from 'utils/file';
 import HTTPService from './HTTPService';
-import { EnteFile } from '@/interfaces/file';
-import { logError } from '@/utils/sentry';
-import { FILE_TYPE } from '@/constants/file';
-import { CustomError } from '@/utils/error';
+import { EnteFile } from 'interfaces/file';
+import { logError } from 'utils/sentry';
+import { FILE_TYPE } from 'constants/file';
+import { CustomError } from 'utils/error';
 import QueueProcessor, { PROCESSING_STRATEGY } from './queueProcessor';
-import ComlinkCryptoWorker from '@/utils/comlink/ComlinkCryptoWorker';
-import { addLogLine } from '@/utils/logging';
+import ComlinkCryptoWorker from 'utils/comlink/ComlinkCryptoWorker';
+import { addLogLine } from 'utils/logging';
 import { CacheStorageService } from './cache/cacheStorageService';
-import { CACHES } from '@/constants/cache';
+import { CACHES } from 'constants/cache';
 import { Remote } from 'comlink';
 import { DedicatedCryptoWorker } from 'worker/crypto.worker';
-import { CLIENT_PACKAGE_NAME } from '@/constants/package';
+import { CLIENT_PACKAGE_NAME } from 'constants/package';
 
 const MAX_PARALLEL_DOWNLOADS = 10;
 

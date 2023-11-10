@@ -11,7 +11,7 @@ import DialogTitleWithCloseButton, {
     dialogCloseHandler,
 } from './TitleWithCloseButton';
 import DialogBoxBase from './base';
-import { DialogBoxAttributes } from '@/interfaces/dialogBox';
+import { DialogBoxAttributes } from 'interfaces/dialogBox';
 import DialogIcon from './DialogIcon';
 import { t } from 'i18next';
 

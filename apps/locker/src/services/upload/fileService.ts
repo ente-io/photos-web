@@ -2,8 +2,8 @@ import {
     MULTIPART_PART_SIZE,
     FILE_READER_CHUNK_SIZE,
     NULL_EXTRACTED_METADATA,
-} from '@/constants/upload';
-import { EncryptedMagicMetadata } from '@/interfaces/magicMetadata';
+} from 'constants/upload';
+import { EncryptedMagicMetadata } from 'interfaces/magicMetadata';
 import {
     FileWithMetadata,
     EncryptedFile,
@@ -13,15 +13,15 @@ import {
     Metadata,
     ParsedMetadataJSONMap,
     ParsedExtractedMetadata,
-} from '@/interfaces/upload';
-import { addLogLine, getFileNameSize } from '@/utils/logging';
-import { logError } from '@/utils/sentry';
-import { DedicatedCryptoWorker } from '@/worker/crypto.worker';
+} from 'interfaces/upload';
+import { addLogLine, getFileNameSize } from 'utils/logging';
+import { logError } from 'utils/sentry';
+import { DedicatedCryptoWorker } from 'worker/crypto.worker';
 import { Remote } from 'comlink';
 import { getFileStream, getUint8ArrayView } from '../readerService';
 import { encryptFiledata } from './encryptionService';
 import { extractMetadata, getMetadataJSONMapKey } from './metadataService';
-import { splitFilenameAndExtension } from '@/utils/file';
+import { splitFilenameAndExtension } from 'utils/file';
 import { generateThumbnail } from './thumbnailService';
 
 export function getFileSize(file: File) {

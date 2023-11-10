@@ -1,11 +1,11 @@
-import { EXIFLESS_FORMATS, NULL_LOCATION } from '@/constants/upload';
-import { Location } from '@/interfaces/upload';
+import { EXIFLESS_FORMATS, NULL_LOCATION } from 'constants/upload';
+import { Location } from 'interfaces/upload';
 import exifr from 'exifr';
 import piexif from 'piexifjs';
-import { FileTypeInfo } from '@/interfaces/upload';
-import { logError } from '@/utils/sentry';
-import { getUnixTimeInMicroSeconds } from '@/utils/time';
-import { CustomError } from '@/utils/error';
+import { FileTypeInfo } from 'interfaces/upload';
+import { logError } from 'utils/sentry';
+import { getUnixTimeInMicroSeconds } from 'utils/time';
+import { CustomError } from 'utils/error';
 
 const EXIFR_UNSUPPORTED_FILE_FORMAT_MESSAGE = 'Unknown file format';
 

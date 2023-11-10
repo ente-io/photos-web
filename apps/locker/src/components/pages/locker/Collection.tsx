@@ -1,5 +1,5 @@
-import { Collection } from '@/interfaces/collection';
-import { LockerDashboardContext } from '@/pages/locker';
+import { Collection } from 'interfaces/collection';
+import { LockerDashboardContext } from 'pages/locker';
 import { Box, Typography } from '@mui/material';
 import { useContext, useMemo, useState } from 'react';
 import FolderIcon from '@mui/icons-material/Folder';

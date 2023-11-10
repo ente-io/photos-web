@@ -1,5 +1,5 @@
-import DialogBoxV2 from '@/components/DialogBoxV2';
-import { LockerUploaderContext } from '@/pages/locker';
+import DialogBoxV2 from 'components/DialogBoxV2';
+import { LockerUploaderContext } from 'pages/locker';
 import { Box, Typography, useTheme } from '@mui/material';
 import { t } from 'i18next';
 import { useContext, useEffect, useState } from 'react';

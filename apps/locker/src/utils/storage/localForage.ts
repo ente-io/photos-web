@@ -1,4 +1,4 @@
-import { runningInBrowser } from '@/utils/running';
+import { runningInBrowser } from 'utils/running';
 import localForage from 'localforage';
 
 if (runningInBrowser()) {

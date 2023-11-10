@@ -1,5 +1,5 @@
-import DialogBoxV2 from '@/components/DialogBoxV2';
-import EnteButton from '@/components/EnteButton';
+import DialogBoxV2 from 'components/DialogBoxV2';
+import EnteButton from 'components/EnteButton';
 import { Stepper, Step, StepLabel, Stack, Dialog } from '@mui/material';
 import { useState } from 'react';
 

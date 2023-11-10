@@ -1,6 +1,6 @@
 import JSZip from 'jszip';
-import { EnteFile } from '@/interfaces/file';
-import { fileExtensionWithDot, fileNameWithoutExtension } from '@/utils/file';
+import { EnteFile } from 'interfaces/file';
+import { fileExtensionWithDot, fileNameWithoutExtension } from 'utils/file';
 
 class LivePhoto {
     image: Uint8Array;

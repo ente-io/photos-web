@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import { sendOtt } from 'services/userService';
-import { setData, LS_KEYS } from '@/utils/storage/localStorage';
-import { PAGES } from '@/constants/pages';
+import { setData, LS_KEYS } from 'utils/storage/localStorage';
+import { PAGES } from 'constants/pages';
 import FormPaperTitle from './Form/FormPaper/Title';
 import FormPaperFooter from './Form/FormPaper/Footer';
 import LinkButton from './pages/gallery/LinkButton';

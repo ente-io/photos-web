@@ -2,12 +2,12 @@ import {
     FILE_CHUNKS_COMBINED_FOR_A_UPLOAD_PART,
     RANDOM_PERCENTAGE_PROGRESS_FOR_PUT,
     USE_CF_PROXY,
-} from '@/constants/upload';
+} from 'constants/upload';
 import UIService from './uiService';
 import UploadHttpClient from './uploadHttpClient';
 import * as convert from 'xml-js';
-import { CustomError } from '@/utils/error';
-import { DataStream, MultipartUploadURLs } from '@/interfaces/upload';
+import { CustomError } from 'utils/error';
+import { DataStream, MultipartUploadURLs } from 'interfaces/upload';
 import uploadCancelService from './uploadCancelService';
 import uploadService from './uploadService';
 

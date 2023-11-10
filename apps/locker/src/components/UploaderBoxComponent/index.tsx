@@ -1,24 +1,24 @@
-import { UPLOAD_STAGES } from '@/constants/upload';
+import { UPLOAD_STAGES } from 'constants/upload';
 import {
     UploadCounter,
     InProgressUpload,
     SegregatedFinishedUploads,
     UploadFileNames,
-} from '@/interfaces/upload/ui';
-import uploadManager from '@/services/uploadManager';
+} from 'interfaces/upload/ui';
+import uploadManager from 'services/uploadManager';
 import { Box, IconButton, Typography } from '@mui/material';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { createContext } from 'react';
 import UploaderFile from './UploaderFile';
-import { FileWithCollection } from '@/interfaces/upload';
-import { LockerDashboardContext, LockerUploaderContext } from '@/pages/locker';
-import { addLogLine } from '@/utils/logging';
+import { FileWithCollection } from 'interfaces/upload';
+import { LockerDashboardContext, LockerUploaderContext } from 'pages/locker';
+import { addLogLine } from 'utils/logging';
 import MinimizeIcon from '@mui/icons-material/Minimize';
 import CloseIcon from '@mui/icons-material/Close';
 import OpenInFullIcon from '@mui/icons-material/OpenInFull';
 import { t } from 'i18next';
 import CancelUploadsDialog from './CancelUploadsDialog';
-import uploadCancelService from '@/services/upload/uploadCancelService';
+import uploadCancelService from 'services/upload/uploadCancelService';
 
 export const UploaderContext = createContext(
     {} as {

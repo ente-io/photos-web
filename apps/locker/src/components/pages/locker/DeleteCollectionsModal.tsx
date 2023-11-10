@@ -1,7 +1,7 @@
-import DialogBoxV2 from '@/components/DialogBoxV2';
-import EnteButton from '@/components/EnteButton';
-import { LockerDashboardContext } from '@/pages/locker';
-import { deleteCollection } from '@/services/collectionService';
+import DialogBoxV2 from 'components/DialogBoxV2';
+import EnteButton from 'components/EnteButton';
+import { LockerDashboardContext } from 'pages/locker';
+import { deleteCollection } from 'services/collectionService';
 import { Stack, Button } from '@mui/material';
 import { t } from 'i18next';
 import { useContext } from 'react';
@@ -32,7 +32,6 @@ const DeleteCollectionsModal = (props: IProps) => {
                 <EnteButton
                     type="submit"
                     size="large"
-                    color="warning"
                     onClick={async () => {
                         for await (const collection of selectedExplorerItems) {
                             await deleteCollection(collection.id, true);

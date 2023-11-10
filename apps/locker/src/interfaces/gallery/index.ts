@@ -1,7 +1,7 @@
 // import { CollectionSelectorAttributes } from 'components/Collections/CollectionSelector';
 // import { TimeStampListItem } from 'components/PhotoList';
-import { Collection } from '@/interfaces/collection';
-import { EnteFile } from '@/interfaces/file';
+import { Collection } from 'interfaces/collection';
+import { EnteFile } from 'interfaces/file';
 
 export type SelectedState = {
     [k: number]: boolean;

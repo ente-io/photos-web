@@ -1,11 +1,11 @@
 import { getLocalFiles } from './fileService';
-import { SetFiles } from '@/interfaces/gallery';
+import { SetFiles } from 'interfaces/gallery';
 import {
     sortFiles,
     decryptFile,
     getUserOwnedNonTrashedFiles,
-} from '@/utils/file';
-import { logError } from '@/utils/sentry';
+} from 'utils/file';
+import { logError } from 'utils/sentry';
 import {
     getMetadataJSONMapKey,
     parseMetadataJSON,
@@ -13,34 +13,34 @@ import {
 import {
     areFileWithCollectionsSame,
     segregateMetadataAndMediaFiles,
-} from '@/utils/upload';
+} from 'utils/upload';
 import uploader from './uploader';
 import UIService from './upload/uiService';
 import UploadService from './upload/uploadService';
-import { eventBus, Events } from '@/services/events';
-import { CustomError } from '@/utils/error';
-import { Collection } from '@/interfaces/collection';
-import { EncryptedEnteFile, EnteFile } from '@/interfaces/file';
+import { eventBus, Events } from 'services/events';
+import { CustomError } from 'utils/error';
+import { Collection } from 'interfaces/collection';
+import { EncryptedEnteFile, EnteFile } from 'interfaces/file';
 import {
     FileWithCollection,
     ParsedMetadataJSON,
     ParsedMetadataJSONMap,
     PublicUploadProps,
-} from '@/interfaces/upload';
+} from 'interfaces/upload';
 
-import { UPLOAD_RESULT, UPLOAD_STAGES } from '@/constants/upload';
+import { UPLOAD_RESULT, UPLOAD_STAGES } from 'constants/upload';
 import uiService from './upload/uiService';
-import { addLogLine, getFileNameSize } from '@/utils/logging';
-import { ProgressUpdater } from '@/interfaces/upload/ui';
+import { addLogLine, getFileNameSize } from 'utils/logging';
+import { ProgressUpdater } from 'interfaces/upload/ui';
 import uploadCancelService from './upload/uploadCancelService';
-import { DedicatedCryptoWorker } from '@/worker/crypto.worker';
-import { ComlinkWorker } from '@/utils/comlink/ComlinkWorker';
+import { DedicatedCryptoWorker } from 'worker/crypto.worker';
+import { ComlinkWorker } from 'utils/comlink/ComlinkWorker';
 import { Remote } from 'comlink';
 // import {
 //     getLocalPublicFiles,
 //     getPublicCollectionUID,
-// } from '@/services/publicCollectionService';
-import { getDedicatedCryptoWorker } from '@/utils/comlink/ComlinkCryptoWorker';
+// } from 'services/publicCollectionService';
+import { getDedicatedCryptoWorker } from 'utils/comlink/ComlinkCryptoWorker';
 
 const MAX_CONCURRENT_UPLOADS = 4;
 

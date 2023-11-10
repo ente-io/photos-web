@@ -1,6 +1,6 @@
 import { Box, styled, Typography } from '@mui/material';
 import React from 'react';
-import { convertBytesToGBs, makeHumanReadableStorage } from '@/utils/billing';
+import { convertBytesToGBs, makeHumanReadableStorage } from 'utils/billing';
 import { t } from 'i18next';
 
 const MobileSmallBox = styled(Box)`

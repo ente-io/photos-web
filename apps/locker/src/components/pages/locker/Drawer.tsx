@@ -1,6 +1,6 @@
-import SubscriptionCard from '@/components/Sidebar/SubscriptionCard';
-import { DrawerSidebar } from '@/components/Sidebar/drawer';
-import { LockerDashboardContext } from '@/pages/locker';
+import SubscriptionCard from 'components/Sidebar/SubscriptionCard';
+import { DrawerSidebar } from 'components/Sidebar/drawer';
+import { LockerDashboardContext } from 'pages/locker';
 import { Box, Typography, Stack, Divider } from '@mui/material';
 import {
     Dispatch,
@@ -13,15 +13,15 @@ import CloudIcon from '@mui/icons-material/Cloud';
 // import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { t } from 'i18next';
-import { EnteMenuItem } from '@/components/Menu/EnteMenuItem';
-import HelpSection from '@/components/Sidebar/HelpSection';
-import HeaderSection from '@/components/Sidebar/Header';
-import { openLink } from '@/utils/common';
-import { NoStyleAnchor } from '@/components/Sidebar/styledComponents';
+import { EnteMenuItem } from 'components/Menu/EnteMenuItem';
+import HelpSection from 'components/Sidebar/HelpSection';
+import HeaderSection from 'components/Sidebar/Header';
+import { openLink } from 'utils/common';
+import { NoStyleAnchor } from 'components/Sidebar/styledComponents';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import { getLocalFiles, syncFiles } from '@/services/fileService';
-import { getLocalTrash, syncTrash } from '@/services/trashService';
-import { syncCollections } from '@/services/collectionService';
+import { getLocalFiles, syncFiles } from 'services/fileService';
+import { getLocalTrash, syncTrash } from 'services/trashService';
+import { syncCollections } from 'services/collectionService';
 import LogoutConfirmationDialog from './LogoutConfirmationDialog';
 const LockerDrawer = ({
     isOpen,

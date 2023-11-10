@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/nextjs';
-import { addLogLine } from '@/utils/logging';
-import { getSentryUserID } from '@/utils/user';
+import { addLogLine } from 'utils/logging';
+import { getSentryUserID } from 'utils/user';
 
 export const logError = async (
     error: any,

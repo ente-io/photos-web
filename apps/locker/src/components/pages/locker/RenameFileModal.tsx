@@ -1,15 +1,15 @@
-import DialogBoxV2 from '@/components/DialogBoxV2';
+import DialogBoxV2 from 'components/DialogBoxV2';
 import SingleInputForm, {
     SingleInputFormProps,
-} from '@/components/SingleInputForm';
-import { EnteFile } from '@/interfaces/file';
-import { LockerDashboardContext } from '@/pages/locker';
-import { updateFilePublicMagicMetadata } from '@/services/fileService';
+} from 'components/SingleInputForm';
+import { EnteFile } from 'interfaces/file';
+import { LockerDashboardContext } from 'pages/locker';
+import { updateFilePublicMagicMetadata } from 'services/fileService';
 import {
     changeFileName,
     splitFilenameAndExtension,
     updateExistingFilePubMetadata,
-} from '@/utils/file';
+} from 'utils/file';
 import { t } from 'i18next';
 import { useContext, useEffect, useState } from 'react';
 

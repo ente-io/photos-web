@@ -1,10 +1,10 @@
-import DialogBoxV2 from '@/components/DialogBoxV2';
-import { CollectionType } from '@/constants/collection';
-import { createCollection } from '@/services/collectionService';
+import DialogBoxV2 from 'components/DialogBoxV2';
+import { CollectionType } from 'constants/collection';
+import { createCollection } from 'services/collectionService';
 import { t } from 'i18next';
 import SingleInputForm, {
     SingleInputFormProps,
-} from '@/components/SingleInputForm';
+} from 'components/SingleInputForm';
 
 interface IProps {
     show: boolean;

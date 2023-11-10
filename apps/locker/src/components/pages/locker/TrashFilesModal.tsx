@@ -1,8 +1,8 @@
-import DialogBoxV2 from '@/components/DialogBoxV2';
-import EnteButton from '@/components/EnteButton';
-import { EnteFile } from '@/interfaces/file';
-import { LockerDashboardContext } from '@/pages/locker';
-import { trashFiles } from '@/services/fileService';
+import DialogBoxV2 from 'components/DialogBoxV2';
+import EnteButton from 'components/EnteButton';
+import { EnteFile } from 'interfaces/file';
+import { LockerDashboardContext } from 'pages/locker';
+import { trashFiles } from 'services/fileService';
 import { Button, Stack } from '@mui/material';
 import { t } from 'i18next';
 import { useContext } from 'react';

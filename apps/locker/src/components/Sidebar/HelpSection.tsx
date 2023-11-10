@@ -1,16 +1,16 @@
 // import { useContext } from 'react';
 import { t } from 'i18next';
 
-// import exportService from '@/services/export';
+// import exportService from 'services/export';
 import isElectron from 'is-electron';
 // import { AppContext } from 'pages/_app';
 import EnteSpinner from 'components/EnteSpinner';
-// import { getDownloadAppMessage } from '@/utils/ui';
+// import { getDownloadAppMessage } from 'utils/ui';
 import { openLink } from 'utils/common';
 import { EnteMenuItem } from 'components/Menu/EnteMenuItem';
 import { Typography } from '@mui/material';
-// import { GalleryContext } from '@/pages/gallery';
-import { DESKTOP_ROADMAP_URL, WEB_ROADMAP_URL } from '@/constants/urls';
+// import { GalleryContext } from 'pages/gallery';
+import { DESKTOP_ROADMAP_URL, WEB_ROADMAP_URL } from 'constants/urls';
 import { NoStyleAnchor } from './styledComponents';
 
 export default function HelpSection() {

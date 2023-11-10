@@ -9,35 +9,35 @@ import {
     useMemo,
     useState,
 } from 'react';
-import { Collection } from '@/interfaces/collection';
+import { Collection } from 'interfaces/collection';
 import {
     createUnCategorizedCollection,
     getUncategorizedCollection,
     syncCollections,
-} from '@/services/collectionService';
-import NavBar from '@/components/pages/locker/NavBar';
-import { syncFiles } from '@/services/fileService';
-import { EnteFile } from '@/interfaces/file';
+} from 'services/collectionService';
+import NavBar from 'components/pages/locker/NavBar';
+import { syncFiles } from 'services/fileService';
+import { EnteFile } from 'interfaces/file';
 
-import { UserDetails } from '@/interfaces/user';
-import { getUserDetailsV2 } from '@/services/userService';
+import { UserDetails } from 'interfaces/user';
+import { getUserDetailsV2 } from 'services/userService';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
-import { sortFiles } from '@/utils/file';
+import { sortFiles } from 'utils/file';
 import { useRouter } from 'next/router';
-import LockerDrawer from '@/components/pages/locker/Drawer';
-import { getLocalTrash, syncTrash } from '@/services/trashService';
-import FullScreenLoader from '@/components/FullScreenLoader';
-import CollectionsSection from '@/components/pages/locker/CollectionsSection';
-// import CollectionEmptyMessage from '@/components/pages/locker/CollectionEmptyMessage';
-import TutorialDialog from '@/components/pages/locker/TutorialDialog';
-import { LS_KEYS, getData, setData } from '@/utils/storage/localStorage';
-import { FILE_SORT_DIRECTION, FILE_SORT_FIELD } from '@/interfaces/sort';
-import DragAndDropModal from '@/components/pages/locker/DragAndDropModal';
-import ExplorerSection from '@/components/pages/locker/ExplorerSection';
-import { ExplorerItem } from '@/interfaces/explorer';
-import CollectionEmptyMessage from '@/components/pages/locker/CollectionEmptyMessage';
-import UploaderBoxComponent from '@/components/UploaderBoxComponent';
-import Previewer from '@/components/pages/locker/Previewer';
+import LockerDrawer from 'components/pages/locker/Drawer';
+import { getLocalTrash, syncTrash } from 'services/trashService';
+import FullScreenLoader from 'components/FullScreenLoader';
+import CollectionsSection from 'components/pages/locker/CollectionsSection';
+// import CollectionEmptyMessage from 'components/pages/locker/CollectionEmptyMessage';
+import TutorialDialog from 'components/pages/locker/TutorialDialog';
+import { LS_KEYS, getData, setData } from 'utils/storage/localStorage';
+import { FILE_SORT_DIRECTION, FILE_SORT_FIELD } from 'interfaces/sort';
+import DragAndDropModal from 'components/pages/locker/DragAndDropModal';
+import ExplorerSection from 'components/pages/locker/ExplorerSection';
+import { ExplorerItem } from 'interfaces/explorer';
+import CollectionEmptyMessage from 'components/pages/locker/CollectionEmptyMessage';
+import UploaderBoxComponent from 'components/UploaderBoxComponent';
+import Previewer from 'components/pages/locker/Previewer';
 
 interface lockerDashboardContextProps {
     currentCollection: Collection;
@@ -278,7 +278,7 @@ const Locker = () => {
         let explorerItems: ExplorerItem[] = [];
 
         for (const file of filteredFiles) {
-            let newExplorerItem: ExplorerItem = {
+            const newExplorerItem: ExplorerItem = {
                 name: file.metadata.title,
                 id: file.id,
                 type: 'file',
@@ -293,7 +293,7 @@ const Locker = () => {
         if (currentCollection?.id === uncategorizedCollection?.id) {
             for (const collection of collections) {
                 if (collection.id === uncategorizedCollection?.id) continue;
-                let newExplorerItem: ExplorerItem = {
+                const newExplorerItem: ExplorerItem = {
                     name: collection.name,
                     id: collection.id,
                     type: 'collection',
@@ -329,6 +329,7 @@ const Locker = () => {
                 explorerItems = explorerItems.sort((a, b) => {
                     return a.creationTime - b.creationTime;
                 });
+                break;
             default:
                 break;
         }

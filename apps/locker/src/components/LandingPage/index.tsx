@@ -5,7 +5,7 @@ import styles from './styles.module.scss';
 import { Button, Typography } from '@mui/material';
 import BetaWarningDialog from './BetaWarningDialog';
 import { useEffect, useState } from 'react';
-import { LS_KEYS, getData, setData } from '@/utils/storage/localStorage';
+import { LS_KEYS, getData, setData } from 'utils/storage/localStorage';
 import { useRouter } from 'next/router';
 
 const LandingPage = () => {

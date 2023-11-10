@@ -1,15 +1,15 @@
-import { SetFiles } from '@/interfaces/gallery';
-import { Collection } from '@/interfaces/collection';
-import { getEndpoint } from '@/utils/common/apiUtil';
-import { getToken } from '@/utils/common/key';
-import { decryptFile, mergeMetadata, sortFiles } from '@/utils/file';
-import { logError } from '@/utils/sentry';
-import localForage from '@/utils/storage/localForage';
+import { SetFiles } from 'interfaces/gallery';
+import { Collection } from 'interfaces/collection';
+import { getEndpoint } from 'utils/common/apiUtil';
+import { getToken } from 'utils/common/key';
+import { decryptFile, mergeMetadata, sortFiles } from 'utils/file';
+import { logError } from 'utils/sentry';
+import localForage from 'utils/storage/localForage';
 import { getCollection } from './collectionService';
 
 import HTTPService from './HTTPService';
-import { EncryptedTrashItem, Trash } from '@/interfaces/trash';
-import { EnteFile } from '@/interfaces/file';
+import { EncryptedTrashItem, Trash } from 'interfaces/trash';
+import { EnteFile } from 'interfaces/file';
 
 const TRASH = 'file-trash';
 const TRASH_TIME = 'trash-time';

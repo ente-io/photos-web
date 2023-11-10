@@ -1,15 +1,11 @@
 import HTTPService from 'services/HTTPService';
-import { getEndpoint, getUploadEndpoint } from '@/utils/common/apiUtil';
-import { getToken } from '@/utils/common/key';
-import { logError } from '@/utils/sentry';
-import { EnteFile } from '@/interfaces/file';
-import { CustomError, handleUploadError } from '@/utils/error';
-import {
-    UploadFile,
-    UploadURL,
-    MultipartUploadURLs,
-} from '@/interfaces/upload';
-import { retryHTTPCall } from '@/utils/upload/uploadRetrier';
+import { getEndpoint, getUploadEndpoint } from 'utils/common/apiUtil';
+import { getToken } from 'utils/common/key';
+import { logError } from 'utils/sentry';
+import { EnteFile } from 'interfaces/file';
+import { CustomError, handleUploadError } from 'utils/error';
+import { UploadFile, UploadURL, MultipartUploadURLs } from 'interfaces/upload';
+import { retryHTTPCall } from 'utils/upload/uploadRetrier';
 
 const ENDPOINT = getEndpoint();
 const UPLOAD_ENDPOINT = getUploadEndpoint();

@@ -1,17 +1,17 @@
-import { FlexWrapper } from '@/components/Container';
-import DialogBoxV2 from '@/components/DialogBoxV2';
-import { Collection } from '@/interfaces/collection';
+import { FlexWrapper } from 'components/Container';
+import DialogBoxV2 from 'components/DialogBoxV2';
+import { Collection } from 'interfaces/collection';
 import { Box, Button, TextField, Typography } from '@mui/material';
 import { Fragment, useContext, useEffect, useState } from 'react';
-import EnteButton from '@/components/EnteButton';
-import { LockerDashboardContext } from '@/pages/locker';
+import EnteButton from 'components/EnteButton';
+import { LockerDashboardContext } from 'pages/locker';
 import {
     moveToCollection,
     restoreToCollection,
-} from '@/services/collectionService';
+} from 'services/collectionService';
 import { t } from 'i18next';
 import FolderIcon from '@mui/icons-material/Folder';
-import { EnteFile } from '@/interfaces/file';
+import { EnteFile } from 'interfaces/file';
 import { useTheme } from '@mui/material';
 
 interface IProps {

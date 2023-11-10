@@ -1,30 +1,30 @@
-import { getEndpoint } from '@/utils/common/apiUtil';
-import localForage from '@/utils/storage/localForage';
+import { getEndpoint } from 'utils/common/apiUtil';
+import localForage from 'utils/storage/localForage';
 
-import { getToken } from '@/utils/common/key';
-import { Collection } from '@/interfaces/collection';
+import { getToken } from 'utils/common/key';
+import { Collection } from 'interfaces/collection';
 import HTTPService from './HTTPService';
-import { logError } from '@/utils/sentry';
+import { logError } from 'utils/sentry';
 import {
     decryptFile,
     getLatestVersionFiles,
     mergeMetadata,
     sortFiles,
-} from '@/utils/file';
+} from 'utils/file';
 import { eventBus, Events } from './events';
-import { EnteFile, EncryptedEnteFile, TrashRequest } from '@/interfaces/file';
-import { SetFiles } from '@/interfaces/gallery';
-import { BulkUpdateMagicMetadataRequest } from '@/interfaces/magicMetadata';
-import { addLogLine } from '@/utils/logging';
-import { isCollectionHidden } from '@/utils/collection';
-import { CustomError } from '@/utils/error';
-import ComlinkCryptoWorker from '@/utils/comlink/ComlinkCryptoWorker';
+import { EnteFile, EncryptedEnteFile, TrashRequest } from 'interfaces/file';
+import { SetFiles } from 'interfaces/gallery';
+import { BulkUpdateMagicMetadataRequest } from 'interfaces/magicMetadata';
+import { addLogLine } from 'utils/logging';
+import { isCollectionHidden } from 'utils/collection';
+import { CustomError } from 'utils/error';
+import ComlinkCryptoWorker from 'utils/comlink/ComlinkCryptoWorker';
 import {
     getCollectionLastSyncTime,
     setCollectionLastSyncTime,
 } from './collectionService';
-import { REQUEST_BATCH_SIZE } from '@/constants/api';
-import { batch } from '@/utils/common';
+import { REQUEST_BATCH_SIZE } from 'constants/api';
+import { batch } from 'utils/common';
 
 const ENDPOINT = getEndpoint();
 const FILES_TABLE = 'files';

@@ -3,15 +3,15 @@ import {
     UPLOAD_RESULT,
     RANDOM_PERCENTAGE_PROGRESS_FOR_PUT,
     UPLOAD_STAGES,
-} from '@/constants/upload';
+} from 'constants/upload';
 import {
     FinishedUploads,
     InProgressUpload,
     InProgressUploads,
     ProgressUpdater,
     SegregatedFinishedUploads,
-} from '@/interfaces/upload/ui';
-import { CustomError } from '@/utils/error';
+} from 'interfaces/upload/ui';
+import { CustomError } from 'utils/error';
 import uploadCancelService from './uploadCancelService';
 
 const REQUEST_TIMEOUT_TIME = 30 * 1000; // 30 sec;

@@ -1,13 +1,13 @@
-import { FILE_TYPE } from '@/constants/file';
-import { CustomError, errorWithContext } from '@/utils/error';
-import { logError } from '@/utils/sentry';
-import { BLACK_THUMBNAIL_BASE64 } from '@/constants/upload';
-import { convertBytesToHumanReadable } from '@/utils/file/size';
-import { isExactTypeHEIC } from '@/utils/file';
-import { FileTypeInfo } from '@/interfaces/upload';
+import { FILE_TYPE } from 'constants/file';
+import { CustomError, errorWithContext } from 'utils/error';
+import { logError } from 'utils/sentry';
+import { BLACK_THUMBNAIL_BASE64 } from 'constants/upload';
+import { convertBytesToHumanReadable } from 'utils/file/size';
+import { isExactTypeHEIC } from 'utils/file';
+import { FileTypeInfo } from 'interfaces/upload';
 import { getUint8ArrayView } from '../readerService';
-import { getFileNameSize, addLogLine } from '@/utils/logging';
-// import HeicConversionService from '@/services/heicConversionService';
+import { getFileNameSize, addLogLine } from 'utils/logging';
+// import HeicConversionService from 'services/heicConversionService';
 
 const MAX_THUMBNAIL_DIMENSION = 720;
 const MIN_COMPRESSION_PERCENTAGE_SIZE_DIFF = 10;

@@ -1,4 +1,4 @@
-import { REQUEST_BATCH_SIZE } from '@/constants/api/index';
+import { REQUEST_BATCH_SIZE } from 'constants/api/index';
 import {
     AddToCollectionRequest,
     Collection,
@@ -15,10 +15,10 @@ import {
     PublicURL,
     RemoveFromCollectionRequest,
     UpdatePublicURL,
-} from '@/interfaces/collection';
-import { getEndpoint } from '@/utils/common/apiUtil';
-import localForage from '@/utils/storage/localForage';
-import { LS_KEYS, getData } from '@/utils/storage/localStorage';
+} from 'interfaces/collection';
+import { getEndpoint } from 'utils/common/apiUtil';
+import localForage from 'utils/storage/localForage';
+import { LS_KEYS, getData } from 'utils/storage/localStorage';
 import HTTPService from './HTTPService';
 import {
     getNonHiddenCollections,
@@ -27,28 +27,28 @@ import {
     isQuickLinkCollection,
     isSharedOnlyViaLink,
     isValidMoveTarget,
-} from '@/utils/collection';
-import ComlinkCryptoWorker from '@/utils/comlink/ComlinkCryptoWorker';
-import { logError } from '@/utils/sentry';
-import { getToken } from '@/utils/key';
-import { getActualKey } from '@/utils/common/key';
-import { EnteFile } from '@/interfaces/file';
+} from 'utils/collection';
+import ComlinkCryptoWorker from 'utils/comlink/ComlinkCryptoWorker';
+import { logError } from 'utils/sentry';
+import { getToken } from 'utils/key';
+import { getActualKey } from 'utils/common/key';
+import { EnteFile } from 'interfaces/file';
 import {
     UpdateMagicMetadataRequest,
     SUB_TYPE,
     NEW_COLLECTION_MAGIC_METADATA,
-} from '@/interfaces/magicMetadata';
-import { getPublicKey } from '@/services/userService';
-import { batch } from '@/utils/common';
-import { CustomError } from '@/utils/error';
+} from 'interfaces/magicMetadata';
+import { getPublicKey } from 'services/userService';
+import { batch } from 'utils/common';
+import { CustomError } from 'utils/error';
 import {
     groupFilesBasedOnCollectionID,
     sortFiles,
     isSharedFile,
-} from '@/utils/file';
-import { IsArchived, updateMagicMetadataProps } from '@/utils/magicMetadata';
+} from 'utils/file';
+import { IsArchived, updateMagicMetadataProps } from 'utils/magicMetadata';
 import { getLocalFiles } from './fileService';
-import { User } from '@/interfaces/user';
+import { User } from 'interfaces/user';
 import {
     ALL_SECTION,
     ARCHIVE_SECTION,
@@ -58,7 +58,7 @@ import {
     CollectionType,
     DUMMY_UNCATEGORIZED_SECTION,
     TRASH_SECTION,
-} from '@/constants/collection';
+} from 'constants/collection';
 
 import { t } from 'i18next';
 

@@ -1,4 +1,4 @@
-import { Subscription } from '@/interfaces/billing';
+import { Subscription } from 'interfaces/billing';
 
 export interface KeyAttributes {
     kekSalt: string;

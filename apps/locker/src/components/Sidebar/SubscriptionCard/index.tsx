@@ -2,7 +2,7 @@ import { BackgroundOverlay } from './backgroundOverlay';
 import { ClickOverlay } from './clickOverlay';
 import React from 'react';
 import { Box, Skeleton } from '@mui/material';
-import { UserDetails } from '@/interfaces/user';
+import { UserDetails } from 'interfaces/user';
 
 import { SubscriptionCardContentOverlay } from './contentOverlay';
 

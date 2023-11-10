@@ -1,6 +1,6 @@
 import { Box } from '@mui/material';
 import CollectionComponent from './Collection';
-import { LockerDashboardContext } from '@/pages/locker';
+import { LockerDashboardContext } from 'pages/locker';
 import { useContext, useMemo } from 'react';
 import { t } from 'i18next';
 

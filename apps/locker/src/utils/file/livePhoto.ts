@@ -1,5 +1,5 @@
-import { FILE_TYPE } from '@/constants/file';
-import { getFileExtension } from '@/utils/file';
+import { FILE_TYPE } from 'constants/file';
+import { getFileExtension } from 'utils/file';
 
 const IMAGE_EXTENSIONS = [
     'heic',

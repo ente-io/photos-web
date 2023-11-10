@@ -1,12 +1,12 @@
 import React from 'react';
 
 import SingleInputForm, { SingleInputFormProps } from './SingleInputForm';
-import { logError } from '@/utils/sentry';
-import { CustomError } from '@/utils/error';
+import { logError } from 'utils/sentry';
+import { CustomError } from 'utils/error';
 
 import { ButtonProps, Input } from '@mui/material';
-import { KeyAttributes, User } from '@/interfaces/user';
-import ComlinkCryptoWorker from '@/utils/comlink/ComlinkCryptoWorker';
+import { KeyAttributes, User } from 'interfaces/user';
+import ComlinkCryptoWorker from 'utils/comlink/ComlinkCryptoWorker';
 import { t } from 'i18next';
 
 export interface VerifyMasterPasswordFormProps {

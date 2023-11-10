@@ -1,4 +1,4 @@
-import { LockerDashboardContext } from '@/pages/locker';
+import { LockerDashboardContext } from 'pages/locker';
 import { Box, Typography } from '@mui/material';
 import { t } from 'i18next';
 import Image from 'next/image';

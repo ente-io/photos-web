@@ -2,8 +2,8 @@ import {
     NEW_FILE_MAGIC_METADATA,
     FilePublicMagicMetadataProps,
     FilePublicMagicMetadata,
-} from '@/interfaces/magicMetadata';
-import { updateMagicMetadataProps } from '@/utils/magicMetadata';
+} from 'interfaces/magicMetadata';
+import { updateMagicMetadataProps } from 'utils/magicMetadata';
 
 export async function constructPublicMagicMetadata(
     publicMagicMetadataProps: FilePublicMagicMetadataProps

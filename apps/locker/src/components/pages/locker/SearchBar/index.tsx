@@ -1,6 +1,6 @@
 import { TextField } from '@mui/material';
 import { useContext } from 'react';
-import { LockerDashboardContext } from '@/pages/locker';
+import { LockerDashboardContext } from 'pages/locker';
 import { t } from 'i18next';
 
 const SearchBar = () => {

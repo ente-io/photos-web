@@ -10,12 +10,12 @@ import {
     TableSortLabel,
 } from '@mui/material';
 import { useContext, useEffect } from 'react';
-import { LockerDashboardContext } from '@/pages/locker';
-import { FILE_SORT_DIRECTION, FILE_SORT_FIELD } from '@/interfaces/sort';
+import { LockerDashboardContext } from 'pages/locker';
+import { FILE_SORT_DIRECTION, FILE_SORT_FIELD } from 'interfaces/sort';
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import ExplorerRow from './ExplorerRow';
-import { Collection } from '@/interfaces/collection';
+import { Collection } from 'interfaces/collection';
 import { t } from 'i18next';
 import { visuallyHidden } from '@mui/utils';
 

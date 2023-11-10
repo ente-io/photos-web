@@ -1,19 +1,19 @@
 import { TableRow, TableCell, styled, useTheme } from '@mui/material';
 import { useContext, useMemo } from 'react';
-import { LockerDashboardContext, LockerExplorerContext } from '@/pages/locker';
-import { getFriendlyHumanReadableDate } from '@/utils/time/format';
+import { LockerDashboardContext, LockerExplorerContext } from 'pages/locker';
+import { getFriendlyHumanReadableDate } from 'utils/time/format';
 import { convertBytesToHumanReadable } from '../../../../utils/file/size';
 import { resolveFileType } from 'friendly-mimes';
-import { AppContext } from '@/pages/_app';
+import { AppContext } from 'pages/_app';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import TextSnippetIcon from '@mui/icons-material/TextSnippet';
 import CloudDoneIcon from '@mui/icons-material/CloudDone';
 import SlideshowIcon from '@mui/icons-material/Slideshow';
 import ImageIcon from '@mui/icons-material/Image';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
-import { ExplorerItem } from '@/interfaces/explorer';
+import { ExplorerItem } from 'interfaces/explorer';
 import Folder from '@mui/icons-material/Folder';
-import { Collection } from '@/interfaces/collection';
+import { Collection } from 'interfaces/collection';
 const TableRowBorderControlled = styled(TableCell)`
     border: none;
 `;

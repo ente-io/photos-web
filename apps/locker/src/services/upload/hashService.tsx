@@ -1,10 +1,10 @@
 import { Remote } from 'comlink';
-import { FILE_READER_CHUNK_SIZE } from '@/constants/upload';
-import { getFileStream } from '@/services/readerService';
-import { DataStream } from '@/interfaces/upload';
-import { CustomError } from '@/utils/error';
-import { addLogLine, getFileNameSize } from '@/utils/logging';
-import { logError } from '@/utils/sentry';
+import { FILE_READER_CHUNK_SIZE } from 'constants/upload';
+import { getFileStream } from 'services/readerService';
+import { DataStream } from 'interfaces/upload';
+import { CustomError } from 'utils/error';
+import { addLogLine, getFileNameSize } from 'utils/logging';
+import { logError } from 'utils/sentry';
 import { DedicatedCryptoWorker } from 'worker/crypto.worker';
 
 export async function getFileHash(

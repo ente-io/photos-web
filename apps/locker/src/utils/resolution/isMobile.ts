@@ -1,4 +1,4 @@
-import { MOBILE_BREAKPOINT } from '@/constants/resolution/mobile';
+import { MOBILE_BREAKPOINT } from 'constants/resolution/mobile';
 
 export const isMobileDisplay = () => {
     if (typeof window === 'undefined') {

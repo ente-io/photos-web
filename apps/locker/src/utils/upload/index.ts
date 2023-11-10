@@ -2,15 +2,15 @@ import {
     ImportSuggestion,
     FileWithCollection,
     Metadata,
-} from '@/interfaces/upload';
-import { EnteFile } from '@/interfaces/file';
+} from 'interfaces/upload';
+import { EnteFile } from 'interfaces/file';
 import {
     A_SEC_IN_MICROSECONDS,
     DEFAULT_IMPORT_SUGGESTION,
     PICKED_UPLOAD_TYPE,
-} from '@/constants/upload';
-import { FILE_TYPE } from '@/constants/file';
-// import { ENTE_METADATA_FOLDER } from '@/constants/export';
+} from 'constants/upload';
+import { FILE_TYPE } from 'constants/file';
+// import { ENTE_METADATA_FOLDER } from 'constants/export';
 import isElectron from 'is-electron';
 
 const TYPE_JSON = 'json';
@@ -166,7 +166,7 @@ export function groupFilesBasedOnParentFolder(toUploadFiles: File[]) {
     for (const file of toUploadFiles) {
         const filePath = file['path'] as string;
 
-        let folderPath = filePath.substring(0, filePath.lastIndexOf('/'));
+        const folderPath = filePath.substring(0, filePath.lastIndexOf('/'));
         // If the parent folder of a file is "metadata"
         // we consider it to be part of the parent folder
         // For Eg,For FileList  -> [a/x.png, a/metadata/x.png.json]

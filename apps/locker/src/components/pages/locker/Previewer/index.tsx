@@ -1,5 +1,5 @@
-import { EnteFile } from '@/interfaces/file';
-import { downloadAsFile, downloadFile, downloadFileAsBlob } from '@/utils/file';
+import { EnteFile } from 'interfaces/file';
+import { downloadAsFile, downloadFile, downloadFileAsBlob } from 'utils/file';
 import {
     Backdrop,
     Box,

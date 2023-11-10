@@ -1,5 +1,5 @@
 import { Box } from '@mui/material';
-import { borderProperty } from '@/constants/ui/locker/border';
+import { borderProperty } from 'constants/ui/locker/border';
 import NavBarLeft from './NavBarLeft';
 import NavBarRight from './NavBarRight';
 import NavBarMiddle from './NavBarMiddle';

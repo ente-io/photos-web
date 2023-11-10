@@ -1,4 +1,4 @@
-import { LockerDashboardContext, LockerUploaderContext } from '@/pages/locker';
+import { LockerDashboardContext, LockerUploaderContext } from 'pages/locker';
 import { Box, IconButton, Typography } from '@mui/material';
 import { useContext } from 'react';
 import Image from 'next/image';

@@ -1,9 +1,9 @@
-import { Collection } from '@/interfaces/collection';
-import { logError } from '@/utils/sentry';
+import { Collection } from 'interfaces/collection';
+import { logError } from 'utils/sentry';
 import UploadHttpClient from './uploadHttpClient';
 import { extractFileMetadata, getFilename } from './fileService';
 import { getFileType } from '../typeDetectionService';
-import { CustomError, handleUploadError } from '@/utils/error';
+import { CustomError, handleUploadError } from 'utils/error';
 import {
     BackupedFile,
     EncryptedFile,
@@ -19,7 +19,7 @@ import {
     UploadAsset,
     UploadFile,
     UploadURL,
-} from '@/interfaces/upload';
+} from 'interfaces/upload';
 import {
     clusterLivePhotoFiles,
     extractLivePhotoMetadata,
@@ -31,14 +31,14 @@ import {
 import { encryptFile, getFileSize, readFile } from './fileService';
 import { uploadStreamUsingMultipart } from './multiPartUploadService';
 import UIService from './uiService';
-import { USE_CF_PROXY } from '@/constants/upload';
+import { USE_CF_PROXY } from 'constants/upload';
 import { Remote } from 'comlink';
-import { DedicatedCryptoWorker } from '@/worker/crypto.worker';
+import { DedicatedCryptoWorker } from 'worker/crypto.worker';
 import publicUploadHttpClient from './publicUploadHttpClient';
 import { constructPublicMagicMetadata } from './magicMetadataService';
-import { FilePublicMagicMetadataProps } from '@/interfaces/magicMetadata';
-import { B64EncryptionResult } from '@/interfaces/crypto';
-import { addLogLine } from '@/utils/logging';
+import { FilePublicMagicMetadataProps } from 'interfaces/magicMetadata';
+import { B64EncryptionResult } from 'interfaces/crypto';
+import { addLogLine } from 'utils/logging';
 
 class UploadService {
     private uploadURLs: UploadURL[] = [];

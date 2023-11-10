@@ -1,10 +1,10 @@
-import DialogBoxV2 from '@/components/DialogBoxV2';
+import DialogBoxV2 from 'components/DialogBoxV2';
 import SingleInputForm, {
     SingleInputFormProps,
-} from '@/components/SingleInputForm';
-import { Collection } from '@/interfaces/collection';
-import { LockerDashboardContext } from '@/pages/locker';
-import { renameCollection } from '@/services/collectionService';
+} from 'components/SingleInputForm';
+import { Collection } from 'interfaces/collection';
+import { LockerDashboardContext } from 'pages/locker';
+import { renameCollection } from 'services/collectionService';
 import { t } from 'i18next';
 import { useContext, useEffect, useState } from 'react';
 

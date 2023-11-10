@@ -1,4 +1,4 @@
-import { EncryptedEnteFile, EnteFile } from '@/interfaces/file';
+import { EncryptedEnteFile, EnteFile } from 'interfaces/file';
 
 export interface TrashItem extends Omit<EncryptedTrashItem, 'file'> {
     file: EnteFile;

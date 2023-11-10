@@ -1,22 +1,22 @@
-import { SelectedState } from '@/interfaces/gallery';
-import { EnteFile, EncryptedEnteFile } from '@/interfaces/file';
-// import { decodeLivePhoto } from '@/services/livePhotoService';
-import { getFileType } from '@/services/typeDetectionService';
-import DownloadManager from '@/services/downloadManager';
-import { logError } from '@/utils/sentry';
-import { User } from '@/interfaces/user';
-import { getData, LS_KEYS } from '@/utils/storage/localStorage';
-import { updateFileCreationDateInEXIF } from '@/services/upload/exifService';
+import { SelectedState } from 'interfaces/gallery';
+import { EnteFile, EncryptedEnteFile } from 'interfaces/file';
+// import { decodeLivePhoto } from 'services/livePhotoService';
+import { getFileType } from 'services/typeDetectionService';
+import DownloadManager from 'services/downloadManager';
+import { logError } from 'utils/sentry';
+import { User } from 'interfaces/user';
+import { getData, LS_KEYS } from 'utils/storage/localStorage';
+import { updateFileCreationDateInEXIF } from 'services/upload/exifService';
 import {
     TYPE_JPEG,
     TYPE_JPG,
     TYPE_HEIC,
     TYPE_HEIF,
     FILE_TYPE,
-} from '@/constants/file';
-// import PublicCollectionDownloadManager from '@/services/publicCollectionDownloadManager';
-// import heicConversionService from '@/services/heicConversionService';
-// import * as ffmpegService from '@/services/ffmpeg/ffmpegService';
+} from 'constants/file';
+// import PublicCollectionDownloadManager from 'services/publicCollectionDownloadManager';
+// import heicConversionService from 'services/heicConversionService';
+// import * as ffmpegService from 'services/ffmpeg/ffmpegService';
 import {
     FileMagicMetadata,
     FileMagicMetadataProps,
@@ -24,12 +24,11 @@ import {
     FilePublicMagicMetadataProps,
     NEW_FILE_MAGIC_METADATA,
     VISIBILITY_STATE,
-} from '@/interfaces/magicMetadata';
-import { IsArchived, updateMagicMetadataProps } from '@/utils/magicMetadata';
+} from 'interfaces/magicMetadata';
+import { IsArchived, updateMagicMetadataProps } from 'utils/magicMetadata';
 
-import { addLogLine } from '@/utils/logging';
-import { CustomError } from '@/utils/error';
-import { convertBytesToHumanReadable } from './size';
+import { addLogLine } from 'utils/logging';
+import { CustomError } from 'utils/error';
 import ComlinkCryptoWorker from '../comlink/ComlinkCryptoWorker';
 import JSZip from 'jszip';
 
@@ -120,7 +119,6 @@ export async function downloadFile(
 export const downloadFileAsBlob = async (file: EnteFile): Promise<Blob> => {
     try {
         let fileBlob: Blob;
-        const fileReader = new FileReader();
         const fileURL = await DownloadManager.getCachedOriginalFile(file)[0];
         if (!fileURL) {
             fileBlob = await new Response(

@@ -5,8 +5,8 @@ import {
     Typography,
     TypographyProps,
 } from '@mui/material';
-import { CaptionedText } from '@/components/CaptionedText';
-// import PublicShareSwitch from '@/components/Collections/CollectionShare/publicShare/switch';
+import { CaptionedText } from 'components/CaptionedText';
+// import PublicShareSwitch from 'components/Collections/CollectionShare/publicShare/switch';
 import { SpaceBetweenFlex, VerticallyCenteredFlex } from 'components/Container';
 import React from 'react';
 

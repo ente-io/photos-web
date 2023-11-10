@@ -1,13 +1,13 @@
-import { PAGES } from '@/constants/pages';
-import { getEndpoint, getFamilyPortalURL } from '@/utils/common/apiUtil';
-import { clearKeys } from '@/utils/storage/sessionStorage';
+import { PAGES } from 'constants/pages';
+import { getEndpoint, getFamilyPortalURL } from 'utils/common/apiUtil';
+import { clearKeys } from 'utils/storage/sessionStorage';
 import router from 'next/router';
-import { clearData, getData, LS_KEYS } from '@/utils/storage/localStorage';
-import localForage from '@/utils/storage/localForage';
-import { getToken } from '@/utils/common/key';
+import { clearData, getData, LS_KEYS } from 'utils/storage/localStorage';
+import localForage from 'utils/storage/localForage';
+import { getToken } from 'utils/common/key';
 import HTTPService from './HTTPService';
-import { getRecoveryKey } from '@/utils/crypto';
-import { logError } from '@/utils/sentry';
+import { getRecoveryKey } from 'utils/crypto';
+import { logError } from 'utils/sentry';
 import { eventBus, Events } from './events';
 import {
     KeyAttributes,
@@ -19,15 +19,15 @@ import {
     UserDetails,
     DeleteChallengeResponse,
     GetRemoteStoreValueResponse,
-} from '@/interfaces/user';
-import { ServerErrorCodes } from '@/utils/error';
+} from 'interfaces/user';
+import { ServerErrorCodes } from 'utils/error';
 import isElectron from 'is-electron';
 // import safeStorageService from './electron/safeStorage';
-// import { deleteAllCache } from '@/utils/storage/cache';
-import { B64EncryptionResult } from '@/interfaces/crypto';
-import { getLocalFamilyData, isPartOfFamily } from '@/utils/user/family';
+// import { deleteAllCache } from 'utils/storage/cache';
+import { B64EncryptionResult } from 'interfaces/crypto';
+import { getLocalFamilyData, isPartOfFamily } from 'utils/user/family';
 import { AxiosResponse } from 'axios';
-// import { APPS, getAppName } from '@/constants/apps';
+// import { APPS, getAppName } from 'constants/apps';
 
 const ENDPOINT = getEndpoint();
 

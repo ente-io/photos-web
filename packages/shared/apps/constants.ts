@@ -4,6 +4,7 @@ export enum APPS {
     PHOTOS = 'PHOTOS',
     AUTH = 'AUTH',
     ALBUMS = 'ALBUMS',
+    LOCKER = 'LOCKER',
 }
 
 export enum APP_ENV {

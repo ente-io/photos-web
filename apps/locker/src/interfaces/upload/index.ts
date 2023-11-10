@@ -1,11 +1,11 @@
-import { FILE_TYPE } from '@/constants/file';
+import { FILE_TYPE } from 'constants/file';
 import { Collection } from '../collection';
-import { B64EncryptionResult, LocalFileAttributes } from '@/interfaces/crypto';
-import { FileAttributes } from '@/interfaces/file';
+import { B64EncryptionResult, LocalFileAttributes } from 'interfaces/crypto';
+import { FileAttributes } from 'interfaces/file';
 import {
     EncryptedMagicMetadata,
     FilePublicMagicMetadata,
-} from '@/interfaces/magicMetadata';
+} from 'interfaces/magicMetadata';
 
 export interface DataStream {
     stream: ReadableStream<Uint8Array>;

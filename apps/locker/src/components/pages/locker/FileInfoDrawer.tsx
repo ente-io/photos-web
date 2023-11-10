@@ -1,6 +1,6 @@
-import { DrawerSidebar } from '@/components/Sidebar/drawer';
-import { EnteFile } from '@/interfaces/file';
-import { LockerDashboardContext } from '@/pages/locker';
+import { DrawerSidebar } from 'components/Sidebar/drawer';
+import { EnteFile } from 'interfaces/file';
+import { LockerDashboardContext } from 'pages/locker';
 import {
     IconButton,
     List,
@@ -24,11 +24,11 @@ import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import SdStorageIcon from '@mui/icons-material/SdStorage';
 import CloseIcon from '@mui/icons-material/Close';
 
-import { convertBytesToHumanReadable } from '@/utils/file/size';
+import { convertBytesToHumanReadable } from 'utils/file/size';
 import { t } from 'i18next';
-import { changeCaption, updateExistingFilePubMetadata } from '@/utils/file';
-import { updateFilePublicMagicMetadata } from '@/services/fileService';
-import { SmallLoadingSpinner } from '@/components/SmallLoadingSpinner';
+import { changeCaption, updateExistingFilePubMetadata } from 'utils/file';
+import { updateFilePublicMagicMetadata } from 'services/fileService';
+import { SmallLoadingSpinner } from 'components/SmallLoadingSpinner';
 import CheckIcon from '@mui/icons-material/Check';
 const FileInfoDrawer = ({
     isOpen,

@@ -1,9 +1,9 @@
-import DialogBoxV2 from '@/components/DialogBoxV2';
-import EnteButton from '@/components/EnteButton';
-import { deleteFromTrash, trashFiles } from '@/services/fileService';
+import DialogBoxV2 from 'components/DialogBoxV2';
+import EnteButton from 'components/EnteButton';
+import { deleteFromTrash, trashFiles } from 'services/fileService';
 import { Stack, Button } from '@mui/material';
 import { t } from 'i18next';
-import { LockerDashboardContext } from '@/pages/locker';
+import { LockerDashboardContext } from 'pages/locker';
 import { useContext } from 'react';
 
 interface IProps {

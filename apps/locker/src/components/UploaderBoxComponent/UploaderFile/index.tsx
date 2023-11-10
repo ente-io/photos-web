@@ -1,8 +1,8 @@
 import { Box, Typography } from '@mui/material';
 import { useContext, useEffect, useState } from 'react';
 import { UploaderContext } from '..';
-import { InProgressUpload } from '@/interfaces/upload/ui';
-import { UPLOAD_RESULT, UPLOAD_STAGES } from '@/constants/upload';
+import { InProgressUpload } from 'interfaces/upload/ui';
+import { UPLOAD_RESULT, UPLOAD_STAGES } from 'constants/upload';
 
 interface IProps {
     localID: number;

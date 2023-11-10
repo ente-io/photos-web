@@ -1,7 +1,7 @@
-import { Language } from '@/constants/locale';
+import { Language } from 'constants/locale';
 
 import { getUserLocales } from 'get-user-locale';
-import { getUserLocale } from '@/utils/storage';
+import { getUserLocale } from 'utils/storage';
 
 export function getBestPossibleUserLocale(): Language {
     const locale = getUserLocale();

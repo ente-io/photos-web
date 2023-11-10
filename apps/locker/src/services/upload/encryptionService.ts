@@ -1,7 +1,7 @@
 import { Remote } from 'comlink';
-import { EncryptionResult } from '@/interfaces/crypto';
-import { DataStream, isDataStream } from '@/interfaces/upload';
-import { DedicatedCryptoWorker } from '@/worker/crypto.worker';
+import { EncryptionResult } from 'interfaces/crypto';
+import { DataStream, isDataStream } from 'interfaces/upload';
+import { DedicatedCryptoWorker } from 'worker/crypto.worker';
 
 async function encryptFileStream(
     worker: Remote<DedicatedCryptoWorker>,

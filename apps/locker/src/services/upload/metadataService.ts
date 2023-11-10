@@ -1,5 +1,5 @@
-import { FILE_TYPE } from '@/constants/file';
-import { logError } from '@/utils/sentry';
+import { FILE_TYPE } from 'constants/file';
+import { logError } from 'utils/sentry';
 import { getEXIFLocation, getEXIFTime, getParsedExifData } from './exifService';
 import {
     Metadata,
@@ -8,17 +8,17 @@ import {
     FileTypeInfo,
     ParsedExtractedMetadata,
     //
-} from '@/interfaces/upload';
-import { NULL_EXTRACTED_METADATA, NULL_LOCATION } from '@/constants/upload';
+} from 'interfaces/upload';
+import { NULL_EXTRACTED_METADATA, NULL_LOCATION } from 'constants/upload';
 import { getVideoMetadata } from './videoMetadataService';
 import {
     parseDateFromFusedDateString,
     getUnixTimeInMicroSeconds,
     tryToParseDateTime,
-} from '@/utils/time';
+} from 'utils/time';
 import { getFileHash } from './hashService';
 import { Remote } from 'comlink';
-import { DedicatedCryptoWorker } from '@/worker/crypto.worker';
+import { DedicatedCryptoWorker } from 'worker/crypto.worker';
 
 interface ParsedMetadataJSONWithTitle {
     title: string;

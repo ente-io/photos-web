@@ -1,26 +1,26 @@
-import { EnteFile } from '@/interfaces/file';
-import { handleUploadError, CustomError } from '@/utils/error';
-import { logError } from '@/utils/sentry';
-import { findMatchingExistingFiles } from '@/utils/upload';
+import { EnteFile } from 'interfaces/file';
+import { handleUploadError, CustomError } from 'utils/error';
+import { logError } from 'utils/sentry';
+import { findMatchingExistingFiles } from 'utils/upload';
 import UIService from './upload/uiService';
 import UploadService from './upload/uploadService';
-import { UPLOAD_RESULT, MAX_FILE_SIZE_SUPPORTED } from '@/constants/upload';
+import { UPLOAD_RESULT, MAX_FILE_SIZE_SUPPORTED } from 'constants/upload';
 import {
     FileWithCollection,
     BackupedFile,
     UploadFile,
     FileWithMetadata,
     FileTypeInfo,
-} from '@/interfaces/upload';
-import { addLocalLog, addLogLine } from '@/utils/logging';
-import { convertBytesToHumanReadable } from '@/utils/file/size';
-import { sleep } from '@/utils/common';
+} from 'interfaces/upload';
+import { addLocalLog, addLogLine } from 'utils/logging';
+import { convertBytesToHumanReadable } from 'utils/file/size';
+import { sleep } from 'utils/common';
 import { addToCollection } from 'services/collectionService';
 import uploadCancelService from './upload/uploadCancelService';
 import { Remote } from 'comlink';
 import { DedicatedCryptoWorker } from 'worker/crypto.worker';
 import uploadService from './upload/uploadService';
-import { FilePublicMagicMetadata } from '@/interfaces/magicMetadata';
+import { FilePublicMagicMetadata } from 'interfaces/magicMetadata';
 
 // Define the expected response from the uploader function
 interface UploadResponse {

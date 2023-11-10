@@ -1,5 +1,5 @@
 import React from 'react';
-import { UserDetails } from '@/interfaces/user';
+import { UserDetails } from 'interfaces/user';
 import StorageSection from '../storageSection';
 import { IndividualUsageSection } from './usageSection';
 

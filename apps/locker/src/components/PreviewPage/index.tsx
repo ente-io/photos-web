@@ -1,11 +1,11 @@
 'use client';
 
-import PreviewBanner from '@/components/PreviewBanner';
+import PreviewBanner from 'components/PreviewBanner';
 
 import styles from './styles.module.scss';
 import dynamic from 'next/dynamic';
 
-const PDFViewer = dynamic(() => import('@/components/PDFViewer'), {
+const PDFViewer = dynamic(() => import('components/PDFViewer'), {
     ssr: false,
 });
 
@@ -45,7 +45,7 @@ const PreviewPage = () => {
     const handleKeyPress = (event: any) => {
         if (event.code == 'ArrowLeft' && pageNumber > 1) {
             setPageNumber(pageNumber - 1);
-        } else if (event.code == 'ArrowRight' && pageNumber < totalPages) {
+        } else if (event.code === 'ArrowRight' && pageNumber < totalPages) {
             setPageNumber(pageNumber + 1);
         }
     };

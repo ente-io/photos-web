@@ -16,6 +16,9 @@ module.exports = (phase) =>
                 autoInstrumentServerFunctions: false,
             },
             output: 'export',
+            images: {
+                unoptimized: true,
+            },
             compiler: {
                 emotion: {
                     importMap: {

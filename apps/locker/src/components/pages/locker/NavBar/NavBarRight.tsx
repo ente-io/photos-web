@@ -16,22 +16,22 @@ import {
     MouseEvent,
     useMemo,
 } from 'react';
-import { UPLOAD_STAGES } from '@/constants/upload';
-import { LockerDashboardContext, LockerUploaderContext } from '@/pages/locker';
+import { UPLOAD_STAGES } from 'constants/upload';
+import { LockerDashboardContext, LockerUploaderContext } from 'pages/locker';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DriveFileMoveIcon from '@mui/icons-material/DriveFileMove';
 import DownloadIcon from '@mui/icons-material/Download';
-import { downloadFile, downloadFilesAsZip } from '@/utils/file';
+import { downloadFile, downloadFilesAsZip } from 'utils/file';
 import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import IndeterminateCheckBoxIcon from '@mui/icons-material/IndeterminateCheckBox';
-import { isMobileDisplay } from '@/utils/resolution/isMobile';
+import { isMobileDisplay } from 'utils/resolution/isMobile';
 import dynamic from 'next/dynamic';
 import InfoIcon from '@mui/icons-material/Info';
 import RestoreIcon from '@mui/icons-material/Restore';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { EnteFile } from '@/interfaces/file';
+import { EnteFile } from 'interfaces/file';
 
 const NewCollectionModal = dynamic(() => import('../NewCollectionModal'));
 const TrashFilesModal = dynamic(() => import('../TrashFilesModal'));

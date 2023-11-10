@@ -9,8 +9,10 @@
     "scripts": {
         "build:photos": "turbo run build --filter=photos",
         "build:auth": "turbo run build --filter=auth",
+        "build:locker": "turbo run build --filter=locker",
         "dev:auth": "turbo run dev --filter=auth",
         "dev:photos": "turbo run dev --filter=photos",
+        "dev:locker": "turbo run dev --filter=locker",
         "lint": "turbo run lint",
         "albums": "turbo run albums",
         "auth": "turbo run auth",

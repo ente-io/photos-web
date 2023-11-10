@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 import { BoxProps, Divider } from '@mui/material';
-import Container from '@/components/Container';
+import Container from 'components/Container';
 
 const FormPaperFooter: FC<BoxProps> = ({ sx, style, ...props }) => {
     return (

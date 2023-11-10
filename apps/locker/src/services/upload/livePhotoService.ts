@@ -1,24 +1,24 @@
-import { FILE_TYPE } from '@/constants/file';
-import { LIVE_PHOTO_ASSET_SIZE_LIMIT } from '@/constants/upload';
-import { encodeLivePhoto } from '@/services/livePhotoService';
-import { getFileType } from '@/services/typeDetectionService';
+import { FILE_TYPE } from 'constants/file';
+import { LIVE_PHOTO_ASSET_SIZE_LIMIT } from 'constants/upload';
+import { encodeLivePhoto } from 'services/livePhotoService';
+import { getFileType } from 'services/typeDetectionService';
 import {
     FileTypeInfo,
     FileWithCollection,
     LivePhotoAssets,
     ParsedMetadataJSONMap,
-} from '@/interfaces/upload';
-import { CustomError } from '@/utils/error';
-import { getFileTypeFromExtensionForLivePhotoClustering } from '@/utils/file/livePhoto';
-import { splitFilenameAndExtension, isImageOrVideo } from '@/utils/file';
-import { logError } from '@/utils/sentry';
+} from 'interfaces/upload';
+import { CustomError } from 'utils/error';
+import { getFileTypeFromExtensionForLivePhotoClustering } from 'utils/file/livePhoto';
+import { splitFilenameAndExtension, isImageOrVideo } from 'utils/file';
+import { logError } from 'utils/sentry';
 import { getUint8ArrayView } from '../readerService';
 import { extractFileMetadata } from './fileService';
 import { getFileHash } from './hashService';
 import { generateThumbnail } from './thumbnailService';
 import uploadCancelService from './uploadCancelService';
 import { Remote } from 'comlink';
-import { DedicatedCryptoWorker } from '@/worker/crypto.worker';
+import { DedicatedCryptoWorker } from 'worker/crypto.worker';
 
 interface LivePhotoIdentifier {
     collectionID: number;

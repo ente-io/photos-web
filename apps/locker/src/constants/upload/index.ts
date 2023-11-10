@@ -1,11 +1,11 @@
-import { ENCRYPTION_CHUNK_SIZE } from '@/constants/crypto';
-import { FILE_TYPE } from '@/constants/file';
+import { ENCRYPTION_CHUNK_SIZE } from 'constants/crypto';
+import { FILE_TYPE } from 'constants/file';
 import {
     FileTypeInfo,
     ImportSuggestion,
     Location,
     ParsedExtractedMetadata,
-} from '@/interfaces/upload';
+} from 'interfaces/upload';
 
 // list of format that were missed by type-detection for some files.
 export const FILE_TYPE_LIB_MISSED_FORMATS: FileTypeInfo[] = [

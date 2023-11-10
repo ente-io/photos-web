@@ -1,9 +1,9 @@
-import DialogBoxV2 from '@/components/DialogBoxV2';
-import { Collection } from '@/interfaces/collection';
+import DialogBoxV2 from 'components/DialogBoxV2';
+import { Collection } from 'interfaces/collection';
 import { Button } from '@mui/material';
-import EnteButton from '@/components/EnteButton';
+import EnteButton from 'components/EnteButton';
 import { t } from 'i18next';
-import { logoutUser } from '@/services/userService';
+import { logoutUser } from 'services/userService';
 
 interface IProps {
     show: boolean;
@@ -22,7 +22,7 @@ const LogoutConfirmationDialog = (props: IProps) => {
                 <EnteButton
                     type="submit"
                     size="large"
-                    color={'error'}
+                    color={'critical'}
                     onClick={logoutUser}>
                     {t('LOGOUT')}
                 </EnteButton>

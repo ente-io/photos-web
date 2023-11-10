@@ -1,5 +1,5 @@
-import { CollectionSummaryType, CollectionType } from '@/constants/collection';
-import { User } from '@/interfaces/user';
+import { CollectionSummaryType, CollectionType } from 'constants/collection';
+import { User } from 'interfaces/user';
 import {
     EncryptedMagicMetadata,
     MagicMetadataCore,
