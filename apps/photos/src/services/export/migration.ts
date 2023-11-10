@@ -1,5 +1,5 @@
 import { getLocalCollections } from 'services/collectionService';
-import { getLocalFiles } from 'services/fileService';
+import { getAllLocalFiles } from 'services/fileService';
 import {
     ExportRecordV1,
     ExportRecordV2,
@@ -12,14 +12,20 @@ import {
 import { EnteFile } from 'types/file';
 import { User } from 'types/user';
 import { getNonEmptyPersonalCollections } from 'utils/collection';
-import { getExportRecordFileUID, getLivePhotoExportName } from 'utils/export';
+import {
+    getCollectionExportPath,
+    getCollectionIDFromFileUID,
+    getExportRecordFileUID,
+    getLivePhotoExportName,
+    getMetadataFolderExportPath,
+} from 'utils/export';
 import {
     getIDBasedSortedFiles,
     getPersonalFiles,
     mergeMetadata,
 } from 'utils/file';
-import { addLocalLog, addLogLine } from 'utils/logging';
-import { logError } from 'utils/sentry';
+import { addLocalLog, addLogLine } from '@ente/shared/logging';
+import { logError } from '@ente/shared/sentry';
 import { getData, LS_KEYS } from 'utils/storage/localStorage';
 import exportService from './index';
 import { Collection } from 'types/collection';
@@ -38,7 +44,6 @@ import {
 import { FILE_TYPE } from 'constants/file';
 import { decodeLivePhoto } from 'services/livePhotoService';
 import downloadManager from 'services/downloadManager';
-import { retryAsyncFunction } from 'utils/network';
 import { sleep } from 'utils/common';
 
 export async function migrateExport(
@@ -85,6 +90,14 @@ export async function migrateExport(
             });
             addLogLine('migration to version 4 complete');
         }
+        if (exportRecord.version === 4) {
+            addLogLine('migrating export to version 5');
+            await migrationV4ToV5(exportDir, exportRecord as ExportRecord);
+            exportRecord = await exportService.updateExportRecord(exportDir, {
+                version: 5,
+            });
+            addLogLine('migration to version 5 complete');
+        }
         addLogLine(`Record at latest version`);
     } catch (e) {
         logError(e, 'export record migration failed');
@@ -101,7 +114,7 @@ async function migrationV0ToV1(
     }
     const collectionIDPathMap = new Map<number, string>();
     const user: User = getData(LS_KEYS.USER);
-    const localFiles = mergeMetadata(await getLocalFiles());
+    const localFiles = mergeMetadata(await getAllLocalFiles());
     const localCollections = await getLocalCollections();
     const personalFiles = getIDBasedSortedFiles(
         getPersonalFiles(localFiles, user)
@@ -138,7 +151,7 @@ async function migrationV2ToV3(
         return;
     }
     const user: User = getData(LS_KEYS.USER);
-    const localFiles = mergeMetadata(await getLocalFiles());
+    const localFiles = mergeMetadata(await getAllLocalFiles());
     const personalFiles = getIDBasedSortedFiles(
         getPersonalFiles(localFiles, user)
     );
@@ -175,6 +188,10 @@ async function migrationV3ToV4(exportDir: string, exportRecord: ExportRecord) {
     };
 
     await exportService.updateExportRecord(exportDir, updatedExportRecord);
+}
+
+async function migrationV4ToV5(exportDir: string, exportRecord: ExportRecord) {
+    await removeCollectionExportMissingMetadataFolder(exportDir, exportRecord);
 }
 
 /*
@@ -326,9 +343,7 @@ async function getFileExportNamesFromExportedFiles(
             For Live Photos we need to download the file to get the image and video name
         */
         if (file.metadata.fileType === FILE_TYPE.LIVE_PHOTO) {
-            const fileStream = await retryAsyncFunction(() =>
-                downloadManager.downloadFile(file)
-            );
+            const fileStream = await downloadManager.downloadFile(file);
             const fileBlob = await new Response(fileStream).blob();
             const livePhoto = await decodeLivePhoto(file, fileBlob);
             const imageExportName = getUniqueFileExportNameForMigration(
@@ -407,4 +422,48 @@ async function addCollectionExportedRecordV1(
         logError(e, 'addCollectionExportedRecord failed');
         throw e;
     }
+}
+
+async function removeCollectionExportMissingMetadataFolder(
+    exportDir: string,
+    exportRecord: ExportRecord
+) {
+    if (!exportRecord?.collectionExportNames) {
+        return;
+    }
+
+    const properlyExportedCollections = Object.entries(
+        exportRecord.collectionExportNames
+    )
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        .filter(([_, collectionExportName]) =>
+            exportService.exists(
+                getMetadataFolderExportPath(
+                    getCollectionExportPath(exportDir, collectionExportName)
+                )
+            )
+        );
+
+    const properlyExportedCollectionIDs = properlyExportedCollections.map(
+        ([collectionID]) => collectionID
+    );
+
+    const properlyExportedFiles = Object.entries(
+        exportRecord.fileExportNames
+    ).filter(([fileUID]) =>
+        properlyExportedCollectionIDs.includes(
+            getCollectionIDFromFileUID(fileUID).toString()
+        )
+    );
+
+    const updatedExportRecord: ExportRecord = {
+        ...exportRecord,
+        collectionExportNames: Object.fromEntries(
+            properlyExportedCollections
+        ) as CollectionExportNames,
+        fileExportNames: Object.fromEntries(
+            properlyExportedFiles
+        ) as FileExportNames,
+    };
+    await exportService.updateExportRecord(exportDir, updatedExportRecord);
 }

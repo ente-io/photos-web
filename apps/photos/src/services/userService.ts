@@ -1,47 +1,30 @@
-import { PAGES } from 'constants/pages';
-import { getEndpoint, getFamilyPortalURL } from 'utils/common/apiUtil';
-import { clearKeys } from 'utils/storage/sessionStorage';
-import router from 'next/router';
-import { clearData, getData, LS_KEYS } from 'utils/storage/localStorage';
+import {
+    getEndpoint,
+    getFamilyPortalURL,
+    isDevDeployment,
+} from 'utils/common/apiUtil';
+import { getData, LS_KEYS } from '@ente/shared/storage/localStorage';
 import localForage from 'utils/storage/localForage';
 import { getToken } from 'utils/common/key';
 import HTTPService from './HTTPService';
 import { getRecoveryKey } from 'utils/crypto';
-import { logError } from 'utils/sentry';
-import { eventBus, Events } from './events';
+import { logError } from '@ente/shared/sentry';
 import {
-    KeyAttributes,
-    UpdatedKey,
-    RecoveryKey,
-    TwoFactorSecret,
-    TwoFactorVerificationResponse,
-    TwoFactorRecoveryResponse,
     UserDetails,
     DeleteChallengeResponse,
     GetRemoteStoreValueResponse,
     GetFeatureFlagResponse,
 } from 'types/user';
-import { ServerErrorCodes } from 'utils/error';
-import isElectron from 'is-electron';
-import safeStorageService from './electron/safeStorage';
-import { deleteAllCache } from 'utils/storage/cache';
-import { B64EncryptionResult } from 'types/crypto';
+import { ApiError } from 'utils/error';
 import { getLocalFamilyData, isPartOfFamily } from 'utils/user/family';
-import { AxiosResponse } from 'axios';
-import { APPS, getAppName } from 'constants/apps';
+import { AxiosResponse, HttpStatusCode } from 'axios';
 import { setLocalMapEnabled } from 'utils/storage';
+import { putAttributes } from '@ente/accounts/api/user';
+import { logoutUser } from '@ente/accounts/services/user';
 
 const ENDPOINT = getEndpoint();
 
 const HAS_SET_KEYS = 'hasSetKeys';
-
-export const sendOtt = (email: string) => {
-    const appName = getAppName();
-    return HTTPService.post(`${ENDPOINT}/users/ott`, {
-        email,
-        client: appName === APPS.AUTH ? 'totp' : 'web',
-    });
-};
 
 export const getPublicKey = async (email: string) => {
     const token = getToken();
@@ -105,70 +88,6 @@ export const getRoadmapRedirectURL = async () => {
     }
 };
 
-export const verifyOtt = (email: string, ott: string) =>
-    HTTPService.post(`${ENDPOINT}/users/verify-email`, { email, ott });
-
-export const putAttributes = (token: string, keyAttributes: KeyAttributes) =>
-    HTTPService.put(`${ENDPOINT}/users/attributes`, { keyAttributes }, null, {
-        'X-Auth-Token': token,
-    });
-
-export const setKeys = (token: string, updatedKey: UpdatedKey) =>
-    HTTPService.put(`${ENDPOINT}/users/keys`, updatedKey, null, {
-        'X-Auth-Token': token,
-    });
-
-export const setRecoveryKey = (token: string, recoveryKey: RecoveryKey) =>
-    HTTPService.put(`${ENDPOINT}/users/recovery-key`, recoveryKey, null, {
-        'X-Auth-Token': token,
-    });
-
-export const logoutUser = async () => {
-    try {
-        try {
-            // ignore server logout result as logoutUser can be triggered before sign up or on token expiry
-            await _logout();
-        } catch (e) {
-            //ignore
-        }
-        try {
-            clearKeys();
-        } catch (e) {
-            logError(e, 'clearKeys failed');
-        }
-        try {
-            clearData();
-        } catch (e) {
-            logError(e, 'clearData failed');
-        }
-        try {
-            await deleteAllCache();
-        } catch (e) {
-            logError(e, 'deleteAllCache failed');
-        }
-        try {
-            await clearFiles();
-        } catch (e) {
-            logError(e, 'clearFiles failed');
-        }
-        if (isElectron()) {
-            try {
-                safeStorageService.clearElectronStore();
-            } catch (e) {
-                logError(e, 'clearElectronStore failed');
-            }
-        }
-        try {
-            eventBus.emit(Events.LOGOUT);
-        } catch (e) {
-            logError(e, 'Error in logout handlers');
-        }
-        router.push(PAGES.ROOT);
-    } catch (e) {
-        logError(e, 'logoutUser failed');
-    }
-};
-
 export const clearFiles = async () => {
     await localForage.clear();
 };
@@ -189,7 +108,6 @@ export const isTokenValid = async (token: string) => {
             if (!resp.data['hasSetKeys']) {
                 try {
                     await putAttributes(
-                        token,
                         getData(LS_KEYS.ORIGINAL_KEY_ATTRIBUTES)
                     );
                 } catch (e) {
@@ -202,77 +120,15 @@ export const isTokenValid = async (token: string) => {
         return true;
     } catch (e) {
         logError(e, 'session-validity api call failed');
-        if (e.status?.toString() === ServerErrorCodes.SESSION_EXPIRED) {
+        if (
+            e instanceof ApiError &&
+            e.httpStatusCode === HttpStatusCode.Unauthorized
+        ) {
             return false;
         } else {
             return true;
         }
     }
-};
-
-export const setupTwoFactor = async () => {
-    const resp = await HTTPService.post(
-        `${ENDPOINT}/users/two-factor/setup`,
-        null,
-        null,
-        {
-            'X-Auth-Token': getToken(),
-        }
-    );
-    return resp.data as TwoFactorSecret;
-};
-
-export const enableTwoFactor = async (
-    code: string,
-    recoveryEncryptedTwoFactorSecret: B64EncryptionResult
-) => {
-    await HTTPService.post(
-        `${ENDPOINT}/users/two-factor/enable`,
-        {
-            code,
-            encryptedTwoFactorSecret:
-                recoveryEncryptedTwoFactorSecret.encryptedData,
-            twoFactorSecretDecryptionNonce:
-                recoveryEncryptedTwoFactorSecret.nonce,
-        },
-        null,
-        {
-            'X-Auth-Token': getToken(),
-        }
-    );
-};
-
-export const verifyTwoFactor = async (code: string, sessionID: string) => {
-    const resp = await HTTPService.post(
-        `${ENDPOINT}/users/two-factor/verify`,
-        {
-            code,
-            sessionID,
-        },
-        null
-    );
-    return resp.data as TwoFactorVerificationResponse;
-};
-
-export const recoverTwoFactor = async (sessionID: string) => {
-    const resp = await HTTPService.get(`${ENDPOINT}/users/two-factor/recover`, {
-        sessionID,
-    });
-    return resp.data as TwoFactorRecoveryResponse;
-};
-
-export const removeTwoFactor = async (sessionID: string, secret: string) => {
-    const resp = await HTTPService.post(`${ENDPOINT}/users/two-factor/remove`, {
-        sessionID,
-        secret,
-    });
-    return resp.data as TwoFactorVerificationResponse;
-};
-
-export const disableTwoFactor = async () => {
-    await HTTPService.post(`${ENDPOINT}/users/two-factor/disable`, null, null, {
-        'X-Auth-Token': getToken(),
-    });
 };
 
 export const getTwoFactorStatus = async () => {
@@ -516,6 +372,11 @@ export async function getDisableCFUploadProxyFlag(): Promise<boolean> {
     }
 
     try {
+        const disableCFUploadProxy =
+            process.env.NEXT_PUBLIC_DISABLE_CF_UPLOAD_PROXY;
+        if (isDevDeployment() && typeof disableCFUploadProxy !== 'undefined') {
+            return disableCFUploadProxy === 'true';
+        }
         const featureFlags = (
             await fetch('https://static.ente.io/feature_flags.json')
         ).json() as GetFeatureFlagResponse;

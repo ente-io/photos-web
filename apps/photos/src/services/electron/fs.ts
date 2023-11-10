@@ -1,12 +1,11 @@
 import { ElectronAPIs } from 'types/electron';
-import { runningInBrowser } from 'utils/common';
-import { logError } from 'utils/sentry';
+import { logError } from '@ente/shared/sentry';
 
 class ElectronFSService {
     private electronAPIs: ElectronAPIs;
 
     constructor() {
-        this.electronAPIs = runningInBrowser() && window['ElectronAPIs'];
+        this.electronAPIs = globalThis['ElectronAPIs'];
     }
 
     getDirFiles(dirPath: string) {
@@ -21,6 +20,27 @@ class ElectronFSService {
             return isFolder;
         } catch (e) {
             logError(e, 'error while checking if is Folder');
+        }
+    }
+
+    async saveMediaFile(
+        filePath: string,
+        fileStream: ReadableStream<Uint8Array>
+    ) {
+        try {
+            await this.electronAPIs.saveStreamToDisk(filePath, fileStream);
+        } catch (e) {
+            logError(e, 'error while saving media file');
+            throw e;
+        }
+    }
+
+    deleteFile(filePath: string) {
+        try {
+            this.electronAPIs.deleteFile(filePath);
+        } catch (e) {
+            logError(e, 'error while deleting file');
+            throw e;
         }
     }
 }

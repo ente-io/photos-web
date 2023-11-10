@@ -1,3 +1,4 @@
+import { CollectionDownloadProgressAttributes } from 'components/Collections/CollectionDownloadProgress';
 import { CollectionSelectorAttributes } from 'components/Collections/CollectionSelector';
 import { TimeStampListItem } from 'components/PhotoList';
 import { Collection } from 'types/collection';
@@ -16,6 +17,9 @@ export type SetLoading = React.Dispatch<React.SetStateAction<boolean>>;
 export type SetCollectionSelectorAttributes = React.Dispatch<
     React.SetStateAction<CollectionSelectorAttributes>
 >;
+export type SetCollectionDownloadProgressAttributes = React.Dispatch<
+    React.SetStateAction<CollectionDownloadProgressAttributes>
+>;
 
 export type MergedSourceURL = {
     original: string;
@@ -30,7 +34,7 @@ export type GalleryContextType = {
     thumbs: Map<number, string>;
     files: Map<number, MergedSourceURL>;
     showPlanSelectorModal: () => void;
-    setActiveCollection: (collection: number) => void;
+    setActiveCollectionID: (collectionID: number) => void;
     syncWithRemote: (force?: boolean, silent?: boolean) => Promise<void>;
     setBlockingLoad: (value: boolean) => void;
     setIsInSearchMode: (value: boolean) => void;
@@ -40,6 +44,7 @@ export type GalleryContextType = {
     user: User;
     userIDToEmailMap: Map<number, string>;
     emailList: string[];
+    openHiddenSection: (callback?: () => void) => void;
 };
 
 export enum CollectionSelectorIntent {

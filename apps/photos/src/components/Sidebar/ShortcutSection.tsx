@@ -4,8 +4,7 @@ import { t } from 'i18next';
 import { GalleryContext } from 'pages/gallery';
 import {
     ARCHIVE_SECTION,
-    HIDDEN_SECTION,
-    DUMMY_UNCATEGORIZED_SECTION,
+    DUMMY_UNCATEGORIZED_COLLECTION,
     TRASH_SECTION,
 } from 'constants/collection';
 import { CollectionSummaries } from 'types/collection';
@@ -35,30 +34,29 @@ export default function ShortcutSection({
             if (unCategorizedCollection) {
                 setUncategorizedCollectionID(unCategorizedCollection.id);
             } else {
-                setUncategorizedCollectionID(DUMMY_UNCATEGORIZED_SECTION);
+                setUncategorizedCollectionID(DUMMY_UNCATEGORIZED_COLLECTION);
             }
         };
         main();
     }, []);
 
     const openUncategorizedSection = () => {
-        galleryContext.setActiveCollection(uncategorizedCollectionId);
+        galleryContext.setActiveCollectionID(uncategorizedCollectionId);
         closeSidebar();
     };
 
     const openTrashSection = () => {
-        galleryContext.setActiveCollection(TRASH_SECTION);
+        galleryContext.setActiveCollectionID(TRASH_SECTION);
         closeSidebar();
     };
 
     const openArchiveSection = () => {
-        galleryContext.setActiveCollection(ARCHIVE_SECTION);
+        galleryContext.setActiveCollectionID(ARCHIVE_SECTION);
         closeSidebar();
     };
 
     const openHiddenSection = () => {
-        galleryContext.authenticateUser(() => {
-            galleryContext.setActiveCollection(HIDDEN_SECTION);
+        galleryContext.openHiddenSection(() => {
             closeSidebar();
         });
     };

@@ -19,13 +19,16 @@ import {
 } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import memoize from 'memoize-one';
-import useComponentScroll, { SCROLL_DIRECTION } from 'hooks/useComponentScroll';
-import useWindowSize from 'hooks/useWindowSize';
+import useComponentScroll, {
+    SCROLL_DIRECTION,
+} from '@ente/shared/hooks/useComponentScroll';
+import useWindowSize from '@ente/shared/hooks/useWindowSize';
 import ScrollButton from './ScrollButton';
 
 interface IProps {
-    activeCollection?: number;
-    setActiveCollection: (id?: number) => void;
+    activeCollectionID?: number;
+    isInHiddenSection: boolean;
+    setActiveCollectionID: (id?: number) => void;
     collectionSummaries: CollectionSummary[];
     showAllCollections: () => void;
     collectionListSortBy: COLLECTION_LIST_SORT_BY;
@@ -34,16 +37,16 @@ interface IProps {
 
 interface ItemData {
     collectionSummaries: CollectionSummary[];
-    activeCollection?: number;
+    activeCollectionID?: number;
     onCollectionClick: (id?: number) => void;
 }
 
 const CollectionListBarCardWidth = 94;
 
 const createItemData = memoize(
-    (collectionSummaries, activeCollection, onCollectionClick) => ({
+    (collectionSummaries, activeCollectionID, onCollectionClick) => ({
         collectionSummaries,
-        activeCollection,
+        activeCollectionID,
         onCollectionClick,
     })
 );
@@ -55,7 +58,7 @@ const CollectionCardContainer = React.memo(
         style,
         isScrolling,
     }: ListChildComponentProps<ItemData>) => {
-        const { collectionSummaries, activeCollection, onCollectionClick } =
+        const { collectionSummaries, activeCollectionID, onCollectionClick } =
             data;
 
         const collectionSummary = collectionSummaries[index];
@@ -64,7 +67,7 @@ const CollectionCardContainer = React.memo(
             <div style={style}>
                 <CollectionListBarCard
                     key={collectionSummary.id}
-                    activeCollection={activeCollection}
+                    activeCollectionID={activeCollectionID}
                     isScrolling={isScrolling}
                     collectionSummary={collectionSummary}
                     onCollectionClick={onCollectionClick}
@@ -81,10 +84,11 @@ const getItemKey = (index: number, data: ItemData) => {
 
 const CollectionListBar = (props: IProps) => {
     const {
-        activeCollection,
-        setActiveCollection,
+        activeCollectionID,
+        setActiveCollectionID,
         collectionSummaries,
         showAllCollections,
+        isInHiddenSection,
     } = props;
 
     const appContext = useContext(AppContext);
@@ -108,25 +112,27 @@ const CollectionListBar = (props: IProps) => {
         }
         // scroll the active collection into view
         const activeCollectionIndex = collectionSummaries.findIndex(
-            (item) => item.id === activeCollection
+            (item) => item.id === activeCollectionID
         );
         collectionListRef.current.scrollToItem(activeCollectionIndex, 'smart');
-    }, [activeCollection]);
+    }, [activeCollectionID]);
 
     const onCollectionClick = (collectionID?: number) => {
-        setActiveCollection(collectionID ?? ALL_SECTION);
+        setActiveCollectionID(collectionID ?? ALL_SECTION);
     };
 
     const itemData = createItemData(
         collectionSummaries,
-        activeCollection,
+        activeCollectionID,
         onCollectionClick
     );
 
     return (
         <CollectionListBarWrapper>
             <SpaceBetweenFlex mb={1}>
-                <Typography>{t('ALBUMS')}</Typography>
+                <Typography>
+                    {isInHiddenSection ? t('HIDDEN_ALBUMS') : t('ALBUMS')}
+                </Typography>
                 {appContext.isMobile && (
                     <Box display="flex" alignItems={'center'} gap={1}>
                         <CollectionListSortBy

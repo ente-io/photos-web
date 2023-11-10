@@ -2,13 +2,17 @@ import { TimeStampListItem } from 'components/PhotoList';
 import { REPORT_REASON } from 'constants/publicCollection';
 import { PublicURL } from 'types/collection';
 import { EnteFile } from 'types/file';
+import { MergedSourceURL } from 'types/gallery';
 
 export interface PublicCollectionGalleryContextType {
     token: string;
     passwordToken: string;
+    referralCode: string | null;
     accessedThroughSharedURL: boolean;
     photoListHeader: TimeStampListItem;
     photoListFooter: TimeStampListItem;
+    thumbs: Map<number, string>;
+    files: Map<number, MergedSourceURL>;
 }
 
 export interface LocalSavedPublicCollectionFiles {

@@ -8,7 +8,7 @@ import {
 import HTTPService from './HTTPService';
 import { EnteFile } from 'types/file';
 
-import { logError } from 'utils/sentry';
+import { logError } from '@ente/shared/sentry';
 import { FILE_TYPE } from 'constants/file';
 import { CustomError } from 'utils/error';
 import ComlinkCryptoWorker from 'utils/comlink/ComlinkCryptoWorker';
@@ -17,6 +17,8 @@ import { CACHES } from 'constants/cache';
 import { Remote } from 'comlink';
 import { DedicatedCryptoWorker } from 'worker/crypto.worker';
 import { LimitedCache } from 'types/cache';
+import { retryAsyncFunction } from 'utils/network';
+import { addLogLine } from '@ente/shared/logging';
 
 class DownloadManager {
     private fileObjectURLPromise = new Map<
@@ -24,6 +26,14 @@ class DownloadManager {
         Promise<{ original: string[]; converted: string[] }>
     >();
     private thumbnailObjectURLPromise = new Map<number, Promise<string>>();
+
+    private fileDownloadProgress = new Map<number, number>();
+
+    private progressUpdater: (value: Map<number, number>) => void = () => {};
+
+    setProgressUpdater(progressUpdater: (value: Map<number, number>) => void) {
+        this.progressUpdater = progressUpdater;
+    }
 
     private async getThumbnailCache() {
         try {
@@ -161,7 +171,8 @@ class DownloadManager {
     };
 
     public async getCachedOriginalFile(file: EnteFile) {
-        return await this.fileObjectURLPromise.get(file.id.toString());
+        return (await this.fileObjectURLPromise.get(file.id.toString()))
+            ?.original;
     }
 
     async downloadFile(
@@ -170,97 +181,239 @@ class DownloadManager {
         usingWorker?: Remote<DedicatedCryptoWorker>,
         timeout?: number
     ) {
-        const cryptoWorker =
-            usingWorker || (await ComlinkCryptoWorker.getInstance());
-        const token = tokenOverride || getToken();
-        if (!token) {
-            return null;
-        }
-        if (
-            file.metadata.fileType === FILE_TYPE.IMAGE ||
-            file.metadata.fileType === FILE_TYPE.LIVE_PHOTO
-        ) {
-            const resp = await HTTPService.get(
-                getFileURL(file.id),
-                null,
-                { 'X-Auth-Token': token },
-                { responseType: 'arraybuffer', timeout }
-            );
-            if (typeof resp.data === 'undefined') {
-                throw Error(CustomError.REQUEST_FAILED);
+        try {
+            const cryptoWorker =
+                usingWorker || (await ComlinkCryptoWorker.getInstance());
+            const token = tokenOverride || getToken();
+            if (!token) {
+                return null;
             }
-            const decrypted = await cryptoWorker.decryptFile(
-                new Uint8Array(resp.data),
-                await cryptoWorker.fromB64(file.file.decryptionHeader),
-                file.key
+            const onDownloadProgress = this.trackDownloadProgress(
+                file.id,
+                file.info?.fileSize
             );
-            return generateStreamFromArrayBuffer(decrypted);
-        }
-        const resp = await fetch(getFileURL(file.id), {
-            headers: {
-                'X-Auth-Token': token,
-            },
-        });
-        const reader = resp.body.getReader();
-        const stream = new ReadableStream({
-            async start(controller) {
-                const decryptionHeader = await cryptoWorker.fromB64(
-                    file.file.decryptionHeader
-                );
-                const fileKey = await cryptoWorker.fromB64(file.key);
-                const { pullState, decryptionChunkSize } =
-                    await cryptoWorker.initChunkDecryption(
-                        decryptionHeader,
-                        fileKey
-                    );
-                let data = new Uint8Array();
-                // The following function handles each data chunk
-                function push() {
-                    // "done" is a Boolean and value a "Uint8Array"
-                    reader.read().then(async ({ done, value }) => {
-                        // Is there more data to read?
-                        if (!done) {
-                            const buffer = new Uint8Array(
-                                data.byteLength + value.byteLength
-                            );
-                            buffer.set(new Uint8Array(data), 0);
-                            buffer.set(new Uint8Array(value), data.byteLength);
-                            if (buffer.length > decryptionChunkSize) {
-                                const fileData = buffer.slice(
-                                    0,
-                                    decryptionChunkSize
-                                );
-                                const { decryptedData } =
-                                    await cryptoWorker.decryptFileChunk(
-                                        fileData,
-                                        pullState
-                                    );
-                                controller.enqueue(decryptedData);
-                                data = buffer.slice(decryptionChunkSize);
-                            } else {
-                                data = buffer;
-                            }
-                            push();
-                        } else {
-                            if (data) {
-                                const { decryptedData } =
-                                    await cryptoWorker.decryptFileChunk(
-                                        data,
-                                        pullState
-                                    );
-                                controller.enqueue(decryptedData);
-                                data = null;
-                            }
-                            controller.close();
+            if (
+                file.metadata.fileType === FILE_TYPE.IMAGE ||
+                file.metadata.fileType === FILE_TYPE.LIVE_PHOTO
+            ) {
+                const resp = await retryAsyncFunction(() =>
+                    HTTPService.get(
+                        getFileURL(file.id),
+                        null,
+                        { 'X-Auth-Token': token },
+                        {
+                            responseType: 'arraybuffer',
+                            timeout,
+                            onDownloadProgress,
                         }
-                    });
+                    )
+                );
+                this.clearDownloadProgress(file.id);
+                if (typeof resp.data === 'undefined') {
+                    throw Error(CustomError.REQUEST_FAILED);
                 }
+                try {
+                    const decrypted = await cryptoWorker.decryptFile(
+                        new Uint8Array(resp.data),
+                        await cryptoWorker.fromB64(file.file.decryptionHeader),
+                        file.key
+                    );
+                    return generateStreamFromArrayBuffer(decrypted);
+                } catch (e) {
+                    if (e.message === CustomError.PROCESSING_FAILED) {
+                        logError(e, 'Failed to process file', {
+                            fileID: file.id,
+                            fromMobile:
+                                !!file.metadata.localID ||
+                                !!file.metadata.deviceFolder ||
+                                !!file.metadata.version,
+                        });
+                        addLogLine(
+                            `Failed to process file with fileID:${file.id}, localID: ${file.metadata.localID}, version: ${file.metadata.version}, deviceFolder:${file.metadata.deviceFolder} with error: ${e.message}`
+                        );
+                    }
+                    throw e;
+                }
+            }
+            const resp = await retryAsyncFunction(() =>
+                fetch(getFileURL(file.id), {
+                    headers: {
+                        'X-Auth-Token': token,
+                    },
+                })
+            );
+            const reader = resp.body.getReader();
 
-                push();
-            },
-        });
-        return stream;
+            const contentLength = +resp.headers.get('Content-Length') ?? 0;
+            let downloadedBytes = 0;
+
+            const stream = new ReadableStream({
+                async start(controller) {
+                    try {
+                        const decryptionHeader = await cryptoWorker.fromB64(
+                            file.file.decryptionHeader
+                        );
+                        const fileKey = await cryptoWorker.fromB64(file.key);
+                        const { pullState, decryptionChunkSize } =
+                            await cryptoWorker.initChunkDecryption(
+                                decryptionHeader,
+                                fileKey
+                            );
+                        let data = new Uint8Array();
+                        // The following function handles each data chunk
+                        const push = () => {
+                            // "done" is a Boolean and value a "Uint8Array"
+                            reader.read().then(async ({ done, value }) => {
+                                try {
+                                    // Is there more data to read?
+                                    if (!done) {
+                                        downloadedBytes += value.byteLength;
+                                        onDownloadProgress({
+                                            loaded: downloadedBytes,
+                                            total: contentLength,
+                                        });
+                                        const buffer = new Uint8Array(
+                                            data.byteLength + value.byteLength
+                                        );
+                                        buffer.set(new Uint8Array(data), 0);
+                                        buffer.set(
+                                            new Uint8Array(value),
+                                            data.byteLength
+                                        );
+                                        if (
+                                            buffer.length > decryptionChunkSize
+                                        ) {
+                                            const fileData = buffer.slice(
+                                                0,
+                                                decryptionChunkSize
+                                            );
+                                            try {
+                                                const { decryptedData } =
+                                                    await cryptoWorker.decryptFileChunk(
+                                                        fileData,
+                                                        pullState
+                                                    );
+                                                controller.enqueue(
+                                                    decryptedData
+                                                );
+                                                data =
+                                                    buffer.slice(
+                                                        decryptionChunkSize
+                                                    );
+                                            } catch (e) {
+                                                if (
+                                                    e.message ===
+                                                    CustomError.PROCESSING_FAILED
+                                                ) {
+                                                    logError(
+                                                        e,
+                                                        'Failed to process file',
+                                                        {
+                                                            fileID: file.id,
+                                                            fromMobile:
+                                                                !!file.metadata
+                                                                    .localID ||
+                                                                !!file.metadata
+                                                                    .deviceFolder ||
+                                                                !!file.metadata
+                                                                    .version,
+                                                        }
+                                                    );
+                                                    addLogLine(
+                                                        `Failed to process file ${file.id} from localID: ${file.metadata.localID} version: ${file.metadata.version} deviceFolder:${file.metadata.deviceFolder} with error: ${e.message}`
+                                                    );
+                                                }
+                                                throw e;
+                                            }
+                                        } else {
+                                            data = buffer;
+                                        }
+                                        push();
+                                    } else {
+                                        if (data) {
+                                            try {
+                                                const { decryptedData } =
+                                                    await cryptoWorker.decryptFileChunk(
+                                                        data,
+                                                        pullState
+                                                    );
+                                                controller.enqueue(
+                                                    decryptedData
+                                                );
+                                                data = null;
+                                            } catch (e) {
+                                                if (
+                                                    e.message ===
+                                                    CustomError.PROCESSING_FAILED
+                                                ) {
+                                                    logError(
+                                                        e,
+                                                        'Failed to process file',
+                                                        {
+                                                            fileID: file.id,
+                                                            fromMobile:
+                                                                !!file.metadata
+                                                                    .localID ||
+                                                                !!file.metadata
+                                                                    .deviceFolder ||
+                                                                !!file.metadata
+                                                                    .version,
+                                                        }
+                                                    );
+                                                    addLogLine(
+                                                        `Failed to process file ${file.id} from localID: ${file.metadata.localID} version: ${file.metadata.version} deviceFolder:${file.metadata.deviceFolder} with error: ${e.message}`
+                                                    );
+                                                }
+                                                throw e;
+                                            }
+                                        }
+                                        controller.close();
+                                    }
+                                } catch (e) {
+                                    logError(e, 'Failed to process file chunk');
+                                    controller.error(e);
+                                }
+                            });
+                        };
+
+                        push();
+                    } catch (e) {
+                        logError(e, 'Failed to process file stream');
+                        controller.error(e);
+                    }
+                },
+            });
+            return stream;
+        } catch (e) {
+            logError(e, 'Failed to download file');
+            throw e;
+        }
     }
+
+    trackDownloadProgress = (fileID: number, fileSize: number) => {
+        return (event: { loaded: number; total: number }) => {
+            if (isNaN(event.total) || event.total === 0) {
+                if (!fileSize) {
+                    return;
+                }
+                event.total = fileSize;
+            }
+            if (event.loaded === event.total) {
+                this.fileDownloadProgress.delete(fileID);
+            } else {
+                this.fileDownloadProgress.set(
+                    fileID,
+                    Math.round((event.loaded * 100) / event.total)
+                );
+            }
+            this.progressUpdater(new Map(this.fileDownloadProgress));
+        };
+    };
+
+    clearDownloadProgress = (fileID: number) => {
+        this.fileDownloadProgress.delete(fileID);
+        this.progressUpdater(new Map(this.fileDownloadProgress));
+    };
 }
 
 export default new DownloadManager();

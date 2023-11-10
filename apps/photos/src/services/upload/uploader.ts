@@ -1,6 +1,6 @@
 import { EnteFile } from 'types/file';
 import { handleUploadError, CustomError } from 'utils/error';
-import { logError } from 'utils/sentry';
+import { logError } from '@ente/shared/sentry';
 import { findMatchingExistingFiles } from 'utils/upload';
 import UIService from './uiService';
 import UploadService from './uploadService';
@@ -11,8 +11,9 @@ import {
     UploadFile,
     FileWithMetadata,
     FileTypeInfo,
+    Logger,
 } from 'types/upload';
-import { addLocalLog, addLogLine } from 'utils/logging';
+import { addLocalLog, addLogLine } from '@ente/shared/logging';
 import { convertBytesToHumanReadable } from 'utils/file/size';
 import { sleep } from 'utils/common';
 import { addToCollection } from 'services/collectionService';
@@ -145,8 +146,11 @@ export default async function uploader(
             throw Error(CustomError.UPLOAD_CANCELLED);
         }
         addLogLine(`uploadToBucket ${fileNameSize}`);
-
+        const logger: Logger = (message: string) => {
+            addLogLine(message, `fileNameSize: ${fileNameSize}`);
+        };
         const backupedFile: BackupedFile = await UploadService.uploadToBucket(
+            logger,
             encryptedFile.file
         );
 
@@ -155,6 +159,7 @@ export default async function uploader(
             backupedFile,
             encryptedFile.fileKey
         );
+        addLogLine(`uploading file to server ${fileNameSize}`);
 
         const uploadedFile = await UploadService.uploadFile(uploadFile);
 
@@ -179,8 +184,6 @@ export default async function uploader(
         }
         const error = handleUploadError(e);
         switch (error.message) {
-            case CustomError.UPLOAD_CANCELLED:
-                return { fileUploadResult: UPLOAD_RESULT.CANCELLED };
             case CustomError.ETAG_MISSING:
                 return { fileUploadResult: UPLOAD_RESULT.BLOCKED };
             case CustomError.UNSUPPORTED_FILE_FORMAT:

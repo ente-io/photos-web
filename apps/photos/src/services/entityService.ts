@@ -2,7 +2,7 @@ import { getToken } from 'utils/common/key';
 import localForage from 'utils/storage/localForage';
 import HTTPService from './HTTPService';
 import { getEndpoint } from 'utils/common/apiUtil';
-import { logError } from 'utils/sentry';
+import { logError } from '@ente/shared/sentry';
 import ComlinkCryptoWorker from 'utils/comlink/ComlinkCryptoWorker';
 import { getActualKey } from 'utils/common/key';
 import {
@@ -14,6 +14,7 @@ import {
     EncryptedEntity,
 } from 'types/entity';
 import { getLatestVersionEntities } from 'utils/entity';
+import { addLogLine } from '@ente/shared/logging';
 
 const ENDPOINT = getEndpoint();
 
@@ -108,7 +109,11 @@ export const syncEntities = async () => {
 const syncEntity = async <T>(type: EntityType): Promise<Entity<T>> => {
     try {
         let entities = await getLocalEntity(type);
+        addLogLine(
+            `Syncing ${type} entities localEntitiesCount: ${entities.length}`
+        );
         let syncTime = await getEntityLastSyncTime(type);
+        addLogLine(`Syncing ${type} entities syncTime: ${syncTime}`);
         let response: EntitySyncDiffResponse;
         do {
             response = await getEntityDiff(type, syncTime);
@@ -152,7 +157,10 @@ const syncEntity = async <T>(type: EntityType): Promise<Entity<T>> => {
             }
             await localForage.setItem(ENTITY_TABLES[type], nonDeletedEntities);
             await localForage.setItem(ENTITY_SYNC_TIME_TABLES[type], syncTime);
-        } while (response.hasMore);
+            addLogLine(
+                `Syncing ${type} entities syncedEntitiesCount: ${nonDeletedEntities.length}`
+            );
+        } while (response.diff.length === DIFF_LIMIT);
     } catch (e) {
         logError(e, 'Sync entity failed');
     }

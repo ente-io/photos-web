@@ -18,6 +18,8 @@ export function isDataStream(object: any): object is DataStream {
     return 'stream' in object;
 }
 
+export type Logger = (message: string) => void;
+
 export interface Metadata {
     title: string;
     creationTime: number;
@@ -29,6 +31,9 @@ export interface Metadata {
     hash?: string;
     imageHash?: string;
     videoHash?: string;
+    localID?: number;
+    version?: number;
+    deviceFolder?: string;
 }
 
 export interface Location {

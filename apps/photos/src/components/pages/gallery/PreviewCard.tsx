@@ -3,13 +3,13 @@ import { EnteFile } from 'types/file';
 import { styled } from '@mui/material';
 import PlayCircleOutlineOutlinedIcon from '@mui/icons-material/PlayCircleOutlineOutlined';
 import DownloadManager from 'services/downloadManager';
-import useLongPress from 'hooks/useLongPress';
+import useLongPress from '@ente/shared/hooks/useLongPress';
 import { GalleryContext } from 'pages/gallery';
 import { GAP_BTW_TILES, IMAGE_CONTAINER_MAX_WIDTH } from 'constants/gallery';
 import { PublicCollectionGalleryContext } from 'utils/publicCollectionGallery';
 import PublicCollectionDownloadManager from 'services/publicCollectionDownloadManager';
 import { DeduplicateContext } from 'pages/deduplicate';
-import { logError } from 'utils/sentry';
+import { logError } from '@ente/shared/sentry';
 import { Overlay } from 'components/Container';
 import { TRASH_SECTION } from 'constants/collection';
 import { formatDateRelative } from 'utils/time/format';
@@ -34,7 +34,7 @@ interface IProps {
     isRangeSelectActive: boolean;
     selectOnClick: boolean;
     isInsSelectRange: boolean;
-    activeCollection: number;
+    activeCollectionID: number;
     showPlaceholder: boolean;
 }
 
@@ -197,7 +197,7 @@ const Cont = styled('div')<{ disabled: boolean }>`
     position: relative;
     flex: 1;
     cursor: ${(props) => (props.disabled ? 'not-allowed' : 'pointer')};
-
+    user-select: none;
     & > img {
         object-fit: cover;
         max-width: 100%;
@@ -216,7 +216,15 @@ const Cont = styled('div')<{ disabled: boolean }>`
 `;
 
 export default function PreviewCard(props: IProps) {
-    const { thumbs, user } = useContext(GalleryContext);
+    const galleryContext = useContext(GalleryContext);
+    const publicCollectionGalleryContext = useContext(
+        PublicCollectionGalleryContext
+    );
+    const deduplicateContext = useContext(DeduplicateContext);
+
+    const thumbsStore = publicCollectionGalleryContext?.accessedThroughSharedURL
+        ? publicCollectionGalleryContext.thumbs
+        : galleryContext.thumbs;
 
     const {
         file,
@@ -234,11 +242,6 @@ export default function PreviewCard(props: IProps) {
 
     const [imgSrc, setImgSrc] = useState<string>(file.msrc);
 
-    const publicCollectionGalleryContext = useContext(
-        PublicCollectionGalleryContext
-    );
-    const deduplicateContext = useContext(DeduplicateContext);
-
     const isMounted = useRef(true);
 
     useEffect(() => {
@@ -255,8 +258,8 @@ export default function PreviewCard(props: IProps) {
                 }
                 let url: string;
                 // check in in-memory cache
-                if (thumbs.has(file.id)) {
-                    url = thumbs.get(file.id);
+                if (thumbsStore.has(file.id)) {
+                    url = thumbsStore.get(file.id);
                 } else {
                     // check in cacheStorage
                     if (
@@ -270,7 +273,7 @@ export default function PreviewCard(props: IProps) {
                         url = await DownloadManager.getCachedThumbnail(file);
                     }
                     if (url) {
-                        thumbs.set(file.id, url);
+                        thumbsStore.set(file.id, url);
                     } else {
                         // download thumbnail
                         if (props.showPlaceholder) {
@@ -288,7 +291,7 @@ export default function PreviewCard(props: IProps) {
                         } else {
                             url = await DownloadManager.getThumbnail(file);
                         }
-                        thumbs.set(file.id, url);
+                        thumbsStore.set(file.id, url);
                     }
                 }
                 if (!isMounted.current) {
@@ -368,7 +371,7 @@ export default function PreviewCard(props: IProps) {
                 )
             )}
             <SelectedOverlay selected={selected} />
-            {shouldShowAvatar(file, user) && (
+            {shouldShowAvatar(file, galleryContext.user) && (
                 <AvatarOverlay>
                     <Avatar file={file} />
                 </AvatarOverlay>
@@ -388,7 +391,7 @@ export default function PreviewCard(props: IProps) {
                     </p>
                 </FileAndCollectionNameOverlay>
             )}
-            {props?.activeCollection === TRASH_SECTION && file.isTrashed && (
+            {props?.activeCollectionID === TRASH_SECTION && file.isTrashed && (
                 <FileAndCollectionNameOverlay>
                     <p>{formatDateRelative(file.deleteBy / 1000)}</p>
                 </FileAndCollectionNameOverlay>

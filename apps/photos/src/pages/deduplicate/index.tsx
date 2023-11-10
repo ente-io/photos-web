@@ -12,7 +12,7 @@ import { syncFiles, trashFiles } from 'services/fileService';
 import { EnteFile } from 'types/file';
 import { SelectedState } from 'types/gallery';
 
-import { ServerErrorCodes } from 'utils/error';
+import { ApiError } from 'utils/error';
 import { constructFileToCollectionMap, getSelectedFiles } from 'utils/file';
 import {
     DeduplicateContextType,
@@ -20,15 +20,17 @@ import {
 } from 'types/deduplicate';
 import Router from 'next/router';
 import DeduplicateOptions from 'components/pages/dedupe/SelectedFileOptions';
-import { PAGES } from 'constants/pages';
+import { PHOTOS_PAGES as PAGES } from '@ente/shared/constants/pages';
 import router from 'next/router';
 import { getKey, SESSION_KEYS } from 'utils/storage/sessionStorage';
 import { styled } from '@mui/material';
 import { getLatestCollections } from 'services/collectionService';
-import EnteSpinner from 'components/EnteSpinner';
+import EnteSpinner from '@ente/shared/components/EnteSpinner';
 import { VerticallyCentered } from 'components/Container';
 import Typography from '@mui/material/Typography';
-import useMemoSingleThreaded from 'hooks/useMemoSingleThreaded';
+import useMemoSingleThreaded from '@ente/shared/hooks/useMemoSingleThreaded';
+import InMemoryStore, { MS_KEYS } from 'services/InMemoryStore';
+import { HttpStatusCode } from 'axios';
 
 export const DeduplicateContext = createContext<DeduplicateContextType>(
     DefaultDeduplicateContext
@@ -39,13 +41,8 @@ export const Info = styled('div')`
 `;
 
 export default function Deduplicate() {
-    const {
-        setDialogMessage,
-        startLoading,
-        finishLoading,
-        showNavBar,
-        setRedirectURL,
-    } = useContext(AppContext);
+    const { setDialogMessage, startLoading, finishLoading, showNavBar } =
+        useContext(AppContext);
     const [duplicateFiles, setDuplicateFiles] = useState<EnteFile[]>(null);
     const [clubSameTimeFilesOnly, setClubSameTimeFilesOnly] = useState(false);
     const [fileSizeMap, setFileSizeMap] = useState(new Map<number, number>());
@@ -63,7 +60,7 @@ export default function Deduplicate() {
     useEffect(() => {
         const key = getKey(SESSION_KEYS.ENCRYPTION_KEY);
         if (!key) {
-            setRedirectURL(router.asPath);
+            InMemoryStore.set(MS_KEYS.REDIRECT_URL, PAGES.DEDUPLICATE);
             router.push(PAGES.ROOT);
             return;
         }
@@ -86,7 +83,7 @@ export default function Deduplicate() {
             collectionNameMap.set(collection.id, collection.name);
         }
         setCollectionNameMap(collectionNameMap);
-        const files = await syncFiles(collections, () => null);
+        const files = await syncFiles('normal', collections, () => null);
         let duplicates = await getDuplicateFiles(files, collectionNameMap);
         if (clubSameTimeFilesOnly) {
             duplicates = clubDuplicatesByTime(duplicates);
@@ -128,21 +125,24 @@ export default function Deduplicate() {
             const selectedFiles = getSelectedFiles(selected, duplicateFiles);
             await trashFiles(selectedFiles);
         } catch (e) {
-            switch (e.status?.toString()) {
-                case ServerErrorCodes.FORBIDDEN:
-                    setDialogMessage({
-                        title: t('ERROR'),
+            if (
+                e instanceof ApiError &&
+                e.httpStatusCode === HttpStatusCode.Forbidden
+            ) {
+                setDialogMessage({
+                    title: t('ERROR'),
 
-                        close: { variant: 'critical' },
-                        content: t('NOT_FILE_OWNER'),
-                    });
+                    close: { variant: 'critical' },
+                    content: t('NOT_FILE_OWNER'),
+                });
+            } else {
+                setDialogMessage({
+                    title: t('ERROR'),
+
+                    close: { variant: 'critical' },
+                    content: t('UNKNOWN_ERROR'),
+                });
             }
-            setDialogMessage({
-                title: t('ERROR'),
-
-                close: { variant: 'critical' },
-                content: t('UNKNOWN_ERROR'),
-            });
         } finally {
             await syncWithRemote();
             finishLoading();
@@ -156,9 +156,7 @@ export default function Deduplicate() {
     if (!duplicateFiles) {
         return (
             <VerticallyCentered>
-                <EnteSpinner>
-                    <span className="sr-only">Loading...</span>
-                </EnteSpinner>
+                <EnteSpinner />
             </VerticallyCentered>
         );
     }
@@ -194,7 +192,7 @@ export default function Deduplicate() {
                     syncWithRemote={syncWithRemote}
                     setSelected={setSelected}
                     selected={selected}
-                    activeCollection={ALL_SECTION}
+                    activeCollectionID={ALL_SECTION}
                     fileToCollectionsMap={fileToCollectionsMap}
                     collectionNameMap={collectionNameMap}
                 />

@@ -15,7 +15,7 @@ import {
 } from 'types/gallery';
 import { GalleryContext } from 'pages/gallery';
 import { AppContext } from 'pages/_app';
-import { logError } from 'utils/sentry';
+import { logError } from '@ente/shared/sentry';
 import uploadManager from 'services/upload/uploadManager';
 import ImportService from 'services/importService';
 import isElectron from 'is-electron';
@@ -56,7 +56,7 @@ import {
     groupFilesBasedOnParentFolder,
 } from 'utils/upload';
 import billingService from 'services/billingService';
-import { addLogLine } from 'utils/logging';
+import { addLogLine } from '@ente/shared/logging';
 import { PublicCollectionGalleryContext } from 'utils/publicCollectionGallery';
 import UserNameInputDialog from 'components/UserNameInputDialog';
 import {
@@ -90,6 +90,7 @@ interface Props {
     dragAndDropFiles: File[];
     uploadCollection?: Collection;
     uploadTypeSelectorIntent: UploadTypeSelectorIntent;
+    activeCollection?: Collection;
 }
 
 export default function Uploader(props: Props) {
@@ -134,6 +135,7 @@ export default function Uploader(props: Props) {
     const currentUploadPromise = useRef<Promise<void>>(null);
     const uploadRunning = useRef(false);
     const uploaderNameRef = useRef<string>(null);
+    const isDragAndDrop = useRef(false);
 
     const closeUploadProgress = () => setUploadProgressView(false);
     const showUserNameInputDialog = () => setUserNameInputDialogView(true);
@@ -167,6 +169,7 @@ export default function Uploader(props: Props) {
                 setUploadStage,
                 setUploadFilenames: setUploadFileNames,
                 setHasLivePhotos,
+                setUploadProgressView,
             },
             props.setFiles,
             publicCollectionGalleryContext
@@ -219,6 +222,7 @@ export default function Uploader(props: Props) {
             addLogLine(`received file upload request`);
             setWebFiles(props.webFileSelectorFiles);
         } else if (props.dragAndDropFiles?.length > 0) {
+            isDragAndDrop.current = true;
             if (isElectron()) {
                 const main = async () => {
                     try {
@@ -394,7 +398,7 @@ export default function Uploader(props: Props) {
                     localID: index,
                     collectionID: collection.id,
                 }));
-            waitInQueueAndUploadFiles(
+            await waitInQueueAndUploadFiles(
                 filesWithCollectionToUpload,
                 [collection],
                 uploaderName
@@ -468,14 +472,17 @@ export default function Uploader(props: Props) {
                 });
                 throw e;
             }
-            waitInQueueAndUploadFiles(filesWithCollectionToUpload, collections);
+            await waitInQueueAndUploadFiles(
+                filesWithCollectionToUpload,
+                collections
+            );
             toUploadFiles.current = null;
         } catch (e) {
             logError(e, 'Failed to upload files to new collections');
         }
     };
 
-    const waitInQueueAndUploadFiles = (
+    const waitInQueueAndUploadFiles = async (
         filesWithCollectionToUploadIn: FileWithCollection[],
         collections: Collection[],
         uploaderName?: string
@@ -490,6 +497,7 @@ export default function Uploader(props: Props) {
                     uploaderName
                 )
         );
+        await currentUploadPromise.current;
     };
 
     const preUploadAction = async () => {
@@ -678,6 +686,16 @@ export default function Uploader(props: Props) {
             }
             if (isFirstUpload && !importSuggestion.rootFolderName) {
                 importSuggestion.rootFolderName = FIRST_ALBUM_NAME;
+            }
+            if (isDragAndDrop.current) {
+                isDragAndDrop.current = false;
+                if (
+                    props.activeCollection &&
+                    props.activeCollection.owner.id === galleryContext.user?.id
+                ) {
+                    uploadFilesToExistingCollection(props.activeCollection);
+                    return;
+                }
             }
             let showNextModal = () => {};
             if (importSuggestion.hasNestedFolders) {

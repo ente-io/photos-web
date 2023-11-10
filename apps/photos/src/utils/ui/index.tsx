@@ -8,7 +8,7 @@ import { AppUpdateInfo } from 'types/electron';
 import InfoOutlined from '@mui/icons-material/InfoRounded';
 import { Trans } from 'react-i18next';
 import { Subscription } from 'types/billing';
-import { logoutUser } from 'services/userService';
+import { logoutUser } from '@ente/accounts/services/user';
 import { Link } from '@mui/material';
 import { OPEN_STREET_MAP_LINK } from 'components/Sidebar/EnableMap';
 export const getDownloadAppMessage = (): DialogBoxAttributes => {
@@ -161,6 +161,19 @@ export const getMapDisableConfirmationDialog = (
         action: disableMapHelper,
         text: t('DISABLE'),
         variant: 'accent',
+    },
+    close: { text: t('CANCEL') },
+});
+
+export const getEditorCloseConfirmationMessage = (
+    doClose: () => void
+): DialogBoxAttributes => ({
+    title: t('CONFIRM_EDITOR_CLOSE_MESSAGE'),
+    content: t('CONFIRM_EDITOR_CLOSE_DESCRIPTION'),
+    proceed: {
+        action: doClose,
+        text: t('CLOSE'),
+        variant: 'critical',
     },
     close: { text: t('CANCEL') },
 });

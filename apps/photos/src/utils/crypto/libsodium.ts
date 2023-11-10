@@ -1,6 +1,7 @@
 import sodium, { StateAddress } from 'libsodium-wrappers';
 import { ENCRYPTION_CHUNK_SIZE } from 'constants/crypto';
 import { B64EncryptionResult } from 'types/crypto';
+import { CustomError } from 'utils/error';
 
 export async function decryptChaChaOneShot(
     data: Uint8Array,
@@ -46,6 +47,9 @@ export async function decryptChaCha(
             pullState,
             buffer
         );
+        if (!pullResult.message) {
+            throw new Error(CustomError.PROCESSING_FAILED);
+        }
         for (let index = 0; index < pullResult.message.length; index++) {
             decryptedData.push(pullResult.message[index]);
         }
@@ -77,6 +81,9 @@ export async function decryptFileChunk(
         pullState,
         data
     );
+    if (!pullResult.message) {
+        throw new Error(CustomError.PROCESSING_FAILED);
+    }
     const newTag = pullResult.tag;
     return { decryptedData: pullResult.message, newTag };
 }
@@ -195,7 +202,7 @@ export async function generateKeyAndEncryptToB64(data: string) {
 }
 
 export async function encryptUTF8(data: string, key: string) {
-    const b64Data = await toB64(await fromString(data));
+    const b64Data = await toB64(await fromUTF8(data));
     return await encryptToB64(b64Data, key);
 }
 
@@ -274,7 +281,7 @@ export async function deriveKey(
     return await toB64(
         sodium.crypto_pwhash(
             sodium.crypto_secretbox_KEYBYTES,
-            await fromString(passphrase),
+            await fromUTF8(passphrase),
             await fromB64(salt),
             opsLimit,
             memLimit,
@@ -308,7 +315,7 @@ export async function deriveInteractiveKey(passphrase: string, salt: string) {
     const key = await toB64(
         sodium.crypto_pwhash(
             sodium.crypto_secretbox_KEYBYTES,
-            await fromString(passphrase),
+            await fromUTF8(passphrase),
             await fromB64(salt),
             sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE,
             sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE,
@@ -363,6 +370,23 @@ export async function boxSeal(input: string, publicKey: string) {
     );
 }
 
+export async function generateSubKey(
+    key: string,
+    subKeyLength: number,
+    subKeyID: number,
+    context: string
+) {
+    await sodium.ready;
+    return await toB64(
+        sodium.crypto_kdf_derive_from_key(
+            subKeyLength,
+            subKeyID,
+            context,
+            await fromB64(key)
+        )
+    );
+}
+
 export async function fromB64(input: string) {
     await sodium.ready;
     return sodium.from_base64(input, sodium.base64_variants.ORIGINAL);
@@ -378,9 +402,14 @@ export async function toURLSafeB64(input: Uint8Array) {
     return sodium.to_base64(input, sodium.base64_variants.URLSAFE);
 }
 
-export async function fromString(input: string) {
+export async function fromUTF8(input: string) {
     await sodium.ready;
     return sodium.from_string(input);
+}
+
+export async function toUTF8(input: string) {
+    await sodium.ready;
+    return sodium.to_string(await fromB64(input));
 }
 export async function toHex(input: string) {
     await sodium.ready;

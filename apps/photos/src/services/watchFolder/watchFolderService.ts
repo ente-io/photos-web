@@ -1,10 +1,9 @@
 import { Collection } from 'types/collection';
 import { EncryptedEnteFile } from 'types/file';
 import { ElectronFile, FileWithCollection } from 'types/upload';
-import { runningInBrowser } from 'utils/common';
 import { removeFromCollection } from '../collectionService';
 import { getLocalFiles } from '../fileService';
-import { logError } from 'utils/sentry';
+import { logError } from '@ente/shared/sentry';
 import {
     EventQueueItem,
     WatchMapping,
@@ -20,7 +19,7 @@ import {
 import { getParentFolderName } from './utils';
 import { UPLOAD_RESULT, UPLOAD_STRATEGY } from 'constants/upload';
 import uploadManager from 'services/upload/uploadManager';
-import { addLocalLog, addLogLine } from 'utils/logging';
+import { addLocalLog, addLogLine } from '@ente/shared/logging';
 import { getValidFilesToUpload } from 'utils/watch';
 import { groupFilesBasedOnCollectionID } from 'utils/file';
 
@@ -42,8 +41,7 @@ class watchFolderService {
     private setWatchFolderServiceIsRunning: (isRunning: boolean) => void;
 
     constructor() {
-        this.electronAPIs = (runningInBrowser() &&
-            window['ElectronAPIs']) as ElectronAPIs;
+        this.electronAPIs = globalThis['ElectronAPIs'];
         this.allElectronAPIsExist = !!this.electronAPIs?.getWatchMappings;
     }
 
@@ -615,7 +613,7 @@ class watchFolderService {
 
     async selectFolder(): Promise<string> {
         try {
-            const folderPath = await this.electronAPIs.selectRootDirectory();
+            const folderPath = await this.electronAPIs.selectDirectory();
             return folderPath;
         } catch (e) {
             logError(e, 'error while selecting folder');

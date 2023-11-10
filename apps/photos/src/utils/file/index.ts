@@ -11,7 +11,7 @@ import {
 import { decodeLivePhoto } from 'services/livePhotoService';
 import { getFileType } from 'services/typeDetectionService';
 import DownloadManager from 'services/downloadManager';
-import { logError } from 'utils/sentry';
+import { logError } from '@ente/shared/sentry';
 import { User } from 'types/user';
 import { getData, LS_KEYS } from 'utils/storage/localStorage';
 import { updateFileCreationDateInEXIF } from 'services/upload/exifService';
@@ -30,11 +30,13 @@ import * as ffmpegService from 'services/ffmpeg/ffmpegService';
 import { VISIBILITY_STATE } from 'types/magicMetadata';
 import { isArchivedFile, updateMagicMetadata } from 'utils/magicMetadata';
 
-import { addLocalLog, addLogLine } from 'utils/logging';
+import { addLocalLog, addLogLine } from '@ente/shared/logging';
 import { CustomError } from 'utils/error';
 import { convertBytesToHumanReadable } from './size';
 import ComlinkCryptoWorker from 'utils/comlink/ComlinkCryptoWorker';
 import {
+    deleteFromTrash,
+    trashFiles,
     updateFileMagicMetadata,
     updateFilePublicMagicMetadata,
 } from 'services/fileService';
@@ -42,8 +44,22 @@ import isElectron from 'is-electron';
 import imageProcessor from 'services/electron/imageProcessor';
 import { isPlaybackPossible } from 'utils/photoFrame';
 import { FileTypeInfo } from 'types/upload';
+import { moveToHiddenCollection } from 'services/collectionService';
+
+import ElectronFSService from 'services/electron/fs';
+import { getFileExportPath, getUniqueFileExportName } from 'utils/export';
 
 const WAIT_TIME_IMAGE_CONVERSION = 30 * 1000;
+
+export enum FILE_OPS_TYPE {
+    DOWNLOAD,
+    FIX_TIME,
+    ARCHIVE,
+    UNARCHIVE,
+    HIDE,
+    TRASH,
+    DELETE_PERMANENTLY,
+}
 
 export function downloadAsFile(filename: string, content: string) {
     const file = new Blob([content], {
@@ -51,6 +67,29 @@ export function downloadAsFile(filename: string, content: string) {
     });
     const fileURL = URL.createObjectURL(file);
     downloadUsingAnchor(fileURL, filename);
+}
+
+export async function getUpdatedEXIFFileForDownload(
+    fileReader: FileReader,
+    file: EnteFile,
+    fileStream: ReadableStream<Uint8Array>
+): Promise<ReadableStream<Uint8Array>> {
+    const extension = getFileExtension(file.metadata.title);
+    if (
+        file.metadata.fileType === FILE_TYPE.IMAGE &&
+        file.pubMagicMetadata?.data.editedTime &&
+        (extension === TYPE_JPEG || extension === TYPE_JPG)
+    ) {
+        const fileBlob = await new Response(fileStream).blob();
+        const updatedFileBlob = await updateFileCreationDateInEXIF(
+            fileReader,
+            fileBlob,
+            new Date(file.pubMagicMetadata.data.editedTime / 1000)
+        );
+        return updatedFileBlob.stream();
+    } else {
+        return fileStream;
+    }
 }
 
 export async function downloadFile(
@@ -109,27 +148,24 @@ export async function downloadFile(
             const fileType = await getFileType(
                 new File([fileBlob], file.metadata.title)
             );
-            if (
-                file.pubMagicMetadata?.data.editedTime &&
-                (fileType.exactType === TYPE_JPEG ||
-                    fileType.exactType === TYPE_JPG)
-            ) {
-                fileBlob = await updateFileCreationDateInEXIF(
+            fileBlob = await new Response(
+                await getUpdatedEXIFFileForDownload(
                     fileReader,
-                    fileBlob,
-                    new Date(file.pubMagicMetadata.data.editedTime / 1000)
-                );
-            }
+                    file,
+                    fileBlob.stream()
+                )
+            ).blob();
             fileBlob = new Blob([fileBlob], { type: fileType.mimeType });
             const tempURL = URL.createObjectURL(fileBlob);
             downloadUsingAnchor(tempURL, file.metadata.title);
         }
     } catch (e) {
         logError(e, 'failed to download file');
+        throw e;
     }
 }
 
-function downloadUsingAnchor(link: string, name: string) {
+export function downloadUsingAnchor(link: string, name: string) {
     const a = document.createElement('a');
     a.style.display = 'none';
     a.href = link;
@@ -180,6 +216,20 @@ export function sortFiles(files: EnteFile[], sortAsc = false) {
             );
         }
         return factor * (b.metadata.creationTime - a.metadata.creationTime);
+    });
+}
+
+export function sortTrashFiles(files: EnteFile[]) {
+    return files.sort((a, b) => {
+        if (a.deleteBy === b.deleteBy) {
+            if (a.metadata.creationTime === b.metadata.creationTime) {
+                return (
+                    b.metadata.modificationTime - a.metadata.modificationTime
+                );
+            }
+            return b.metadata.creationTime - a.metadata.creationTime;
+        }
+        return a.deleteBy - b.deleteBy;
     });
 }
 
@@ -242,13 +292,13 @@ export async function decryptFile(
     }
 }
 
-export function fileNameWithoutExtension(filename: string) {
+export function getFileNameWithoutExtension(filename: string) {
     const lastDotPosition = filename.lastIndexOf('.');
     if (lastDotPosition === -1) return filename;
     else return filename.slice(0, lastDotPosition);
 }
 
-export function fileExtensionWithDot(filename: string) {
+export function getFileExtensionWithDot(filename: string) {
     const lastDotPosition = filename.lastIndexOf('.');
     if (lastDotPosition === -1) return '';
     else return filename.slice(lastDotPosition);
@@ -284,30 +334,30 @@ export async function getRenderableFileURL(file: EnteFile, fileBlob: Blob) {
                 file.metadata.title,
                 fileBlob
             );
+            const { originalURL, convertedURL } = getFileObjectURLs(
+                fileBlob,
+                convertedBlob
+            );
             return {
-                converted: [
-                    convertedBlob ? URL.createObjectURL(convertedBlob) : null,
-                ],
-                original: [URL.createObjectURL(fileBlob)],
+                converted: [convertedURL],
+                original: [originalURL],
             };
         }
         case FILE_TYPE.LIVE_PHOTO: {
-            const livePhoto = await getRenderableLivePhoto(file, fileBlob);
-            return {
-                converted: livePhoto.map((asset) =>
-                    asset ? URL.createObjectURL(asset) : null
-                ),
-                original: [URL.createObjectURL(fileBlob)],
-            };
+            return await getRenderableLivePhotoURL(file, fileBlob);
         }
         case FILE_TYPE.VIDEO: {
             const convertedBlob = await getPlayableVideo(
                 file.metadata.title,
-                new Uint8Array(await fileBlob.arrayBuffer())
+                fileBlob
+            );
+            const { originalURL, convertedURL } = getFileObjectURLs(
+                fileBlob,
+                convertedBlob
             );
             return {
-                converted: [URL.createObjectURL(convertedBlob)],
-                original: [URL.createObjectURL(fileBlob)],
+                converted: [convertedURL],
+                original: [originalURL],
             };
         }
         default: {
@@ -323,38 +373,62 @@ export async function getRenderableFileURL(file: EnteFile, fileBlob: Blob) {
     }
 }
 
-async function getRenderableLivePhoto(
+async function getRenderableLivePhotoURL(
     file: EnteFile,
     fileBlob: Blob
-): Promise<Blob[]> {
+): Promise<{ original: string[]; converted: string[] }> {
     const livePhoto = await decodeLivePhoto(file, fileBlob);
     const imageBlob = new Blob([livePhoto.image]);
-    return await Promise.all([
-        getRenderableImage(livePhoto.imageNameTitle, imageBlob),
-        getPlayableVideo(livePhoto.videoNameTitle, livePhoto.video),
-    ]);
+    const videoBlob = new Blob([livePhoto.video]);
+    const convertedImageBlob = await getRenderableImage(
+        livePhoto.imageNameTitle,
+        imageBlob
+    );
+    const convertedVideoBlob = await getPlayableVideo(
+        livePhoto.videoNameTitle,
+        videoBlob,
+        true
+    );
+    const { originalURL: originalImageURL, convertedURL: convertedImageURL } =
+        getFileObjectURLs(imageBlob, convertedImageBlob);
+
+    const { originalURL: originalVideoURL, convertedURL: convertedVideoURL } =
+        getFileObjectURLs(videoBlob, convertedVideoBlob);
+    return {
+        converted: [convertedImageURL, convertedVideoURL],
+        original: [originalImageURL, originalVideoURL],
+    };
 }
 
 export async function getPlayableVideo(
     videoNameTitle: string,
-    video: Uint8Array
+    videoBlob: Blob,
+    forceConvert = false
 ) {
     try {
         const isPlayable = await isPlaybackPossible(
-            URL.createObjectURL(new Blob([video]))
+            URL.createObjectURL(videoBlob)
         );
-        if (isPlayable) {
-            return new Blob([video.buffer]);
+        if (isPlayable && !forceConvert) {
+            return videoBlob;
         } else {
-            addLogLine('video format not supported, converting it');
-            const mp4ConvertedVideo = await ffmpegService.convertToMP4(
-                new File([video], videoNameTitle)
+            if (!forceConvert && !isElectron()) {
+                return null;
+            }
+            addLogLine(
+                'video format not supported, converting it name:',
+                videoNameTitle
             );
+            const mp4ConvertedVideo = await ffmpegService.convertToMP4(
+                new File([videoBlob], videoNameTitle)
+            );
+            addLogLine('video successfully converted', videoNameTitle);
             return new Blob([await mp4ConvertedVideo.arrayBuffer()]);
         }
     } catch (e) {
+        addLogLine('video conversion failed', videoNameTitle);
         logError(e, 'video conversion failed');
-        return new Blob([video.buffer]);
+        return null;
     }
 }
 
@@ -422,6 +496,15 @@ export function isFileHEIC(exactType: string) {
 
 export function isRawFile(exactType: string) {
     return RAW_FORMATS.includes(exactType.toLowerCase());
+}
+
+export function isRawFileFromFileName(fileName: string) {
+    for (const rawFormat of RAW_FORMATS) {
+        if (fileName.toLowerCase().endsWith(rawFormat)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 export function isSupportedRawFormat(exactType: string) {
@@ -562,13 +645,107 @@ export function getUniqueFiles(files: EnteFile[], sortAsc = false) {
     return uniqueFiles;
 }
 
-export async function downloadFiles(files: EnteFile[]) {
+export async function downloadFiles(
+    files: EnteFile[],
+    progressBarUpdater?: {
+        increaseSuccess: () => void;
+        increaseFailed: () => void;
+        isCancelled: () => boolean;
+    }
+) {
     for (const file of files) {
         try {
+            if (progressBarUpdater?.isCancelled()) {
+                return;
+            }
             await downloadFile(file, false);
+            progressBarUpdater?.increaseSuccess();
         } catch (e) {
             logError(e, 'download fail for file');
+            progressBarUpdater?.increaseFailed();
         }
+    }
+}
+
+export async function downloadFilesDesktop(
+    files: EnteFile[],
+    progressBarUpdater: {
+        increaseSuccess: () => void;
+        increaseFailed: () => void;
+        isCancelled: () => boolean;
+    },
+    downloadPath: string
+) {
+    const fileReader = new FileReader();
+    for (const file of files) {
+        try {
+            if (progressBarUpdater?.isCancelled()) {
+                return;
+            }
+            await downloadFileDesktop(fileReader, file, downloadPath);
+            progressBarUpdater?.increaseSuccess();
+        } catch (e) {
+            logError(e, 'download fail for file');
+            progressBarUpdater?.increaseFailed();
+        }
+    }
+}
+
+export async function downloadFileDesktop(
+    fileReader: FileReader,
+    file: EnteFile,
+    downloadPath: string
+) {
+    let fileStream: ReadableStream<Uint8Array>;
+    const fileURL = await DownloadManager.getCachedOriginalFile(file)[0];
+    if (!fileURL) {
+        fileStream = await DownloadManager.downloadFile(file);
+    } else {
+        fileStream = await fetch(fileURL).then((res) => res.body);
+    }
+    const updatedFileStream = await getUpdatedEXIFFileForDownload(
+        fileReader,
+        file,
+        fileStream
+    );
+
+    if (file.metadata.fileType === FILE_TYPE.LIVE_PHOTO) {
+        const fileBlob = await new Response(updatedFileStream).blob();
+        const livePhoto = await decodeLivePhoto(file, fileBlob);
+        const imageExportName = getUniqueFileExportName(
+            downloadPath,
+            livePhoto.imageNameTitle
+        );
+        const imageStream = generateStreamFromArrayBuffer(livePhoto.image);
+        await ElectronFSService.saveMediaFile(
+            getFileExportPath(downloadPath, imageExportName),
+            imageStream
+        );
+        try {
+            const videoExportName = getUniqueFileExportName(
+                downloadPath,
+                livePhoto.videoNameTitle
+            );
+            const videoStream = generateStreamFromArrayBuffer(livePhoto.video);
+            await ElectronFSService.saveMediaFile(
+                getFileExportPath(downloadPath, videoExportName),
+                videoStream
+            );
+        } catch (e) {
+            ElectronFSService.deleteFile(
+                getFileExportPath(downloadPath, imageExportName)
+            );
+            throw e;
+        }
+    } else {
+        const fileExportName = getUniqueFileExportName(
+            downloadPath,
+            file.metadata.title
+        );
+        await ElectronFSService.saveMediaFile(
+            getFileExportPath(downloadPath, fileExportName),
+            updatedFileStream
+        );
     }
 }
 
@@ -690,4 +867,106 @@ export const shouldShowAvatar = (file: EnteFile, user: User) => {
     } else {
         return false;
     }
+};
+
+export const handleFileOps = async (
+    ops: FILE_OPS_TYPE,
+    files: EnteFile[],
+    setDeletedFileIds: (
+        deletedFileIds: Set<number> | ((prev: Set<number>) => Set<number>)
+    ) => void,
+    setHiddenFileIds: (
+        hiddenFileIds: Set<number> | ((prev: Set<number>) => Set<number>)
+    ) => void,
+    setFixCreationTimeAttributes: (
+        fixCreationTimeAttributes:
+            | {
+                  files: EnteFile[];
+              }
+            | ((prev: { files: EnteFile[] }) => { files: EnteFile[] })
+    ) => void
+) => {
+    switch (ops) {
+        case FILE_OPS_TYPE.TRASH:
+            await deleteFileHelper(files, false, setDeletedFileIds);
+            break;
+        case FILE_OPS_TYPE.DELETE_PERMANENTLY:
+            await deleteFileHelper(files, true, setDeletedFileIds);
+            break;
+        case FILE_OPS_TYPE.HIDE:
+            await hideFilesHelper(files, setHiddenFileIds);
+            break;
+        case FILE_OPS_TYPE.DOWNLOAD:
+            await downloadFiles(files);
+            break;
+        case FILE_OPS_TYPE.FIX_TIME:
+            fixTimeHelper(files, setFixCreationTimeAttributes);
+            break;
+        case FILE_OPS_TYPE.ARCHIVE:
+            await changeFilesVisibility(files, VISIBILITY_STATE.ARCHIVED);
+            break;
+        case FILE_OPS_TYPE.UNARCHIVE:
+            await changeFilesVisibility(files, VISIBILITY_STATE.VISIBLE);
+            break;
+    }
+};
+
+const deleteFileHelper = async (
+    selectedFiles: EnteFile[],
+    permanent: boolean,
+    setDeletedFileIds: (
+        deletedFileIds: Set<number> | ((prev: Set<number>) => Set<number>)
+    ) => void
+) => {
+    try {
+        setDeletedFileIds((deletedFileIds) => {
+            selectedFiles.forEach((file) => deletedFileIds.add(file.id));
+            return new Set(deletedFileIds);
+        });
+        if (permanent) {
+            await deleteFromTrash(selectedFiles.map((file) => file.id));
+        } else {
+            await trashFiles(selectedFiles);
+        }
+    } catch (e) {
+        setDeletedFileIds(new Set());
+        throw e;
+    }
+};
+
+const hideFilesHelper = async (
+    selectedFiles: EnteFile[],
+    setHiddenFileIds: (
+        hiddenFileIds: Set<number> | ((prev: Set<number>) => Set<number>)
+    ) => void
+) => {
+    try {
+        setHiddenFileIds((hiddenFileIds) => {
+            selectedFiles.forEach((file) => hiddenFileIds.add(file.id));
+            return new Set(hiddenFileIds);
+        });
+        await moveToHiddenCollection(selectedFiles);
+    } catch (e) {
+        setHiddenFileIds(new Set());
+        throw e;
+    }
+};
+
+const fixTimeHelper = async (
+    selectedFiles: EnteFile[],
+    setFixCreationTimeAttributes: (fixCreationTimeAttributes: {
+        files: EnteFile[];
+    }) => void
+) => {
+    setFixCreationTimeAttributes({ files: selectedFiles });
+};
+
+const getFileObjectURLs = (originalBlob: Blob, convertedBlob: Blob) => {
+    const originalURL = URL.createObjectURL(originalBlob);
+    const convertedURL = convertedBlob
+        ? convertedBlob === originalBlob
+            ? originalURL
+            : URL.createObjectURL(convertedBlob)
+        : null;
+    return { originalURL, convertedURL };
 };

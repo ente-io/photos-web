@@ -7,6 +7,7 @@ import {
     getLocalPublicFiles,
     getPublicCollection,
     getPublicCollectionUID,
+    getReferralCode,
     removePublicCollectionWithFiles,
     removePublicFiles,
     savePublicCollectionPassword,
@@ -26,27 +27,27 @@ import {
 } from 'components/Container';
 import { t } from 'i18next';
 
-import EnteSpinner from 'components/EnteSpinner';
-import { PAGES } from 'constants/pages';
+import EnteSpinner from '@ente/shared/components/EnteSpinner';
+import { PHOTOS_PAGES as PAGES } from '@ente/shared/constants/pages';
 import { useRouter } from 'next/router';
 import SingleInputForm, {
     SingleInputFormProps,
-} from 'components/SingleInputForm';
-import { logError } from 'utils/sentry';
+} from '@ente/shared/components/SingleInputForm';
+import { logError } from '@ente/shared/sentry';
 import SharedAlbumNavbar from 'components/pages/sharedAlbum/Navbar';
 import { CollectionInfo } from 'components/Collections/CollectionInfo';
 import { CollectionInfoBarWrapper } from 'components/Collections/styledComponents';
 import { ITEM_TYPE, TimeStampListItem } from 'components/PhotoList';
-import FormPaper from 'components/Form/FormPaper';
-import FormPaperTitle from 'components/Form/FormPaper/Title';
+import FormPaper from '@ente/shared/components/Form/FormPaper';
+import FormPaperTitle from '@ente/shared/components/Form/FormPaper/Title';
 import Typography from '@mui/material/Typography';
 import Uploader from 'components/Upload/Uploader';
 import { LoadingOverlay } from 'components/LoadingOverlay';
 import FullScreenDropZone from 'components/FullScreenDropZone';
-import useFileInput from 'hooks/useFileInput';
+import useFileInput from '@ente/shared/hooks/useFileInput';
 import { useDropzone } from 'react-dropzone';
 import UploadSelectorInputs from 'components/UploadSelectorInputs';
-import { logoutUser } from 'services/userService';
+import { logoutUser } from '@ente/accounts/services/user';
 import UploadButton from 'components/Upload/UploadButton';
 import bs58 from 'bs58';
 import AddPhotoAlternateOutlined from '@mui/icons-material/AddPhotoAlternateOutlined';
@@ -56,20 +57,18 @@ import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
 import MoreHoriz from '@mui/icons-material/MoreHoriz';
 import OverflowMenu from 'components/OverflowMenu/menu';
 import { OverflowMenuOption } from 'components/OverflowMenu/option';
+import { ENTE_WEBSITE_LINK } from 'constants/urls';
 
-const Loader = () => (
-    <VerticallyCentered>
-        <EnteSpinner>
-            <span className="sr-only">Loading...</span>
-        </EnteSpinner>
-    </VerticallyCentered>
-);
+const defaultThumbStore = new Map();
+const defaultFileStore = new Map();
+
 export default function PublicCollectionGallery() {
     const token = useRef<string>(null);
     // passwordJWTToken refers to the jwt token which is used for album protected by password.
     const passwordJWTToken = useRef<string>(null);
     const collectionKey = useRef<string>(null);
     const url = useRef<string>(null);
+    const referralCode = useRef<string>('');
     const [publicFiles, setPublicFiles] = useState<EnteFile[]>(null);
     const [publicCollection, setPublicCollection] = useState<Collection>(null);
     const [errorMessage, setErrorMessage] = useState<string>(null);
@@ -78,6 +77,7 @@ export default function PublicCollectionGallery() {
     const router = useRouter();
     const [isPasswordProtected, setIsPasswordProtected] =
         useState<boolean>(false);
+
     const [photoListHeader, setPhotoListHeader] =
         useState<TimeStampListItem>(null);
 
@@ -153,6 +153,7 @@ export default function PublicCollectionGallery() {
             );
         }
         const main = async () => {
+            let redirectingToWebsite = false;
             try {
                 const cryptoWorker = await ComlinkCryptoWorker.getInstance();
 
@@ -160,6 +161,10 @@ export default function PublicCollectionGallery() {
                 const currentURL = new URL(url.current);
                 const t = currentURL.searchParams.get('t');
                 const ck = currentURL.hash.slice(1);
+                if (!t && !ck) {
+                    window.location.href = ENTE_WEBSITE_LINK;
+                    redirectingToWebsite = true;
+                }
                 if (!t || !ck) {
                     return;
                 }
@@ -174,6 +179,7 @@ export default function PublicCollectionGallery() {
                     collectionKey.current
                 );
                 if (localCollection) {
+                    referralCode.current = await getReferralCode();
                     const sortAsc: boolean =
                         localCollection?.pubMagicMetadata?.data.asc ?? false;
                     setPublicCollection(localCollection);
@@ -192,7 +198,9 @@ export default function PublicCollectionGallery() {
                 }
                 await syncWithRemote();
             } finally {
-                setLoading(false);
+                if (!redirectingToWebsite) {
+                    setLoading(false);
+                }
             }
         };
         main();
@@ -209,12 +217,16 @@ export default function PublicCollectionGallery() {
         }
         appContext.startLoading();
         for (const file of publicFiles) {
-            await downloadFile(
-                file,
-                true,
-                token.current,
-                passwordJWTToken.current
-            );
+            try {
+                await downloadFile(
+                    file,
+                    true,
+                    token.current,
+                    passwordJWTToken.current
+                );
+            } catch (e) {
+                // do nothing
+            }
         }
         appContext.finishLoading();
     };
@@ -278,10 +290,12 @@ export default function PublicCollectionGallery() {
         try {
             appContext.startLoading();
             setLoading(true);
-            const collection = await getPublicCollection(
+            const [collection, userReferralCode] = await getPublicCollection(
                 token.current,
                 collectionKey.current
             );
+            referralCode.current = userReferralCode;
+
             setPublicCollection(collection);
             const isPasswordProtected =
                 collection?.publicURLs?.[0]?.passwordEnabled;
@@ -390,7 +404,11 @@ export default function PublicCollectionGallery() {
 
     if (loading) {
         if (!publicFiles) {
-            return <Loader />;
+            return (
+                <VerticallyCentered>
+                    <EnteSpinner />
+                </VerticallyCentered>
+            );
         }
     } else {
         if (errorMessage) {
@@ -423,10 +441,13 @@ export default function PublicCollectionGallery() {
         <PublicCollectionGalleryContext.Provider
             value={{
                 token: token.current,
+                referralCode: referralCode.current,
                 passwordToken: passwordJWTToken.current,
                 accessedThroughSharedURL: true,
                 photoListHeader,
                 photoListFooter,
+                thumbs: defaultThumbStore,
+                files: defaultFileStore,
             }}>
             <FullScreenDropZone
                 getDragAndDropRootProps={getDragAndDropRootProps}>
@@ -446,7 +467,7 @@ export default function PublicCollectionGallery() {
                     syncWithRemote={syncWithRemote}
                     setSelected={() => null}
                     selected={{ count: 0, collectionID: null, ownCount: 0 }}
-                    activeCollection={ALL_SECTION}
+                    activeCollectionID={ALL_SECTION}
                     enableDownload={downloadEnabled}
                     fileToCollectionsMap={null}
                     collectionNameMap={null}

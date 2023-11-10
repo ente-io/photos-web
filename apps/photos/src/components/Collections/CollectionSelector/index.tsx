@@ -4,7 +4,7 @@ import {
     CollectionSummaries,
     CollectionSummary,
 } from 'types/collection';
-import DialogTitleWithCloseButton from 'components/DialogBox/TitleWithCloseButton';
+import DialogTitleWithCloseButton from '@ente/shared/components/DialogBox/TitleWithCloseButton';
 import { AppContext } from 'pages/_app';
 import { AllCollectionDialog } from 'components/Collections/AllCollections/dialog';
 import { DialogContent } from '@mui/material';
@@ -15,7 +15,7 @@ import { CollectionSelectorIntent } from 'types/gallery';
 import {
     COLLECTION_SORT_ORDER,
     CollectionSummaryType,
-    DUMMY_UNCATEGORIZED_SECTION,
+    DUMMY_UNCATEGORIZED_COLLECTION,
 } from 'constants/collection';
 import { t } from 'i18next';
 import { createUnCategorizedCollection } from 'services/collectionService';
@@ -70,6 +70,13 @@ function CollectionSelector({
                             isMoveToAllowedCollection(type) ||
                             type === CollectionSummaryType.uncategorized
                         );
+                    } else if (
+                        attributes.intent === CollectionSelectorIntent.restore
+                    ) {
+                        return (
+                            isMoveToAllowedCollection(type) ||
+                            type === CollectionSummaryType.uncategorized
+                        );
                     } else {
                         return isMoveToAllowedCollection(type);
                     }
@@ -98,7 +105,7 @@ function CollectionSelector({
 
     const handleCollectionClick = async (collectionID: number) => {
         let selectedCollection: Collection;
-        if (collectionID === DUMMY_UNCATEGORIZED_SECTION) {
+        if (collectionID === DUMMY_UNCATEGORIZED_COLLECTION) {
             const uncategorizedCollection =
                 await createUnCategorizedCollection();
             selectedCollection = uncategorizedCollection;

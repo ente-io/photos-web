@@ -37,7 +37,6 @@ export const CollectionTile = styled('div')`
     position: relative;
     border-radius: 4px;
     overflow: hidden;
-    user-select: none;
     cursor: pointer;
     & > img {
         object-fit: cover;
@@ -45,6 +44,7 @@ export const CollectionTile = styled('div')`
         height: 100%;
         pointer-events: none;
     }
+    user-select: none;
 `;
 
 export const ActiveIndicator = styled('div')`
