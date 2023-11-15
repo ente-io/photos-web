@@ -17,6 +17,8 @@ import { ClipService } from 'services/clipService';
 import { VerticallyCenteredFlex } from 'components/Container';
 import { ClipExtractionStatus } from 'services/clipService';
 import { formatNumber } from 'utils/number/format';
+import { isInternalUser } from 'utils/user';
+import { runningInChrome } from 'utils/common';
 
 export default function AdvancedSettings({ open, onClose, onRootClose }) {
     const appContext = useContext(AppContext);
@@ -77,7 +79,8 @@ export default function AdvancedSettings({ open, onClose, onRootClose }) {
 
                 <Box px={'8px'}>
                     <Stack py="20px" spacing="24px">
-                        {isElectron() && (
+                        {(isElectron() ||
+                            (isInternalUser() && runningInChrome(false))) && (
                             <Box>
                                 <MenuSectionTitle
                                     title={t('LABS')}

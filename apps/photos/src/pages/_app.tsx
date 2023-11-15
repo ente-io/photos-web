@@ -56,7 +56,7 @@ import {
 } from 'types/Notification';
 import ArrowForward from '@mui/icons-material/ArrowForward';
 import { AppUpdateInfo } from 'types/electron';
-import { getSentryUserID } from 'utils/user';
+import { getSentryUserID, isInternalUser } from 'utils/user';
 import { User } from 'types/user';
 import { SetTheme } from 'types/theme';
 import { useLocalState } from 'hooks/useLocalState';
@@ -78,6 +78,7 @@ import exportService from 'services/export';
 import { REDIRECTS } from 'constants/redirects';
 import { getLocalMapEnabled, setLocalMapEnabled } from 'utils/storage';
 import { isExportInProgress } from 'utils/export';
+import { runningInChrome } from 'utils/common';
 
 const redirectMap = new Map([
     [REDIRECTS.ROADMAP, getRoadmapRedirectURL],
@@ -227,7 +228,7 @@ export default function App(props) {
     }, []);
 
     useEffect(() => {
-        if (!isElectron()) {
+        if (!(isElectron() || (isInternalUser() && runningInChrome(false)))) {
             return;
         }
         const loadMlSearchState = async () => {
