@@ -1,47 +1,50 @@
-import React, { createContext, useEffect, useRef, useState } from 'react';
-import AppNavbar from '@ente/shared/components/Navbar/app';
+import React, {
+    createContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
+import AppNavbar from 'components/Navbar/app';
 import { t } from 'i18next';
 
 import { useRouter } from 'next/router';
-import { Overlay } from '@ente/shared/components/Container';
+import { Overlay } from 'components/Container';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'photoswipe/dist/photoswipe.css';
 import 'styles/global.css';
-import EnteSpinner from '@ente/shared/components/EnteSpinner';
-import { logError } from '@ente/shared/sentry';
-import { getData, LS_KEYS } from '@ente/shared/storage/localStorage';
-import HTTPService from '@ente/shared/network/HTTPService';
+import EnteSpinner from 'components/EnteSpinner';
+import { logError } from '../utils/sentry';
+import { getData, LS_KEYS } from 'utils/storage/localStorage';
+import HTTPService from 'services/HTTPService';
 import Head from 'next/head';
-import { eventBus, Events } from '@ente/shared/events';
+import { eventBus, Events } from 'services/events';
 import mlWorkManager from 'services/machineLearning/mlWorkManager';
 import {
     getMLSearchConfig,
     updateMLSearchConfig,
 } from 'utils/machineLearning/config';
 import LoadingBar from 'react-top-loading-bar';
-import DialogBox from '@ente/shared/components/DialogBox';
-import DialogBoxV2 from '@ente/shared/components/DialogBoxV2';
-import { ThemeProvider } from '@mui/material/styles';
-import { MessageContainer } from '@ente/shared/components/MessageContainer';
+import DialogBox from 'components/DialogBox';
+import { styled, ThemeProvider } from '@mui/material/styles';
 import { CssBaseline, useMediaQuery } from '@mui/material';
 import {
     SetDialogBoxAttributes,
     DialogBoxAttributes,
-} from '@ente/shared/components/DialogBox/types';
-import {
     DialogBoxAttributesV2,
-    SetDialogBoxAttributesV2,
-} from '@ente/shared/components/DialogBoxV2/types';
+} from 'types/dialogBox';
 import {
     getFamilyPortalRedirectURL,
     getRoadmapRedirectURL,
     updateMapEnabledStatus,
 } from 'services/userService';
-import { CustomError } from '@ente/shared/error';
-import { addLogLine } from '@ente/shared/logging';
-import { clearLogsIfLocalStorageLimitExceeded } from '@ente/shared/logging/web';
+import { CustomError } from 'utils/error';
+import {
+    addLogLine,
+    clearLogsIfLocalStorageLimitExceeded,
+} from 'utils/logging';
 import isElectron from 'is-electron';
-import ElectronAPIs from '@ente/shared/electron';
+import ElectronUpdateService from 'services/electron/update';
 import {
     getUpdateAvailableForDownloadMessage,
     getUpdateReadyToInstallMessage,
@@ -52,35 +55,47 @@ import {
     SetNotificationAttributes,
 } from 'types/Notification';
 import ArrowForward from '@mui/icons-material/ArrowForward';
-import { CacheProvider } from '@emotion/react';
+import { AppUpdateInfo } from 'types/electron';
+import { getSentryUserID } from 'utils/user';
+import { User } from 'types/user';
+import { SetTheme } from 'types/theme';
+import { useLocalState } from 'hooks/useLocalState';
+import { THEME_COLOR } from 'constants/theme';
+import { setupI18n } from 'i18n';
+import createEmotionCache from 'themes/createEmotionCache';
+import { CacheProvider, EmotionCache } from '@emotion/react';
+import { AppProps } from 'next/app';
+import DialogBoxV2 from 'components/DialogBoxV2';
+import { getTheme } from 'themes';
+import { PAGES } from 'constants/pages';
 import {
-    APP_TITLES,
+    ALLOWED_APP_PAGES,
     APPS,
     CLIENT_PACKAGE_NAMES,
-} from '@ente/shared/apps/constants';
+    getAppNameAndTitle,
+} from 'constants/apps';
 import exportService from 'services/export';
 import { REDIRECTS } from 'constants/redirects';
-import {
-    getLocalMapEnabled,
-    setLocalMapEnabled,
-} from '@ente/shared/storage/localStorage/helpers';
+import { getLocalMapEnabled, setLocalMapEnabled } from 'utils/storage';
 import { isExportInProgress } from 'utils/export';
-import { EnteAppProps } from '@ente/shared/apps/types';
-import createEmotionCache from '@ente/shared/themes/createEmotionCache';
-import { THEME_COLOR } from '@ente/shared/themes/constants';
-import { SetTheme } from '@ente/shared/themes/types';
-import { setupI18n } from '@ente/shared/i18n';
-import { getSentryUserID } from '@ente/shared/sentry/utils';
-import { User } from '@ente/shared/user/types';
-import { useLocalState } from '@ente/shared/hooks/useLocalState';
-import { PHOTOS_PAGES as PAGES } from '@ente/shared/constants/pages';
-import { getTheme } from '@ente/shared/themes';
-import { AppUpdateInfo } from '@ente/shared/electron/types';
 
 const redirectMap = new Map([
     [REDIRECTS.ROADMAP, getRoadmapRedirectURL],
     [REDIRECTS.FAMILIES, getFamilyPortalRedirectURL],
 ]);
+
+export const MessageContainer = styled('div')`
+    background-color: #111;
+    padding: 0;
+    font-size: 14px;
+    text-align: center;
+    line-height: 32px;
+`;
+
+export interface BannerMessage {
+    message: string;
+    variant: string;
+}
 
 type AppContextType = {
     showNavBar: (show: boolean) => void;
@@ -105,7 +120,7 @@ type AppContextType = {
     themeColor: THEME_COLOR;
     setThemeColor: SetTheme;
     somethingWentWrong: () => void;
-    setDialogBoxAttributesV2: SetDialogBoxAttributesV2;
+    setDialogBoxAttributesV2: (attributes: DialogBoxAttributesV2) => void;
     isCFProxyDisabled: boolean;
     setIsCFProxyDisabled: (disabled: boolean) => void;
 };
@@ -115,7 +130,11 @@ export const AppContext = createContext<AppContextType>(null);
 // Client-side cache, shared for the whole session of the user in the browser.
 const clientSideEmotionCache = createEmotionCache();
 
-export default function App(props: EnteAppProps) {
+export interface EnteAppProps extends AppProps {
+    emotionCache?: EmotionCache;
+}
+
+export default function App(props) {
     const {
         Component,
         emotionCache = clientSideEmotionCache,
@@ -157,14 +176,24 @@ export default function App(props: EnteAppProps) {
         false
     );
 
+    const { name: appName, title: appTitle } = useMemo(() => {
+        return getAppNameAndTitle();
+    }, []);
+
     useEffect(() => {
-        //setup i18n
         setupI18n().finally(() => setIsI18nReady(true));
-        // set client package name in headers
+    }, []);
+
+    useEffect(() => {
+        if (!appName) {
+            return;
+        }
         HTTPService.setHeaders({
-            'X-Client-Package': CLIENT_PACKAGE_NAMES.get(APPS.PHOTOS),
+            'X-Client-Package': CLIENT_PACKAGE_NAMES.get(appName),
         });
-        // setup logging
+    }, [appName]);
+
+    useEffect(() => {
         clearLogsIfLocalStorageLimitExceeded();
         const main = async () => {
             addLogLine(`userID: ${(getData(LS_KEYS.USER) as User)?.id}`);
@@ -193,7 +222,7 @@ export default function App(props: EnteAppProps) {
                     });
                 }
             };
-            ElectronAPIs.registerUpdateEventListener(showUpdateDialog);
+            ElectronUpdateService.registerUpdateEventListener(showUpdateDialog);
         }
     }, []);
 
@@ -306,6 +335,20 @@ export default function App(props: EnteAppProps) {
                 setLoading(true);
             }
 
+            if (
+                appName === APPS.ALBUMS &&
+                ALLOWED_APP_PAGES.get(APPS.ALBUMS).indexOf(newPathname) === -1
+            ) {
+                router.replace(PAGES.SHARED_ALBUMS);
+                throw `Aborting route change, changing page ${newPathname} is not allowed for ${appName}`;
+            } else if (
+                appName === APPS.AUTH &&
+                ALLOWED_APP_PAGES.get(APPS.AUTH).indexOf(newPathname) === -1
+            ) {
+                router.replace(PAGES.AUTH);
+                throw `Aborting route change, changing page ${newPathname} is not allowed for ${appName}`;
+            }
+
             if (redirectName) {
                 const user = getData(LS_KEYS.USER);
                 if (user?.token) {
@@ -329,7 +372,7 @@ export default function App(props: EnteAppProps) {
             window.removeEventListener('online', setUserOnline);
             window.removeEventListener('offline', setUserOffline);
         };
-    }, [redirectName]);
+    }, [redirectName, appName]);
 
     useEffect(() => {
         setMessageDialogView(true);
@@ -391,9 +434,7 @@ export default function App(props: EnteAppProps) {
         <CacheProvider value={emotionCache}>
             <Head>
                 <title>
-                    {isI18nReady
-                        ? t('TITLE', { context: APPS.PHOTOS })
-                        : APP_TITLES.get(APPS.PHOTOS)}
+                    {isI18nReady ? t('TITLE', { context: appName }) : appTitle}
                 </title>
                 <meta
                     name="viewport"
@@ -401,9 +442,9 @@ export default function App(props: EnteAppProps) {
                 />
             </Head>
 
-            <ThemeProvider theme={getTheme(themeColor, APPS.PHOTOS)}>
+            <ThemeProvider theme={getTheme(themeColor, appName)}>
                 <CssBaseline enableColorScheme />
-                {showNavbar && <AppNavbar isMobile={isMobile} />}
+                {showNavbar && <AppNavbar />}
                 <MessageContainer>
                     {offline && t('OFFLINE_MSG')}
                 </MessageContainer>

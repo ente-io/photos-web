@@ -1,4 +1,4 @@
-import { logError } from '@ente/shared/sentry';
+import { logError } from 'utils/sentry';
 import WasmHEICConverterService from './wasmHeicConverter/wasmHEICConverterService';
 
 class HeicConversionService {

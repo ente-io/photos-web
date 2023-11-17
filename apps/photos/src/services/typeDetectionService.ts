@@ -4,13 +4,13 @@ import {
     WHITELISTED_FILE_FORMATS,
     KNOWN_NON_MEDIA_FORMATS,
 } from 'constants/upload';
-import { CustomError } from '@ente/shared/error';
+import { CustomError } from 'utils/error';
 import { getFileExtension } from 'utils/file';
-import { logError } from '@ente/shared/sentry';
+import { logError } from 'utils/sentry';
 import { getUint8ArrayView } from './readerService';
 import FileType, { FileTypeResult } from 'file-type';
 import { getFileSize } from './upload/fileService';
-import { convertBytesToHumanReadable } from '@ente/shared/utils/size';
+import { convertBytesToHumanReadable } from 'utils/file/size';
 
 const TYPE_VIDEO = 'video';
 const TYPE_IMAGE = 'image';

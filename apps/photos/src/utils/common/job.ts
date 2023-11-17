@@ -1,5 +1,5 @@
 import { JobResult, JobConfig, JobState } from 'types/common/job';
-import { addLogLine } from '@ente/shared/logging';
+import { addLogLine } from 'utils/logging';
 
 export class SimpleJob<R extends JobResult> {
     private config: JobConfig;

@@ -1,5 +1,5 @@
 import { Face, MLSyncContext, Person } from 'types/machineLearning';
-import { addLogLine } from '@ente/shared/logging';
+import { addLogLine } from 'utils/logging';
 import {
     isDifferentOrOld,
     getAllFacesFromMap,

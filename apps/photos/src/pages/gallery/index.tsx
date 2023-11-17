@@ -7,11 +7,7 @@ import {
     useState,
 } from 'react';
 import { useRouter } from 'next/router';
-import {
-    clearKeys,
-    getKey,
-    SESSION_KEYS,
-} from '@ente/shared/storage/sessionStorage';
+import { clearKeys, getKey, SESSION_KEYS } from 'utils/storage/sessionStorage';
 import { getLocalFiles, syncFiles } from 'services/fileService';
 import { styled, Typography } from '@mui/material';
 import {
@@ -36,14 +32,14 @@ import {
     justSignedUp,
     setIsFirstLogin,
     setJustSignedUp,
-} from '@ente/shared/storage/localStorage/helpers';
+} from 'utils/storage';
 import {
     isTokenValid,
     syncMapEnabled,
     validateKey,
 } from 'services/userService';
 import { useDropzone } from 'react-dropzone';
-import EnteSpinner from '@ente/shared/components/EnteSpinner';
+import EnteSpinner from 'components/EnteSpinner';
 import { LoadingOverlay } from 'components/LoadingOverlay';
 import PhotoFrame from 'components/PhotoFrame';
 import {
@@ -74,8 +70,8 @@ import {
     TRASH_SECTION,
 } from 'constants/collection';
 import { AppContext } from 'pages/_app';
-import { CustomError } from '@ente/shared/error';
-import { PHOTOS_PAGES as PAGES } from '@ente/shared/constants/pages';
+import { CustomError } from 'utils/error';
+import { PAGES } from 'constants/pages';
 import {
     COLLECTION_OPS_TYPE,
     handleCollectionOps,
@@ -86,7 +82,7 @@ import {
     getSelectedCollection,
     getDefaultHiddenCollectionIDs,
 } from 'utils/collection';
-import { logError } from '@ente/shared/sentry';
+import { logError } from 'utils/sentry';
 import { getLocalTrashedFiles, syncTrash } from 'services/trashService';
 
 import FixCreationTime, {
@@ -105,27 +101,26 @@ import { Search, SearchResultSummary, UpdateSearch } from 'types/search';
 import SearchResultInfo from 'components/Search/SearchResultInfo';
 import { ITEM_TYPE, TimeStampListItem } from 'components/PhotoList';
 import UploadInputs from 'components/UploadSelectorInputs';
-import useFileInput from '@ente/shared/hooks/useFileInput';
-import { User } from '@ente/shared/user/types';
-import { FamilyData } from 'types/user';
-import { getData, LS_KEYS } from '@ente/shared/storage/localStorage';
-import { CenteredFlex } from '@ente/shared/components/Container';
+import useFileInput from 'hooks/useFileInput';
+import { FamilyData, User } from 'types/user';
+import { getData, LS_KEYS } from 'utils/storage/localStorage';
+import { CenteredFlex } from 'components/Container';
 import { checkConnectivity } from 'utils/common';
 import { SYNC_INTERVAL_IN_MICROSECONDS } from 'constants/gallery';
-import ElectronAPIs from '@ente/shared/electron';
+import ElectronService from 'services/electron/common';
 import uploadManager from 'services/upload/uploadManager';
-import { getToken } from '@ente/shared/storage/localStorage/helpers';
+import { getToken } from 'utils/common/key';
 import ExportModal from 'components/ExportModal';
 import GalleryEmptyState from 'components/GalleryEmptyState';
 import AuthenticateUserModal from 'components/AuthenticateUserModal';
-import useMemoSingleThreaded from '@ente/shared/hooks/useMemoSingleThreaded';
+import useMemoSingleThreaded from 'hooks/useMemoSingleThreaded';
 import { isArchivedFile } from 'utils/magicMetadata';
 import { isSameDayAnyYear, isInsideLocationTag } from 'utils/search';
 import { getSessionExpiredMessage } from 'utils/ui';
 import { syncEntities } from 'services/entityService';
 import { constructUserIDToEmailMap } from 'services/collectionService';
 import { getLocalFamilyData } from 'utils/user/family';
-import InMemoryStore, { MS_KEYS } from '@ente/shared/storage/InMemoryStore';
+import InMemoryStore, { MS_KEYS } from 'services/InMemoryStore';
 import { syncEmbeddings } from 'services/embeddingService';
 import { ClipService } from 'services/clipService';
 
@@ -342,14 +337,14 @@ export default function Gallery() {
             syncInterval.current = setInterval(() => {
                 syncWithRemote(false, true);
             }, SYNC_INTERVAL_IN_MICROSECONDS);
-            ElectronAPIs.registerForegroundEventListener(() => {
+            ElectronService.registerForegroundEventListener(() => {
                 syncWithRemote(false, true);
             });
         };
         main();
         return () => {
             clearInterval(syncInterval.current);
-            ElectronAPIs.registerForegroundEventListener(() => {});
+            ElectronService.registerForegroundEventListener(() => {});
             ClipService.removeOnFileUploadListener();
         };
     }, []);

@@ -2,7 +2,7 @@ import Close from '@mui/icons-material/Close';
 import ArrowBack from '@mui/icons-material/ArrowBack';
 import { Box, IconButton, Typography } from '@mui/material';
 import React from 'react';
-import { FlexWrapper } from '@ente/shared/components/Container';
+import { FlexWrapper } from './Container';
 
 interface Iprops {
     title: string;

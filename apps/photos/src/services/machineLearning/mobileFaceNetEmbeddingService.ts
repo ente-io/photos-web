@@ -8,7 +8,7 @@ import {
     FaceEmbeddingService,
     Versioned,
 } from 'types/machineLearning';
-import { addLogLine } from '@ente/shared/logging';
+import { addLogLine } from 'utils/logging';
 import { imageBitmapsToTensor4D } from 'utils/machineLearning';
 
 class MobileFaceNetEmbeddingService implements FaceEmbeddingService {

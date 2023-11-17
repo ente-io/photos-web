@@ -1,17 +1,20 @@
-import NotFoundPage from '@ente/shared/next/pages/404';
-import { useRouter } from 'next/router';
-import { AppContext } from 'pages/_app';
-import { useContext } from 'react';
-import { APPS } from '@ente/shared/apps/constants';
+import { VerticallyCentered } from 'components/Container';
+import React, { useContext, useEffect, useState } from 'react';
+import { t } from 'i18next';
+
+import { AppContext } from './_app';
+import EnteSpinner from 'components/EnteSpinner';
 
 export default function NotFound() {
     const appContext = useContext(AppContext);
-    const router = useRouter();
+    const [loading, setLoading] = useState(true);
+    useEffect(() => {
+        appContext.showNavBar(true);
+        setLoading(false);
+    }, []);
     return (
-        <NotFoundPage
-            appContext={appContext}
-            router={router}
-            appName={APPS.AUTH}
-        />
+        <VerticallyCentered>
+            {loading ? <EnteSpinner /> : t('NOT_FOUND')}
+        </VerticallyCentered>
     );
 }

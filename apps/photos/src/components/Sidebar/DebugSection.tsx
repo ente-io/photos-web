@@ -1,12 +1,12 @@
 import { AppContext } from 'pages/_app';
 import React, { useContext, useEffect, useState } from 'react';
+import { downloadAsFile } from 'utils/file';
 import { Trans } from 'react-i18next';
 import { t } from 'i18next';
 
-import { addLogLine } from '@ente/shared/logging';
-import { getDebugLogs } from '@ente/shared/logging/web';
+import { addLogLine, getDebugLogs } from 'utils/logging';
 import isElectron from 'is-electron';
-import ElectronAPIs from '@ente/shared/electron';
+import ElectronService from 'services/electron/common';
 import Typography from '@mui/material/Typography';
 import { isInternalUser } from 'utils/user';
 import { testUpload } from '../../../tests/upload.test';
@@ -15,7 +15,6 @@ import {
     testZipWithRootFileReadingTest,
 } from '../../../tests/zip-file-reading.test';
 import { EnteMenuItem } from 'components/Menu/EnteMenuItem';
-import { downloadAsFile } from '@ente/shared/utils';
 
 export default function DebugSection() {
     const appContext = useContext(AppContext);
@@ -24,7 +23,7 @@ export default function DebugSection() {
     useEffect(() => {
         const main = async () => {
             if (isElectron()) {
-                const appVersion = await ElectronAPIs.getAppVersion();
+                const appVersion = await ElectronService.getAppVersion();
                 setAppVersion(appVersion);
             }
         };
@@ -48,7 +47,7 @@ export default function DebugSection() {
     const downloadDebugLogs = () => {
         addLogLine('exporting logs');
         if (isElectron()) {
-            ElectronAPIs.openLogDirectory();
+            ElectronService.openLogDirectory();
         } else {
             const logs = getDebugLogs();
 

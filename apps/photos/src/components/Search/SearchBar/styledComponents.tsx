@@ -2,7 +2,7 @@ import {
     CenteredFlex,
     FlexWrapper,
     FluidContainer,
-} from '@ente/shared/components/Container';
+} from 'components/Container';
 import { css, styled } from '@mui/material';
 import { IMAGE_CONTAINER_MAX_WIDTH, MIN_COLUMNS } from 'constants/gallery';
 

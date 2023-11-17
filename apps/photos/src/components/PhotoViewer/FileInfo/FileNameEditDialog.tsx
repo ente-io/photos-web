@@ -1,8 +1,8 @@
 import SingleInputForm, {
     SingleInputFormProps,
-} from '@ente/shared/components/SingleInputForm';
+} from 'components/SingleInputForm';
 import { t } from 'i18next';
-import DialogBoxV2 from '@ente/shared/components/DialogBoxV2';
+import DialogBoxV2 from 'components/DialogBoxV2';
 
 export const FileNameEditDialog = ({
     isInEditMode,

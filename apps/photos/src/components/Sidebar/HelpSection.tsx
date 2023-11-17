@@ -4,17 +4,14 @@ import { t } from 'i18next';
 import exportService from 'services/export';
 import isElectron from 'is-electron';
 import { AppContext } from 'pages/_app';
-import EnteSpinner from '@ente/shared/components/EnteSpinner';
+import EnteSpinner from 'components/EnteSpinner';
 import { getDownloadAppMessage } from 'utils/ui';
 import { NoStyleAnchor } from 'components/pages/sharedAlbum/GoToEnte';
 import { openLink } from 'utils/common';
 import { EnteMenuItem } from 'components/Menu/EnteMenuItem';
 import { Typography } from '@mui/material';
 import { GalleryContext } from 'pages/gallery';
-import {
-    DESKTOP_ROADMAP_URL,
-    WEB_ROADMAP_URL,
-} from '@ente/shared/constants/urls';
+import { DESKTOP_ROADMAP_URL, WEB_ROADMAP_URL } from 'constants/urls';
 
 export default function HelpSection() {
     const { setDialogMessage } = useContext(AppContext);

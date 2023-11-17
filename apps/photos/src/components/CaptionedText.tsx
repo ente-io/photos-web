@@ -1,5 +1,5 @@
 import { ButtonProps, Typography } from '@mui/material';
-import { VerticallyCenteredFlex } from '@ente/shared/components/Container';
+import { VerticallyCenteredFlex } from './Container';
 
 interface Iprops {
     mainText: string;

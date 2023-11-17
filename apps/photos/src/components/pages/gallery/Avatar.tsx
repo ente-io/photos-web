@@ -3,7 +3,7 @@ import { EnteFile } from 'types/file';
 import { GalleryContext } from 'pages/gallery';
 import { styled } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { logError } from '@ente/shared/sentry';
+import { logError } from 'utils/sentry';
 
 interface AvatarProps {
     file?: EnteFile;

@@ -5,14 +5,14 @@ import {
     getFileFromURL,
     updateExistingFilePubMetadata,
 } from 'utils/file';
-import { logError } from '@ente/shared/sentry';
+import { logError } from 'utils/sentry';
 import downloadManager from './downloadManager';
 import { EnteFile } from 'types/file';
 
 import { getParsedExifData } from './upload/exifService';
 import { getFileType } from 'services/typeDetectionService';
 import { FILE_TYPE } from 'constants/file';
-import { validateAndGetCreationUnixTimeInMicroSeconds } from '@ente/shared/time';
+import { validateAndGetCreationUnixTimeInMicroSeconds } from 'utils/time';
 
 const EXIF_TIME_TAGS = [
     'DateTimeOriginal',

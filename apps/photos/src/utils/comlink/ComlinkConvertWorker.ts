@@ -1,7 +1,7 @@
 import { Remote } from 'comlink';
 import { runningInBrowser } from 'utils/common';
 import { DedicatedConvertWorker } from 'worker/convert.worker';
-import { ComlinkWorker } from '@ente/shared/worker/comlinkWorker';
+import { ComlinkWorker } from './comlinkWorker';
 
 class ComlinkConvertWorker {
     private comlinkWorkerInstance: Remote<DedicatedConvertWorker>;

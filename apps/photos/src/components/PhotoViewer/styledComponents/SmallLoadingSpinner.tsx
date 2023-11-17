@@ -1,5 +1,5 @@
 import React from 'react';
-import EnteSpinner from '@ente/shared/components/EnteSpinner';
+import EnteSpinner from 'components/EnteSpinner';
 
 export const SmallLoadingSpinner = () => (
     <EnteSpinner

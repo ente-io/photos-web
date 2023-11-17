@@ -15,10 +15,10 @@ import {
 import { downloadFiles, downloadFilesDesktop } from 'utils/file';
 import { getAllLocalFiles, getLocalFiles } from 'services/fileService';
 import { EnteFile } from 'types/file';
-import { CustomError } from '@ente/shared/error';
-import { User } from '@ente/shared/user/types';
-import { getData, LS_KEYS } from '@ente/shared/storage/localStorage';
-import { logError } from '@ente/shared/sentry';
+import { CustomError } from 'utils/error';
+import { User } from 'types/user';
+import { getData, LS_KEYS } from 'utils/storage/localStorage';
+import { logError } from 'utils/sentry';
 import {
     COLLECTION_ROLE,
     Collection,
@@ -37,15 +37,15 @@ import {
     HIDDEN_ITEMS_SECTION,
     DEFAULT_HIDDEN_COLLECTION_USER_FACING_NAME,
 } from 'constants/collection';
-import { getUnixTimeInMicroSecondsWithDelta } from '@ente/shared/time';
+import { getUnixTimeInMicroSecondsWithDelta } from 'utils/time';
 import { SUB_TYPE, VISIBILITY_STATE } from 'types/magicMetadata';
 import { isArchivedCollection, updateMagicMetadata } from 'utils/magicMetadata';
-import { getAlbumsURL } from '@ente/shared/network/api';
+import { getAlbumsURL } from 'utils/common/apiUtil';
 import bs58 from 'bs58';
 import { t } from 'i18next';
 import isElectron from 'is-electron';
 import { SetCollectionDownloadProgressAttributes } from 'types/gallery';
-import ElectronAPIs from '@ente/shared/electron';
+import ElectronService from 'services/electron/common';
 import {
     getCollectionExportPath,
     getUniqueCollectionExportName,
@@ -186,7 +186,7 @@ async function downloadCollectionFiles(
         downloadDirPath: null,
     };
     if (isElectron()) {
-        const selectedDir = await ElectronAPIs.selectDirectory();
+        const selectedDir = await ElectronService.selectDirectory();
         if (!selectedDir) {
             return;
         }

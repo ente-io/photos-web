@@ -2,15 +2,25 @@
     "$schema": "https://turbo.build/schema.json",
     "pipeline": {
         "build": {
+            "outputs": [".next/**", "!.next/cache/**"]
+        },
+        "export": {
             "dependsOn": ["^build"],
-            "outputs": ["out"]
+            "inputs": [".next/**", "!.next/cache/**"]
         },
         "lint": {},
         "dev": {
             "cache": false,
             "persistent": true
         },
+        "start": {
+            "dependsOn": ["^build"]
+        },
         "albums": {
+            "cache": false,
+            "persistent": true
+        },
+        "auth": {
             "cache": false,
             "persistent": true
         }

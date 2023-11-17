@@ -15,11 +15,11 @@ import {
 } from 'types/gallery';
 import { GalleryContext } from 'pages/gallery';
 import { AppContext } from 'pages/_app';
-import { logError } from '@ente/shared/sentry';
+import { logError } from 'utils/sentry';
 import uploadManager from 'services/upload/uploadManager';
 import ImportService from 'services/importService';
 import isElectron from 'is-electron';
-import { CustomError } from '@ente/shared/error';
+import { CustomError } from 'utils/error';
 import { Collection } from 'types/collection';
 import { SetLoading, SetFiles } from 'types/gallery';
 import {
@@ -44,6 +44,7 @@ import {
     UPLOAD_STRATEGY,
     PICKED_UPLOAD_TYPE,
 } from 'constants/upload';
+import importService from 'services/importService';
 import {
     getDownloadAppMessage,
     getRootLevelFileWithFolderNotAllowMessage,
@@ -55,7 +56,7 @@ import {
     groupFilesBasedOnParentFolder,
 } from 'utils/upload';
 import billingService from 'services/billingService';
-import { addLogLine } from '@ente/shared/logging';
+import { addLogLine } from 'utils/logging';
 import { PublicCollectionGalleryContext } from 'utils/publicCollectionGallery';
 import UserNameInputDialog from 'components/UserNameInputDialog';
 import {
@@ -65,7 +66,6 @@ import {
 } from 'services/publicCollectionService';
 import { UploadTypeSelectorIntent } from 'types/gallery';
 import { getOrCreateAlbum } from 'utils/collection';
-import ElectronAPIs from '@ente/shared/electron';
 
 const FIRST_ALBUM_NAME = 'My First Album';
 
@@ -179,7 +179,7 @@ export default function Uploader(props: Props) {
             setUploadProgressView(true);
         }
 
-        if (isElectron()) {
+        if (isElectron() && ImportService.checkAllElectronAPIsExists()) {
             ImportService.getPendingUploads().then(
                 ({ files: electronFiles, collectionName, type }) => {
                     addLogLine(
@@ -234,7 +234,7 @@ export default function Uploader(props: Props) {
                         for (const file of props.dragAndDropFiles) {
                             if (file.name.endsWith('.zip')) {
                                 const zipFiles =
-                                    await ElectronAPIs.getElectronFilesFromGoogleZip(
+                                    await importService.getElectronFilesFromGoogleZip(
                                         (file as any).path
                                     );
                                 addLogLine(
@@ -529,13 +529,13 @@ export default function Uploader(props: Props) {
             ) {
                 await ImportService.setToUploadCollection(collections);
                 if (zipPaths.current) {
-                    ElectronAPIs.setToUploadFiles(
+                    await ImportService.setToUploadFiles(
                         PICKED_UPLOAD_TYPE.ZIPS,
                         zipPaths.current
                     );
                     zipPaths.current = null;
                 }
-                ElectronAPIs.setToUploadFiles(
+                await ImportService.setToUploadFiles(
                     PICKED_UPLOAD_TYPE.FILES,
                     filesWithCollectionToUploadIn.map(
                         ({ file }) => (file as ElectronFile).path
@@ -722,11 +722,11 @@ export default function Uploader(props: Props) {
         let files: ElectronFile[];
         pickedUploadType.current = type;
         if (type === PICKED_UPLOAD_TYPE.FILES) {
-            files = await ElectronAPIs.showUploadFilesDialog();
+            files = await ImportService.showUploadFilesDialog();
         } else if (type === PICKED_UPLOAD_TYPE.FOLDERS) {
-            files = await ElectronAPIs.showUploadDirsDialog();
+            files = await ImportService.showUploadDirsDialog();
         } else {
-            const response = await ElectronAPIs.showUploadZipDialog();
+            const response = await ImportService.showUploadZipDialog();
             files = response.files;
             zipPaths.current = response.zipPaths;
         }
@@ -755,7 +755,7 @@ export default function Uploader(props: Props) {
     };
 
     const handleUpload = (type) => () => {
-        if (isElectron()) {
+        if (isElectron() && importService.checkAllElectronAPIsExists()) {
             handleDesktopUpload(type);
         } else {
             handleWebUpload(type);

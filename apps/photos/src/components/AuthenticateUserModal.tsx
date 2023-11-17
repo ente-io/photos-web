@@ -1,14 +1,14 @@
 import React, { useContext, useEffect, useState } from 'react';
 
-import { getData, LS_KEYS } from '@ente/shared/storage/localStorage';
+import { getData, LS_KEYS } from 'utils/storage/localStorage';
 import { AppContext } from 'pages/_app';
-import { KeyAttributes, User } from '@ente/shared/user/types';
+import { KeyAttributes, User } from 'types/user';
 import VerifyMasterPasswordForm, {
     VerifyMasterPasswordFormProps,
-} from '@ente/shared/components/VerifyMasterPasswordForm';
-import { logError } from '@ente/shared/sentry';
+} from 'components/VerifyMasterPasswordForm';
+import { logError } from 'utils/sentry';
 import { t } from 'i18next';
-import DialogBoxV2 from '@ente/shared/components/DialogBoxV2';
+import DialogBoxV2 from './DialogBoxV2';
 interface Iprops {
     open: boolean;
     onClose: () => void;

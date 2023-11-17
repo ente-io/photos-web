@@ -1,5 +1,5 @@
-import ElectronAPIs from '@ente/shared/electron';
 import isElectron from 'is-electron';
+import { ElectronFFmpeg } from 'services/electron/ffmpeg';
 import { ElectronFile } from 'types/upload';
 import ComlinkFFmpegWorker from 'utils/comlink/ComlinkFFmpegWorker';
 
@@ -17,16 +17,7 @@ class FFmpegFactory {
     async getFFmpegClient() {
         if (!this.client) {
             if (isElectron()) {
-                this.client = {
-                    run(cmd, inputFile, outputFilename, dontTimeout) {
-                        return ElectronAPIs.runFFmpegCmd(
-                            cmd,
-                            inputFile,
-                            outputFilename,
-                            dontTimeout
-                        );
-                    },
-                };
+                this.client = new ElectronFFmpeg();
             } else {
                 this.client = await ComlinkFFmpegWorker.getInstance();
             }

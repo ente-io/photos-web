@@ -4,7 +4,7 @@ import {
     DetectedObject,
     Thing,
 } from 'types/machineLearning';
-import { addLogLine } from '@ente/shared/logging';
+import { addLogLine } from 'utils/logging';
 import {
     isDifferentOrOld,
     getObjectId,

@@ -2,24 +2,24 @@ import React, { useContext, useEffect, useState } from 'react';
 import Carousel from 'react-bootstrap/Carousel';
 import { styled, Button, Typography, TypographyProps } from '@mui/material';
 import { AppContext } from './_app';
-import Login from '@ente/accounts/components/Login';
+import Login from 'components/Login';
 import { useRouter } from 'next/router';
-import { getData, LS_KEYS } from '@ente/shared/storage/localStorage';
-import SignUp from '@ente/accounts/components/SignUp';
-import EnteSpinner from '@ente/shared/components/EnteSpinner';
+import { getData, LS_KEYS } from 'utils/storage/localStorage';
+import EnteSpinner from 'components/EnteSpinner';
+import SignUp from 'components/SignUp';
 import { t } from 'i18next';
 
-import localForage from '@ente/shared/storage/localForage';
-import { logError } from '@ente/shared/sentry';
-import { PHOTOS_PAGES as PAGES } from '@ente/shared/constants/pages';
-import { EnteLogo } from '@ente/shared/components/EnteLogo';
+import localForage from 'utils/storage/localForage';
+import { logError } from 'utils/sentry';
+import { PAGES } from 'constants/pages';
+import { EnteLogo } from 'components/EnteLogo';
 import isElectron from 'is-electron';
-import ElectronAPIs from '@ente/shared/electron';
-import { saveKeyInSessionStore } from '@ente/shared/crypto/helpers';
-import { getKey, SESSION_KEYS } from '@ente/shared/storage/sessionStorage';
-import { getAlbumsURL } from '@ente/shared/network/api';
+import safeStorageService from 'services/electron/safeStorage';
+import { saveKeyInSessionStore } from 'utils/crypto';
+import { getKey, SESSION_KEYS } from 'utils/storage/sessionStorage';
+import { getAlbumsURL } from 'utils/common/apiUtil';
 import { Trans } from 'react-i18next';
-import { APPS } from '@ente/shared/apps/constants';
+import { APPS, getAppName } from 'constants/apps';
 
 const Container = styled('div')`
     display: flex;
@@ -129,10 +129,11 @@ export default function LandingPage() {
     };
 
     const handleNormalRedirect = async () => {
+        const appName = getAppName();
         const user = getData(LS_KEYS.USER);
         let key = getKey(SESSION_KEYS.ENCRYPTION_KEY);
         if (!key && isElectron()) {
-            key = await ElectronAPIs.getEncryptionKey();
+            key = await safeStorageService.getEncryptionKey();
             if (key) {
                 await saveKeyInSessionStore(
                     SESSION_KEYS.ENCRYPTION_KEY,
@@ -142,17 +143,17 @@ export default function LandingPage() {
             }
         }
         if (key) {
-            // if (appName === APPS.AUTH) {
-            //     await router.push(PAGES.AUTH);
-            // } else {
-            await router.push(PAGES.GALLERY);
-            // }
+            if (appName === APPS.AUTH) {
+                await router.push(PAGES.AUTH);
+            } else {
+                await router.push(PAGES.GALLERY);
+            }
         } else if (user?.email) {
             await router.push(PAGES.VERIFY);
         } else {
-            // if (appName === APPS.AUTH) {
-            //     await router.push(PAGES.LOGIN);
-            // }
+            if (appName === APPS.AUTH) {
+                await router.push(PAGES.LOGIN);
+            }
         }
         await initLocalForage();
         setLoading(false);
@@ -244,13 +245,9 @@ export default function LandingPage() {
                     <DesktopBox>
                         <SideBox>
                             {showLogin ? (
-                                <Login signUp={signUp} appName={APPS.PHOTOS} />
+                                <Login signUp={signUp} />
                             ) : (
-                                <SignUp
-                                    router={router}
-                                    appName={APPS.PHOTOS}
-                                    login={login}
-                                />
+                                <SignUp login={login} />
                             )}
                         </SideBox>
                     </DesktopBox>

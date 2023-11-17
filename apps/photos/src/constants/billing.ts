@@ -1,4 +1,4 @@
-import { getPaymentsURL } from '@ente/shared/network/api';
+import { getPaymentsURL } from 'utils/common/apiUtil';
 
 export const getDesktopRedirectURL = () =>
     `${getPaymentsURL()}/desktop-redirect`;

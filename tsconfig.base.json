@@ -21,9 +21,7 @@
         "strict": true,
         "target": "es2021",
         "paths": {
-            "@ente/eslint-config/*": ["./packages/eslint-config/*"],
-            "@ente/shared/*": ["./packages/shared/*"],
-            "@ente/accounts/*": ["./packages/accounts/*"]
+            "@ente/eslint-config/*": ["./packages/eslint-config/*"]
         }
     },
     "exclude": ["**/node_modules", "**/.*/"]

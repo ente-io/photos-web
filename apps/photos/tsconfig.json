@@ -13,12 +13,6 @@
         "target": "es5",
         "useUnknownInCatchVariables": false
     },
-    "include": [
-        "next-env.d.ts",
-        "**/*.ts",
-        "**/*.tsx",
-        "**/*.js",
-        "../../packages/shared/themes/mui-theme.d.ts"
-    ],
+    "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "**/*.js"],
     "exclude": ["node_modules", "out", ".next", "thirdparty"]
 }

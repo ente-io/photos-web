@@ -1,6 +1,6 @@
 import ArrowForward from '@mui/icons-material/ArrowForward';
 import { Box, IconButton, styled, Typography } from '@mui/material';
-import { SpaceBetweenFlex } from '@ente/shared/components/Container';
+import { SpaceBetweenFlex } from 'components/Container';
 import React from 'react';
 import { t } from 'i18next';
 

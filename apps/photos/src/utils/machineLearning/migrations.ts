@@ -1,5 +1,5 @@
 import { MlFileData, Face } from 'types/machineLearning';
-import { addLogLine } from '@ente/shared/logging';
+import { addLogLine } from 'utils/logging';
 import mlIDbStorage from 'utils/storage/mlIDbStorage';
 import { mlFilesStore } from 'utils/storage/mlStorage';
 import { getFaceId } from '.';

@@ -1,14 +1,13 @@
-import { getEndpoint } from '@ente/shared/network/api';
-import { getData, LS_KEYS } from '@ente/shared/storage/localStorage';
-import localForage from '@ente/shared/storage/localForage';
+import { getEndpoint } from 'utils/common/apiUtil';
+import { getData, LS_KEYS } from 'utils/storage/localStorage';
+import localForage from 'utils/storage/localForage';
 
-import { getToken } from '@ente/shared/storage/localStorage/helpers';
-import { getActualKey } from '@ente/shared/user';
+import { getActualKey, getToken } from 'utils/common/key';
 import { getPublicKey } from './userService';
-import HTTPService from '@ente/shared/network/HTTPService';
+import HTTPService from './HTTPService';
 import { EnteFile } from 'types/file';
-import { logError } from '@ente/shared/sentry';
-import { CustomError } from '@ente/shared/error';
+import { logError } from 'utils/sentry';
+import { CustomError } from 'utils/error';
 import {
     sortFiles,
     groupFilesBasedOnCollectionID,
@@ -51,8 +50,7 @@ import {
     isPinnedCollection,
     updateMagicMetadata,
 } from 'utils/magicMetadata';
-import { User } from '@ente/shared/user/types';
-import { FamilyData } from 'types/user';
+import { FamilyData, User } from 'types/user';
 import {
     isQuickLinkCollection,
     isOutgoingShare,
@@ -66,7 +64,7 @@ import {
     isDefaultHiddenCollection,
     getHiddenCollections,
 } from 'utils/collection';
-import ComlinkCryptoWorker from '@ente/shared/crypto';
+import ComlinkCryptoWorker from 'utils/comlink/ComlinkCryptoWorker';
 import { getLocalFiles } from './fileService';
 import { REQUEST_BATCH_SIZE } from 'constants/api';
 import { batch } from 'utils/common';

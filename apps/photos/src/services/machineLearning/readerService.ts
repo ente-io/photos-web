@@ -5,7 +5,7 @@ import {
     getOriginalImageBitmap,
     getThumbnailImageBitmap,
 } from 'utils/machineLearning';
-import { logError } from '@ente/shared/sentry';
+import { logError } from 'utils/sentry';
 
 class ReaderService {
     async getImageBitmap(

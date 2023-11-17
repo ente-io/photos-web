@@ -1,7 +1,6 @@
-import { User } from '@ente/shared/user/types';
-import { FamilyData, FamilyMember } from 'types/user';
-import { logError } from '@ente/shared/sentry';
-import { getData, LS_KEYS } from '@ente/shared/storage/localStorage';
+import { FamilyData, FamilyMember, User } from 'types/user';
+import { logError } from 'utils/sentry';
+import { getData, LS_KEYS } from 'utils/storage/localStorage';
 
 export function getLocalFamilyData(): FamilyData {
     return getData(LS_KEYS.FAMILY_DATA);

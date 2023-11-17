@@ -1,5 +1,5 @@
 import { Typography } from '@mui/material';
-import { VerticallyCenteredFlex } from '@ente/shared/components/Container';
+import { VerticallyCenteredFlex } from 'components/Container';
 
 interface Iprops {
     title: string;

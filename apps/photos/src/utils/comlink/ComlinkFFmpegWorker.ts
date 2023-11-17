@@ -1,6 +1,6 @@
 import { Remote } from 'comlink';
 import { DedicatedFFmpegWorker } from 'worker/ffmpeg.worker';
-import { ComlinkWorker } from '@ente/shared/worker/comlinkWorker';
+import { ComlinkWorker } from './comlinkWorker';
 
 class ComlinkFFmpegWorker {
     private comlinkWorkerInstance: Promise<Remote<DedicatedFFmpegWorker>>;

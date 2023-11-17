@@ -1,7 +1,7 @@
 import { Collection } from 'types/collection';
 import { EnteFile } from 'types/file';
 import { MagicMetadataCore, VISIBILITY_STATE } from 'types/magicMetadata';
-import ComlinkCryptoWorker from '@ente/shared/crypto';
+import ComlinkCryptoWorker from 'utils/comlink/ComlinkCryptoWorker';
 
 export function isArchivedFile(item: EnteFile): boolean {
     if (!item || !item.magicMetadata || !item.magicMetadata.data) {
