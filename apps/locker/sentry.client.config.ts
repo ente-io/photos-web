@@ -1,6 +1,6 @@
 import { setupSentry } from '@ente/shared/sentry/config/sentry.config.base';
 
 const DEFAULT_SENTRY_DSN =
-    'https://9466dbb7dc1e45f7865f16571d5320a9@sentry.ente.io/13';
+    'https://0a13fceb0f5542fd82a56f1cfa55e5b3@sentry.ente.io/14';
 
 setupSentry(DEFAULT_SENTRY_DSN);
