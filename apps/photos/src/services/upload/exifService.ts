@@ -9,6 +9,17 @@ import { CustomError } from '@ente/shared/error';
 
 const EXIFR_UNSUPPORTED_FILE_FORMAT_MESSAGE = 'Unknown file format';
 
+const OrientationTranslateValue = {
+    'Horizontal (normal)': 1,
+    'Mirror horizontal': 2,
+    'Rotate 180': 3,
+    'Mirror vertical': 4,
+    'Mirror horizontal and rotate 270 CW': 5,
+    'Rotate 90 CW': 6,
+    'Mirror horizontal and rotate 90 CW': 7,
+    'Rotate 270 CW': 8,
+};
+
 type ParsedEXIFData = Record<string, any> &
     Partial<{
         DateTimeOriginal: Date;
@@ -16,6 +27,7 @@ type ParsedEXIFData = Record<string, any> &
         ModifyDate: Date;
         DateCreated: Date;
         MetadataDate: Date;
+        Orientation: number;
         latitude: number;
         longitude: number;
         imageWidth: number;
@@ -35,6 +47,11 @@ type RawEXIFData = Record<string, any> &
         GPSLongitudeRef: string;
         ImageWidth: number;
         ImageHeight: number;
+        ExifImageHeight: number;
+        ExifImageWidth: number;
+        PixelXDimension: number;
+        PixelYDimension: number;
+        Orientation: string;
     }>;
 
 export async function getParsedExifData(
@@ -94,6 +111,7 @@ function parseExifData(exifData: RawEXIFData): ParsedEXIFData {
         PixelXDimension,
         PixelYDimension,
         MetadataDate,
+        Orientation,
         ...rest
     } = exifData;
     const parsedExif: ParsedEXIFData = { ...rest };
@@ -121,6 +139,9 @@ function parseExifData(exifData: RawEXIFData): ParsedEXIFData {
         );
         parsedExif.latitude = parsedLocation.latitude;
         parsedExif.longitude = parsedLocation.longitude;
+    }
+    if (Orientation) {
+        parsedExif.Orientation = parseOrientation(exifData.Orientation);
     }
     if (ImageWidth && ImageHeight) {
         if (typeof ImageWidth === 'number' && typeof ImageHeight === 'number') {
@@ -272,6 +293,10 @@ export function parseEXIFLocation(
         });
         return NULL_LOCATION;
     }
+}
+
+function parseOrientation(orientation: string) {
+    return OrientationTranslateValue[orientation];
 }
 
 function convertDMSToDD(
