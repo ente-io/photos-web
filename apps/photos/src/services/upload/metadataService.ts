@@ -109,7 +109,7 @@ export async function getImageMetadata(
             creationTime: getEXIFTime(exifData),
             width: exifData?.imageWidth ?? null,
             height: exifData?.imageHeight ?? null,
-            orientation: exifData?.orientation ?? null,
+            orientation: exifData?.Orientation ?? null,
         };
     } catch (e) {
         logError(e, 'getExifData failed');
