@@ -37,6 +37,7 @@ export interface Metadata {
     localID?: number;
     version?: number;
     deviceFolder?: string;
+    orientation?: number;
 }
 
 export interface Location {
@@ -149,6 +150,7 @@ export interface ParsedExtractedMetadata {
     creationTime: number;
     width: number;
     height: number;
+    orientation: number;
 }
 
 // This is used to prompt the user the make upload strategy choice

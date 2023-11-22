@@ -40,6 +40,7 @@ export function parseFFmpegExtractedMetadata(encodedMetadata: Uint8Array) {
         },
         width: null,
         height: null,
+        orientation: null,
     };
     return parsedMetadata;
 }

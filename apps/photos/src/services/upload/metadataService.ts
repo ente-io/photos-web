@@ -45,6 +45,7 @@ const EXIF_TAGS_NEEDED = [
     'PixelXDimension',
     'PixelYDimension',
     'MetadataDate',
+    'Orientation',
 ];
 
 export const MAX_FILE_NAME_LENGTH_GOOGLE_EXPORT = 46;
@@ -54,7 +55,7 @@ export async function extractMetadata(
     receivedFile: File | ElectronFile,
     fileTypeInfo: FileTypeInfo
 ): Promise<ExtractMetadataResult> {
-    let extractedMetadata: ParsedExtractedMetadata = NULL_EXTRACTED_METADATA;
+    let extractedMetadata = NULL_EXTRACTED_METADATA;
     if (fileTypeInfo.fileType === FILE_TYPE.IMAGE) {
         extractedMetadata = await getImageMetadata(receivedFile, fileTypeInfo);
     } else if (fileTypeInfo.fileType === FILE_TYPE.VIDEO) {
@@ -71,6 +72,7 @@ export async function extractMetadata(
         modificationTime: receivedFile.lastModified * 1000,
         latitude: extractedMetadata.location.latitude,
         longitude: extractedMetadata.location.longitude,
+        orientation: extractedMetadata.orientation,
         fileType: fileTypeInfo.fileType,
         hash: fileHash,
     };
@@ -107,6 +109,7 @@ export async function getImageMetadata(
             creationTime: getEXIFTime(exifData),
             width: exifData?.imageWidth ?? null,
             height: exifData?.imageHeight ?? null,
+            orientation: exifData?.orientation ?? null,
         };
     } catch (e) {
         logError(e, 'getExifData failed');

@@ -107,6 +107,7 @@ export const NULL_EXTRACTED_METADATA: ParsedExtractedMetadata = {
     creationTime: null,
     width: null,
     height: null,
+    orientation: null,
 };
 
 export const A_SEC_IN_MICROSECONDS = 1e6;
