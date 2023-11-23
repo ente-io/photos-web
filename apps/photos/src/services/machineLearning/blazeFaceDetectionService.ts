@@ -170,17 +170,40 @@ class BlazeFaceDetectionService implements FaceDetectionService {
     private async estimateFaces(
         imageBitmap: ImageBitmap
     ): Promise<Array<FaceDetection>> {
-        const resized = resizeToSquare(imageBitmap, BLAZEFACE_INPUT_SIZE);
+        const resized2 = resizeToSquare(
+            imageBitmap,
+            BLAZEFACE_INPUT_SIZE,
+            'high'
+        );
+        if (
+            imageBitmap.width !== BLAZEFACE_INPUT_SIZE ||
+            imageBitmap.height !== BLAZEFACE_INPUT_SIZE
+        ) {
+            // throw exception
+            alert(
+                'imageBitmap.width != BLAZEFACE_INPUT_SIZE || imageBitmap.height != BLAZEFACE_INPUT_SIZE'
+            );
+        } else {
+            console.log('s', resized2.width, resized2.height);
+        }
+        const resized = {
+            image: imageBitmap,
+            width: BLAZEFACE_INPUT_SIZE,
+            height: BLAZEFACE_INPUT_SIZE,
+        };
         const tfImage = tf.browser.fromPixels(resized.image);
         const blazeFaceModel = await this.getBlazefaceModel();
-        // TODO: check if this works concurrently, else use serialqueue
+
+        // return;
         const faces = await blazeFaceModel.estimateFaces(tfImage);
+
+        // alert("TODO: check if this works concurrently, else use serialqueue");
         tf.dispose(tfImage);
 
         const inBox = newBox(0, 0, resized.width, resized.height);
         const toBox = newBox(0, 0, imageBitmap.width, imageBitmap.height);
         const transform = computeTransformToBox(inBox, toBox);
-        // addLogLine("1st pass: ", { transform });
+        // // // addLogLine("1st pass: ", { transform });
 
         const faceDetections: Array<FaceDetection> = faces?.map((f) => {
             const box = transformBox(normFaceBox(f), transform);
@@ -195,17 +218,79 @@ class BlazeFaceDetectionService implements FaceDetectionService {
                 // detectionMethod: this.method,
             } as FaceDetection;
         });
-
         return faceDetections;
     }
+
+    /*
+    private async estimateFacesCompare(
+        imageBitmap: ImageBitmap
+    ): Promise<Array<FaceDetection>> {
+        let qualities = ['high', 'medium', 'low'];
+        for (let qual of qualities) {
+        let imageSmoothingQuality : ImageSmoothingQuality;
+        if (qual == 'high') {
+            imageSmoothingQuality = 'high';
+        } else if (qual == 'medium') {
+            imageSmoothingQuality = 'medium';
+        } else if (qual == 'low') {
+            imageSmoothingQuality = 'low';
+        }
+        const resized = resizeToSquare(imageBitmap, BLAZEFACE_INPUT_SIZE, imageSmoothingQuality );
+        // const resized = {image: imageBitmap, width: imageBitmap.width, height: imageBitmap.height};
+        const tfImageWeb = tf.browser.fromPixels(resized.image);
+    
+        const blazeFaceModel = await this.getBlazefaceModel();
+        // TODO: check if this works concurrently, else use serialqueue
+        // console.log('blazeFaceModel: ', tfImage);        
+        console.log( qual+ 'tfImageWeb: ', tfImageWeb.print());
+        // read json file from models/matrix.json
+        const inputMatrixFile = `/models/input_${qual}_aspect_true.json`;
+        const matrix = await fetch(inputMatrixFile);
+        const matrixJson = await matrix.json();
+        const tfImageMob = tf.tensor3d(matrixJson, [256,256,3], 'int32')
+        console.log(qual+'tfImageMobss: ', tfImageMob.print());
+
+        // console.log('matrix: ', matrix);
+        
+        // return;
+        const faces = await blazeFaceModel.estimateFaces(tfImageWeb);
+        const facesMob = await blazeFaceModel.estimateFaces(tfImageMob);
+        console.log(qual+'ouRfaces');
+        }
+        // alert("TODO: check if this works concurrently, else use serialqueue");
+        // // tf.dispose(tfImage);
+
+        // // const inBox = newBox(0, 0, resized.width, resized.height);
+        // // const toBox = newBox(0, 0, imageBitmap.width, imageBitmap.height);
+        // // const transform = computeTransformToBox(inBox, toBox);
+        // // // addLogLine("1st pass: ", { transform });
+
+        // // const faceDetections: Array<FaceDetection> = faces?.map((f) => {
+        // //     const box = transformBox(normFaceBox(f), transform);
+        // //     const normLandmarks = (f.landmarks as number[][])?.map(
+        // //         (l) => new Point(l[0], l[1])
+        // //     );
+        // //     const landmarks = transformPoints(normLandmarks, transform);
+        // //     return {
+        // //         box,
+        // //         landmarks,
+        // //         probability: f.probability as number,
+        // //         // detectionMethod: this.method,
+        // //     } as FaceDetection;
+        // // });
+
+        return Array<FaceDetection>();
+    }
+    */
 
     public async detectFaces(
         imageBitmap: ImageBitmap
     ): Promise<Array<FaceDetection>> {
         const maxFaceDistance = imageBitmap.width * MAX_FACE_DISTANCE_PERCENT;
         const pass1Detections = await this.estimateFaces(imageBitmap);
+        // return pass1Detections;
 
-        // run 2nd pass for accuracy
+        // // run 2nd pass for accuracy
         const detections: Array<FaceDetection> = [];
         for (const pass1Detection of pass1Detections) {
             const imageBox = enlargeBox(pass1Detection.box, 2);

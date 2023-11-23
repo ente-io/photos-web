@@ -414,6 +414,7 @@ class MachineLearningService {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         textDetectionTimeoutIndex?: number
     ) {
+        console.log('Syncing for file' + enteFile.title);
         const fileContext: MLSyncFileContext = { enteFile, localFile };
         const oldMlFile =
             (fileContext.oldMlFile = await this.getMLFileData(enteFile.id)) ??
@@ -441,10 +442,10 @@ class MachineLearningService {
             // );
             await Promise.all([
                 this.syncFaceDetections(syncContext, fileContext),
-                ObjectService.syncFileObjectDetections(
-                    syncContext,
-                    fileContext
-                ),
+                // ObjectService.syncFileObjectDetections(
+                //     syncContext,
+                //     fileContext
+                // ),
                 // TextService.syncFileTextDetections(
                 //     syncContext,
                 //     fileContext,

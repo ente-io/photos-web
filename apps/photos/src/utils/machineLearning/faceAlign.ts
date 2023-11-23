@@ -21,7 +21,7 @@ import { Dimensions } from 'types/image';
 export function normalizeLandmarks(
     landmarks: Array<[number, number]>,
     faceSize: number
-) {
+): Array<[number, number]> {
     return landmarks.map((landmark) =>
         landmark.map((p) => p / faceSize)
     ) as Array<[number, number]>;
