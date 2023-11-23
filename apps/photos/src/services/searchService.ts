@@ -32,7 +32,6 @@ import {
     computeClipMatchScore,
     getLocalClipImageEmbeddings,
 } from './clipService';
-import isElectron from 'is-electron';
 
 const DIGITS = new Set(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
 
@@ -54,6 +53,7 @@ export const getAutoCompleteSuggestions =
                 return [];
             }
             const suggestions: Suggestion[] = [
+                await getClipSuggestion(searchPhrase),
                 ...getFileTypeSuggestion(searchPhrase),
                 ...getHolidaySuggestion(searchPhrase),
                 ...getYearSuggestion(searchPhrase),
@@ -63,7 +63,6 @@ export const getAutoCompleteSuggestions =
                 getFileCaptionSuggestion(searchPhrase, files),
                 ...(await getLocationTagSuggestions(searchPhrase)),
                 ...(await getThingSuggestion(searchPhrase)),
-                await getClipSuggestion(searchPhrase),
             ].filter((suggestion) => !!suggestion);
 
             return convertSuggestionsToOptions(suggestions, files);
@@ -291,7 +290,7 @@ async function getThingSuggestion(searchPhrase: string): Promise<Suggestion[]> {
 }
 
 async function getClipSuggestion(searchPhrase: string): Promise<Suggestion> {
-    if (!isElectron()) {
+    if (!ClipService.isPlatformSupported()) {
         return null;
     }
     const clipResults = await searchClip(searchPhrase);
