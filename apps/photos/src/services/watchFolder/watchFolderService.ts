@@ -207,7 +207,6 @@ class watchFolderService {
             logError(e, 'error while getting watch mappings');
             return [];
         }
-        return [];
     }
 
     private setIsEventRunning(isEventRunning: boolean) {

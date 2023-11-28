@@ -12,6 +12,7 @@ import { UPLOAD_STRATEGY } from 'constants/upload';
 import { getImportSuggestion } from 'utils/upload';
 import ElectronAPIs from '@ente/shared/electron';
 import { PICKED_UPLOAD_TYPE } from 'constants/upload';
+import { logError } from '@ente/shared/sentry';
 
 interface Iprops {
     open: boolean;
@@ -25,16 +26,24 @@ export default function WatchFolder({ open, onClose }: Iprops) {
     const appContext = useContext(AppContext);
 
     useEffect(() => {
-        setMappings(watchFolderService.getWatchMappings());
+        try {
+            setMappings(watchFolderService.getWatchMappings());
+        } catch (e) {
+            logError(e, 'get watch mappings failed');
+        }
     }, []);
 
     useEffect(() => {
-        if (
-            appContext.watchFolderFiles &&
-            appContext.watchFolderFiles.length > 0
-        ) {
-            handleFolderDrop(appContext.watchFolderFiles);
-            appContext.setWatchFolderFiles(null);
+        try {
+            if (
+                appContext.watchFolderFiles &&
+                appContext.watchFolderFiles.length > 0
+            ) {
+                handleFolderDrop(appContext.watchFolderFiles);
+                appContext.setWatchFolderFiles(null);
+            }
+        } catch (e) {
+            logError(e, 'handle folder drop failed');
         }
     }, [appContext.watchFolderFiles]);
 
@@ -63,7 +72,11 @@ export default function WatchFolder({ open, onClose }: Iprops) {
     };
 
     const handleAddFolderClick = async () => {
-        await handleFolderSelection();
+        try {
+            await handleFolderSelection();
+        } catch (e) {
+            logError(e, 'handleAddFolderClick failed');
+        }
     };
 
     const handleFolderSelection = async () => {
@@ -95,13 +108,21 @@ export default function WatchFolder({ open, onClose }: Iprops) {
     const closeChoiceModal = () => setChoiceModalOpen(false);
 
     const uploadToSingleCollection = () => {
-        closeChoiceModal();
-        handleAddWatchMapping(UPLOAD_STRATEGY.SINGLE_COLLECTION);
+        try {
+            closeChoiceModal();
+            handleAddWatchMapping(UPLOAD_STRATEGY.SINGLE_COLLECTION);
+        } catch (e) {
+            logError(e, 'uploadToSingleCollection failed');
+        }
     };
 
     const uploadToMultipleCollection = () => {
-        closeChoiceModal();
-        handleAddWatchMapping(UPLOAD_STRATEGY.COLLECTION_PER_FOLDER);
+        try {
+            closeChoiceModal();
+            handleAddWatchMapping(UPLOAD_STRATEGY.COLLECTION_PER_FOLDER);
+        } catch (e) {
+            logError(e, 'uploadToMultipleCollection failed');
+        }
     };
 
     return (
