@@ -53,6 +53,7 @@ class watchFolderService {
         setWatchFolderServiceIsRunning: (isRunning: boolean) => void
     ) {
         try {
+            addLogLine('initializing watch service');
             this.setElectronFiles = setElectronFiles;
             this.setCollectionName = setCollectionName;
             this.syncWithRemote = syncWithRemote;
@@ -67,13 +68,16 @@ class watchFolderService {
 
     async getAndSyncDiffOfFiles() {
         try {
+            addLogLine('getting and syncing diff of files');
             let mappings = this.getWatchMappings();
 
+            addLogLine(`got mappings Count: ${mappings?.length ?? 0}}`);
             if (!mappings?.length) {
                 return;
             }
 
             mappings = await this.filterOutDeletedMappings(mappings);
+            addLogLine(`filtered mappings Count: ${mappings?.length ?? 0}}`);
 
             this.eventQueue = [];
 
@@ -98,6 +102,8 @@ class watchFolderService {
         filesOnDisk: ElectronFile[]
     ) {
         const filesToUpload = getValidFilesToUpload(filesOnDisk, mapping);
+
+        addLogLine(`uploadDiffOfFiles Count: ${filesToUpload?.length ?? 0}}`);
 
         if (filesToUpload.length > 0) {
             for (const file of filesToUpload) {
@@ -124,6 +130,8 @@ class watchFolderService {
                 (electronFile) => electronFile.path === file.path
             );
         });
+
+        addLogLine(`trashDiffOfFiles Count: ${filesToRemove?.length ?? 0}}`);
 
         if (filesToRemove.length > 0) {
             for (const file of filesToRemove) {
@@ -159,15 +167,18 @@ class watchFolderService {
     }
 
     pushEvent(event: EventQueueItem) {
+        addLogLine(`pushEvent ${event.type} ${event.collectionName}`);
         this.eventQueue.push(event);
         debounce(this.runNextEvent.bind(this), 300)();
     }
 
     async pushTrashedDir(path: string) {
+        addLogLine(`pushTrashedDir ${path}`);
         this.trashingDirQueue.push(path);
     }
 
     private setupWatcherFunctions() {
+        addLogLine('setting up watcher functions');
         ElectronAPIs.registerWatcherFunctions(
             diskFileAddedCallback,
             diskFileRemovedCallback,
@@ -181,6 +192,9 @@ class watchFolderService {
         uploadStrategy: UPLOAD_STRATEGY
     ) {
         try {
+            addLogLine(
+                `adding watch mapping rootFolderName:${rootFolderName} folderPath:${folderPath} uploadStrategy:${uploadStrategy}`
+            );
             await ElectronAPIs.addWatchMapping(
                 rootFolderName,
                 folderPath,
@@ -194,6 +208,7 @@ class watchFolderService {
 
     async removeWatchMapping(folderPath: string) {
         try {
+            addLogLine(`removing watch mapping folderPath:${folderPath}`);
             await ElectronAPIs.removeWatchMapping(folderPath);
         } catch (e) {
             logError(e, 'error while removing watch mapping');
@@ -202,7 +217,9 @@ class watchFolderService {
 
     getWatchMappings(): WatchMapping[] {
         try {
-            return ElectronAPIs.getWatchMappings() ?? [];
+            const mappings = ElectronAPIs.getWatchMappings() ?? [];
+            addLogLine(`got watch mappings Count: ${mappings?.length ?? 0}}`);
+            return mappings;
         } catch (e) {
             logError(e, 'error while getting watch mappings');
             return [];
@@ -211,6 +228,7 @@ class watchFolderService {
     }
 
     private setIsEventRunning(isEventRunning: boolean) {
+        addLogLine(`setIsEventRunning ${isEventRunning}`);
         this.isEventRunning = isEventRunning;
         this.setWatchFolderServiceIsRunning(isEventRunning);
     }

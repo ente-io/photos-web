@@ -160,40 +160,49 @@ export default function Uploader(props: Props) {
     };
 
     useEffect(() => {
-        uploadManager.init(
-            {
-                setPercentComplete,
-                setUploadCounter,
-                setInProgressUploads,
-                setFinishedUploads,
-                setUploadStage,
-                setUploadFilenames: setUploadFileNames,
-                setHasLivePhotos,
-                setUploadProgressView,
-            },
-            props.setFiles,
-            publicCollectionGalleryContext,
-            appContext.isCFProxyDisabled
-        );
-        if (uploadManager.isUploadRunning()) {
-            setUploadProgressView(true);
-        }
+        try {
+            uploadManager.init(
+                {
+                    setPercentComplete,
+                    setUploadCounter,
+                    setInProgressUploads,
+                    setFinishedUploads,
+                    setUploadStage,
+                    setUploadFilenames: setUploadFileNames,
+                    setHasLivePhotos,
+                    setUploadProgressView,
+                },
+                props.setFiles,
+                publicCollectionGalleryContext,
+                appContext.isCFProxyDisabled
+            );
+            if (uploadManager.isUploadRunning()) {
+                setUploadProgressView(true);
+            }
 
-        if (isElectron()) {
-            ImportService.getPendingUploads().then(
-                ({ files: electronFiles, collectionName, type }) => {
-                    addLogLine(
-                        `found pending desktop upload, resuming uploads`
-                    );
-                    resumeDesktopUpload(type, electronFiles, collectionName);
-                }
-            );
-            watchFolderService.init(
-                setElectronFiles,
-                setCollectionName,
-                props.syncWithRemote,
-                appContext.setIsFolderSyncRunning
-            );
+            if (isElectron()) {
+                ImportService.getPendingUploads().then(
+                    ({ files: electronFiles, collectionName, type }) => {
+                        addLogLine(
+                            `found pending desktop upload, resuming uploads`
+                        );
+                        resumeDesktopUpload(
+                            type,
+                            electronFiles,
+                            collectionName
+                        );
+                    }
+                );
+                addLogLine(`init watch folder service`);
+                watchFolderService.init(
+                    setElectronFiles,
+                    setCollectionName,
+                    props.syncWithRemote,
+                    appContext.setIsFolderSyncRunning
+                );
+            }
+        } catch (e) {
+            logError(e, 'failed to init uploader');
         }
     }, [
         publicCollectionGalleryContext.accessedThroughSharedURL,
