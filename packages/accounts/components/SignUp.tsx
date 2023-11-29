@@ -39,6 +39,7 @@ interface FormValues {
     email: string;
     passphrase: string;
     confirm: string;
+    referral: string;
 }
 
 interface SignUpProps {
@@ -63,7 +64,7 @@ export default function SignUp({ router, appName, login }: SignUpProps) {
     };
 
     const registerUser = async (
-        { email, passphrase, confirm }: FormValues,
+        { email, passphrase, confirm, referral }: FormValues,
         { setFieldError }: FormikHelpers<FormValues>
     ) => {
         try {
@@ -74,7 +75,7 @@ export default function SignUp({ router, appName, login }: SignUpProps) {
             setLoading(true);
             try {
                 setData(LS_KEYS.USER, { email });
-                await sendOtt(appName, email);
+                await sendOtt(appName, email, referral);
             } catch (e) {
                 setFieldError('confirm', `${t('UNKNOWN_ERROR')} ${e.message}`);
                 throw e;
@@ -115,6 +116,7 @@ export default function SignUp({ router, appName, login }: SignUpProps) {
                     email: '',
                     passphrase: '',
                     confirm: '',
+                    referral: '',
                 }}
                 validationSchema={Yup.object().shape({
                     email: Yup.string()
@@ -192,6 +194,24 @@ export default function SignUp({ router, appName, login }: SignUpProps) {
                             <PasswordStrengthHint
                                 password={values.passphrase}
                             />
+
+                            <Box sx={{ width: '100%' }}>
+                                <Typography
+                                    textAlign={'left'}
+                                    color="text.secondary"
+                                    mt={'24px'}>
+                                    {t('REFERRAL_CODE_HINT')}
+                                </Typography>
+                                <TextField
+                                    fullWidth
+                                    name="referral"
+                                    type="text"
+                                    value={values.referral}
+                                    onChange={handleChange('referral')}
+                                    error={Boolean(errors.referral)}
+                                    disabled={loading}
+                                />
+                            </Box>
                             <FormGroup sx={{ width: '100%' }}>
                                 <FormControlLabel
                                     sx={{

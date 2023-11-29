@@ -18,10 +18,11 @@ import { APPS, OTT_CLIENTS } from '@ente/shared/apps/constants';
 
 const ENDPOINT = getEndpoint();
 
-export const sendOtt = (appName: APPS, email: string) => {
+export const sendOtt = (appName: APPS, email: string, referral?: string) => {
     return HTTPService.post(`${ENDPOINT}/users/ott`, {
         email,
         client: OTT_CLIENTS.get(appName),
+        referral,
     });
 };
 
