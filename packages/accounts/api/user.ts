@@ -18,20 +18,24 @@ import { APPS, OTT_CLIENTS } from '@ente/shared/apps/constants';
 
 const ENDPOINT = getEndpoint();
 
-export const sendOtt = (appName: APPS, email: string, referral?: string) => {
+export const sendOtt = (appName: APPS, email: string) => {
+    return HTTPService.post(`${ENDPOINT}/users/ott`, {
+        email,
+        client: OTT_CLIENTS.get(appName),
+    });
+};
+
+export const verifyOtt = (email: string, ott: string, referral?: string) => {
     let cleanedReferral = referral.trim();
     if (!cleanedReferral?.length) {
         cleanedReferral = undefined;
     }
-    return HTTPService.post(`${ENDPOINT}/users/ott`, {
+    return HTTPService.post(`${ENDPOINT}/users/verify-email`, {
         email,
-        client: OTT_CLIENTS.get(appName),
+        ott,
         referral: cleanedReferral,
     });
 };
-
-export const verifyOtt = (email: string, ott: string) =>
-    HTTPService.post(`${ENDPOINT}/users/verify-email`, { email, ott });
 
 export const putAttributes = (token: string, keyAttributes: KeyAttributes) =>
     HTTPService.put(

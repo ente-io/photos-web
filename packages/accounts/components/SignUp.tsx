@@ -11,7 +11,10 @@ import {
 import { isWeakPassword } from '@ente/accounts/utils';
 import { generateKeyAndSRPAttributes } from '@ente/accounts/utils/srp';
 
-import { setJustSignedUp } from '@ente/shared/storage/localStorage/helpers';
+import {
+    setJustSignedUp,
+    setLocalReferralSource,
+} from '@ente/shared/storage/localStorage/helpers';
 import { SESSION_KEYS } from '@ente/shared/storage/sessionStorage';
 import { PAGES } from '@ente/accounts/constants/pages';
 import {
@@ -79,7 +82,8 @@ export default function SignUp({ router, appName, login }: SignUpProps) {
             setLoading(true);
             try {
                 setData(LS_KEYS.USER, { email });
-                await sendOtt(appName, email, referral);
+                setLocalReferralSource(referral);
+                await sendOtt(appName, email);
             } catch (e) {
                 setFieldError('confirm', `${t('UNKNOWN_ERROR')} ${e.message}`);
                 throw e;
