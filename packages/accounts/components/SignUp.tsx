@@ -207,6 +207,7 @@ export default function SignUp({ router, appName, login }: SignUpProps) {
                                     {t('REFERRAL_CODE_HINT')}
                                 </Typography>
                                 <TextField
+                                    hiddenLabel
                                     InputProps={{
                                         endAdornment: (
                                             <InputAdornment position="end">
@@ -237,6 +238,7 @@ export default function SignUp({ router, appName, login }: SignUpProps) {
                                         color: 'text.muted',
                                         ml: 0,
                                         mt: 2,
+                                        mb: 0,
                                     }}
                                     control={
                                         <Checkbox
@@ -273,7 +275,7 @@ export default function SignUp({ router, appName, login }: SignUpProps) {
                                 />
                             </FormGroup>
                         </VerticallyCentered>
-                        <Box my={4}>
+                        <Box mb={4}>
                             <SubmitButton
                                 sx={{ my: 0 }}
                                 buttonText={t('CREATE_ACCOUNT')}
