@@ -19,8 +19,11 @@ import {
     Checkbox,
     FormControlLabel,
     FormGroup,
+    IconButton,
+    InputAdornment,
     Link,
     TextField,
+    Tooltip,
     Typography,
 } from '@mui/material';
 import FormPaperTitle from '@ente/shared/components/Form/FormPaper/Title';
@@ -34,6 +37,7 @@ import ShowHidePassword from '@ente/shared/components/Form/ShowHidePassword';
 import { APPS } from '@ente/shared/apps/constants';
 import { NextRouter } from 'next/router';
 import { logError } from '@ente/shared/sentry';
+import InfoOutlined from '@mui/icons-material/InfoOutlined';
 
 interface FormValues {
     email: string;
@@ -203,6 +207,21 @@ export default function SignUp({ router, appName, login }: SignUpProps) {
                                     {t('REFERRAL_CODE_HINT')}
                                 </Typography>
                                 <TextField
+                                    InputProps={{
+                                        endAdornment: (
+                                            <InputAdornment position="end">
+                                                <Tooltip
+                                                    title={t('REFERRAL_INFO')}>
+                                                    <IconButton
+                                                        tabIndex={-1}
+                                                        color="secondary"
+                                                        edge={'end'}>
+                                                        <InfoOutlined />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            </InputAdornment>
+                                        ),
+                                    }}
                                     fullWidth
                                     name="referral"
                                     type="text"
