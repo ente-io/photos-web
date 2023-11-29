@@ -12,7 +12,8 @@ import {
     copyFileToClipboard,
     getFileExtension,
     getFileFromURL,
-    isRawFileFromFileName,
+    isSupportedRawFormat,
+    isRawFile,
 } from 'utils/file';
 import { logError } from '@ente/shared/sentry';
 
@@ -135,6 +136,8 @@ function PhotoViewer(props: Iprops) {
     >(new Map());
 
     const [showEditButton, setShowEditButton] = useState(false);
+
+    const [showZoomButton, setShowZoomButton] = useState(false);
 
     useEffect(() => {
         if (publicCollectionGalleryContext.accessedThroughSharedURL) {
@@ -329,10 +332,16 @@ function PhotoViewer(props: Iprops) {
     }
 
     function updateShowEditButton(file: EnteFile) {
+        const extension = getFileExtension(file.metadata.title);
+        const isSupported =
+            !isRawFile(extension) || isSupportedRawFormat(extension);
         setShowEditButton(
-            file.metadata.fileType === FILE_TYPE.IMAGE &&
-                !isRawFileFromFileName(file.metadata.title)
+            file.metadata.fileType === FILE_TYPE.IMAGE && isSupported
         );
+    }
+
+    function updateShowZoomButton(file: EnteFile) {
+        setShowZoomButton(file.metadata.fileType === FILE_TYPE.IMAGE);
     }
 
     const openPhotoSwipe = () => {
@@ -408,6 +417,7 @@ function PhotoViewer(props: Iprops) {
             updateShowConvertBtn(currItem);
             updateIsSourceLoaded(currItem);
             updateShowEditButton(currItem);
+            updateShowZoomButton(currItem);
         });
         photoSwipe.listen('resize', () => {
             if (!photoSwipe?.currItem) return;
@@ -763,12 +773,14 @@ function PhotoViewer(props: Iprops) {
                                     <DeleteIcon />
                                 </button>
                             )}
-                            <button
-                                className="pswp__button pswp__button--custom"
-                                onClick={toggleZoomInAndOut}
-                                title={t('ZOOM_IN_OUT')}>
-                                <ZoomInOutlinedIcon />
-                            </button>
+                            {showZoomButton && (
+                                <button
+                                    className="pswp__button pswp__button--custom"
+                                    onClick={toggleZoomInAndOut}
+                                    title={t('ZOOM_IN_OUT')}>
+                                    <ZoomInOutlinedIcon />
+                                </button>
+                            )}
                             <button
                                 className="pswp__button pswp__button--custom"
                                 onClick={() => {

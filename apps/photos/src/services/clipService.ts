@@ -7,7 +7,6 @@ import { getAllLocalFiles, getLocalFiles } from './fileService';
 import downloadManager from './downloadManager';
 import { logError } from '@ente/shared/sentry';
 import { addLogLine } from '@ente/shared/logging';
-import isElectron from 'is-electron';
 import { Events, eventBus } from '@ente/shared/events';
 import PQueue from 'p-queue';
 import { EnteFile } from 'types/file';
@@ -19,6 +18,7 @@ import { FILE_TYPE } from 'constants/file';
 import ComlinkCryptoWorker from '@ente/shared/crypto';
 import { Embedding, Model } from 'types/embedding';
 import { getToken } from '@ente/shared/storage/localStorage/helpers';
+import isElectron from 'is-electron';
 
 const CLIP_EMBEDDING_LENGTH = 512;
 
@@ -40,6 +40,7 @@ class ClipServiceImpl {
     private onFileUploadedHandler:
         | ((arg: { enteFile: EnteFile; localFile: globalThis.File }) => void)
         | null = null;
+    private unsupportedPlatform = false;
 
     constructor() {
         this.liveEmbeddingExtractionQueue = new PQueue({
@@ -47,9 +48,13 @@ class ClipServiceImpl {
         });
     }
 
+    isPlatformSupported = () => {
+        return isElectron() && !this.unsupportedPlatform;
+    };
+
     setupOnFileUploadListener = async () => {
         try {
-            if (!isElectron()) {
+            if (this.unsupportedPlatform) {
                 return;
             }
             if (this.onFileUploadedHandler) {
@@ -141,6 +146,9 @@ class ClipServiceImpl {
         try {
             return ElectronAPIs.computeTextEmbedding(text);
         } catch (e) {
+            if (e?.message?.includes(CustomError.UNSUPPORTED_PLATFORM)) {
+                this.unsupportedPlatform = true;
+            }
             logError(e, 'failed to compute text embedding');
             throw e;
         }
@@ -148,6 +156,12 @@ class ClipServiceImpl {
 
     private runClipEmbeddingExtraction = async (canceller: AbortController) => {
         try {
+            if (this.unsupportedPlatform) {
+                addLogLine(
+                    `skipping clip embedding extraction, platform unsupported`
+                );
+                return;
+            }
             const user = getData(LS_KEYS.USER);
             if (!user) {
                 return;
@@ -188,11 +202,22 @@ class ClipServiceImpl {
                         `successfully put clip embedding to server for file: ${file.metadata.title} fileID: ${file.id}`
                     );
                 } catch (e) {
-                    if (e.message !== CustomError.REQUEST_CANCELLED) {
+                    if (e?.message !== CustomError.REQUEST_CANCELLED) {
                         logError(
                             e,
                             'failed to extract clip embedding for file'
                         );
+                    }
+                    if (
+                        e?.message?.includes(CustomError.UNSUPPORTED_PLATFORM)
+                    ) {
+                        this.unsupportedPlatform = true;
+                    }
+                    if (
+                        e?.message === CustomError.REQUEST_CANCELLED ||
+                        e?.message?.includes(CustomError.UNSUPPORTED_PLATFORM)
+                    ) {
+                        throw e;
                     }
                 }
             }
