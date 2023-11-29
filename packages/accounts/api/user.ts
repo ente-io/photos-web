@@ -30,7 +30,7 @@ export const verifyOtt = (email: string, ott: string, referral: string) => {
     return HTTPService.post(`${ENDPOINT}/users/verify-email`, {
         email,
         ott,
-        referral: cleanedReferral,
+        source: cleanedReferral,
     });
 };
 
