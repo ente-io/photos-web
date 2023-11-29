@@ -25,11 +25,9 @@ export const sendOtt = (appName: APPS, email: string) => {
     });
 };
 
-export const verifyOtt = (email: string, ott: string, referral?: string) => {
-    let cleanedReferral = referral.trim();
-    if (!cleanedReferral?.length) {
-        cleanedReferral = undefined;
-    }
+export const verifyOtt = (email: string, ott: string, referral: string) => {
+    let cleanedReferral = referral?.trim() || '';
+    cleanedReferral += ':web';
     return HTTPService.post(`${ENDPOINT}/users/verify-email`, {
         email,
         ott,
