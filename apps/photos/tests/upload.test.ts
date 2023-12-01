@@ -3,7 +3,7 @@ import { getLocalCollections } from 'services/collectionService';
 import { getUserDetailsV2 } from 'services/userService';
 import { groupFilesBasedOnCollectionID } from 'utils/file';
 import { FILE_TYPE } from 'constants/file';
-import { tryToParseDateTime } from '@ente/shared/time';
+import { parseDateTimeFromFile } from '@ente/shared/time';
 import {
     MAX_FILE_NAME_LENGTH_GOOGLE_EXPORT,
     getClippedMetadataJSONMapKeyForFile,
@@ -376,7 +376,7 @@ async function googleMetadataReadingCheck(expectedState) {
 function parseDateTimeFromFileNameTest() {
     DATE_TIME_PARSING_TEST_FILE_NAMES.forEach(
         ({ fileName, expectedDateTime }) => {
-            const dateTime = tryToParseDateTime(fileName);
+            const dateTime = parseDateTimeFromFile(fileName);
             const formattedDateTime = getFormattedDateTime(dateTime);
             if (formattedDateTime !== expectedDateTime) {
                 throw Error(
@@ -419,7 +419,8 @@ function mappingFileAndJSONFileCheck() {
 }
 
 // format: YYYY-MM-DD HH:MM:SS
-function getFormattedDateTime(date: Date) {
+function getFormattedDateTime(dateTime: number) {
+    const date = new Date(dateTime);
     const year = date.getFullYear();
     const month = padZero(date.getMonth() + 1);
     const day = padZero(date.getDate());

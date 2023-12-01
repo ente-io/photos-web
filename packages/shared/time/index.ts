@@ -1,3 +1,5 @@
+import { logError } from '../sentry';
+
 export interface TimeDelta {
     hours?: number;
     days?: number;
@@ -5,14 +7,7 @@ export interface TimeDelta {
     years?: number;
 }
 
-interface DateComponent<T = number> {
-    year: T;
-    month: T;
-    day: T;
-    hour: T;
-    minute: T;
-    second: T;
-}
+const currentYear = new Date().getFullYear();
 
 export function getUnixTimeInMicroSecondsWithDelta(delta: TimeDelta): number {
     let currentDate = new Date();
@@ -70,108 +65,51 @@ function _addYears(date: Date, years: number) {
     return result;
 }
 
-/*
-generates data component for date in format YYYYMMDD-HHMMSS
- */
-export function parseDateFromFusedDateString(dateTime: string) {
-    const dateComponent: DateComponent<number> = convertDateComponentToNumber({
-        year: dateTime.slice(0, 4),
-        month: dateTime.slice(4, 6),
-        day: dateTime.slice(6, 8),
-        hour: dateTime.slice(9, 11),
-        minute: dateTime.slice(11, 13),
-        second: dateTime.slice(13, 15),
-    });
-    return validateAndGetDateFromComponents(dateComponent);
-}
+const exp = RegExp('/[.A-Za-z]*/g');
 
-/* sample date format = 2018-08-19 12:34:45
- the date has six symbol separated number values
- which we would extract and use to form the date
- */
-export function tryToParseDateTime(dateTime: string): Date {
-    const dateComponent = getDateComponentsFromSymbolJoinedString(dateTime);
-    if (dateComponent.year?.length === 8 && dateComponent.month?.length === 6) {
-        // the filename has size 8 consecutive and then 6 consecutive digits
-        // high possibility that the it is a date in format YYYYMMDD-HHMMSS
-        const possibleDateTime = dateComponent.year + '-' + dateComponent.month;
-        return parseDateFromFusedDateString(possibleDateTime);
-    }
-    return validateAndGetDateFromComponents(
-        convertDateComponentToNumber(dateComponent)
-    );
-}
-
-function getDateComponentsFromSymbolJoinedString(
-    dateTime: string
-): DateComponent<string> {
-    const [year, month, day, hour, minute, second] =
-        dateTime.match(/\d+/g) ?? [];
-
-    return { year, month, day, hour, minute, second };
-}
-
-function validateAndGetDateFromComponents(
-    dateComponent: DateComponent<number>
-) {
-    let date = getDateFromComponents(dateComponent);
-    if (hasTimeValues(dateComponent) && !isTimePartValid(date, dateComponent)) {
-        // if the date has time values but they are not valid
-        // then we remove the time values and try to validate the date
-        date = getDateFromComponents(removeTimeValues(dateComponent));
-    }
-    if (!isDatePartValid(date, dateComponent)) {
+// tries to extract date from file name if available else returns null
+export function parseDateTimeFromFile(filename: string): number {
+    try {
+        const maxYear = currentYear + 1;
+        const minYear = 1990;
+        let value = filename.replaceAll(exp, '');
+        if (value?.length > 0 && !isNumeric(value[0])) {
+            value = value.slice(1);
+        }
+        if (value?.length > 0 && !isNumeric(value[value.length - 1])) {
+            value = value.slice(0, -1);
+        }
+        const countOfHyphen = value.split('-').length - 1;
+        const countUnderScore = value.split('_').length - 1;
+        let valueForParser = value;
+        if (countOfHyphen === 1) {
+            value = value.replaceAll('-', 'T');
+        } else if (countUnderScore === 1 || countUnderScore === 2) {
+            valueForParser = valueForParser.replaceAll('_', 'T');
+            if (countUnderScore === 2) {
+                value = valueForParser.split('_')[0];
+            }
+        } else if (countOfHyphen === 2) {
+            valueForParser = value.replaceAll('.', ':');
+        } else if (countOfHyphen === 6) {
+            const splits = value.split('-');
+            valueForParser = `${splits[0]}-${splits[1]}-${splits[2]}T${splits[3]}:${splits[4]}:${splits[5]}`;
+        }
+        console.log('valueForParser', valueForParser);
+        const result = Date.parse(valueForParser);
+        if (result && result > minYear && result < maxYear) {
+            return result * 1000;
+        }
+        return null;
+    } catch (e) {
+        logError(e, 'failed to extract date From FileName ');
         return null;
     }
-    return date;
 }
 
-function isTimePartValid(date: Date, dateComponent: DateComponent<number>) {
-    return (
-        date.getHours() === dateComponent.hour &&
-        date.getMinutes() === dateComponent.minute &&
-        date.getSeconds() === dateComponent.second
-    );
-}
-
-function isDatePartValid(date: Date, dateComponent: DateComponent<number>) {
-    return (
-        date.getFullYear() === dateComponent.year &&
-        date.getMonth() === dateComponent.month &&
-        date.getDate() === dateComponent.day
-    );
-}
-
-function convertDateComponentToNumber(
-    dateComponent: DateComponent<string>
-): DateComponent<number> {
-    return {
-        year: Number(dateComponent.year),
-        // https://stackoverflow.com/questions/2552483/why-does-the-month-argument-range-from-0-to-11-in-javascripts-date-constructor
-        month: Number(dateComponent.month) - 1,
-        day: Number(dateComponent.day),
-        hour: Number(dateComponent.hour),
-        minute: Number(dateComponent.minute),
-        second: Number(dateComponent.second),
-    };
-}
-
-function getDateFromComponents(dateComponent: DateComponent<number>) {
-    const { year, month, day, hour, minute, second } = dateComponent;
-    if (hasTimeValues(dateComponent)) {
-        return new Date(year, month, day, hour, minute, second);
-    } else {
-        return new Date(year, month, day);
+function isNumeric(s?: string) {
+    if (!s) {
+        return false;
     }
-}
-
-function hasTimeValues(dateComponent: DateComponent<number>) {
-    const { hour, minute, second } = dateComponent;
-    return !isNaN(hour) && !isNaN(minute) && !isNaN(second);
-}
-
-function removeTimeValues(
-    dateComponent: DateComponent<number>
-): DateComponent<number> {
-    return { ...dateComponent, hour: 0, minute: 0, second: 0 };
+    return Number.isNaN(Number.parseInt(s));
 }

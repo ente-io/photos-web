@@ -12,11 +12,7 @@ import {
 } from 'types/upload';
 import { NULL_EXTRACTED_METADATA, NULL_LOCATION } from 'constants/upload';
 import { getVideoMetadata } from './videoMetadataService';
-import {
-    parseDateFromFusedDateString,
-    validateAndGetCreationUnixTimeInMicroSeconds,
-    tryToParseDateTime,
-} from '@ente/shared/time';
+import { parseDateTimeFromFile } from '@ente/shared/time';
 import { getFileHash } from './hashService';
 import { Remote } from 'comlink';
 import { DedicatedCryptoWorker } from '@ente/shared/crypto/internal/crypto.worker';
@@ -66,7 +62,7 @@ export async function extractMetadata(
         title: receivedFile.name,
         creationTime:
             extractedMetadata.creationTime ??
-            extractDateFromFileName(receivedFile.name) ??
+            parseDateTimeFromFile(receivedFile.name) ??
             receivedFile.lastModified * 1000,
         modificationTime: receivedFile.lastModified * 1000,
         latitude: extractedMetadata.location.latitude,
@@ -209,42 +205,6 @@ export async function parseMetadataJSON(receivedFile: File | ElectronFile) {
         logError(e, 'parseMetadataJSON failed');
         // ignore
     }
-}
-
-// tries to extract date from file name if available else returns null
-export function extractDateFromFileName(filename: string): number {
-    try {
-        filename = filename.trim();
-        let parsedDate: Date;
-        if (filename.startsWith('IMG-') || filename.startsWith('VID-')) {
-            // Whatsapp media files
-            // sample name IMG-20171218-WA0028.jpg
-            parsedDate = parseDateFromFusedDateString(filename.split('-')[1]);
-        } else if (filename.startsWith('Screenshot_')) {
-            // Screenshots on droid
-            // sample name Screenshot_20181227-152914.jpg
-            parsedDate = parseDateFromFusedDateString(
-                filename.replaceAll('Screenshot_', '')
-            );
-        } else if (filename.startsWith('signal-')) {
-            // signal images
-            // sample name :signal-2018-08-21-100217.jpg
-            const dateString = convertSignalNameToFusedDateString(filename);
-            parsedDate = parseDateFromFusedDateString(dateString);
-        }
-        if (!parsedDate) {
-            parsedDate = tryToParseDateTime(filename);
-        }
-        return validateAndGetCreationUnixTimeInMicroSeconds(parsedDate);
-    } catch (e) {
-        logError(e, 'failed to extract date From FileName ');
-        return null;
-    }
-}
-
-function convertSignalNameToFusedDateString(filename: string) {
-    const dateStringParts = filename.split('-');
-    return `${dateStringParts[1]}${dateStringParts[2]}${dateStringParts[3]}-${dateStringParts[4]}`;
 }
 
 const EDITED_FILE_SUFFIX = '-edited';
