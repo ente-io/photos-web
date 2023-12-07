@@ -42,8 +42,8 @@ import MenuIcon from '@mui/icons-material/Menu';
 import { AppContext } from 'pages/_app';
 import { getEditorCloseConfirmationMessage } from 'utils/ui';
 import { logError } from '@ente/shared/sentry';
-import { getFileType } from 'services/typeDetectionService';
 import { downloadUsingAnchor } from '@ente/shared/utils';
+import { updateFileCreationDateInEXIF } from 'services/upload/exifService';
 
 interface IProps {
     file: EnteFile;
@@ -109,6 +109,8 @@ const ImageEditorOverlay = (props: IProps) => {
     const [canvasLoading, setCanvasLoading] = useState(false);
 
     const [showControlsDrawer, setShowControlsDrawer] = useState(true);
+
+    const [preserveTimeExif, setPreserveTimeExif] = useState(false);
 
     useEffect(() => {
         if (!canvasRef.current) {
@@ -288,13 +290,30 @@ const ImageEditorOverlay = (props: IProps) => {
     };
 
     const getEditedFile = async () => {
-        const blob = await exportCanvasToBlob();
+        let blob = await exportCanvasToBlob();
         if (!blob) {
             throw Error('no blob');
         }
+
+        if (preserveTimeExif) {
+            const fileReader = new FileReader();
+            blob = await updateFileCreationDateInEXIF(
+                fileReader,
+                blob,
+                new Date(props.file.metadata.creationTime / 1000)
+            );
+        }
+
         const editedFileName = getEditedFileName(props.file.metadata.title);
-        const editedFile = new File([blob], editedFileName);
-        return editedFile;
+        const editedFile = new File([blob], editedFileName, {
+            type: blob.type,
+            lastModified: props.file.metadata.creationTime / 1000,
+        });
+
+        return {
+            file: editedFile,
+            blob,
+        };
     };
 
     const handleClose = () => {
@@ -321,11 +340,8 @@ const ImageEditorOverlay = (props: IProps) => {
             if (!canvasRef.current) return;
 
             const editedFile = await getEditedFile();
-            const fileType = await getFileType(editedFile);
-            const tempImgURL = URL.createObjectURL(
-                new Blob([editedFile], { type: fileType.mimeType })
-            );
-            downloadUsingAnchor(tempImgURL, editedFile.name);
+            const tempImgURL = URL.createObjectURL(editedFile.blob);
+            downloadUsingAnchor(tempImgURL, editedFile.file.name);
         } catch (e) {
             logError(e, 'Error downloading edited photo');
         }
@@ -343,7 +359,7 @@ const ImageEditorOverlay = (props: IProps) => {
 
             const editedFile = await getEditedFile();
             const file: FileWithCollection = {
-                file: editedFile,
+                file: editedFile.file,
                 collectionID: props.file.collectionID,
                 localID: 1,
             };
@@ -491,6 +507,19 @@ const ImageEditorOverlay = (props: IProps) => {
                         />
                     )}
                     <MenuSectionTitle title={t('EXPORT')} />
+                    <MenuItemGroup
+                        style={{
+                            marginBottom: '0.5rem',
+                        }}>
+                        <EnteMenuItem
+                            variant="toggle"
+                            checked={preserveTimeExif}
+                            label={t('PRESERVE_TIME_EXIF')}
+                            onClick={() => {
+                                setPreserveTimeExif(!preserveTimeExif);
+                            }}
+                        />
+                    </MenuItemGroup>
                     <MenuItemGroup>
                         <EnteMenuItem
                             startIcon={<DownloadIcon />}

@@ -623,5 +623,6 @@
     "FASTER_UPLOAD":"Faster uploads",
     "FASTER_UPLOAD_DESCRIPTION":"Route uploads through nearby servers",
     "STATUS": "Status",
-    "INDEXED_ITEMS": "Indexed items"
+    "INDEXED_ITEMS": "Indexed items",
+    "PRESERVE_TIME_EXIF": "Preserve Original Timestamp"
 }
