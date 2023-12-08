@@ -24,15 +24,18 @@ import {
 import { MLFactory } from './machineLearningFactory';
 import mlIDbStorage from 'utils/storage/mlIDbStorage';
 import { getMLSyncConfig } from 'utils/machineLearning/config';
-import { CustomError, parseUploadErrorCodes } from 'utils/error';
+import { CustomError, parseUploadErrorCodes } from '@ente/shared/error';
 import { MAX_ML_SYNC_ERROR_COUNT } from 'constants/mlConfig';
 import FaceService from './faceService';
 import PeopleService from './peopleService';
 import ObjectService from './objectService';
 // import TextService from './textService';
 import ReaderService from './readerService';
-import { logError } from 'utils/sentry';
-import { addLogLine } from 'utils/logging';
+import { logError } from '@ente/shared/sentry';
+import { addLogLine } from '@ente/shared/logging';
+import downloadManager from 'services/download';
+import { APPS } from '@ente/shared/apps/constants';
+
 class MachineLearningService {
     private initialized = false;
     // private faceDetectionService: FaceDetectionService;
@@ -60,6 +63,7 @@ class MachineLearningService {
             throw Error('Token needed by ml service to sync file');
         }
 
+        await downloadManager.init(APPS.PHOTOS, { token });
         // await this.init();
 
         // Used to debug tf memory leak, all tf memory
