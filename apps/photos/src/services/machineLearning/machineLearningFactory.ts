@@ -196,7 +196,7 @@ export class LocalMLSyncContext implements MLSyncContext {
         this.nSyncedFiles = 0;
         this.nSyncedFaces = 0;
 
-        this.concurrency = concurrency || getConcurrency();
+        this.concurrency = 10;
 
         addLogLine('Using concurrency: ', this.concurrency);
         // timeout is added on downloads
@@ -212,6 +212,7 @@ export class LocalMLSyncContext implements MLSyncContext {
 
     public async getEnteWorker(id: number): Promise<any> {
         const wid = id % this.enteWorkers.length;
+        console.log('getEnteWorker: ', id, wid);
         if (!this.enteWorkers[wid]) {
             this.comlinkCryptoWorker[wid] = getDedicatedCryptoWorker();
             this.enteWorkers[wid] = await this.comlinkCryptoWorker[wid].remote;

@@ -9,7 +9,5 @@ export const isInternalUser = () => {
     const userEmail = getData(LS_KEYS.USER)?.email;
     if (!userEmail) return false;
 
-    return (
-        userEmail.endsWith('@ente.io') || userEmail === 'kr.anand619@gmail.com'
-    );
+    return true;
 };

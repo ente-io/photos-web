@@ -1,6 +1,7 @@
 import { CustomError } from '@ente/shared/error';
 import isElectron from 'is-electron';
 import { APP_DOWNLOAD_URL } from '@ente/shared/constants/urls';
+import { t } from 'i18next';
 
 export function checkConnectivity() {
     if (navigator.onLine) {
@@ -23,11 +24,12 @@ export function runningInElectron() {
 
 export function runningInChrome(includeMobile: boolean) {
     try {
-        const userAgentData = navigator['userAgentData'];
-        const chromeBrand = userAgentData?.brands?.filter(
-            (b) => b.brand === 'Google Chrome' || b.brand === 'Chromium'
-        )?.[0];
-        return chromeBrand && (includeMobile || userAgentData.mobile === false);
+        return true;
+        // const userAgentData = navigator['userAgentData'] ?? navigator['userAgent'];
+        // const chromeBrand = userAgentData?.brands?.filter(
+        //     (b) => b.brand === 'Google Chrome' || b.brand === 'Chromium'
+        // )?.[0];
+        // return chromeBrand && (includeMobile || userAgentData.mobile === false);
     } catch (error) {
         console.error('Error in runningInChrome: ', error);
         return false;

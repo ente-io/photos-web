@@ -13,11 +13,12 @@ export const getEndpoint = () => {
 };
 
 export const getFileURL = (id: number) => {
-    const endpoint = process.env.NEXT_PUBLIC_ENTE_ENDPOINT;
-    if (isDevDeployment() && endpoint) {
-        return `${endpoint}/files/download/${id}`;
-    }
-    return `https://files.ente.io/?fileID=${id}`;
+    return `http://localhost:8700/${id}`;
+    // const endpoint = process.env.NEXT_PUBLIC_ENTE_ENDPOINT;
+    // if (isDevDeployment() && endpoint) {
+    //     return `${endpoint}/files/download/${id}`;
+    // }
+    // return `https://files.ente.io/?fileID=${id}`;
 };
 
 export const getPublicCollectionFileURL = (id: number) => {
@@ -29,11 +30,12 @@ export const getPublicCollectionFileURL = (id: number) => {
 };
 
 export const getThumbnailURL = (id: number) => {
-    const endpoint = process.env.NEXT_PUBLIC_ENTE_ENDPOINT;
-    if (isDevDeployment() && endpoint) {
-        return `${endpoint}/files/preview/${id}`;
-    }
-    return `https://thumbnails.ente.io/?fileID=${id}`;
+    return `http://localhost:8700/thumb/${id}`;
+    // const endpoint = process.env.NEXT_PUBLIC_ENTE_ENDPOINT;
+    // if (isDevDeployment() && endpoint) {
+    //     return `${endpoint}/files/preview/${id}`;
+    // }
+    // return `https://thumbnails.ente.io/?fileID=${id}`;
 };
 
 export const getPublicCollectionThumbnailURL = (id: number) => {

@@ -48,6 +48,31 @@ class FileReader extends zip.Reader {
     }
 }
 
+export const onExportMLData = async () => {
+    let mlDataZipHandle: FileSystemFileHandle;
+    try {
+        mlDataZipHandle = await showSaveFilePicker({
+            suggestedName: `ente-mldata-${Date.now()}`,
+            types: [
+                {
+                    accept: {
+                        'application/zip': ['.zip'],
+                    },
+                },
+            ],
+        });
+    } catch (e) {
+        console.error(e);
+        return;
+    }
+
+    try {
+        const mlDataZipWritable = await mlDataZipHandle.createWritable();
+        await exportMlData(mlDataZipWritable);
+    } catch (e) {
+        console.error('Error while exporting: ', e);
+    }
+};
 export async function exportMlData(
     mlDataZipWritable: FileSystemWritableFileStream
 ) {

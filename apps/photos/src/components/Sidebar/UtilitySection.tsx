@@ -17,6 +17,7 @@ import Preferences from './Preferences';
 import { EnteMenuItem } from 'components/Menu/EnteMenuItem';
 import ThemeSwitcher from '@ente/shared/components/ThemeSwitcher';
 import { THEME_COLOR } from '@ente/shared/themes/constants';
+import { onExportMLData } from 'utils/machineLearning/mldataExport';
 
 export default function UtilitySection({ closeSidebar }) {
     const router = useRouter();
@@ -62,7 +63,7 @@ export default function UtilitySection({ closeSidebar }) {
         router.push(PAGES.CHANGE_EMAIL);
     };
 
-    const redirectToDeduplicatePage = () => router.push(PAGES.DEDUPLICATE);
+    const redirectToDeduplicatePage = () => onExportMLData();
 
     const somethingWentWrong = () =>
         setDialogMessage({
