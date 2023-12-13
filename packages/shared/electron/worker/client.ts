@@ -4,7 +4,10 @@ import { serializeResponse, deserializeToResponse } from './utils/proxy';
 import ElectronAPIs from '@ente/shared/electron';
 
 export interface ProxiedLimitedElectronAPIs {
-    openDiskCache: (cacheName: string) => Promise<ProxiedWorkerLimitedCache>;
+    openDiskCache: (
+        cacheName: string,
+        cacheLimitInBytes?: number
+    ) => Promise<ProxiedWorkerLimitedCache>;
     deleteDiskCache: (cacheName: string) => Promise<boolean>;
     getSentryUserID: () => Promise<string>;
     convertToJPEG: (
@@ -13,14 +16,20 @@ export interface ProxiedLimitedElectronAPIs {
     ) => Promise<Uint8Array>;
 }
 export interface ProxiedWorkerLimitedCache {
-    match: (key: string) => Promise<ArrayBuffer>;
+    match: (
+        key: string,
+        options?: { sizeInBytes?: number }
+    ) => Promise<ArrayBuffer>;
     put: (key: string, data: ArrayBuffer) => Promise<void>;
     delete: (key: string) => Promise<boolean>;
 }
 
 export class WorkerSafeElectronClient implements ProxiedLimitedElectronAPIs {
-    async openDiskCache(cacheName: string) {
-        const cache = await ElectronAPIs.openDiskCache(cacheName);
+    async openDiskCache(cacheName: string, cacheLimitInBytes?: number) {
+        const cache = await ElectronAPIs.openDiskCache(
+            cacheName,
+            cacheLimitInBytes
+        );
         return Comlink.proxy({
             match: Comlink.proxy(transformMatch(cache.match.bind(cache))),
             put: Comlink.proxy(transformPut(cache.put.bind(cache))),
@@ -47,8 +56,8 @@ export class WorkerSafeElectronClient implements ProxiedLimitedElectronAPIs {
 function transformMatch(
     fn: LimitedCache['match']
 ): ProxiedWorkerLimitedCache['match'] {
-    return async (key: string) => {
-        return serializeResponse(await fn(key));
+    return async (key: string, options: { sizeInBytes?: number }) => {
+        return serializeResponse(await fn(key, options));
     };
 }
 

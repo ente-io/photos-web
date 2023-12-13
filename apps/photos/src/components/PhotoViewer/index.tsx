@@ -49,8 +49,7 @@ import { getParsedExifData } from 'services/upload/exifService';
 import { getFileType } from 'services/typeDetectionService';
 import { ConversionFailedNotification } from './styledComponents/ConversionFailedNotification';
 import { GalleryContext } from 'pages/gallery';
-import downloadManager from 'services/downloadManager';
-import publicCollectionDownloadManager from 'services/publicCollectionDownloadManager';
+import downloadManager, { LoadedLivePhotoSourceURL } from 'services/download';
 import CircularProgressWithLabel from './styledComponents/CircularProgressWithLabel';
 import EnteSpinner from '@ente/shared/components/EnteSpinner';
 import AlbumOutlined from '@mui/icons-material/AlbumOutlined';
@@ -140,13 +139,7 @@ function PhotoViewer(props: Iprops) {
     const [showZoomButton, setShowZoomButton] = useState(false);
 
     useEffect(() => {
-        if (publicCollectionGalleryContext.accessedThroughSharedURL) {
-            publicCollectionDownloadManager.setProgressUpdater(
-                setFileDownloadProgress
-            );
-        } else {
-            downloadManager.setProgressUpdater(setFileDownloadProgress);
-        }
+        downloadManager.setProgressUpdater(setFileDownloadProgress);
     }, []);
 
     useEffect(() => {
@@ -297,18 +290,26 @@ function PhotoViewer(props: Iprops) {
     }
 
     function updateExif(file: EnteFile) {
-        if (file.metadata.fileType !== FILE_TYPE.IMAGE) {
+        if (file.metadata.fileType === FILE_TYPE.VIDEO) {
             setExif({ key: file.src, value: null });
             return;
         }
-        if (
-            !file ||
-            !exifCopy?.current?.value === null ||
-            exifCopy?.current?.key === file.src
-        ) {
+        if (!file.isSourceLoaded || file.conversionFailed) {
             return;
         }
-        setExif({ key: file.src, value: undefined });
+
+        if (!file || !exifCopy?.current?.value === null) {
+            return;
+        }
+        const key =
+            file.metadata.fileType === FILE_TYPE.IMAGE
+                ? file.src
+                : (file.srcURLs.url as LoadedLivePhotoSourceURL).image;
+
+        if (exifCopy?.current?.key === key) {
+            return;
+        }
+        setExif({ key, value: undefined });
         checkExifAvailable(file);
     }
 
@@ -547,22 +548,28 @@ function PhotoViewer(props: Iprops) {
                 return;
             }
             try {
-                if (file.isSourceLoaded) {
-                    exifExtractionInProgress.current = file.src;
-                    const fileObject = await getFileFromURL(
-                        file.originalImageURL
+                exifExtractionInProgress.current = file.src;
+                let fileObject: File;
+                if (file.metadata.fileType === FILE_TYPE.IMAGE) {
+                    fileObject = await getFileFromURL(
+                        file.src as string,
+                        file.metadata.title
                     );
-                    const fileTypeInfo = await getFileType(fileObject);
-                    const exifData = await getParsedExifData(
-                        fileObject,
-                        fileTypeInfo
-                    );
-                    if (exifExtractionInProgress.current === file.src) {
-                        if (exifData) {
-                            setExif({ key: file.src, value: exifData });
-                        } else {
-                            setExif({ key: file.src, value: null });
-                        }
+                } else {
+                    const url = (file.srcURLs.url as LoadedLivePhotoSourceURL)
+                        .image;
+                    fileObject = await getFileFromURL(url, file.metadata.title);
+                }
+                const fileTypeInfo = await getFileType(fileObject);
+                const exifData = await getParsedExifData(
+                    fileObject,
+                    fileTypeInfo
+                );
+                if (exifExtractionInProgress.current === file.src) {
+                    if (exifData) {
+                        setExif({ key: file.src, value: exifData });
+                    } else {
+                        setExif({ key: file.src, value: null });
                     }
                 }
             } finally {
@@ -596,12 +603,7 @@ function PhotoViewer(props: Iprops) {
         if (file && props.enableDownload) {
             appContext.startLoading();
             try {
-                await downloadFile(
-                    file,
-                    publicCollectionGalleryContext.accessedThroughSharedURL,
-                    publicCollectionGalleryContext.token,
-                    publicCollectionGalleryContext.passwordToken
-                );
+                await downloadFile(file);
             } catch (e) {
                 // do nothing
             }

@@ -5,8 +5,11 @@ class cacheStorageFactory {
     getCacheStorage(): LimitedCacheStorage {
         if (runningInElectron()) {
             return {
-                open(cacheName) {
-                    return WorkerSafeElectronService.openDiskCache(cacheName);
+                open(cacheName, cacheLimitInBytes?: number) {
+                    return WorkerSafeElectronService.openDiskCache(
+                        cacheName,
+                        cacheLimitInBytes
+                    );
                 },
                 delete(cacheName) {
                     return WorkerSafeElectronService.deleteDiskCache(cacheName);
@@ -27,7 +30,10 @@ function transformBrowserCacheStorageToLimitedCacheStorage(
         async open(cacheName) {
             const cache = await caches.open(cacheName);
             return {
-                match: cache.match.bind(cache),
+                match: (key) => {
+                    // options are not supported in the browser
+                    return cache.match(key);
+                },
                 put: cache.put.bind(cache),
                 delete: cache.delete.bind(cache),
             };

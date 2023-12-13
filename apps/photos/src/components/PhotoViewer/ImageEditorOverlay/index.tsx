@@ -19,7 +19,7 @@ import {
 } from 'react';
 
 import { EnteFile } from 'types/file';
-import downloadManager from 'services/downloadManager';
+import downloadManager from 'services/download';
 import { MenuItemGroup } from 'components/Menu/MenuItemGroup';
 import { EnteMenuItem } from 'components/Menu/EnteMenuItem';
 import CropOriginalIcon from '@mui/icons-material/CropOriginal';
@@ -210,15 +210,13 @@ const ImageEditorOverlay = (props: IProps) => {
             const ctx = canvasRef.current.getContext('2d');
             ctx.imageSmoothingEnabled = false;
             if (!fileURL) {
-                const { converted } = await downloadManager.getFile(
-                    props.file,
-                    true
+                const srcURLs = await downloadManager.getFileForPreview(
+                    props.file
                 );
-                img.src = converted[0];
-                setFileURL(converted[0]);
-            } else {
-                img.src = fileURL;
+                img.src = srcURLs.url as string;
+                setFileURL(fileURL);
             }
+            img.src = fileURL;
 
             await new Promise((resolve, reject) => {
                 img.onload = () => {
