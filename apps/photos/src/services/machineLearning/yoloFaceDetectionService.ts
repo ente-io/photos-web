@@ -35,7 +35,7 @@ class YoloFaceDetectionService implements FaceDetectionService {
 
     public constructor(desiredFaceSize: number = BLAZEFACE_FACE_SIZE) {
         this.method = {
-            value: 'Yolo5Face',
+            value: 'YoloFace',
             version: 1,
         };
         this.desiredFaceSize = desiredFaceSize;
@@ -61,9 +61,7 @@ class YoloFaceDetectionService implements FaceDetectionService {
             3,
         ]);
         const normalizedImage = tf.sub(tf.div(reshapedImage, 127.5), 1.0);
-        // eslint-disable-next-line @typescript-eslint/await-thenable
         const results = await this.blazeFaceBackModel.predict(normalizedImage);
-        // addLogLine('onFacesDetected: ', results);
         return results;
     }
 
@@ -72,7 +70,6 @@ class YoloFaceDetectionService implements FaceDetectionService {
         if (!this.onnxInferenceSession) {
             await this.initOnnx();
         }
-
         return this.onnxInferenceSession;
     }
 
@@ -157,7 +154,7 @@ class YoloFaceDetectionService implements FaceDetectionService {
         const inferenceSession = await this.getOnnxInferenceSession();
         var runout = await inferenceSession.run(feeds);
         const outputData = runout.output.data;
-        const faces = this.getFacesFromYoloOutput(outputData as Float32Array, 0.5);
+        const faces = this.getFacesFromYoloOutput(outputData as Float32Array, 0.7);
         const inBox = newBox(0, 0, resized.width, resized.height);
         const toBox = newBox(0, 0, imageBitmap.width, imageBitmap.height);
         const transform = computeTransformToBox(inBox, toBox);

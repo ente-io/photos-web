@@ -12,7 +12,7 @@ export const DEFAULT_ML_SYNC_CONFIG: MLSyncConfig = {
     batchSize: 200,
     imageSource: 'Original',
     faceDetection: {
-        method: 'BlazeFace',
+        method: 'YoloFace',
         minFaceSize: 32,
     },
     faceCrop: {
