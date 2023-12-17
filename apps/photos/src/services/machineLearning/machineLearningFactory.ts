@@ -41,7 +41,7 @@ export class MLFactory {
         method: FaceDetectionMethod
     ): FaceDetectionService {
         if (method === 'BlazeFace') {
-            return blazeFaceDetectionService;
+            return yoloFaceDetectionService;
         }
         if (method === 'YoloFace') {
             return yoloFaceDetectionService;
