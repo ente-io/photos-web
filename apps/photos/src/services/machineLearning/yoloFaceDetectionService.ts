@@ -176,10 +176,7 @@ class YoloFaceDetectionService implements FaceDetectionService {
         imageBitmap: ImageBitmap
     ): Promise<Array<FaceDetection>> {
         // measure time taken
-        console.time('estimateOnnx');
         const facesFromOnnx = await this.estimateOnnx(imageBitmap);
-        console.timeEnd('estimateOnnx');
-        console.log("faceCount", facesFromOnnx.length)
         return facesFromOnnx;
     }
 
