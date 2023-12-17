@@ -34,6 +34,7 @@ import { getDedicatedCryptoWorker } from '@ente/shared/crypto';
 import { ComlinkWorker } from '@ente/shared/worker/comlinkWorker';
 import { DedicatedCryptoWorker } from '@ente/shared/crypto/internal/crypto.worker';
 import { addLogLine } from '@ente/shared/logging';
+import yoloFaceDetectionService from './yoloFaceDetectionService';
 
 export class MLFactory {
     public static getFaceDetectionService(
@@ -41,6 +42,9 @@ export class MLFactory {
     ): FaceDetectionService {
         if (method === 'BlazeFace') {
             return blazeFaceDetectionService;
+        }
+        if (method === 'YoloFace') {
+            return yoloFaceDetectionService;
         }
 
         throw Error('Unknon face detection method: ' + method);

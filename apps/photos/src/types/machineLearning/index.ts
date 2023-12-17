@@ -90,7 +90,7 @@ export declare type Landmark = Point;
 
 export declare type ImageType = 'Original' | 'Preview';
 
-export declare type FaceDetectionMethod = 'BlazeFace' | 'FaceApiSSD';
+export declare type FaceDetectionMethod = 'BlazeFace' | 'FaceApiSSD' | 'YoloFace';
 
 export declare type ObjectDetectionMethod = 'SSDMobileNetV2';
 

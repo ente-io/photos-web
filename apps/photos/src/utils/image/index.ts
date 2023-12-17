@@ -5,6 +5,9 @@ import { enlargeBox } from 'utils/machineLearning';
 import { Box } from '../../../thirdparty/face-api/classes';
 
 export function resizeToSquare(img: ImageBitmap, size: number) {
+    if(img.width === size && img.height === size) {
+        return { image: img, width: size, height: size };
+    }
     const scale = size / Math.max(img.height, img.width);
     const width = scale * img.width;
     const height = scale * img.height;
@@ -16,6 +19,7 @@ export function resizeToSquare(img: ImageBitmap, size: number) {
     return { image: resizedImage, width, height };
 }
 
+// Used only in MLDebugView
 export function transform(
     imageBitmap: ImageBitmap,
     affineMat: number[][],
