@@ -4,7 +4,7 @@ import {
     ListChildComponentProps,
     areEqual,
 } from 'react-window';
-import { Box, Link, styled } from '@mui/material';
+import { Box, Checkbox, Link, styled } from '@mui/material';
 import { EnteFile } from 'types/file';
 import {
     IMAGE_CONTAINER_MAX_HEIGHT,
@@ -22,7 +22,7 @@ import { convertBytesToHumanReadable } from '@ente/shared/utils/size';
 import { FlexWrapper } from '@ente/shared/components/Container';
 import { Typography } from '@mui/material';
 import { GalleryContext } from 'pages/gallery';
-import { formatDate } from '@ente/shared/time/format';
+import { formatDate, isSameDay } from '@ente/shared/time/format';
 import { Trans } from 'react-i18next';
 import { t } from 'i18next';
 import memoize from 'memoize-one';
@@ -186,6 +186,9 @@ const NothingContainer = styled(ListItemContainer)`
     justify-content: center;
 `;
 
+const SelectAllCheckBoxContainer = styled(Checkbox)<{ span: number }>`
+    margin-left: ${(props) => props.span}px;
+`;
 interface Props {
     height: number;
     width: number;
@@ -264,6 +267,8 @@ export function PhotoList({
     const refreshInProgress = useRef(false);
     const shouldRefresh = useRef(false);
     const listRef = useRef(null);
+
+    const [checkedDates, setCheckedDates] = useState({});
 
     const fittableColumns = getFractionFittableColumns(width);
     let columns = Math.floor(fittableColumns);
@@ -471,14 +476,6 @@ export function PhotoList({
                 });
             }
         });
-    };
-
-    const isSameDay = (first, second) => {
-        return (
-            first.getFullYear() === second.getFullYear() &&
-            first.getMonth() === second.getMonth() &&
-            first.getDate() === second.getDate()
-        );
     };
 
     const getPhotoListHeader = (photoListHeader) => {
@@ -720,6 +717,23 @@ export function PhotoList({
         }
     };
 
+    useEffect(() => {
+        galleryContext.unselectedDates.forEach((date) => {
+            setCheckedDates({ ...checkedDates, [`selectAll-${date}`]: false }); // To uncheck select all checkbox if any of the file on the date is unselected
+        });
+    }, [galleryContext.unselectedDates]);
+
+    const onChangeSelectAllCheckBox = (event, date: string) => {
+        const dates: string[] = !galleryContext.selectedDates.includes(date)
+            ? [...galleryContext.selectedDates, date]
+            : [...galleryContext.selectedDates.filter((e) => e !== date)];
+        galleryContext.setSelectedDates(dates);
+        setCheckedDates({
+            ...checkedDates,
+            [`selectAll-${date}`]: !checkedDates[`selectAll-${date}`],
+        });
+    };
+
     const renderListItem = (
         listItem: TimeStampListItem,
         isScrolling: boolean
@@ -731,6 +745,22 @@ export function PhotoList({
                         .map((item) => [
                             <DateContainer key={item.date} span={item.span}>
                                 {item.date}
+                                <SelectAllCheckBoxContainer
+                                    key={`selectAll-${item.date}`}
+                                    name={`selectAll-${item.date}`}
+                                    checked={
+                                        setCheckedDates[
+                                            `selectAll-${item.date}`
+                                        ]
+                                    }
+                                    onChange={() =>
+                                        onChangeSelectAllCheckBox(
+                                            event,
+                                            item.date
+                                        )
+                                    }
+                                    span={columns}
+                                />
                             </DateContainer>,
                             <div key={`${item.date}-gap`} />,
                         ])
@@ -738,6 +768,15 @@ export function PhotoList({
                 ) : (
                     <DateContainer span={columns}>
                         {listItem.date}
+                        <SelectAllCheckBoxContainer
+                            key={`selectAll-${listItem.date}`}
+                            name={`selectAll-${listItem.date}`}
+                            checked={checkedDates[`selectAll-${listItem.date}`]}
+                            onChange={() =>
+                                onChangeSelectAllCheckBox(event, listItem.date)
+                            }
+                            span={columns}
+                        />
                     </DateContainer>
                 );
             case ITEM_TYPE.SIZE_AND_COUNT:

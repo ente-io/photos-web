@@ -131,6 +131,9 @@ import { ClipService } from 'services/clipService';
 import isElectron from 'is-electron';
 import downloadManager from 'services/download';
 import { APPS } from '@ente/shared/apps/constants';
+import { formatDate, isSameDay } from '@ente/shared/time/format';
+
+const A_DAY = 24 * 60 * 60 * 1000;
 
 export const DeadCenter = styled('div')`
     flex: 1;
@@ -155,6 +158,9 @@ const defaultGalleryContext: GalleryContextType = {
     emailList: null,
     openHiddenSection: () => null,
     isClipSearchResult: null,
+    selectedDates: [],
+    unselectedDates: [],
+    setSelectedDates: () => null,
 };
 
 export const GalleryContext = createContext<GalleryContextType>(
@@ -248,6 +254,9 @@ export default function Gallery() {
 
     const [archivedCollections, setArchivedCollections] =
         useState<Set<number>>();
+
+    const [selectedDates, setSelectedDates] = useState([]);
+    const [unselectedDates, setUnselectedDates] = useState([]);
 
     const showPlanSelectorModal = () => setPlanModalView(true);
 
@@ -673,6 +682,49 @@ export default function Gallery() {
         };
     }, [selectAll, clearSelection]);
 
+    const getDate = (item: EnteFile) => {
+        const currentDate = item.metadata.creationTime / 1000;
+        const date = isSameDay(new Date(currentDate), new Date())
+            ? t('TODAY')
+            : isSameDay(new Date(currentDate), new Date(Date.now() - A_DAY))
+            ? t('YESTERDAY')
+            : formatDate(currentDate);
+
+        return date;
+    };
+
+    useEffect(() => {
+        const selected = {
+            ownCount: 0,
+            count: 0,
+            collectionID: activeCollectionID,
+        };
+        filteredData?.forEach((item) => {
+            const itemDate = getDate(item);
+            if (selectedDates.includes(itemDate)) {
+                if (item.ownerID === user.id) {
+                    selected.ownCount++;
+                }
+                selected.count++;
+                selected[item.id] = true; // to select all files on a day
+            } else {
+                setSelected({ ownCount: 0, count: 0, collectionID: 0 }); // to unselect all files on a day
+            }
+        });
+        setSelected(selected);
+    }, [setSelectedDates, selectedDates]);
+
+    useEffect(() => {
+        const notSelectedFiles = filteredData?.filter(
+            (item) => !selected[item.id]
+        );
+        const handleSelectAllCheckbox = [
+            ...new Set(notSelectedFiles?.map((item) => getDate(item))),
+        ];
+
+        setUnselectedDates(handleSelectAllCheckbox);
+    }, [selected]);
+
     const fileToCollectionsMap = useMemoSingleThreaded(() => {
         return constructFileToCollectionMap(files);
     }, [files]);
@@ -976,6 +1028,9 @@ export default function Gallery() {
                 emailList,
                 openHiddenSection,
                 isClipSearchResult,
+                selectedDates,
+                setSelectedDates,
+                unselectedDates,
             }}>
             <FullScreenDropZone
                 getDragAndDropRootProps={getDragAndDropRootProps}>
