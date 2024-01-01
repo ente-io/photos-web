@@ -158,7 +158,7 @@ const defaultGalleryContext: GalleryContextType = {
     isClipSearchResult: null,
     selectedDates: [],
     setSelectedDates: () => null,
-    selected: null,
+    selectedFile: null,
 };
 
 export const GalleryContext = createContext<GalleryContextType>(
@@ -1005,7 +1005,7 @@ export default function Gallery() {
                 isClipSearchResult,
                 selectedDates,
                 setSelectedDates,
-                selected,
+                selectedFile: selected,
             }}>
             <FullScreenDropZone
                 getDragAndDropRootProps={getDragAndDropRootProps}>

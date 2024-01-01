@@ -46,7 +46,7 @@ export type GalleryContextType = {
     isClipSearchResult: boolean;
     selectedDates: string[];
     setSelectedDates: (value: string[]) => void;
-    selected: SelectedState;
+    selectedFile: SelectedState;
 };
 
 export enum CollectionSelectorIntent {

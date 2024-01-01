@@ -720,14 +720,14 @@ export function PhotoList({
     const trimSpaces = (value) => value.replace(/ +/g, '');
 
     const notSelectedFiles = displayFiles?.filter(
-        (item) => !galleryContext.selected[item.id]
+        (item) => !galleryContext.selectedFile[item.id]
     );
     const unselectedDates = [
         ...new Set(notSelectedFiles?.map((item) => getDate(item))), // to get file's date which were manually unselected
     ];
 
     const selectedFiles = displayFiles?.filter(
-        (item) => galleryContext.selected[item.id]
+        (item) => galleryContext.selectedFile[item.id]
     );
 
     const selectedDates = [
@@ -750,7 +750,7 @@ export function PhotoList({
                   }))
                 : ''; // To check select all checkbox if all of the files on the date is selected individually
         });
-    }, [galleryContext.selected]);
+    }, [galleryContext.selectedFile]);
 
     const onChangeSelectAllCheckBox = (event, date: string) => {
         const dates: string[] = !galleryContext.selectedDates.includes(date)
