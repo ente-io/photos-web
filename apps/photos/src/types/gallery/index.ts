@@ -45,8 +45,8 @@ export type GalleryContextType = {
     openHiddenSection: (callback?: () => void) => void;
     isClipSearchResult: boolean;
     selectedDates: string[];
-    unselectedDates: string[];
-    setSelectedDates: (value: []) => void;
+    setSelectedDates: (value: string[]) => void;
+    selected: SelectedState;
 };
 
 export enum CollectionSelectorIntent {

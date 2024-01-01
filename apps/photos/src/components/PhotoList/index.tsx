@@ -22,7 +22,7 @@ import { convertBytesToHumanReadable } from '@ente/shared/utils/size';
 import { FlexWrapper } from '@ente/shared/components/Container';
 import { Typography } from '@mui/material';
 import { GalleryContext } from 'pages/gallery';
-import { formatDate, isSameDay } from '@ente/shared/time/format';
+import { formatDate, getDate, isSameDay } from '@ente/shared/time/format';
 import { Trans } from 'react-i18next';
 import { t } from 'i18next';
 import memoize from 'memoize-one';
@@ -717,20 +717,50 @@ export function PhotoList({
         }
     };
 
+    const trimSpaces = (value) => value.replace(/ +/g, '');
+
+    const notSelectedFiles = displayFiles?.filter(
+        (item) => !galleryContext.selected[item.id]
+    );
+    const unselectedDates = [
+        ...new Set(notSelectedFiles?.map((item) => getDate(item))), // to get file's date which were manually unselected
+    ];
+
+    const selectedFiles = displayFiles?.filter(
+        (item) => galleryContext.selected[item.id]
+    );
+
+    const selectedDates = [
+        ...new Set(selectedFiles?.map((item) => getDate(item))), // to get file's date which were manually selected
+    ];
+
     useEffect(() => {
-        galleryContext.unselectedDates.forEach((date) => {
-            setCheckedDates({ ...checkedDates, [`selectAll-${date}`]: false }); // To uncheck select all checkbox if any of the file on the date is unselected
+        unselectedDates.forEach((date) => {
+            setCheckedDates((prev) => ({
+                ...prev,
+                [`selectAll-${trimSpaces(date)}`]: false,
+            })); // To uncheck select all checkbox if any of the file on the date is unselected
         });
-    }, [galleryContext.unselectedDates]);
+
+        selectedDates.forEach((date) => {
+            !unselectedDates.includes(date)
+                ? setCheckedDates((prev) => ({
+                      ...prev,
+                      [`selectAll-${trimSpaces(date)}`]: true,
+                  }))
+                : ''; // To check select all checkbox if all of the files on the date is selected individually
+        });
+    }, [galleryContext.selected]);
 
     const onChangeSelectAllCheckBox = (event, date: string) => {
         const dates: string[] = !galleryContext.selectedDates.includes(date)
             ? [...galleryContext.selectedDates, date]
             : [...galleryContext.selectedDates.filter((e) => e !== date)];
-        galleryContext.setSelectedDates(dates);
+        galleryContext.setSelectedDates(dates); // to check all files on a day when select all checkbox selected
         setCheckedDates({
             ...checkedDates,
-            [`selectAll-${date}`]: !checkedDates[`selectAll-${date}`],
+            [`selectAll-${trimSpaces(date)}`]:
+                !checkedDates[`selectAll-${trimSpaces(date)}`],
         });
     };
 
@@ -749,8 +779,8 @@ export function PhotoList({
                                     key={`selectAll-${item.date}`}
                                     name={`selectAll-${item.date}`}
                                     checked={
-                                        setCheckedDates[
-                                            `selectAll-${item.date}`
+                                        checkedDates[
+                                            `selectAll-${trimSpaces(item.date)}`
                                         ]
                                     }
                                     onChange={() =>
@@ -771,7 +801,11 @@ export function PhotoList({
                         <SelectAllCheckBoxContainer
                             key={`selectAll-${listItem.date}`}
                             name={`selectAll-${listItem.date}`}
-                            checked={checkedDates[`selectAll-${listItem.date}`]}
+                            checked={
+                                checkedDates[
+                                    `selectAll-${trimSpaces(listItem.date)}`
+                                ]
+                            }
                             onChange={() =>
                                 onChangeSelectAllCheckBox(event, listItem.date)
                             }

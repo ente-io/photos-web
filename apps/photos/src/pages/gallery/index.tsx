@@ -131,9 +131,7 @@ import { ClipService } from 'services/clipService';
 import isElectron from 'is-electron';
 import downloadManager from 'services/download';
 import { APPS } from '@ente/shared/apps/constants';
-import { formatDate, isSameDay } from '@ente/shared/time/format';
-
-const A_DAY = 24 * 60 * 60 * 1000;
+import { getDate } from '@ente/shared/time/format';
 
 export const DeadCenter = styled('div')`
     flex: 1;
@@ -159,8 +157,8 @@ const defaultGalleryContext: GalleryContextType = {
     openHiddenSection: () => null,
     isClipSearchResult: null,
     selectedDates: [],
-    unselectedDates: [],
     setSelectedDates: () => null,
+    selected: null,
 };
 
 export const GalleryContext = createContext<GalleryContextType>(
@@ -256,7 +254,6 @@ export default function Gallery() {
         useState<Set<number>>();
 
     const [selectedDates, setSelectedDates] = useState([]);
-    const [unselectedDates, setUnselectedDates] = useState([]);
 
     const showPlanSelectorModal = () => setPlanModalView(true);
 
@@ -682,17 +679,6 @@ export default function Gallery() {
         };
     }, [selectAll, clearSelection]);
 
-    const getDate = (item: EnteFile) => {
-        const currentDate = item.metadata.creationTime / 1000;
-        const date = isSameDay(new Date(currentDate), new Date())
-            ? t('TODAY')
-            : isSameDay(new Date(currentDate), new Date(Date.now() - A_DAY))
-            ? t('YESTERDAY')
-            : formatDate(currentDate);
-
-        return date;
-    };
-
     useEffect(() => {
         const selected = {
             ownCount: 0,
@@ -713,17 +699,6 @@ export default function Gallery() {
         });
         setSelected(selected);
     }, [setSelectedDates, selectedDates]);
-
-    useEffect(() => {
-        const notSelectedFiles = filteredData?.filter(
-            (item) => !selected[item.id]
-        );
-        const handleSelectAllCheckbox = [
-            ...new Set(notSelectedFiles?.map((item) => getDate(item))),
-        ];
-
-        setUnselectedDates(handleSelectAllCheckbox);
-    }, [selected]);
 
     const fileToCollectionsMap = useMemoSingleThreaded(() => {
         return constructFileToCollectionMap(files);
@@ -1030,7 +1005,7 @@ export default function Gallery() {
                 isClipSearchResult,
                 selectedDates,
                 setSelectedDates,
-                unselectedDates,
+                selected,
             }}>
             <FullScreenDropZone
                 getDragAndDropRootProps={getDragAndDropRootProps}>
