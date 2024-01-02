@@ -125,11 +125,16 @@ async function exportMlDataToZipWriter(zipWriter: zip.ZipWriter) {
             const response = await faceCropCache.match(faceCropUrl);
             if (response && response.ok) {
                 const blob = await response.blob();
+                try {
                 await zipWriter.add(
                     `caches/${CACHES.FACE_CROPS}${faceCropUrl}`,
                     new zip.BlobReader(blob),
                     { level: 0 }
                 );
+                } catch (e) {
+                    console.log('Error while adding face crop to zip: ' + `caches/${CACHES.FACE_CROPS}${faceCropUrl}`, e);
+                    addLogLine('Error while adding face crop to zip: ', e);
+                }
             } else {
                 console.error(
                     'face crop cache entry not found for faceCropUrl: ',
