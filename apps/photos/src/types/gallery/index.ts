@@ -44,8 +44,7 @@ export type GalleryContextType = {
     emailList: string[];
     openHiddenSection: (callback?: () => void) => void;
     isClipSearchResult: boolean;
-    selectedDates: string[];
-    setSelectedDates: (value: string[]) => void;
+    setSelectedFiles: (value) => void;
     selectedFile: SelectedState;
 };
 

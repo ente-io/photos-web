@@ -270,6 +270,8 @@ export function PhotoList({
 
     const [checkedDates, setCheckedDates] = useState({});
 
+    const [selectedDates, setSelectedDates] = useState<string[]>([]);
+
     const fittableColumns = getFractionFittableColumns(width);
     let columns = Math.floor(fittableColumns);
 
@@ -719,22 +721,22 @@ export function PhotoList({
 
     const trimSpaces = (value) => value.replace(/ +/g, '');
 
-    const notSelectedFiles = displayFiles?.filter(
-        (item) => !galleryContext.selectedFile[item.id]
-    );
-    const unselectedDates = [
-        ...new Set(notSelectedFiles?.map((item) => getDate(item))), // to get file's date which were manually unselected
-    ];
-
-    const selectedFiles = displayFiles?.filter(
-        (item) => galleryContext.selectedFile[item.id]
-    );
-
-    const selectedDates = [
-        ...new Set(selectedFiles?.map((item) => getDate(item))), // to get file's date which were manually selected
-    ];
-
     useEffect(() => {
+        const notSelectedFiles = displayFiles?.filter(
+            (item) => !galleryContext.selectedFile[item.id]
+        );
+        const unselectedDates = [
+            ...new Set(notSelectedFiles?.map((item) => getDate(item))), // to get file's date which were manually unselected
+        ];
+
+        const localSelectedFiles = displayFiles.filter(
+            (item) => !unselectedDates.includes(getDate(item))
+        );
+
+        const localSelectedDates = [
+            ...new Set(localSelectedFiles?.map((item) => getDate(item))),
+        ]; // to get file's date which were manually selected
+
         unselectedDates.forEach((date) => {
             setCheckedDates((prev) => ({
                 ...prev,
@@ -742,25 +744,67 @@ export function PhotoList({
             })); // To uncheck select all checkbox if any of the file on the date is unselected
         });
 
-        selectedDates.forEach((date) => {
-            !unselectedDates.includes(date)
-                ? setCheckedDates((prev) => ({
-                      ...prev,
-                      [`selectAll-${trimSpaces(date)}`]: true,
-                  }))
-                : ''; // To check select all checkbox if all of the files on the date is selected individually
+        localSelectedDates.forEach((date) => {
+            setCheckedDates((prev) => ({
+                ...prev,
+                [`selectAll-${trimSpaces(date)}`]: true,
+            }));
+            // To check select all checkbox if all of the files on the date is selected manually
         });
+
+        setSelectedDates(localSelectedDates);
     }, [galleryContext.selectedFile]);
 
     const onChangeSelectAllCheckBox = (event, date: string) => {
-        const dates: string[] = !galleryContext.selectedDates.includes(date)
-            ? [...galleryContext.selectedDates, date]
-            : [...galleryContext.selectedDates.filter((e) => e !== date)];
-        galleryContext.setSelectedDates(dates); // to check all files on a day when select all checkbox selected
-        setCheckedDates({
-            ...checkedDates,
+        const dates: string[] = !selectedDates.includes(date)
+            ? [...selectedDates, date]
+            : [...selectedDates.filter((e) => e !== date)];
+
+        setCheckedDates((prev) => ({
+            ...prev,
             [`selectAll-${trimSpaces(date)}`]:
                 !checkedDates[`selectAll-${trimSpaces(date)}`],
+        }));
+
+        const selected = {
+            ownCount: 0,
+            count: 0,
+            collectionID: activeCollectionID,
+        };
+
+        const filesOnADay = displayFiles?.filter(
+            (item) =>
+                galleryContext.selectedFile[item.id] &&
+                !dates.includes(getDate(item))
+        ); // where all files on a day aren't selected and the select all checkbox is unchecked
+
+        displayFiles?.forEach((item) => {
+            const itemDate = getDate(item);
+            if (dates.includes(itemDate)) {
+                if (item.ownerID === item.id) {
+                    selected.ownCount++;
+                }
+                selected.count++;
+                selected[item.id] = true; // to select all files on a day
+                galleryContext.setSelectedFiles(selected);
+            } else if (
+                filesOnADay.length !== 0 &&
+                !checkedDates[`selectAll-${trimSpaces(itemDate)}`]
+            ) {
+                filesOnADay.map((file) => {
+                    selected[file.id] = true; // to handle files when select all checkbox is unchecked but there are files selected on that day
+                });
+            } else {
+                if (
+                    checkedDates[`selectAll-${trimSpaces(itemDate)}`] === true
+                ) {
+                    galleryContext.setSelectedFiles({
+                        ownCount: 0, // to unselect all files on a day
+                        count: 0,
+                        collectionID: 0,
+                    });
+                }
+            }
         });
     };
 

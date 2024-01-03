@@ -131,7 +131,6 @@ import { ClipService } from 'services/clipService';
 import isElectron from 'is-electron';
 import downloadManager from 'services/download';
 import { APPS } from '@ente/shared/apps/constants';
-import { getDate } from '@ente/shared/time/format';
 
 export const DeadCenter = styled('div')`
     flex: 1;
@@ -156,9 +155,8 @@ const defaultGalleryContext: GalleryContextType = {
     emailList: null,
     openHiddenSection: () => null,
     isClipSearchResult: null,
-    selectedDates: [],
-    setSelectedDates: () => null,
     selectedFile: null,
+    setSelectedFiles: () => null,
 };
 
 export const GalleryContext = createContext<GalleryContextType>(
@@ -252,8 +250,6 @@ export default function Gallery() {
 
     const [archivedCollections, setArchivedCollections] =
         useState<Set<number>>();
-
-    const [selectedDates, setSelectedDates] = useState([]);
 
     const showPlanSelectorModal = () => setPlanModalView(true);
 
@@ -679,27 +675,6 @@ export default function Gallery() {
         };
     }, [selectAll, clearSelection]);
 
-    useEffect(() => {
-        const selected = {
-            ownCount: 0,
-            count: 0,
-            collectionID: activeCollectionID,
-        };
-        filteredData?.forEach((item) => {
-            const itemDate = getDate(item);
-            if (selectedDates.includes(itemDate)) {
-                if (item.ownerID === user.id) {
-                    selected.ownCount++;
-                }
-                selected.count++;
-                selected[item.id] = true; // to select all files on a day
-            } else {
-                setSelected({ ownCount: 0, count: 0, collectionID: 0 }); // to unselect all files on a day
-            }
-        });
-        setSelected(selected);
-    }, [setSelectedDates, selectedDates]);
-
     const fileToCollectionsMap = useMemoSingleThreaded(() => {
         return constructFileToCollectionMap(files);
     }, [files]);
@@ -1003,9 +978,8 @@ export default function Gallery() {
                 emailList,
                 openHiddenSection,
                 isClipSearchResult,
-                selectedDates,
-                setSelectedDates,
                 selectedFile: selected,
+                setSelectedFiles: setSelected,
             }}>
             <FullScreenDropZone
                 getDragAndDropRootProps={getDragAndDropRootProps}>
