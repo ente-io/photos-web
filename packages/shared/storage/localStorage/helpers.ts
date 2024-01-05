@@ -1,12 +1,8 @@
-import { CustomError } from '@ente/shared/error';
 import { LS_KEYS, getData, setData } from '.';
 import { Language } from '@ente/shared/i18n/locale';
 
-export const getToken = () => {
+export const getToken = (): string => {
     const token = getData(LS_KEYS.USER)?.token;
-    if (!token) {
-        throw Error(CustomError.TOKEN_MISSING);
-    }
     return token;
 };
 
@@ -56,4 +52,12 @@ export function getLocalSentryUserID() {
 
 export function setLocalSentryUserID(id: string) {
     setData(LS_KEYS.AnonymizedUserID, { id });
+}
+
+export function getLocalReferralSource() {
+    return getData(LS_KEYS.REFERRAL_SOURCE)?.source;
+}
+
+export function setLocalReferralSource(source: string) {
+    setData(LS_KEYS.REFERRAL_SOURCE, { source });
 }
