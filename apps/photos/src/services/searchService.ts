@@ -27,12 +27,10 @@ import { getLatestEntities } from './entityService';
 import { LocationTag, LocationTagData, EntityType } from 'types/entity';
 import { addLogLine } from '@ente/shared/logging';
 import { FILE_TYPE } from 'constants/file';
-import {
-    ClipService,
-    computeClipMatchScore,
-    getLocalClipImageEmbeddings,
-} from './clipService';
+import { ClipService, computeClipMatchScore } from './clipService';
 import { CustomError } from '@ente/shared/error';
+import { Model } from 'types/embedding';
+import { getLocalEmbeddings } from './embeddingService';
 
 const DIGITS = new Set(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
 
@@ -42,7 +40,7 @@ export const getDefaultOptions = async (files: EnteFile[]) => {
     return [
         await getIndexStatusSuggestion(),
         ...convertSuggestionsToOptions(await getAllPeopleSuggestion(), files),
-    ];
+    ].filter((t) => !!t);
 };
 
 export const getAutoCompleteSuggestions =
@@ -176,7 +174,9 @@ function getYearSuggestion(searchPhrase: string): Suggestion[] {
 
 export async function getAllPeopleSuggestion(): Promise<Array<Suggestion>> {
     try {
+        addLogLine('getAllPeopleSuggestion called');
         const people = await getAllPeople(200);
+        addLogLine(`found people: ${people?.length ?? 0}`);
         return people.map((person) => ({
             label: person.name,
             type: SuggestionType.PERSON,
@@ -190,28 +190,32 @@ export async function getAllPeopleSuggestion(): Promise<Array<Suggestion>> {
 }
 
 export async function getIndexStatusSuggestion(): Promise<Suggestion> {
-    const config = await getMLSyncConfig();
-    const indexStatus = await mlIDbStorage.getIndexStatus(config.mlVersion);
+    try {
+        const config = await getMLSyncConfig();
+        const indexStatus = await mlIDbStorage.getIndexStatus(config.mlVersion);
 
-    let label;
-    if (!indexStatus.localFilesSynced) {
-        label = t('INDEXING_SCHEDULED');
-    } else if (indexStatus.outOfSyncFilesExists) {
-        label = t('ANALYZING_PHOTOS', {
-            indexStatus,
-        });
-    } else if (!indexStatus.peopleIndexSynced) {
-        label = t('INDEXING_PEOPLE', { indexStatus });
-    } else {
-        label = t('INDEXING_DONE', { indexStatus });
+        let label;
+        if (!indexStatus.localFilesSynced) {
+            label = t('INDEXING_SCHEDULED');
+        } else if (indexStatus.outOfSyncFilesExists) {
+            label = t('ANALYZING_PHOTOS', {
+                indexStatus,
+            });
+        } else if (!indexStatus.peopleIndexSynced) {
+            label = t('INDEXING_PEOPLE', { indexStatus });
+        } else {
+            label = t('INDEXING_DONE', { indexStatus });
+        }
+
+        return {
+            label,
+            type: SuggestionType.INDEX_STATUS,
+            value: indexStatus,
+            hide: true,
+        };
+    } catch (e) {
+        logError(e, 'getIndexStatusSuggestion failed');
     }
-
-    return {
-        label,
-        type: SuggestionType.INDEX_STATUS,
-        value: indexStatus,
-        hide: true,
-    };
 }
 
 function getDateSuggestion(searchPhrase: string): Suggestion[] {
@@ -383,7 +387,7 @@ async function searchThing(searchPhrase: string) {
 }
 
 async function searchClip(searchPhrase: string): Promise<ClipSearchScores> {
-    const imageEmbeddings = await getLocalClipImageEmbeddings();
+    const imageEmbeddings = await getLocalEmbeddings(Model.ONNX_CLIP);
     const textEmbedding = await ClipService.getTextEmbedding(searchPhrase);
     const clipSearchResult = new Map<number, number>(
         (
