@@ -26,6 +26,7 @@ import { formatDate, getDate, isSameDay } from '@ente/shared/time/format';
 import { Trans } from 'react-i18next';
 import { t } from 'i18next';
 import memoize from 'memoize-one';
+import { SelectedState } from 'types/gallery';
 
 const A_DAY = 24 * 60 * 60 * 1000;
 const FOOTER_HEIGHT = 90;
@@ -730,6 +731,7 @@ export function PhotoList({
         ];
 
         const localSelectedFiles = displayFiles.filter(
+            // to get files which were manually selected
             (item) => !unselectedDates.includes(getDate(item))
         );
 
@@ -744,7 +746,7 @@ export function PhotoList({
             })); // To uncheck select all checkbox if any of the file on the date is unselected
         });
 
-        localSelectedDates.forEach((date) => {
+        localSelectedDates.map((date) => {
             setCheckedDates((prev) => ({
                 ...prev,
                 [`selectAll-${trimSpaces(date)}`]: true,
@@ -760,13 +762,22 @@ export function PhotoList({
             ? [...selectedDates, date]
             : [...selectedDates.filter((e) => e !== date)];
 
-        setCheckedDates((prev) => ({
-            ...prev,
-            [`selectAll-${trimSpaces(date)}`]:
-                !checkedDates[`selectAll-${trimSpaces(date)}`],
-        }));
+        if (dates.length === 0) {
+            // when the last select all checkbox is unchecked dates array becomes empty
+            setCheckedDates((prev) => ({
+                ...prev,
+                [`selectAll-${trimSpaces(date)}`]: false,
+            }));
+            galleryContext.setSelectedFiles({
+                ownCount: 0, // to unselect all files on a day
+                count: 0,
+                collectionID: 0,
+            });
+        }
 
-        const selected = {
+        setSelectedDates(dates);
+
+        const selected: SelectedState = {
             ownCount: 0,
             count: 0,
             collectionID: activeCollectionID,
@@ -775,15 +786,18 @@ export function PhotoList({
         const filesOnADay = displayFiles?.filter(
             (item) =>
                 galleryContext.selectedFile[item.id] &&
-                !dates.includes(getDate(item))
+                !dates.includes(getDate(item)) &&
+                getDate(item) !== date
         ); // where all files on a day aren't selected and the select all checkbox is unchecked
 
         displayFiles?.forEach((item) => {
             const itemDate = getDate(item);
+            const selectedFilesCount = Object.keys(selected).filter(
+                (key) => typeof selected[key] === 'boolean'
+            );
+
             if (dates.includes(itemDate)) {
-                if (item.ownerID === item.id) {
-                    selected.ownCount++;
-                }
+                selected.ownCount++;
                 selected.count++;
                 selected[item.id] = true; // to select all files on a day
                 galleryContext.setSelectedFiles(selected);
@@ -792,7 +806,10 @@ export function PhotoList({
                 !checkedDates[`selectAll-${trimSpaces(itemDate)}`]
             ) {
                 filesOnADay.map((file) => {
+                    selected.ownCount = selectedFilesCount.length;
+                    selected.count = selectedFilesCount.length;
                     selected[file.id] = true; // to handle files when select all checkbox is unchecked but there are files selected on that day
+                    galleryContext.setSelectedFiles(selected);
                 });
             } else {
                 if (
