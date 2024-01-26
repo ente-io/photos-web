@@ -210,6 +210,7 @@
     "SEARCH_TYPE": {
         "COLLECTION": "Album",
         "LOCATION": "Posizione",
+        "CITY": "",
         "DATE": "Data",
         "FILE_NAME": "Nome file",
         "THING": "",
@@ -624,5 +625,8 @@
     "FASTER_UPLOAD_DESCRIPTION": "",
     "MAGIC_SEARCH_STATUS": "",
     "INDEXED_ITEMS": "",
-    "CACHE_DIRECTORY": ""
+    "CACHE_DIRECTORY": "",
+    "FREEHAND": "",
+    "APPLY_CROP": "",
+    "PHOTO_EDIT_REQUIRED_TO_SAVE": ""
 }
