@@ -18,18 +18,35 @@ export class WasmFFmpeg {
     private ffmpegTaskQueue = new QueueProcessor<File>(1);
 
     constructor() {
+        addLogLine('ffmpegLog', 'ffmpeg constructor');
         this.ffmpeg = new FFmpeg();
-
+        addLogLine('ffmpegLog', 'ffmpeg constructor 2');
+        this.ffmpeg.on('log', (message) => {
+            addLogLine('ffmpegLog', message.message);
+        });
+        addLogLine('ffmpegLog', 'ffmpeg constructor 3');
         this.ready = this.init();
+        addLogLine('ffmpegLog', 'ffmpeg constructor 4');
     }
 
     private async init() {
-        if (!this.ffmpeg.loaded) {
-            await this.ffmpeg.load({
-                coreURL: '/js/ffmpeg/ffmpeg-core.js',
-                wasmURL: '/js/ffmpeg/ffmpeg-core.wasm',
-                workerURL: '/js/ffmpeg/ffmpeg-core.worker.js',
-            });
+        try {
+            addLogLine('ffmpegLog', 'ffmpeg init');
+            if (!this.ffmpeg.loaded) {
+                addLogLine('ffmpegLog', 'ffmpeg init 2');
+                await this.ffmpeg.load({
+                    coreURL: '/js/ffmpeg-st/ffmpeg-core.js',
+                    wasmURL: '/js/ffmpeg-st/ffmpeg-core.wasm',
+                    // workerURL: '/js/ffmpeg/ffmpeg-core.worker.js',
+                });
+                addLogLine('ffmpegLog', 'ffmpeg init 3');
+            }
+            addLogLine('ffmpegLog', 'ffmpeg init 4');
+        } catch (e) {
+            console.log('ffmpegLog', 'ffmpeg init error', e);
+            setTimeout(() => {
+                this.ready = this.init();
+            }, 1000);
         }
     }
 

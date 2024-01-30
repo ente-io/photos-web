@@ -6,6 +6,8 @@ module.exports = {
         'X-Frame-Options': 'deny',
         'X-XSS-Protection': '1; mode=block',
         'Referrer-Policy': 'same-origin',
+        'Cross-Origin-Opener-Policy': 'same-origin',
+        'Cross-Origin-Embedder-Policy': 'require-corp',
     },
 
     CSP_DIRECTIVES: {
