@@ -1,4 +1,4 @@
-import { createFFmpeg, FFmpeg } from 'ffmpeg-wasm';
+import { FFmpeg } from '@ffmpeg/ffmpeg';
 import QueueProcessor from 'services/queueProcessor';
 import { getUint8ArrayView } from 'services/readerService';
 import { promiseWithTimeout } from 'utils/common';
@@ -18,17 +18,18 @@ export class WasmFFmpeg {
     private ffmpegTaskQueue = new QueueProcessor<File>(1);
 
     constructor() {
-        this.ffmpeg = createFFmpeg({
-            corePath: '/js/ffmpeg/ffmpeg-core.js',
-            mt: false,
-        });
+        this.ffmpeg = new FFmpeg();
 
         this.ready = this.init();
     }
 
     private async init() {
-        if (!this.ffmpeg.isLoaded()) {
-            await this.ffmpeg.load();
+        if (!this.ffmpeg.loaded) {
+            await this.ffmpeg.load({
+                coreURL: '/js/ffmpeg/ffmpeg-core.js',
+                wasmURL: '/js/ffmpeg/ffmpeg-core.wasm',
+                workerURL: '/js/ffmpeg/ffmpeg-core.worker.js',
+            });
         }
     }
 
@@ -68,8 +69,7 @@ export class WasmFFmpeg {
             const extension = getFileExtension(inputFile.name);
             const tempNameSuffix = extension ? `input.${extension}` : 'input';
             tempInputFilePath = `${generateTempName(10, tempNameSuffix)}`;
-            this.ffmpeg.FS(
-                'writeFile',
+            this.ffmpeg.writeFile(
                 tempInputFilePath,
                 await getUint8ArrayView(inputFile)
             );
@@ -87,19 +87,19 @@ export class WasmFFmpeg {
                 }
             });
             addLogLine(`${cmd}`);
-            await this.ffmpeg.run(...cmd);
+            await this.ffmpeg.exec(cmd);
             return new File(
-                [this.ffmpeg.FS('readFile', tempOutputFilePath)],
+                [await this.ffmpeg.readFile(tempOutputFilePath)],
                 outputFileName
             );
         } finally {
             try {
-                this.ffmpeg.FS('unlink', tempInputFilePath);
+                this.ffmpeg.deleteFile(tempInputFilePath);
             } catch (e) {
                 logError(e, 'unlink input file failed');
             }
             try {
-                this.ffmpeg.FS('unlink', tempOutputFilePath);
+                this.ffmpeg.deleteFile(tempOutputFilePath);
             } catch (e) {
                 logError(e, 'unlink output file failed');
             }
