@@ -1,10 +1,10 @@
-import downloadManager from 'services/downloadManager';
+import downloadManager from 'services/download';
 import { getLocalFiles } from 'services/fileService';
 import { generateThumbnail } from 'services/upload/thumbnailService';
-import { getToken } from 'utils/common/key';
-import { logError } from 'utils/sentry';
-import { getEndpoint } from 'utils/common/apiUtil';
-import HTTPService from 'services/HTTPService';
+import { getToken } from '@ente/shared/storage/localStorage/helpers';
+import { logError } from '@ente/shared/sentry';
+import { getEndpoint } from '@ente/shared/network/api';
+import HTTPService from '@ente/shared/network/HTTPService';
 import uploadHttpClient from 'services/upload/uploadHttpClient';
 import { SetProgressTracker } from 'components/FixLargeThumbnail';
 import { getFileType } from 'services/typeDetectionService';
@@ -12,8 +12,8 @@ import { getLocalTrashedFiles } from './trashService';
 import { UploadURL } from 'types/upload';
 import { S3FileAttributes } from 'types/file';
 import { Remote } from 'comlink';
-import { DedicatedCryptoWorker } from 'worker/crypto.worker';
-import ComlinkCryptoWorker from 'utils/comlink/ComlinkCryptoWorker';
+import { DedicatedCryptoWorker } from '@ente/shared/crypto/internal/crypto.worker';
+import ComlinkCryptoWorker from '@ente/shared/crypto';
 
 const ENDPOINT = getEndpoint();
 const REPLACE_THUMBNAIL_THRESHOLD = 500 * 1024; // 500KB
@@ -44,7 +44,6 @@ export async function replaceThumbnail(
 ) {
     let completedWithError = false;
     try {
-        const token = getToken();
         const cryptoWorker = await ComlinkCryptoWorker.getInstance();
         const files = await getLocalFiles();
         const trashFiles = await getLocalTrashedFiles();
@@ -69,8 +68,7 @@ export async function replaceThumbnail(
                     current: idx,
                     total: largeThumbnailFiles.length,
                 });
-                const originalThumbnail = await downloadManager.downloadThumb(
-                    token,
+                const originalThumbnail = await downloadManager.getThumbnail(
                     file
                 );
                 const dummyImageFile = new File(

@@ -6,12 +6,13 @@ import { WatchMapping } from 'types/watchFolder';
 import { AppContext } from 'pages/_app';
 import { t } from 'i18next';
 
-import DialogTitleWithCloseButton from 'components/DialogBox/TitleWithCloseButton';
+import DialogTitleWithCloseButton from '@ente/shared/components/DialogBox/TitleWithCloseButton';
 import UploadStrategyChoiceModal from 'components/Upload/UploadStrategyChoiceModal';
 import { UPLOAD_STRATEGY } from 'constants/upload';
 import { getImportSuggestion } from 'utils/upload';
-import electronFSService from 'services/electron/fs';
+import ElectronAPIs from '@ente/shared/electron';
 import { PICKED_UPLOAD_TYPE } from 'constants/upload';
+import isElectron from 'is-electron';
 
 interface Iprops {
     open: boolean;
@@ -25,6 +26,9 @@ export default function WatchFolder({ open, onClose }: Iprops) {
     const appContext = useContext(AppContext);
 
     useEffect(() => {
+        if (!isElectron()) {
+            return;
+        }
         setMappings(watchFolderService.getWatchMappings());
     }, []);
 
@@ -50,7 +54,7 @@ export default function WatchFolder({ open, onClose }: Iprops) {
 
     const addFolderForWatching = async (path: string) => {
         setInputFolderPath(path);
-        const files = await electronFSService.getDirFiles(path);
+        const files = await ElectronAPIs.getDirFiles(path);
         const analysisResult = getImportSuggestion(
             PICKED_UPLOAD_TYPE.FOLDERS,
             files

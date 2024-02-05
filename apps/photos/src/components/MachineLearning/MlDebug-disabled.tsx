@@ -46,6 +46,50 @@ import { FACE_CROPS_CACHE } from 'constants/cache';
 interface TSNEProps {
     mlResult: MLDebugResult;
 }
+// import React, { useState, useEffect, useContext, ChangeEvent } from 'react';
+// import { getData, LS_KEYS } from '@ente/shared/storage/localStorage';
+// import { useRouter } from 'next/router';
+// import { ComlinkWorker } from 'utils/comlink';
+// import { AppContext } from 'pages/_app';
+// import { PHOTOS_PAGES  as PAGES } from '@ente/shared/constants/pages';
+// import * as Comlink from 'comlink';
+// import { runningInBrowser } from 'utils/common';
+// import TFJSImage from './TFJSImage';
+// import {
+//     Face,
+//     MLDebugResult,
+//     MLSyncConfig,
+//     Person,
+// } from 'types/machineLearning';
+// import Tree from 'react-d3-tree';
+// import MLFileDebugView from './MLFileDebugView';
+// import mlWorkManager from 'services/machineLearning/mlWorkManager';
+// // import { getAllFacesMap, mlLibraryStore } from 'utils/storage/mlStorage';
+// import { getAllFacesFromMap, getAllPeople } from 'utils/machineLearning';
+// import { FaceImagesRow, ImageBlobView, ImageCacheView } from './ImageViews';
+// import mlIDbStorage from 'utils/storage/mlIDbStorage';
+// import { getFaceCropBlobFromStorage } from 'utils/machineLearning/faceCrop';
+// import { PeopleList } from './PeopleList';
+// import { styled } from '@mui/material';
+
+// import { RawNodeDatum } from 'react-d3-tree/lib/types/common';
+// import { DebugInfo, mstToBinaryTree } from 'hdbscan';
+// import { toD3Tree } from 'utils/machineLearning/clustering';
+// import {
+//     getMLSyncConfig,
+//     getMLSyncJobConfig,
+//     updateMLSyncConfig,
+//     updateMLSyncJobConfig,
+// } from 'utils/machineLearning/config';
+// import { Button, Col, Container, Form, Row } from 'react-bootstrap';
+// import { JobConfig } from 'types/common/job';
+// import { ConfigEditor } from './ConfigEditor';
+// import {
+//     DEFAULT_ML_SYNC_CONFIG,
+//     DEFAULT_ML_SYNC_JOB_CONFIG,
+// } from 'constants/machineLearning/config';
+// import { exportMlData, importMlData } from 'utils/machineLearning/mldataExport';
+// import { FACE_CROPS_CACHE } from '@ente/shared/storage/cacheStorage/constants';
 
 function TSNEPlot(props: TSNEProps) {
     return (

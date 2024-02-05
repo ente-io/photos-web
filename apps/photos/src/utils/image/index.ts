@@ -4,20 +4,13 @@ import { BlobOptions, Dimensions } from 'types/image';
 import { enlargeBox } from 'utils/machineLearning';
 import { Box } from '../../../thirdparty/face-api/classes';
 
-export function resizeToSquare(
-    img: ImageBitmap,
-    size: number,
-    quality?: ImageSmoothingQuality
-) {
-    if (quality === undefined) {
-        quality = 'high';
-    }
+export function resizeToSquare(img: ImageBitmap, size: number) {
     const scale = size / Math.max(img.height, img.width);
     const width = scale * img.width;
     const height = scale * img.height;
     const offscreen = new OffscreenCanvas(size, size);
     const ctx = offscreen.getContext('2d');
-    ctx.imageSmoothingQuality = quality;
+    ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(img, 0, 0, width, height);
     const resizedImage = offscreen.transferToImageBitmap();
     return { image: resizedImage, width, height };

@@ -2,17 +2,16 @@ import { FIX_OPTIONS } from 'components/FixCreationTime';
 import { SetProgressTracker } from 'components/FixLargeThumbnail';
 import {
     changeFileCreationTime,
-    getFileFromURL,
     updateExistingFilePubMetadata,
 } from 'utils/file';
-import { logError } from 'utils/sentry';
-import downloadManager from './downloadManager';
+import { logError } from '@ente/shared/sentry';
+import downloadManager from './download';
 import { EnteFile } from 'types/file';
 
 import { getParsedExifData } from './upload/exifService';
 import { getFileType } from 'services/typeDetectionService';
 import { FILE_TYPE } from 'constants/file';
-import { validateAndGetCreationUnixTimeInMicroSeconds } from 'utils/time';
+import { validateAndGetCreationUnixTimeInMicroSeconds } from '@ente/shared/time';
 
 const EXIF_TIME_TAGS = [
     'DateTimeOriginal',
@@ -43,9 +42,12 @@ export async function updateCreationTimeWithExif(
                     if (file.metadata.fileType !== FILE_TYPE.IMAGE) {
                         continue;
                     }
-                    const fileURL = (await downloadManager.getFile(file))
-                        .original[0];
-                    const fileObject = await getFileFromURL(fileURL);
+                    const fileStream = await downloadManager.getFile(file);
+                    const fileBlob = await new Response(fileStream).blob();
+                    const fileObject = new File(
+                        [fileBlob],
+                        file.metadata.title
+                    );
                     const fileTypeInfo = await getFileType(fileObject);
                     const exifData = await getParsedExifData(
                         fileObject,

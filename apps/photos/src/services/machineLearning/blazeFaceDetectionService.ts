@@ -1,7 +1,6 @@
 import {
     load as blazeFaceLoad,
     BlazeFaceModel,
-    NormalizedFace,
 } from 'blazeface-back';
 import * as tf from '@tensorflow/tfjs-core';
 import { GraphModel } from '@tensorflow/tfjs-converter';
@@ -33,7 +32,7 @@ import {
     BLAZEFACE_SCORE_THRESHOLD,
     MAX_FACE_DISTANCE_PERCENT,
 } from 'constants/mlConfig';
-import { addLogLine } from 'utils/logging';
+import { addLogLine } from '@ente/shared/logging';
 
 class BlazeFaceDetectionService implements FaceDetectionService {
     private blazeFaceModel: Promise<BlazeFaceModel>;
@@ -66,82 +65,6 @@ class BlazeFaceDetectionService implements FaceDetectionService {
             // eslint-disable-next-line @typescript-eslint/await-thenable
             await tf.getBackend()
         );
-    }
-
-    private getDlibAlignedFace(normFace: NormalizedFace): Box {
-        const relX = 0.5;
-        const relY = 0.43;
-        const relScale = 0.45;
-
-        const leftEyeCenter = normFace.landmarks[0];
-        const rightEyeCenter = normFace.landmarks[1];
-        const mountCenter = normFace.landmarks[3];
-
-        const distToMouth = (pt) => {
-            const dy = mountCenter[1] - pt[1];
-            const dx = mountCenter[0] - pt[0];
-            return Math.sqrt(dx * dx + dy * dy);
-        };
-        const eyeToMouthDist =
-            (distToMouth(leftEyeCenter) + distToMouth(rightEyeCenter)) / 2;
-
-        const size = Math.floor(eyeToMouthDist / relScale);
-
-        const center = [
-            (leftEyeCenter[0] + rightEyeCenter[0] + mountCenter[0]) / 3,
-            (leftEyeCenter[1] + rightEyeCenter[1] + mountCenter[1]) / 3,
-        ];
-
-        const left = center[0] - relX * size;
-        const top = center[1] - relY * size;
-        const right = center[0] + relX * size;
-        const bottom = center[1] + relY * size;
-
-        return new Box({
-            left: left,
-            top: top,
-            right: right,
-            bottom: bottom,
-        });
-    }
-
-    private getAlignedFace(normFace: NormalizedFace): Box {
-        const leftEye = normFace.landmarks[0];
-        const rightEye = normFace.landmarks[1];
-        // const noseTip = normFace.landmarks[2];
-
-        const dy = rightEye[1] - leftEye[1];
-        const dx = rightEye[0] - leftEye[0];
-
-        const desiredRightEyeX = 1.0 - this.desiredLeftEye[0];
-
-        // const eyesCenterX = (leftEye[0] + rightEye[0]) / 2;
-        // const yaw = Math.abs(noseTip[0] - eyesCenterX)
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        let desiredDist = desiredRightEyeX - this.desiredLeftEye[0];
-        desiredDist *= this.desiredFaceSize;
-        const scale = desiredDist / dist;
-        // addLogLine("scale: ", scale);
-
-        const eyesCenter = [];
-        eyesCenter[0] = Math.floor((leftEye[0] + rightEye[0]) / 2);
-        eyesCenter[1] = Math.floor((leftEye[1] + rightEye[1]) / 2);
-        // addLogLine("eyesCenter: ", eyesCenter);
-
-        const faceWidth = this.desiredFaceSize / scale;
-        const faceHeight = this.desiredFaceSize / scale;
-        // addLogLine("faceWidth: ", faceWidth, "faceHeight: ", faceHeight)
-
-        const tx = eyesCenter[0] - faceWidth * 0.5;
-        const ty = eyesCenter[1] - faceHeight * this.desiredLeftEye[1];
-        // addLogLine("tx: ", tx, "ty: ", ty);
-
-        return new Box({
-            left: tx,
-            top: ty,
-            right: tx + faceWidth,
-            bottom: ty + faceHeight,
-        });
     }
 
     public async detectFacesUsingModel(image: tf.Tensor3D) {

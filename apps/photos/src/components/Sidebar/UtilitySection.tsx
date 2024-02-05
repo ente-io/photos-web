@@ -2,9 +2,9 @@ import { useContext, useState } from 'react';
 import { t } from 'i18next';
 
 // import FixLargeThumbnails from 'components/FixLargeThumbnail';
-import RecoveryKey from 'components/RecoveryKey';
+import RecoveryKey from '@ente/shared/components/RecoveryKey';
 import TwoFactorModal from 'components/TwoFactor/Modal';
-import { PAGES } from 'constants/pages';
+import { PHOTOS_PAGES as PAGES } from '@ente/shared/constants/pages';
 import { useRouter } from 'next/router';
 import { AppContext } from 'pages/_app';
 // import mlIDbStorage from 'utils/storage/mlIDbStorage';
@@ -15,11 +15,13 @@ import { getDownloadAppMessage } from 'utils/ui';
 import { isInternalUser } from 'utils/user';
 import Preferences from './Preferences';
 import { EnteMenuItem } from 'components/Menu/EnteMenuItem';
-import ThemeSwitcher from './ThemeSwitcher';
-import { THEME_COLOR } from 'constants/theme';
+import ThemeSwitcher from '@ente/shared/components/ThemeSwitcher';
+import { THEME_COLOR } from '@ente/shared/themes/constants';
+import { onExportMLData } from 'utils/machineLearning/mldataExport';
 
 export default function UtilitySection({ closeSidebar }) {
     const router = useRouter();
+    const appContext = useContext(AppContext);
     const {
         setDialogMessage,
         startLoading,
@@ -27,7 +29,7 @@ export default function UtilitySection({ closeSidebar }) {
         setWatchFolderView,
         themeColor,
         setThemeColor,
-    } = useContext(AppContext);
+    } = appContext;
 
     const [recoverModalView, setRecoveryModalView] = useState(false);
     const [twoFactorModalView, setTwoFactorModalView] = useState(false);
@@ -61,9 +63,7 @@ export default function UtilitySection({ closeSidebar }) {
         router.push(PAGES.CHANGE_EMAIL);
     };
 
-    const redirectToDeduplicatePage = () => router.push(PAGES.DEDUPLICATE);
-
-    const redirectToAuthenticatorPage = () => router.push(PAGES.AUTH);
+    const redirectToDeduplicatePage = () => onExportMLData();
 
     const somethingWentWrong = () =>
         setDialogMessage({
@@ -131,19 +131,13 @@ export default function UtilitySection({ closeSidebar }) {
                 label={t('DEDUPLICATE_FILES')}
             />
 
-            {isInternalUser() && (
-                <EnteMenuItem
-                    variant="secondary"
-                    onClick={redirectToAuthenticatorPage}
-                    label={t('AUTHENTICATOR_SECTION')}
-                />
-            )}
             <EnteMenuItem
                 variant="secondary"
                 onClick={openPreferencesOptions}
                 label={t('PREFERENCES')}
             />
             <RecoveryKey
+                appContext={appContext}
                 show={recoverModalView}
                 onHide={closeRecoveryKeyModal}
                 somethingWentWrong={somethingWentWrong}

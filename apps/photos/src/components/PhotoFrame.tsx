@@ -3,22 +3,24 @@ import PreviewCard from './pages/gallery/PreviewCard';
 import { useContext, useEffect, useState } from 'react';
 import { EnteFile } from 'types/file';
 import { styled } from '@mui/material';
-import DownloadManager from 'services/downloadManager';
+import DownloadManager from 'services/download';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import PhotoViewer from 'components/PhotoViewer';
 import { TRASH_SECTION } from 'constants/collection';
 import { updateFileMsrcProps, updateFileSrcProps } from 'utils/photoFrame';
-import { PhotoList } from './PhotoList';
 import { MergedSourceURL, SelectedState } from 'types/gallery';
-import PublicCollectionDownloadManager from 'services/publicCollectionDownloadManager';
 import { PublicCollectionGalleryContext } from 'utils/publicCollectionGallery';
 import { useRouter } from 'next/router';
-import { logError } from 'utils/sentry';
-import { addLogLine } from 'utils/logging';
+import { logError } from '@ente/shared/sentry';
+import { addLogLine } from '@ente/shared/logging';
 import PhotoSwipe from 'photoswipe';
-import useMemoSingleThreaded from 'hooks/useMemoSingleThreaded';
+import useMemoSingleThreaded from '@ente/shared/hooks/useMemoSingleThreaded';
 import { getPlayableVideo } from 'utils/file';
 import { FILE_TYPE } from 'constants/file';
+import { PHOTOS_PAGES } from '@ente/shared/constants/pages';
+import { PhotoList } from './PhotoList';
+import { DedupePhotoList } from './PhotoList/dedupe';
+import { Duplicate } from 'services/deduplicationService';
 
 const Container = styled('div')`
     display: block;
@@ -36,7 +38,12 @@ const Container = styled('div')`
 const PHOTOSWIPE_HASH_SUFFIX = '&opened';
 
 interface Props {
+    page:
+        | PHOTOS_PAGES.GALLERY
+        | PHOTOS_PAGES.DEDUPLICATE
+        | PHOTOS_PAGES.SHARED_ALBUMS;
     files: EnteFile[];
+    duplicates?: Duplicate[];
     syncWithRemote: () => Promise<void>;
     favItemIds?: Set<number>;
     setSelected: (
@@ -55,6 +62,8 @@ interface Props {
 }
 
 const PhotoFrame = ({
+    page,
+    duplicates,
     files,
     syncWithRemote,
     favItemIds,
@@ -383,30 +392,7 @@ const PhotoFrame = ({
         if (!item.msrc) {
             addLogLine(`[${item.id}] doesn't have thumbnail`);
             try {
-                let url: string;
-                if (thumbsStore.has(item.id)) {
-                    addLogLine(
-                        `[${item.id}] gallery context cache hit, using cached thumb`
-                    );
-                    url = thumbsStore.get(item.id);
-                } else {
-                    addLogLine(
-                        `[${item.id}] gallery context cache miss, calling downloadManager to get thumb`
-                    );
-                    if (
-                        publicCollectionGalleryContext.accessedThroughSharedURL
-                    ) {
-                        url =
-                            await PublicCollectionDownloadManager.getThumbnail(
-                                item,
-                                publicCollectionGalleryContext.token,
-                                publicCollectionGalleryContext.passwordToken
-                            );
-                    } else {
-                        url = await DownloadManager.getThumbnail(item);
-                    }
-                    thumbsStore.set(item.id, url);
-                }
+                const url = await DownloadManager.getThumbnailForPreview(item);
                 updateURL(index)(item.id, url);
                 try {
                     addLogLine(
@@ -457,21 +443,9 @@ const PhotoFrame = ({
                 addLogLine(
                     `[${item.id}] gallery context cache miss, calling downloadManager to get file`
                 );
-                let downloadedURL: {
-                    original: string[];
-                    converted: string[];
-                };
-                if (publicCollectionGalleryContext.accessedThroughSharedURL) {
-                    downloadedURL =
-                        await PublicCollectionDownloadManager.getFile(
-                            item,
-                            publicCollectionGalleryContext.token,
-                            publicCollectionGalleryContext.passwordToken,
-                            true
-                        );
-                } else {
-                    downloadedURL = await DownloadManager.getFile(item, true);
-                }
+                const downloadedURL = await DownloadManager.getFileForPreview(
+                    item
+                );
                 const mergedURL: MergedSourceURL = {
                     original: downloadedURL.original.join(','),
                     converted: downloadedURL.converted.join(','),
@@ -605,16 +579,27 @@ const PhotoFrame = ({
     return (
         <Container>
             <AutoSizer>
-                {({ height, width }) => (
-                    <PhotoList
-                        width={width}
-                        height={height}
-                        getThumbnail={getThumbnail}
-                        displayFiles={displayFiles}
-                        activeCollectionID={activeCollectionID}
-                        showAppDownloadBanner={showAppDownloadBanner}
-                    />
-                )}
+                {({ height, width }) =>
+                    page === PHOTOS_PAGES.DEDUPLICATE ? (
+                        <DedupePhotoList
+                            width={width}
+                            height={height}
+                            getThumbnail={getThumbnail}
+                            duplicates={duplicates}
+                            activeCollectionID={activeCollectionID}
+                            showAppDownloadBanner={showAppDownloadBanner}
+                        />
+                    ) : (
+                        <PhotoList
+                            width={width}
+                            height={height}
+                            getThumbnail={getThumbnail}
+                            displayFiles={displayFiles}
+                            activeCollectionID={activeCollectionID}
+                            showAppDownloadBanner={showAppDownloadBanner}
+                        />
+                    )
+                }
             </AutoSizer>
             <PhotoViewer
                 isOpen={open}

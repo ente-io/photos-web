@@ -22,7 +22,7 @@ export const decodeLivePhoto = async (file: EnteFile, zipBlob: Blob) => {
             livePhoto.imageNameTitle =
                 originalName + getFileExtensionWithDot(zipFilename);
             livePhoto.image = await zip.files[zipFilename].async('uint8array');
-        } else if (zipFilename.startsWith('video')) {
+        } else if (zipFilename.startsWith('videoxx')) {
             livePhoto.videoNameTitle =
                 originalName + getFileExtensionWithDot(zipFilename);
             livePhoto.video = await zip.files[zipFilename].async('uint8array');

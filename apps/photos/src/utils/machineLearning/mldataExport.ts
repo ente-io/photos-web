@@ -1,9 +1,9 @@
 import { MlFileData } from 'types/machineLearning';
 import mlIDbStorage from 'utils/storage/mlIDbStorage';
 import * as zip from '@zip.js/zip.js';
-import { CACHES } from 'constants/cache';
-import { CacheStorageService } from 'services/cache/cacheStorageService';
-import { addLogLine } from 'utils/logging';
+import { CACHES } from '@ente/shared/storage/cacheStorage/constants';
+import { CacheStorageService } from '@ente/shared/storage/cacheStorage';
+import { addLogLine } from '@ente/shared/logging';
 
 class FileSystemWriter extends zip.Writer {
     writableStream: FileSystemWritableFileStream;
@@ -48,6 +48,31 @@ class FileReader extends zip.Reader {
     }
 }
 
+export const onExportMLData = async () => {
+    let mlDataZipHandle: FileSystemFileHandle;
+    try {
+        mlDataZipHandle = await showSaveFilePicker({
+            suggestedName: `ente-mldata-${Date.now()}`,
+            types: [
+                {
+                    accept: {
+                        'application/zip': ['.zip'],
+                    },
+                },
+            ],
+        });
+    } catch (e) {
+        console.error(e);
+        return;
+    }
+
+    try {
+        const mlDataZipWritable = await mlDataZipHandle.createWritable();
+        await exportMlData(mlDataZipWritable);
+    } catch (e) {
+        console.error('Error while exporting: ', e);
+    }
+};
 export async function exportMlData(
     mlDataZipWritable: FileSystemWritableFileStream
 ) {
@@ -100,11 +125,16 @@ async function exportMlDataToZipWriter(zipWriter: zip.ZipWriter) {
             const response = await faceCropCache.match(faceCropUrl);
             if (response && response.ok) {
                 const blob = await response.blob();
+                try {
                 await zipWriter.add(
                     `caches/${CACHES.FACE_CROPS}${faceCropUrl}`,
                     new zip.BlobReader(blob),
                     { level: 0 }
                 );
+                } catch (e) {
+                    console.log('Error while adding face crop to zip: ' + `caches/${CACHES.FACE_CROPS}${faceCropUrl}`, e);
+                    addLogLine('Error while adding face crop to zip: ', e);
+                }
             } else {
                 console.error(
                     'face crop cache entry not found for faceCropUrl: ',

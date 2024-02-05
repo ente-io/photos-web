@@ -12,9 +12,10 @@ import {
     copyFileToClipboard,
     getFileExtension,
     getFileFromURL,
-    isRawFileFromFileName,
+    isSupportedRawFormat,
+    isRawFile,
 } from 'utils/file';
-import { logError } from 'utils/sentry';
+import { logError } from '@ente/shared/sentry';
 
 import { FILE_TYPE } from 'constants/file';
 import { isClipboardItemPresent } from 'utils/common';
@@ -40,7 +41,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { trashFiles } from 'services/fileService';
 import { getTrashFileMessage } from 'utils/ui';
 import { Box, Button, styled } from '@mui/material';
-import { addLocalLog } from 'utils/logging';
+import { addLocalLog } from '@ente/shared/logging';
 import ContentCopy from '@mui/icons-material/ContentCopy';
 import ChevronLeft from '@mui/icons-material/ChevronLeft';
 import { t } from 'i18next';
@@ -48,12 +49,11 @@ import { getParsedExifData } from 'services/upload/exifService';
 import { getFileType } from 'services/typeDetectionService';
 import { ConversionFailedNotification } from './styledComponents/ConversionFailedNotification';
 import { GalleryContext } from 'pages/gallery';
-import downloadManager from 'services/downloadManager';
-import publicCollectionDownloadManager from 'services/publicCollectionDownloadManager';
+import downloadManager from 'services/download';
 import CircularProgressWithLabel from './styledComponents/CircularProgressWithLabel';
-import EnteSpinner from 'components/EnteSpinner';
+import EnteSpinner from '@ente/shared/components/EnteSpinner';
 import AlbumOutlined from '@mui/icons-material/AlbumOutlined';
-import { FlexWrapper } from 'components/Container';
+import { FlexWrapper } from '@ente/shared/components/Container';
 import isElectron from 'is-electron';
 import ReplayIcon from '@mui/icons-material/Replay';
 import ImageEditorOverlay from './ImageEditorOverlay';
@@ -136,14 +136,10 @@ function PhotoViewer(props: Iprops) {
 
     const [showEditButton, setShowEditButton] = useState(false);
 
+    const [showZoomButton, setShowZoomButton] = useState(false);
+
     useEffect(() => {
-        if (publicCollectionGalleryContext.accessedThroughSharedURL) {
-            publicCollectionDownloadManager.setProgressUpdater(
-                setFileDownloadProgress
-            );
-        } else {
-            downloadManager.setProgressUpdater(setFileDownloadProgress);
-        }
+        downloadManager.setProgressUpdater(setFileDownloadProgress);
     }, []);
 
     useEffect(() => {
@@ -329,10 +325,16 @@ function PhotoViewer(props: Iprops) {
     }
 
     function updateShowEditButton(file: EnteFile) {
+        const extension = getFileExtension(file.metadata.title);
+        const isSupported =
+            !isRawFile(extension) || isSupportedRawFormat(extension);
         setShowEditButton(
-            file.metadata.fileType === FILE_TYPE.IMAGE &&
-                !isRawFileFromFileName(file.metadata.title)
+            file.metadata.fileType === FILE_TYPE.IMAGE && isSupported
         );
+    }
+
+    function updateShowZoomButton(file: EnteFile) {
+        setShowZoomButton(file.metadata.fileType === FILE_TYPE.IMAGE);
     }
 
     const openPhotoSwipe = () => {
@@ -408,6 +410,7 @@ function PhotoViewer(props: Iprops) {
             updateShowConvertBtn(currItem);
             updateIsSourceLoaded(currItem);
             updateShowEditButton(currItem);
+            updateShowZoomButton(currItem);
         });
         photoSwipe.listen('resize', () => {
             if (!photoSwipe?.currItem) return;
@@ -586,12 +589,7 @@ function PhotoViewer(props: Iprops) {
         if (file && props.enableDownload) {
             appContext.startLoading();
             try {
-                await downloadFile(
-                    file,
-                    publicCollectionGalleryContext.accessedThroughSharedURL,
-                    publicCollectionGalleryContext.token,
-                    publicCollectionGalleryContext.passwordToken
-                );
+                await downloadFile(file);
             } catch (e) {
                 // do nothing
             }
@@ -763,12 +761,14 @@ function PhotoViewer(props: Iprops) {
                                     <DeleteIcon />
                                 </button>
                             )}
-                            <button
-                                className="pswp__button pswp__button--custom"
-                                onClick={toggleZoomInAndOut}
-                                title={t('ZOOM_IN_OUT')}>
-                                <ZoomInOutlinedIcon />
-                            </button>
+                            {showZoomButton && (
+                                <button
+                                    className="pswp__button pswp__button--custom"
+                                    onClick={toggleZoomInAndOut}
+                                    title={t('ZOOM_IN_OUT')}>
+                                    <ZoomInOutlinedIcon />
+                                </button>
+                            )}
                             <button
                                 className="pswp__button pswp__button--custom"
                                 onClick={() => {

@@ -4,7 +4,7 @@ import {
     DetectedFace,
     Face,
 } from 'types/machineLearning';
-import { addLogLine } from 'utils/logging';
+import { addLogLine } from '@ente/shared/logging';
 import {
     isDifferentOrOld,
     getFaceId,
@@ -46,8 +46,12 @@ class FaceService {
             syncContext,
             fileContext
         );
+        let timerId = `faceDetection-${fileContext.enteFile.id}`;
+        console.time(timerId);
         const faceDetections =
             await syncContext.faceDetectionService.detectFaces(imageBitmap);
+        console.timeEnd(timerId);
+        console.log('faceDetections: ', faceDetections?.length);
         // addLogLine('3 TF Memory stats: ',JSON.stringify(tf.memory()));
         // TODO: reenable faces filtering based on width
         const detectedFaces = faceDetections?.map((detection) => {
