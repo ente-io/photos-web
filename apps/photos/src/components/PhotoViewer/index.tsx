@@ -8,12 +8,12 @@ import {
 } from 'services/collectionService';
 import { EnteFile } from 'types/file';
 import {
-    downloadFile,
     copyFileToClipboard,
     getFileExtension,
     getFileFromURL,
     isSupportedRawFormat,
     isRawFile,
+    downloadSingleFile,
 } from 'utils/file';
 import { logError } from '@ente/shared/sentry';
 
@@ -49,7 +49,7 @@ import { getParsedExifData } from 'services/upload/exifService';
 import { getFileType } from 'services/typeDetectionService';
 import { ConversionFailedNotification } from './styledComponents/ConversionFailedNotification';
 import { GalleryContext } from 'pages/gallery';
-import downloadManager from 'services/download';
+import downloadManager, { LoadedLivePhotoSourceURL } from 'services/download';
 import CircularProgressWithLabel from './styledComponents/CircularProgressWithLabel';
 import EnteSpinner from '@ente/shared/components/EnteSpinner';
 import AlbumOutlined from '@mui/icons-material/AlbumOutlined';
@@ -58,6 +58,7 @@ import isElectron from 'is-electron';
 import ReplayIcon from '@mui/icons-material/Replay';
 import ImageEditorOverlay from './ImageEditorOverlay';
 import EditIcon from '@mui/icons-material/Edit';
+import { SetFilesDownloadProgressAttributesCreator } from 'types/gallery';
 
 interface PhotoswipeFullscreenAPI {
     enter: () => void;
@@ -85,13 +86,14 @@ interface Iprops {
     id?: string;
     className?: string;
     favItemIds: Set<number>;
-    deletedFileIds: Set<number>;
-    setDeletedFileIds?: (value: Set<number>) => void;
+    tempDeletedFileIds: Set<number>;
+    setTempDeletedFileIds?: (value: Set<number>) => void;
     isTrashCollection: boolean;
     isInHiddenSection: boolean;
     enableDownload: boolean;
     fileToCollectionsMap: Map<number, number[]>;
     collectionNameMap: Map<number, string>;
+    setFilesDownloadProgressAttributesCreator: SetFilesDownloadProgressAttributesCreator;
 }
 
 function PhotoViewer(props: Iprops) {
@@ -192,6 +194,12 @@ function PhotoViewer(props: Iprops) {
                 case 'L':
                     onFavClick(photoSwipe?.currItem as EnteFile);
                     break;
+                case 'ArrowLeft':
+                    handleArrowClick(event, 'left');
+                    break;
+                case 'ArrowRight':
+                    handleArrowClick(event, 'right');
+                    break;
                 default:
                     break;
             }
@@ -259,7 +267,7 @@ function PhotoViewer(props: Iprops) {
             `download-btn-${item.id}`
         ) as HTMLButtonElement;
         const downloadFile = () => {
-            downloadFileHelper(photoSwipe.currItem);
+            downloadFileHelper(photoSwipe.currItem as unknown as EnteFile);
         };
 
         if (downloadLivePhotoBtn) {
@@ -290,18 +298,26 @@ function PhotoViewer(props: Iprops) {
     }
 
     function updateExif(file: EnteFile) {
-        if (file.metadata.fileType !== FILE_TYPE.IMAGE) {
+        if (file.metadata.fileType === FILE_TYPE.VIDEO) {
             setExif({ key: file.src, value: null });
             return;
         }
-        if (
-            !file ||
-            !exifCopy?.current?.value === null ||
-            exifCopy?.current?.key === file.src
-        ) {
+        if (!file.isSourceLoaded || file.conversionFailed) {
             return;
         }
-        setExif({ key: file.src, value: undefined });
+
+        if (!file || !exifCopy?.current?.value === null) {
+            return;
+        }
+        const key =
+            file.metadata.fileType === FILE_TYPE.IMAGE
+                ? file.src
+                : (file.srcURLs.url as LoadedLivePhotoSourceURL).image;
+
+        if (exifCopy?.current?.key === key) {
+            return;
+        }
+        setExif({ key, value: undefined });
         checkExifAvailable(file);
     }
 
@@ -344,6 +360,7 @@ function PhotoViewer(props: Iprops) {
             maxSpreadZoom: 5,
             index: currentIndex,
             showHideOpacity: true,
+            arrowKeys: false,
             getDoubleTapZoom(isMouseClick, item) {
                 if (isMouseClick) {
                     return 2.5;
@@ -476,13 +493,13 @@ function PhotoViewer(props: Iprops) {
     };
 
     const trashFile = async (file: EnteFile) => {
-        const { deletedFileIds, setDeletedFileIds } = props;
+        const { tempDeletedFileIds, setTempDeletedFileIds } = props;
         try {
             appContext.startLoading();
             await trashFiles([file]);
             appContext.finishLoading();
-            deletedFileIds.add(file.id);
-            setDeletedFileIds(new Set(deletedFileIds));
+            tempDeletedFileIds.add(file.id);
+            setTempDeletedFileIds(new Set(tempDeletedFileIds));
             updateItems(props.items.filter((item) => item.id !== file.id));
             needUpdate.current = true;
         } catch (e) {
@@ -495,6 +512,24 @@ function PhotoViewer(props: Iprops) {
             return;
         }
         appContext.setDialogMessage(getTrashFileMessage(() => trashFile(file)));
+    };
+
+    const handleArrowClick = (
+        e: KeyboardEvent,
+        direction: 'left' | 'right'
+    ) => {
+        // ignore arrow clicks if the user is typing in a text field
+        if (
+            e.target instanceof HTMLInputElement ||
+            e.target instanceof HTMLTextAreaElement
+        ) {
+            return;
+        }
+        if (direction === 'left') {
+            photoSwipe.prev();
+        } else {
+            photoSwipe.next();
+        }
     };
 
     const updateItems = (items: EnteFile[]) => {
@@ -540,22 +575,28 @@ function PhotoViewer(props: Iprops) {
                 return;
             }
             try {
-                if (file.isSourceLoaded) {
-                    exifExtractionInProgress.current = file.src;
-                    const fileObject = await getFileFromURL(
-                        file.originalImageURL
+                exifExtractionInProgress.current = file.src;
+                let fileObject: File;
+                if (file.metadata.fileType === FILE_TYPE.IMAGE) {
+                    fileObject = await getFileFromURL(
+                        file.src as string,
+                        file.metadata.title
                     );
-                    const fileTypeInfo = await getFileType(fileObject);
-                    const exifData = await getParsedExifData(
-                        fileObject,
-                        fileTypeInfo
-                    );
-                    if (exifExtractionInProgress.current === file.src) {
-                        if (exifData) {
-                            setExif({ key: file.src, value: exifData });
-                        } else {
-                            setExif({ key: file.src, value: null });
-                        }
+                } else {
+                    const url = (file.srcURLs.url as LoadedLivePhotoSourceURL)
+                        .image;
+                    fileObject = await getFileFromURL(url, file.metadata.title);
+                }
+                const fileTypeInfo = await getFileType(fileObject);
+                const exifData = await getParsedExifData(
+                    fileObject,
+                    fileTypeInfo
+                );
+                if (exifExtractionInProgress.current === file.src) {
+                    if (exifData) {
+                        setExif({ key: file.src, value: exifData });
+                    } else {
+                        setExif({ key: file.src, value: null });
                     }
                 }
             } finally {
@@ -585,15 +626,21 @@ function PhotoViewer(props: Iprops) {
         setShowImageEditorOverlay(false);
     };
 
-    const downloadFileHelper = async (file) => {
-        if (file && props.enableDownload) {
-            appContext.startLoading();
+    const downloadFileHelper = async (file: EnteFile) => {
+        if (
+            file &&
+            props.enableDownload &&
+            props.setFilesDownloadProgressAttributesCreator
+        ) {
             try {
-                await downloadFile(file);
+                const setSingleFileDownloadProgress =
+                    props.setFilesDownloadProgressAttributesCreator(
+                        file.metadata.title
+                    );
+                await downloadSingleFile(file, setSingleFileDownloadProgress);
             } catch (e) {
                 // do nothing
             }
-            appContext.finishLoading();
         }
     };
 
@@ -688,7 +735,9 @@ function PhotoViewer(props: Iprops) {
                         onClose={() =>
                             setConversionFailedNotificationOpen(false)
                         }
-                        onClick={() => downloadFileHelper(photoSwipe.currItem)}
+                        onClick={() =>
+                            downloadFileHelper(photoSwipe.currItem as EnteFile)
+                        }
                     />
 
                     <Box
@@ -732,7 +781,9 @@ function PhotoViewer(props: Iprops) {
                                     className="pswp__button pswp__button--custom"
                                     title={t('DOWNLOAD_OPTION')}
                                     onClick={() =>
-                                        downloadFileHelper(photoSwipe.currItem)
+                                        downloadFileHelper(
+                                            photoSwipe.currItem as EnteFile
+                                        )
                                     }>
                                     <DownloadIcon />
                                 </button>

@@ -19,6 +19,7 @@ import { ClipExtractionStatus } from 'services/clipService';
 import { formatNumber } from 'utils/number/format';
 import { isInternalUser } from 'utils/user';
 import { runningInChrome } from 'utils/common';
+import CacheDirectory from './Preferences/CacheDirectory';
 
 export default function AdvancedSettings({ open, onClose, onRootClose }) {
     const appContext = useContext(AppContext);
@@ -53,14 +54,12 @@ export default function AdvancedSettings({ open, onClose, onRootClose }) {
     });
 
     useEffect(() => {
-        ClipService.setOnUpdateHandler(setIndexingStatus);
+        const main = async () => {
+            setIndexingStatus(await ClipService.getIndexingStatus());
+            ClipService.setOnUpdateHandler(setIndexingStatus);
+        };
+        main();
     }, []);
-
-    useEffect(() => {
-        if (open) {
-            ClipService.updateIndexStatus();
-        }
-    }, [open]);
 
     return (
         <EnteDrawer
@@ -79,21 +78,23 @@ export default function AdvancedSettings({ open, onClose, onRootClose }) {
 
                 <Box px={'8px'}>
                     <Stack py="20px" spacing="24px">
-                        {(isElectron() ||
-                            (isInternalUser() && runningInChrome(false))) && (
-                            <Box>
-                                <MenuSectionTitle
-                                    title={t('LABS')}
-                                    icon={<ScienceIcon />}
-                                />
-                                <MenuItemGroup>
-                                    <EnteMenuItem
-                                        endIcon={<ChevronRight />}
-                                        onClick={openMlSearchSettings}
-                                        label={t('ML_SEARCH')}
+                        {(isElectron() || (isInternalUser() && runningInChrome(false))) && (
+                            <>
+                                <CacheDirectory />
+                                <Box>
+                                    <MenuSectionTitle
+                                        title={t('LABS')}
+                                        icon={<ScienceIcon />}
                                     />
-                                </MenuItemGroup>
-                            </Box>
+                                    <MenuItemGroup>
+                                        <EnteMenuItem
+                                            endIcon={<ChevronRight />}
+                                            onClick={openMlSearchSettings}
+                                            label={t('ML_SEARCH')}
+                                        />
+                                    </MenuItemGroup>
+                                </Box>
+                            </>
                         )}
                         <Box>
                             <MenuItemGroup>
@@ -109,31 +110,39 @@ export default function AdvancedSettings({ open, onClose, onRootClose }) {
                             />
                         </Box>
 
-                        <Box>
-                            <MenuSectionTitle title={t('STATUS')} />
-                            <Stack py={'12px'} px={'12px'} spacing={'24px'}>
-                                <VerticallyCenteredFlex
-                                    justifyContent="space-between"
-                                    alignItems={'center'}>
-                                    <Typography>
-                                        {t('INDEXED_ITEMS')}
-                                    </Typography>
-                                    <Typography>
-                                        {formatNumber(indexingStatus.indexed)}
-                                    </Typography>
-                                </VerticallyCenteredFlex>
-                                <VerticallyCenteredFlex
-                                    justifyContent="space-between"
-                                    alignItems={'center'}>
-                                    <Typography>
-                                        {t('PENDING_ITEMS')}
-                                    </Typography>
-                                    <Typography>
-                                        {formatNumber(indexingStatus.pending)}
-                                    </Typography>
-                                </VerticallyCenteredFlex>
-                            </Stack>
-                        </Box>
+                        {isElectron() && (
+                            <Box>
+                                <MenuSectionTitle
+                                    title={t('MAGIC_SEARCH_STATUS')}
+                                />
+                                <Stack py={'12px'} px={'12px'} spacing={'24px'}>
+                                    <VerticallyCenteredFlex
+                                        justifyContent="space-between"
+                                        alignItems={'center'}>
+                                        <Typography>
+                                            {t('INDEXED_ITEMS')}
+                                        </Typography>
+                                        <Typography>
+                                            {formatNumber(
+                                                indexingStatus.indexed
+                                            )}
+                                        </Typography>
+                                    </VerticallyCenteredFlex>
+                                    <VerticallyCenteredFlex
+                                        justifyContent="space-between"
+                                        alignItems={'center'}>
+                                        <Typography>
+                                            {t('PENDING_ITEMS')}
+                                        </Typography>
+                                        <Typography>
+                                            {formatNumber(
+                                                indexingStatus.pending
+                                            )}
+                                        </Typography>
+                                    </VerticallyCenteredFlex>
+                                </Stack>
+                            </Box>
+                        )}
                     </Stack>
                 </Box>
             </Stack>

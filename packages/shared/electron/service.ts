@@ -16,6 +16,7 @@ export interface LimitedElectronAPIs
         | 'deleteDiskCache'
         | 'getSentryUserID'
         | 'convertToJPEG'
+        | 'logToDisk'
     > {}
 
 class WorkerSafeElectronServiceImpl implements LimitedElectronAPIs {
@@ -37,9 +38,12 @@ class WorkerSafeElectronServiceImpl implements LimitedElectronAPIs {
             this.proxiedElectron = new WorkerSafeElectronClient();
         }
     }
-    async openDiskCache(cacheName: string) {
+    async openDiskCache(cacheName: string, cacheLimitInBytes?: number) {
         await this.ready;
-        const cache = await this.proxiedElectron.openDiskCache(cacheName);
+        const cache = await this.proxiedElectron.openDiskCache(
+            cacheName,
+            cacheLimitInBytes
+        );
         return {
             match: transformMatch(cache.match.bind(cache)),
             put: transformPut(cache.put.bind(cache)),
@@ -63,6 +67,10 @@ class WorkerSafeElectronServiceImpl implements LimitedElectronAPIs {
         await this.ready;
         return this.proxiedElectron.convertToJPEG(inputFileData, filename);
     }
+    async logToDisk(message: string) {
+        await this.ready;
+        return this.proxiedElectron.logToDisk(message);
+    }
 }
 
 export const WorkerSafeElectronService = new WorkerSafeElectronServiceImpl();
@@ -70,8 +78,8 @@ export const WorkerSafeElectronService = new WorkerSafeElectronServiceImpl();
 function transformMatch(
     fn: ProxiedWorkerLimitedCache['match']
 ): LimitedCache['match'] {
-    return async (key: string) => {
-        return deserializeToResponse(await fn(key));
+    return async (key: string, options) => {
+        return deserializeToResponse(await fn(key, options));
     };
 }
 

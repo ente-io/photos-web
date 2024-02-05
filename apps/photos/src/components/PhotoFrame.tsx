@@ -3,24 +3,29 @@ import PreviewCard from './pages/gallery/PreviewCard';
 import { useContext, useEffect, useState } from 'react';
 import { EnteFile } from 'types/file';
 import { styled } from '@mui/material';
-import DownloadManager from 'services/download';
+import DownloadManager, {
+    LivePhotoSourceURL,
+    SourceURLs,
+} from 'services/download';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import PhotoViewer from 'components/PhotoViewer';
 import { TRASH_SECTION } from 'constants/collection';
 import { updateFileMsrcProps, updateFileSrcProps } from 'utils/photoFrame';
-import { MergedSourceURL, SelectedState } from 'types/gallery';
-import { PublicCollectionGalleryContext } from 'utils/publicCollectionGallery';
+import {
+    SelectedState,
+    SetFilesDownloadProgressAttributesCreator,
+} from 'types/gallery';
 import { useRouter } from 'next/router';
 import { logError } from '@ente/shared/sentry';
 import { addLogLine } from '@ente/shared/logging';
 import PhotoSwipe from 'photoswipe';
 import useMemoSingleThreaded from '@ente/shared/hooks/useMemoSingleThreaded';
-import { getPlayableVideo } from 'utils/file';
 import { FILE_TYPE } from 'constants/file';
 import { PHOTOS_PAGES } from '@ente/shared/constants/pages';
 import { PhotoList } from './PhotoList';
 import { DedupePhotoList } from './PhotoList/dedupe';
 import { Duplicate } from 'services/deduplicationService';
+import { CustomError } from '@ente/shared/error';
 
 const Container = styled('div')`
     display: block;
@@ -50,8 +55,8 @@ interface Props {
         selected: SelectedState | ((selected: SelectedState) => SelectedState)
     ) => void;
     selected: SelectedState;
-    deletedFileIds?: Set<number>;
-    setDeletedFileIds?: (value: Set<number>) => void;
+    tempDeletedFileIds?: Set<number>;
+    setTempDeletedFileIds?: (value: Set<number>) => void;
     activeCollectionID: number;
     enableDownload?: boolean;
     fileToCollectionsMap: Map<number, number[]>;
@@ -59,6 +64,7 @@ interface Props {
     showAppDownloadBanner?: boolean;
     setIsPhotoSwipeOpen?: (value: boolean) => void;
     isInHiddenSection?: boolean;
+    setFilesDownloadProgressAttributesCreator?: SetFilesDownloadProgressAttributesCreator;
 }
 
 const PhotoFrame = ({
@@ -69,8 +75,8 @@ const PhotoFrame = ({
     favItemIds,
     setSelected,
     selected,
-    deletedFileIds,
-    setDeletedFileIds,
+    tempDeletedFileIds,
+    setTempDeletedFileIds,
     activeCollectionID,
     enableDownload,
     fileToCollectionsMap,
@@ -78,26 +84,19 @@ const PhotoFrame = ({
     showAppDownloadBanner,
     setIsPhotoSwipeOpen,
     isInHiddenSection,
+    setFilesDownloadProgressAttributesCreator,
 }: Props) => {
     const [open, setOpen] = useState(false);
     const [currentIndex, setCurrentIndex] = useState<number>(0);
     const [fetching, setFetching] = useState<{ [k: number]: boolean }>({});
+    const [thumbFetching, setThumbFetching] = useState<{
+        [k: number]: boolean;
+    }>({});
     const galleryContext = useContext(GalleryContext);
-    const publicCollectionGalleryContext = useContext(
-        PublicCollectionGalleryContext
-    );
     const [rangeStart, setRangeStart] = useState(null);
     const [currentHover, setCurrentHover] = useState(null);
     const [isShiftKeyPressed, setIsShiftKeyPressed] = useState(false);
     const router = useRouter();
-
-    const thumbsStore = publicCollectionGalleryContext?.accessedThroughSharedURL
-        ? publicCollectionGalleryContext.thumbs
-        : galleryContext.thumbs;
-
-    const filesStore = publicCollectionGalleryContext?.accessedThroughSharedURL
-        ? publicCollectionGalleryContext.files
-        : galleryContext.files;
 
     const displayFiles = useMemoSingleThreaded(() => {
         return files.map((item) => {
@@ -107,22 +106,13 @@ const PhotoFrame = ({
                 h: window.innerHeight,
                 title: item.pubMagicMetadata?.data.caption,
             };
-            try {
-                if (thumbsStore.has(item.id)) {
-                    updateFileMsrcProps(filteredItem, thumbsStore.get(item.id));
-                }
-                if (filesStore.has(item.id)) {
-                    updateFileSrcProps(filteredItem, filesStore.get(item.id));
-                }
-            } catch (e) {
-                logError(e, 'PhotoFrame url prefill failed');
-            }
             return filteredItem;
         });
     }, [files]);
 
     useEffect(() => {
         setFetching({});
+        setThumbFetching({});
     }, [displayFiles]);
 
     useEffect(() => {
@@ -191,21 +181,12 @@ const PhotoFrame = ({
             // this is to prevent outdated updateURL call from updating the wrong file
             if (file.id !== id) {
                 addLogLine(
-                    `PhotoSwipe: updateURL: file id mismatch: ${file.id} !== ${id}`
+                    `[${id}]PhotoSwipe: updateURL: file id mismatch: ${file.id} !== ${id}`
                 );
-                return;
+                throw Error(CustomError.UPDATE_URL_FILE_ID_MISMATCH);
             }
-            if (file.msrc && file.msrc !== url && !forceUpdate) {
-                addLogLine(
-                    `PhotoSwipe: updateURL: msrc already set: ${file.msrc}`
-                );
-                logError(
-                    new Error(
-                        `PhotoSwipe: updateURL: msrc already set: ${file.msrc}`
-                    ),
-                    'PhotoSwipe: updateURL called with msrc already set'
-                );
-                return;
+            if (file.msrc && !forceUpdate) {
+                throw Error(CustomError.URL_ALREADY_SET);
             }
             updateFileMsrcProps(file, url);
         };
@@ -213,42 +194,25 @@ const PhotoFrame = ({
     const updateSrcURL = async (
         index: number,
         id: number,
-        mergedSrcURL: MergedSourceURL,
+        srcURLs: SourceURLs,
         forceUpdate?: boolean
     ) => {
         const file = displayFiles[index];
         // this is to prevent outdate updateSrcURL call from updating the wrong file
         if (file.id !== id) {
             addLogLine(
-                `PhotoSwipe: updateSrcURL: file id mismatch: ${file.id} !== ${id}`
+                `[${id}]PhotoSwipe: updateSrcURL: file id mismatch: ${file.id}`
             );
-            return;
+            throw Error(CustomError.UPDATE_URL_FILE_ID_MISMATCH);
         }
         if (file.isSourceLoaded && !forceUpdate) {
-            addLogLine(
-                `PhotoSwipe: updateSrcURL: source already loaded: ${file.id}`
-            );
-            logError(
-                new Error(
-                    `PhotoSwipe: updateSrcURL: source already loaded: ${file.id}`
-                ),
-                'PhotoSwipe updateSrcURL called when source already loaded'
-            );
-            return;
+            throw Error(CustomError.URL_ALREADY_SET);
         } else if (file.conversionFailed) {
-            addLogLine(
-                `PhotoSwipe: updateSrcURL: conversion failed: ${file.id}`
-            );
-            logError(
-                new Error(
-                    `PhotoSwipe: updateSrcURL: conversion failed: ${file.id}`
-                ),
-                'PhotoSwipe updateSrcURL called when conversion failed'
-            );
-            return;
+            addLogLine(`[${id}]PhotoSwipe: updateSrcURL: conversion failed`);
+            throw Error(CustomError.FILE_CONVERSION_FAILED);
         }
 
-        await updateFileSrcProps(file, mergedSrcURL);
+        await updateFileSrcProps(file, srcURLs, enableDownload);
     };
 
     const handleClose = (needUpdate) => {
@@ -352,9 +316,7 @@ const PhotoFrame = ({
             file={item}
             updateURL={updateURL(index)}
             onClick={onThumbnailClick(index)}
-            selectable={
-                !publicCollectionGalleryContext?.accessedThroughSharedURL
-            }
+            selectable={enableDownload}
             onSelect={handleSelect(
                 item.id,
                 item.ownerID === galleryContext.user?.id,
@@ -389,12 +351,20 @@ const PhotoFrame = ({
                 item.isSourceLoaded
             } fetching:${fetching[item.id]}`
         );
+
         if (!item.msrc) {
-            addLogLine(`[${item.id}] doesn't have thumbnail`);
             try {
+                if (thumbFetching[item.id]) {
+                    addLogLine(
+                        `[${item.id}] thumb download already in progress`
+                    );
+                    return;
+                }
+                addLogLine(`[${item.id}] doesn't have thumbnail`);
+                thumbFetching[item.id] = true;
                 const url = await DownloadManager.getThumbnailForPreview(item);
-                updateURL(index)(item.id, url);
                 try {
+                    updateURL(index)(item.id, url);
                     addLogLine(
                         `[${
                             item.id
@@ -405,14 +375,17 @@ const PhotoFrame = ({
                         instance.updateSize(true);
                     }
                 } catch (e) {
-                    logError(
-                        e,
-                        'updating photoswipe after msrc url update failed'
-                    );
+                    if (e.message !== CustomError.URL_ALREADY_SET) {
+                        logError(
+                            e,
+                            'updating photoswipe after msrc url update failed'
+                        );
+                    }
                     // ignore
                 }
             } catch (e) {
                 logError(e, 'getSlideData failed get msrc url failed');
+                thumbFetching[item.id] = false;
             }
         }
 
@@ -433,39 +406,86 @@ const PhotoFrame = ({
         try {
             addLogLine(`[${item.id}] new file src request`);
             fetching[item.id] = true;
-            let srcURL: MergedSourceURL;
-            if (filesStore.has(item.id)) {
-                addLogLine(
-                    `[${item.id}] gallery context cache hit, using cached file`
-                );
-                srcURL = filesStore.get(item.id);
-            } else {
-                addLogLine(
-                    `[${item.id}] gallery context cache miss, calling downloadManager to get file`
-                );
-                const downloadedURL = await DownloadManager.getFileForPreview(
-                    item
-                );
-                const mergedURL: MergedSourceURL = {
-                    original: downloadedURL.original.join(','),
-                    converted: downloadedURL.converted.join(','),
-                };
-                filesStore.set(item.id, mergedURL);
-                srcURL = mergedURL;
-            }
-            await updateSrcURL(index, item.id, srcURL);
+            const srcURLs = await DownloadManager.getFileForPreview(item);
+            if (item.metadata.fileType === FILE_TYPE.LIVE_PHOTO) {
+                const srcImgURL = srcURLs.url as LivePhotoSourceURL;
+                const imageURL = await srcImgURL.image();
 
-            try {
-                addLogLine(
-                    `[${item.id}] calling invalidateCurrItems for src, source loaded :${item.isSourceLoaded}`
-                );
-                instance.invalidateCurrItems();
-                if ((instance as any).isOpen()) {
-                    instance.updateSize(true);
+                const dummyImgSrcUrl: SourceURLs = {
+                    url: imageURL,
+                    isOriginal: false,
+                    isRenderable: !!imageURL,
+                    type: 'normal',
+                };
+                try {
+                    await updateSrcURL(index, item.id, dummyImgSrcUrl);
+                    addLogLine(
+                        `[${item.id}] calling invalidateCurrItems for live photo imgSrc, source loaded :${item.isSourceLoaded}`
+                    );
+                    instance.invalidateCurrItems();
+                    if ((instance as any).isOpen()) {
+                        instance.updateSize(true);
+                    }
+                } catch (e) {
+                    if (e.message !== CustomError.URL_ALREADY_SET) {
+                        logError(
+                            e,
+                            'updating photoswipe after for live photo imgSrc update failed'
+                        );
+                    }
                 }
-            } catch (e) {
-                logError(e, 'updating photoswipe after src url update failed');
-                throw e;
+                if (!imageURL) {
+                    // no image url, no need to load video
+                    return;
+                }
+
+                const videoURL = await srcImgURL.video();
+                const loadedLivePhotoSrcURL: SourceURLs = {
+                    url: { video: videoURL, image: imageURL },
+                    isOriginal: false,
+                    isRenderable: !!videoURL,
+                    type: 'livePhoto',
+                };
+                try {
+                    await updateSrcURL(
+                        index,
+                        item.id,
+                        loadedLivePhotoSrcURL,
+                        true
+                    );
+                    addLogLine(
+                        `[${item.id}] calling invalidateCurrItems for live photo complete, source loaded :${item.isSourceLoaded}`
+                    );
+                    instance.invalidateCurrItems();
+                    if ((instance as any).isOpen()) {
+                        instance.updateSize(true);
+                    }
+                } catch (e) {
+                    if (e.message !== CustomError.URL_ALREADY_SET) {
+                        logError(
+                            e,
+                            'updating photoswipe for live photo complete update failed'
+                        );
+                    }
+                }
+            } else {
+                try {
+                    await updateSrcURL(index, item.id, srcURLs);
+                    addLogLine(
+                        `[${item.id}] calling invalidateCurrItems for src, source loaded :${item.isSourceLoaded}`
+                    );
+                    instance.invalidateCurrItems();
+                    if ((instance as any).isOpen()) {
+                        instance.updateSize(true);
+                    }
+                } catch (e) {
+                    if (e.message !== CustomError.URL_ALREADY_SET) {
+                        logError(
+                            e,
+                            'updating photoswipe after src url update failed'
+                        );
+                    }
+                }
             }
         } catch (e) {
             logError(e, 'getSlideData failed get src url failed');
@@ -496,8 +516,8 @@ const PhotoFrame = ({
             );
             return;
         }
-        updateURL(index)(item.id, item.msrc, true);
         try {
+            updateURL(index)(item.id, item.msrc, true);
             addLogLine(
                 `[${
                     item.id
@@ -508,7 +528,9 @@ const PhotoFrame = ({
                 instance.updateSize(true);
             }
         } catch (e) {
-            logError(e, 'updating photoswipe after msrc url update failed');
+            if (e.message !== CustomError.URL_ALREADY_SET) {
+                logError(e, 'updating photoswipe after msrc url update failed');
+            }
             // ignore
         }
         try {
@@ -516,48 +538,11 @@ const PhotoFrame = ({
                 `[${item.id}] new file getConvertedVideo request- ${item.metadata.title}}`
             );
             fetching[item.id] = true;
-            if (!filesStore.has(item.id)) {
-                addLogLine(
-                    `[${item.id}] getConvertedVideo called for file that is not downloaded`
-                );
-                logError(
-                    new Error(),
-                    'getConvertedVideo called for file that is not downloaded'
-                );
-                // this should never happen, convert video button should not be visible if file is not downloaded
-                return;
-            }
 
-            const srcURL = filesStore.get(item.id);
-            let originalVideoURL;
-            if (item.metadata.fileType === FILE_TYPE.VIDEO) {
-                originalVideoURL = srcURL.original;
-            } else {
-                originalVideoURL = srcURL.original.split(',')[1];
-            }
-            const playableVideo = await getPlayableVideo(
-                item.metadata.title,
-                await (await fetch(originalVideoURL)).blob(),
-                true
-            );
-            const convertedVideoURL = playableVideo
-                ? URL.createObjectURL(playableVideo)
-                : '';
-            if (item.metadata.fileType === FILE_TYPE.VIDEO) {
-                srcURL.converted = convertedVideoURL;
-            } else {
-                const prvConvertedImageURL = srcURL.converted.split(',')[0];
-                srcURL.converted = [
-                    prvConvertedImageURL,
-                    convertedVideoURL,
-                ].join(',');
-            }
-
-            filesStore.set(item.id, srcURL);
-
-            await updateSrcURL(index, item.id, srcURL, true);
+            const srcURL = await DownloadManager.getFileForPreview(item, true);
 
             try {
+                await updateSrcURL(index, item.id, srcURL, true);
                 addLogLine(
                     `[${item.id}] calling invalidateCurrItems for src, source loaded :${item.isSourceLoaded}`
                 );
@@ -566,7 +551,12 @@ const PhotoFrame = ({
                     instance.updateSize(true);
                 }
             } catch (e) {
-                logError(e, 'updating photoswipe after src url update failed');
+                if (e.message !== CustomError.URL_ALREADY_SET) {
+                    logError(
+                        e,
+                        'updating photoswipe after src url update failed'
+                    );
+                }
                 throw e;
             }
         } catch (e) {
@@ -609,13 +599,16 @@ const PhotoFrame = ({
                 gettingData={getSlideData}
                 getConvertedItem={getConvertedItem}
                 favItemIds={favItemIds}
-                deletedFileIds={deletedFileIds}
-                setDeletedFileIds={setDeletedFileIds}
+                tempDeletedFileIds={tempDeletedFileIds}
+                setTempDeletedFileIds={setTempDeletedFileIds}
                 isTrashCollection={activeCollectionID === TRASH_SECTION}
                 isInHiddenSection={isInHiddenSection}
                 enableDownload={enableDownload}
                 fileToCollectionsMap={fileToCollectionsMap}
                 collectionNameMap={collectionNameMap}
+                setFilesDownloadProgressAttributesCreator={
+                    setFilesDownloadProgressAttributesCreator
+                }
             />
         </Container>
     );
