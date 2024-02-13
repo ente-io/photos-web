@@ -25,7 +25,6 @@ import { logQueueStats } from 'utils/machineLearning';
 import arcfaceAlignmentService from './arcfaceAlignmentService';
 import arcfaceCropService from './arcfaceCropService';
 import hdbscanClusteringService from './hdbscanClusteringService';
-import blazeFaceDetectionService from './blazeFaceDetectionService';
 import mobileFaceNetEmbeddingService from './mobileFaceNetEmbeddingService';
 import dbscanClusteringService from './dbscanClusteringService';
 import ssdMobileNetV2Service from './ssdMobileNetV2Service';
@@ -200,7 +199,7 @@ export class LocalMLSyncContext implements MLSyncContext {
         this.nSyncedFiles = 0;
         this.nSyncedFaces = 0;
 
-        this.concurrency = 10;
+        this.concurrency = getConcurrency();
 
         addLogLine('Using concurrency: ', this.concurrency);
         // timeout is added on downloads

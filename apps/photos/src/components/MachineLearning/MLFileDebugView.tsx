@@ -3,7 +3,6 @@ import '@tensorflow/tfjs-backend-webgl';
 import '@tensorflow/tfjs-backend-cpu';
 import arcfaceAlignmentService from 'services/machineLearning/arcfaceAlignmentService';
 import arcfaceCropService from 'services/machineLearning/arcfaceCropService';
-import blazeFaceDetectionService from 'services/machineLearning/blazeFaceDetectionService';
 import { AlignedFace, FaceCrop, ObjectDetection } from 'types/machineLearning';
 import { getMLSyncConfig } from 'utils/machineLearning/config';
 import {
@@ -17,6 +16,7 @@ import ssdMobileNetV2Service from 'services/machineLearning/ssdMobileNetV2Servic
 import { DEFAULT_ML_SYNC_CONFIG } from 'constants/mlConfig';
 import imageSceneService from 'services/machineLearning/imageSceneService';
 import { addLogLine } from '@ente/shared/logging';
+import yoloFaceDetectionService from 'services/machineLearning/yoloFaceDetectionService';
 
 interface MLFileDebugViewProps {
     file: File;
@@ -91,7 +91,7 @@ export default function MLFileDebugView(props: MLFileDebugViewProps) {
         const loadFile = async () => {
             // TODO: go through worker for these apis, to not include ml code in main bundle
             const imageBitmap = await createImageBitmap(props.file);
-            const faceDetections = await blazeFaceDetectionService.detectFaces(
+            const faceDetections = await yoloFaceDetectionService.detectFaces(
                 imageBitmap
             );
             addLogLine('detectedFaces: ', faceDetections.length);
