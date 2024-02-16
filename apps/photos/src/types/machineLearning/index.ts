@@ -1,15 +1,8 @@
 import * as tf from '@tensorflow/tfjs-core';
 
-// import {
-//     FaceDetection,
-//     FaceLandmarks68,
-//     WithFaceDescriptor,
-//     WithFaceLandmarks,
-// } from 'face-api.js';
 import { DebugInfo } from 'hdbscan';
 import PQueue from 'p-queue';
 
-// import { Point as D3Point, RawNodeDatum } from 'react-d3-tree/lib/types/common';
 import { EnteFile } from 'types/file';
 import { Config } from 'types/common/config';
 import { Dimensions } from 'types/image';
@@ -33,24 +26,8 @@ export interface DebugFace {
     faceImage: FaceImage;
 }
 
-// export interface MLDebugResult {
-//     allFaces: DebugFace[];
-//     clustersWithNoise: FacesClustersWithNoise;
-//     tree: RawNodeDatum;
-//     tsne: TSNEData;
-// }
-
 export declare type FaceImage = Array<Array<Array<number>>>;
 export declare type FaceImageBlob = Blob;
-
-// export declare type FaceApiResult = WithFaceDescriptor<
-//     WithFaceLandmarks<
-//         {
-//             detection: FaceDetection;
-//         },
-//         FaceLandmarks68
-//     >
-// >;
 
 export declare type FaceDescriptor = Float32Array;
 
@@ -75,22 +52,14 @@ export interface FacesClustersWithNoise {
     noise: Cluster;
 }
 
-export interface NearestCluster {
-    cluster: FacesCluster;
-    distance: number;
-}
-
-// export interface TSNEData {
-//     width: number;
-//     height: number;
-//     dataset: D3Point[];
-// }
-
 export declare type Landmark = Point;
 
 export declare type ImageType = 'Original' | 'Preview';
 
-export declare type FaceDetectionMethod = 'BlazeFace' | 'FaceApiSSD' | 'YoloFace';
+export declare type FaceDetectionMethod =
+    | 'BlazeFace'
+    | 'FaceApiSSD'
+    | 'YoloFace';
 
 export declare type ObjectDetectionMethod = 'SSDMobileNetV2';
 
@@ -436,18 +405,3 @@ export interface MachineLearningWorker {
 
     close(): void;
 }
-
-// export class TFImageBitmap {
-//     imageBitmap: ImageBitmap;
-//     tfImage: tf.Tensor3D;
-
-//     constructor(imageBitmap: ImageBitmap, tfImage: tf.Tensor3D) {
-//         this.imageBitmap = imageBitmap;
-//         this.tfImage = tfImage;
-//     }
-
-//     async dispose() {
-//         this.tfImage && (await tf.dispose(this.tfImage));
-//         this.imageBitmap && this.imageBitmap.close();
-//     }
-// }
