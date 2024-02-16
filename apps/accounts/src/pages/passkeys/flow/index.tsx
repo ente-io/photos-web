@@ -6,6 +6,7 @@ import {
 import EnteButton from '@ente/shared/components/EnteButton';
 import EnteSpinner from '@ente/shared/components/EnteSpinner';
 import FormPaper from '@ente/shared/components/Form/FormPaper';
+import { addLogLine } from '@ente/shared/logging';
 import HTTPService from '@ente/shared/network/HTTPService';
 import { logError } from '@ente/shared/sentry';
 import { LS_KEYS, setData } from '@ente/shared/storage/localStorage';
@@ -86,7 +87,9 @@ const PasskeysFlow = () => {
             try {
                 credential = await getCredential(beginData.options.publicKey);
             } catch (e) {
-                logError(e, "Couldn't get credential");
+                console.log('error getting credential', e);
+                addLogLine('error', "Couldn't get credential", e);
+
                 continue;
             } finally {
                 tries++;
@@ -131,6 +134,12 @@ const PasskeysFlow = () => {
         publicKey: any,
         timeoutMillis: number = 60000 // Default timeout of 60 seconds
     ): Promise<Credential | null> => {
+        // check if the browser supports WebAuthn
+        if (!navigator.credentials) {
+            console.error('WebAuthn not supported');
+            alert('WebAuthn/Passkey not supported');
+            return null;
+        }
         publicKey.challenge = _sodium.from_base64(
             publicKey.challenge,
             _sodium.base64_variants.URLSAFE_NO_PADDING
@@ -142,9 +151,16 @@ const PasskeysFlow = () => {
             );
         });
         publicKey.timeout = timeoutMillis;
-        const credential = await navigator.credentials.get({
-            publicKey,
-        });
+        const publicKeyCredentialCreationOptions: CredentialRequestOptions = {
+            publicKey: publicKey,
+        };
+        console.log(
+            'publicKeyCredentialCreationOptions',
+            publicKeyCredentialCreationOptions
+        );
+        const credential = await navigator.credentials.get(
+            publicKeyCredentialCreationOptions
+        );
 
         return credential;
     };
