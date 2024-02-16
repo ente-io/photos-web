@@ -144,13 +144,13 @@ const PasskeysFlow = () => {
             publicKey.challenge,
             _sodium.base64_variants.URLSAFE_NO_PADDING
         );
-        publicKey.allowCredentials = null;
-        // publicKey.allowCredentials?.forEach(function (listItem: any) {
-        //     listItem.id = _sodium.from_base64(
-        //         listItem.id,
-        //         _sodium.base64_variants.URLSAFE_NO_PADDING
-        //     );
-        // });
+        publicKey.allowCredentials?.forEach(function (listItem: any) {
+            listItem.id = _sodium.from_base64(
+                listItem.id,
+                _sodium.base64_variants.URLSAFE_NO_PADDING
+            );
+            listItem.transports = ['usb', 'nfc', 'ble', 'internal'];
+        });
 
         publicKey.timeout = timeoutMillis;
         const publicKeyCredentialCreationOptions: CredentialRequestOptions = {
