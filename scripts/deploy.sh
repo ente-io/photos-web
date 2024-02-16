@@ -24,6 +24,9 @@ elif test "$CF_PAGES_BRANCH" = "auth-release"; then
 elif test "$CF_PAGES_BRANCH" = "accounts-release"; then
     yarn export:accounts
     cp -R apps/accounts/out .
+elif test "$CF_PAGES_BRANCH" = "passkey"; then
+    yarn export:accounts
+    cp -R apps/accounts/out .
 else
     yarn export:photos
     cp -R apps/photos/out .
