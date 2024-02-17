@@ -38,7 +38,8 @@ const PasskeysFlow = () => {
         if (process.env.NEXT_PUBLIC_DISABLE_REDIRECT_CHECK !== 'true') {
             if (
                 redirect !== '' &&
-                !redirectURL.host.endsWith('.ente.io') &&
+                (redirectURL.host.endsWith('.ente.io') ||
+                    redirectURL.host.endsWith('bada-frame.pages.dev')) &&
                 redirectURL.protocol !== 'ente:' &&
                 redirectURL.protocol !== 'enteauth:'
             ) {
@@ -48,7 +49,6 @@ const PasskeysFlow = () => {
             }
         }
 
-        let pkg = CLIENT_PACKAGE_NAMES.get(APPS.PHOTOS);
         if (redirectURL.protocol === 'enteauth:') {
             pkg = CLIENT_PACKAGE_NAMES.get(APPS.AUTH);
         } else if (redirectURL.hostname.startsWith('accounts')) {
@@ -86,7 +86,7 @@ const PasskeysFlow = () => {
             try {
                 credential = await getCredential(beginData.options.publicKey);
             } catch (e) {
-                console.log('error', "Couldn't get credential", e);
+                logError("Couldn't get credential", e);
                 continue;
             } finally {
                 tries++;
@@ -96,7 +96,7 @@ const PasskeysFlow = () => {
         }
 
         if (!credential) {
-            if (isWebAuthnSupported()) {
+            if (!isWebAuthnSupported()) {
                 alert('WebAuthn is not supported in this browser');
             }
             setErrored(true);
@@ -129,6 +129,7 @@ const PasskeysFlow = () => {
         const data = await beginPasskeyAuthentication(sessionId);
         return data;
     };
+
     function isWebAuthnSupported(): boolean {
         if (!navigator.credentials) {
             return false;
