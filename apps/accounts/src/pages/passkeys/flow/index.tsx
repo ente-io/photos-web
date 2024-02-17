@@ -6,7 +6,6 @@ import {
 import EnteButton from '@ente/shared/components/EnteButton';
 import EnteSpinner from '@ente/shared/components/EnteSpinner';
 import FormPaper from '@ente/shared/components/Form/FormPaper';
-import { addLogLine } from '@ente/shared/logging';
 import HTTPService from '@ente/shared/network/HTTPService';
 import { logError } from '@ente/shared/sentry';
 import { LS_KEYS, setData } from '@ente/shared/storage/localStorage';
@@ -87,9 +86,7 @@ const PasskeysFlow = () => {
             try {
                 credential = await getCredential(beginData.options.publicKey);
             } catch (e) {
-                console.log('error getting credential', e);
-                addLogLine('error', "Couldn't get credential", e);
-
+                console.log('error', "Couldn't get credential", e);
                 continue;
             } finally {
                 tries++;
@@ -99,6 +96,9 @@ const PasskeysFlow = () => {
         }
 
         if (!credential) {
+            if (isWebAuthnSupported()) {
+                alert('WebAuthn is not supported in this browser');
+            }
             setErrored(true);
             return;
         }
@@ -129,17 +129,17 @@ const PasskeysFlow = () => {
         const data = await beginPasskeyAuthentication(sessionId);
         return data;
     };
+    function isWebAuthnSupported(): boolean {
+        if (!navigator.credentials) {
+            return false;
+        }
+        return true;
+    }
 
     const getCredential = async (
         publicKey: any,
         timeoutMillis: number = 60000 // Default timeout of 60 seconds
     ): Promise<Credential | null> => {
-        // check if the browser supports WebAuthn
-        if (!navigator.credentials) {
-            console.error('WebAuthn not supported');
-            alert('WebAuthn/Passkey not supported');
-            return null;
-        }
         publicKey.challenge = _sodium.from_base64(
             publicKey.challenge,
             _sodium.base64_variants.URLSAFE_NO_PADDING
@@ -149,17 +149,15 @@ const PasskeysFlow = () => {
                 listItem.id,
                 _sodium.base64_variants.URLSAFE_NO_PADDING
             );
+            // note: we are orverwriting the transports array with all possible values.
+            // This is because the browser will only prompt the user for the transport that is available.
+            // Warning: In case of invalid transport value, the webauthn will fail on Safari & iOS browsers
             listItem.transports = ['usb', 'nfc', 'ble', 'internal'];
         });
-
         publicKey.timeout = timeoutMillis;
         const publicKeyCredentialCreationOptions: CredentialRequestOptions = {
             publicKey: publicKey,
         };
-        console.log(
-            'publicKeyCredentialCreationOptionsxx',
-            publicKeyCredentialCreationOptions
-        );
         const credential = await navigator.credentials.get(
             publicKeyCredentialCreationOptions
         );
