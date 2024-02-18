@@ -97,6 +97,9 @@ const PasskeysFlow = () => {
         }
 
         if (!credential) {
+            if (!isWebAuthnSupported()) {
+                alert('WebAuthn is not supported in this browser');
+            }
             setErrored(true);
             return;
         }
