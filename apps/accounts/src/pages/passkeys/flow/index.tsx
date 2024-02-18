@@ -38,8 +38,10 @@ const PasskeysFlow = () => {
         if (process.env.NEXT_PUBLIC_DISABLE_REDIRECT_CHECK !== 'true') {
             if (
                 redirect !== '' &&
-                !(redirectURL.host.endsWith('.ente.io') ||
-                redirectURL.host.endsWith('bada-frame.pages.dev')) && 
+                !(
+                    redirectURL.host.endsWith('.ente.io') ||
+                    redirectURL.host.endsWith('bada-frame.pages.dev')
+                ) &&
                 redirectURL.protocol !== 'ente:' &&
                 redirectURL.protocol !== 'enteauth:'
             ) {
@@ -151,7 +153,7 @@ const PasskeysFlow = () => {
                 listItem.id,
                 _sodium.base64_variants.URLSAFE_NO_PADDING
             );
-             // note: we are orverwriting the transports array with all possible values.
+            // note: we are orverwriting the transports array with all possible values.
             // This is because the browser will only prompt the user for the transport that is available.
             // Warning: In case of invalid transport value, the webauthn will fail on Safari & iOS browsers
             listItem.transports = ['usb', 'nfc', 'ble', 'internal'];
@@ -161,8 +163,8 @@ const PasskeysFlow = () => {
             publicKey: publicKey,
         };
         const credential = await navigator.credentials.get(
-                publicKeyCredentialCreationOptions
-            );
+            publicKeyCredentialCreationOptions
+        );
         return credential;
     };
 
