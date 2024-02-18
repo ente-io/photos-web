@@ -38,8 +38,7 @@ const PasskeysFlow = () => {
         if (process.env.NEXT_PUBLIC_DISABLE_REDIRECT_CHECK !== 'true') {
             if (
                 redirect !== '' &&
-                (redirectURL.host.endsWith('.ente.io') ||
-                    redirectURL.host.endsWith('bada-frame.pages.dev')) &&
+                !redirectURL.host.endsWith('.ente.io') &&
                 redirectURL.protocol !== 'ente:' &&
                 redirectURL.protocol !== 'enteauth:'
             ) {
@@ -87,7 +86,7 @@ const PasskeysFlow = () => {
             try {
                 credential = await getCredential(beginData.options.publicKey);
             } catch (e) {
-                logError("Couldn't get credential", e);
+                logError(e, "Couldn't get credential");
                 continue;
             } finally {
                 tries++;
@@ -97,9 +96,6 @@ const PasskeysFlow = () => {
         }
 
         if (!credential) {
-            if (!isWebAuthnSupported()) {
-                alert('WebAuthn is not supported in this browser');
-            }
             setErrored(true);
             return;
         }
@@ -131,13 +127,6 @@ const PasskeysFlow = () => {
         return data;
     };
 
-    function isWebAuthnSupported(): boolean {
-        if (!navigator.credentials) {
-            return false;
-        }
-        return true;
-    }
-
     const getCredential = async (
         publicKey: any,
         timeoutMillis: number = 60000 // Default timeout of 60 seconds
@@ -151,18 +140,11 @@ const PasskeysFlow = () => {
                 listItem.id,
                 _sodium.base64_variants.URLSAFE_NO_PADDING
             );
-            // note: we are orverwriting the transports array with all possible values.
-            // This is because the browser will only prompt the user for the transport that is available.
-            // Warning: In case of invalid transport value, the webauthn will fail on Safari & iOS browsers
-            listItem.transports = ['usb', 'nfc', 'ble', 'internal'];
         });
         publicKey.timeout = timeoutMillis;
-        const publicKeyCredentialCreationOptions: CredentialRequestOptions = {
-            publicKey: publicKey,
-        };
-        const credential = await navigator.credentials.get(
-            publicKeyCredentialCreationOptions
-        );
+        const credential = await navigator.credentials.get({
+            publicKey,
+        });
 
         return credential;
     };

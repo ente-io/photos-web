@@ -16,6 +16,7 @@
         "dev:cast": "yarn workspace cast next dev",
         "dev:photos": "yarn workspace photos next dev",
         "albums": "yarn workspace photos albums",
+        "prepare": "husky install",
         "lint": "yarn prettier --check . && yarn workspaces run eslint .",
         "lint-fix": "yarn prettier --write . && yarn workspaces run eslint --fix ."
     },
@@ -38,6 +39,8 @@
         "@typescript-eslint/eslint-plugin": "^7.0.1",
         "@typescript-eslint/parser": "^7.0.1",
         "eslint": "^8.56",
+        "husky": "^7.0.1",
+        "lint-staged": "^13.2.3",
         "prettier": "2.3.2",
         "typescript": "^5.1.3"
     }

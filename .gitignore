@@ -22,3 +22,22 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+
+# vercel
+.vercel
+
+out_functions
+out_publish
+
+.env
+.idea/
+
+# workbox
+public/sw.js
+public/sw.js.map
+public/worker-*.js
+public/worker-*.js.map
+
+
+# turbo
+**/.turbo/
