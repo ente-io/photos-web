@@ -210,7 +210,7 @@
     "SEARCH_TYPE": {
         "COLLECTION": "Album",
         "LOCATION": "Locatie",
-        "CITY": "",
+        "CITY": "Locatie",
         "DATE": "Datum",
         "FILE_NAME": "Bestandsnaam",
         "THING": "Inhoud",
@@ -625,8 +625,19 @@
     "FASTER_UPLOAD_DESCRIPTION": "Uploaden door nabije servers",
     "MAGIC_SEARCH_STATUS": "Magische Zoekfunctie Status",
     "INDEXED_ITEMS": "Geïndexeerde bestanden",
+    "CAST_ALBUM_TO_TV": "",
+    "ENTER_CAST_PIN_CODE": "",
+    "PAIR_DEVICE_TO_TV": "",
+    "TV_NOT_FOUND": "",
+    "AUTO_CAST_PAIR": "",
+    "AUTO_CAST_PAIR_REQUIRES_CONNECTION_TO_GOOGLE": "",
+    "PAIR_WITH_PIN": "",
+    "CHOOSE_DEVICE_FROM_BROWSER": "",
+    "PAIR_WITH_PIN_WORKS_FOR_ANY_LARGE_SCREEN_DEVICE": "",
+    "VISIT_CAST_ENTE_IO": "",
+    "CAST_AUTO_PAIR_FAILED": "",
     "CACHE_DIRECTORY": "Cache map",
-    "FREEHAND": "",
-    "APPLY_CROP": "",
-    "PHOTO_EDIT_REQUIRED_TO_SAVE": ""
+    "FREEHAND": "Losse hand",
+    "APPLY_CROP": "Bijsnijden toepassen",
+    "PHOTO_EDIT_REQUIRED_TO_SAVE": "Tenminste één transformatie of kleuraanpassing moet worden uitgevoerd voordat u opslaat."
 }
