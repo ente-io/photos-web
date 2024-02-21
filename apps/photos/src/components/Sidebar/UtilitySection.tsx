@@ -70,7 +70,7 @@ export default function UtilitySection({ closeSidebar }) {
     };
 
     const exportMLData = () => onExportMLData();
-    
+
     const redirectToAccountsPage = async () => {
         closeSidebar();
 
@@ -161,7 +161,7 @@ export default function UtilitySection({ closeSidebar }) {
                 label={t('DEDUPLICATE_FILES')}
             />
 
-<EnteMenuItem
+            <EnteMenuItem
                 variant="secondary"
                 onClick={exportMLData}
                 label={t('EXPORT_ML_DATA')}

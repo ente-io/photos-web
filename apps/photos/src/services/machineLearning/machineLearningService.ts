@@ -381,7 +381,11 @@ class MachineLearningService {
         textDetectionTimeoutIndex?: number
     ): Promise<MlFileData> {
         try {
-            console.log("Start index for ", enteFile.title ?? 'no title', enteFile.id);
+            console.log(
+                'Start index for ',
+                enteFile.title ?? 'no title',
+                enteFile.id
+            );
             const mlFileData = await this.syncFile(
                 syncContext,
                 enteFile,
@@ -418,7 +422,11 @@ class MachineLearningService {
             await this.persistMLFileSyncError(syncContext, enteFile, error);
             syncContext.nSyncedFiles += 1;
         } finally {
-            console.log("done index for ", enteFile.title ?? 'no title', enteFile.id);
+            console.log(
+                'done index for ',
+                enteFile.title ?? 'no title',
+                enteFile.id
+            );
             // addLogLine('TF Memory stats: ', JSON.stringify(tf.memory()));
         }
     }

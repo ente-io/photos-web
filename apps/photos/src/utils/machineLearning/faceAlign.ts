@@ -78,7 +78,10 @@ export function getArcfaceAlignment(
     const landmarkCount = faceDetection.landmarks.length;
     return getFaceAlignmentUsingSimilarityTransform(
         faceDetection,
-        normalizeLandmarks((landmarkCount === 5 ? ARC_FACE_5_LANDMARKS :ARCFACE_LANDMARKS), ARCFACE_LANDMARKS_FACE_SIZE)
+        normalizeLandmarks(
+            landmarkCount === 5 ? ARC_FACE_5_LANDMARKS : ARCFACE_LANDMARKS,
+            ARCFACE_LANDMARKS_FACE_SIZE
+        )
     );
 }
 
@@ -185,7 +188,6 @@ export function ibExtractFaceImages(
         ibExtractFaceImage(image, alignment, faceSize)
     );
 }
-
 
 const BLAZEFACE_LEFT_EYE_INDEX = 0;
 const BLAZEFACE_RIGHT_EYE_INDEX = 1;

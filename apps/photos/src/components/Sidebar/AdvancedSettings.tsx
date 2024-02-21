@@ -78,7 +78,8 @@ export default function AdvancedSettings({ open, onClose, onRootClose }) {
 
                 <Box px={'8px'}>
                     <Stack py="20px" spacing="24px">
-                        {(isElectron() || (isInternalUser() && runningInChrome(false))) && (
+                        {(isElectron() ||
+                            (isInternalUser() && runningInChrome())) && (
                             <>
                                 <CacheDirectory />
                                 <Box>

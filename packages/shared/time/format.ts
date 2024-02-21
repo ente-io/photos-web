@@ -32,13 +32,13 @@ export function formatDate(date: number | Date) {
         new Date().getFullYear() === new Date(date).getFullYear();
     const dateTimeFormat2 = !withinYear ? dateTimeFullFormatter2 : null;
     try {
-    return [dateTimeFullFormatter1, dateTimeFormat2]
-        .filter((f) => !!f)
-        .map((f) => f.format(date))
-        .join(' ');
-    } catch(e) {
-    // return current date
-    return new Date().toLocaleDateString();
+        return [dateTimeFullFormatter1, dateTimeFormat2]
+            .filter((f) => !!f)
+            .map((f) => f.format(date))
+            .join(' ');
+    } catch (e) {
+        // return current date
+        return new Date().toLocaleDateString();
     }
 }
 

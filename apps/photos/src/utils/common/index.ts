@@ -1,7 +1,6 @@
 import { CustomError } from '@ente/shared/error';
 import isElectron from 'is-electron';
 import { APP_DOWNLOAD_URL } from '@ente/shared/constants/urls';
-import { t } from 'i18next';
 
 export function checkConnectivity() {
     if (navigator.onLine) {
@@ -22,7 +21,7 @@ export function runningInElectron() {
     return isElectron();
 }
 
-export function runningInChrome(includeMobile: boolean) {
+export function runningInChrome() {
     try {
         return true;
         // const userAgentData = navigator['userAgentData'] ?? navigator['userAgent'];

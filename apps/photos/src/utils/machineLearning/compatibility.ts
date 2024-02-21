@@ -9,7 +9,7 @@ import { addLogLine } from '@ente/shared/logging';
 
 export function canEnableMlSearch(): boolean {
     // check if is chrome or ente desktop
-    if (!runningInChrome(false) && !isElectron()) {
+    if (!runningInChrome() && !isElectron()) {
         addLogLine('Not running in Chrome Desktop or Ente Desktop App');
         return false;
     }

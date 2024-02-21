@@ -49,7 +49,7 @@ class FaceService {
             syncContext,
             fileContext
         );
-        let timerId = `faceDetection-${fileContext.enteFile.id}`;
+        const timerId = `faceDetection-${fileContext.enteFile.id}`;
         console.time(timerId);
         const faceDetections =
             await syncContext.faceDetectionService.detectFaces(imageBitmap);

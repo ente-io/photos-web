@@ -198,7 +198,7 @@ export default function App(props: EnteAppProps) {
     }, []);
 
     useEffect(() => {
-        if (!(isElectron() || (isInternalUser() && runningInChrome(false)))) {
+        if (!(isElectron() || (isInternalUser() && runningInChrome()))) {
             return;
         }
         const loadMlSearchState = async () => {

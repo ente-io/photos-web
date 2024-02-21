@@ -199,7 +199,7 @@ export class LocalMLSyncContext implements MLSyncContext {
         this.nSyncedFiles = 0;
         this.nSyncedFaces = 0;
 
-        this.concurrency = getConcurrency();
+        this.concurrency = concurrency ?? getConcurrency();
 
         addLogLine('Using concurrency: ', this.concurrency);
         // timeout is added on downloads
