@@ -12,7 +12,7 @@ export const DEFAULT_ML_SYNC_CONFIG: MLSyncConfig = {
     batchSize: 200,
     imageSource: 'Original',
     faceDetection: {
-        method: 'BlazeFace',
+        method: 'YoloFace',
         minFaceSize: 32,
     },
     faceCrop: {
@@ -70,7 +70,7 @@ export const ML_SYNC_DOWNLOAD_TIMEOUT_MS = 300000;
 
 export const MAX_FACE_DISTANCE_PERCENT = Math.sqrt(2) / 100;
 
-export const MAX_ML_SYNC_ERROR_COUNT = 4;
+export const MAX_ML_SYNC_ERROR_COUNT = 1;
 
 export const TEXT_DETECTION_TIMEOUT_MS = [10000, 30000, 60000, 120000, 240000];
 

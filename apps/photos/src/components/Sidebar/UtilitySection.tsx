@@ -23,6 +23,7 @@ import { getAccountsToken } from 'services/userService';
 import { getDownloadAppMessage } from 'utils/ui';
 import { isInternalUser } from 'utils/user';
 import Preferences from './Preferences';
+import { onExportMLData } from 'utils/machineLearning/mldataExport';
 
 export default function UtilitySection({ closeSidebar }) {
     const router = useRouter();
@@ -67,6 +68,8 @@ export default function UtilitySection({ closeSidebar }) {
         closeSidebar();
         router.push(PAGES.CHANGE_EMAIL);
     };
+
+    const exportMLData = () => onExportMLData();
 
     const redirectToAccountsPage = async () => {
         closeSidebar();
@@ -156,6 +159,12 @@ export default function UtilitySection({ closeSidebar }) {
                 variant="secondary"
                 onClick={redirectToDeduplicatePage}
                 label={t('DEDUPLICATE_FILES')}
+            />
+
+            <EnteMenuItem
+                variant="secondary"
+                onClick={exportMLData}
+                label={t('EXPORT_ML_DATA')}
             />
 
             <EnteMenuItem

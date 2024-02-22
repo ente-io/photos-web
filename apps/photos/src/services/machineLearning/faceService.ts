@@ -49,8 +49,12 @@ class FaceService {
             syncContext,
             fileContext
         );
+        const timerId = `faceDetection-${fileContext.enteFile.id}`;
+        console.time(timerId);
         const faceDetections =
             await syncContext.faceDetectionService.detectFaces(imageBitmap);
+        console.timeEnd(timerId);
+        console.log('faceDetections: ', faceDetections?.length);
         // addLogLine('3 TF Memory stats: ',JSON.stringify(tf.memory()));
         // TODO: reenable faces filtering based on width
         const detectedFaces = faceDetections?.map((detection) => {

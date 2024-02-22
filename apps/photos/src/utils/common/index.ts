@@ -21,13 +21,14 @@ export function runningInElectron() {
     return isElectron();
 }
 
-export function runningInChrome(includeMobile: boolean) {
+export function runningInChrome() {
     try {
-        const userAgentData = navigator['userAgentData'];
-        const chromeBrand = userAgentData?.brands?.filter(
-            (b) => b.brand === 'Google Chrome' || b.brand === 'Chromium'
-        )?.[0];
-        return chromeBrand && (includeMobile || userAgentData.mobile === false);
+        return true;
+        // const userAgentData = navigator['userAgentData'] ?? navigator['userAgent'];
+        // const chromeBrand = userAgentData?.brands?.filter(
+        //     (b) => b.brand === 'Google Chrome' || b.brand === 'Chromium'
+        // )?.[0];
+        // return chromeBrand && (includeMobile || userAgentData.mobile === false);
     } catch (error) {
         console.error('Error in runningInChrome: ', error);
         return false;

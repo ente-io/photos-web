@@ -31,10 +31,15 @@ export function formatDate(date: number | Date) {
     const withinYear =
         new Date().getFullYear() === new Date(date).getFullYear();
     const dateTimeFormat2 = !withinYear ? dateTimeFullFormatter2 : null;
-    return [dateTimeFullFormatter1, dateTimeFormat2]
-        .filter((f) => !!f)
-        .map((f) => f.format(date))
-        .join(' ');
+    try {
+        return [dateTimeFullFormatter1, dateTimeFormat2]
+            .filter((f) => !!f)
+            .map((f) => f.format(date))
+            .join(' ');
+    } catch (e) {
+        // return current date
+        return new Date().toLocaleDateString();
+    }
 }
 
 export function formatDateTimeShort(date: number | Date) {
