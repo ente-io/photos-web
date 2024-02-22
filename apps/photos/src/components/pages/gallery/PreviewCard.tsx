@@ -205,12 +205,6 @@ const Cont = styled('div')<{ disabled: boolean }>`
         pointer-events: none;
     }
 
-    &:hover ${Check} {
-        opacity: 0.5;
-    }
-    &:hover ${HoverOverlay} {
-        opacity: 1;
-    }
     border-radius: 4px;
 `;
 
