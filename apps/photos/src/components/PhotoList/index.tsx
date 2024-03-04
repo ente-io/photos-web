@@ -186,8 +186,8 @@ const NothingContainer = styled(ListItemContainer)`
     justify-content: center;
 `;
 
-const SelectAllCheckBoxContainer = styled(Checkbox)<{ span: number }>`
-    margin-left: ${(props) => props.span}px;
+const SelectAllCheckBoxContainer = styled(Checkbox)<{ margin: number }>`
+    margin-left: ${(props) => props.margin}px;
 `;
 interface Props {
     height: number;
@@ -768,7 +768,7 @@ export function PhotoList({
 
         const filesOnADay = displayFiles?.filter(
             (item) => getDate(item) === date
-        ); // all files on a checked/ unchecked day
+        ); // all files on a checked/unchecked day
 
         filesOnADay.forEach((file) => {
             handleSelect(
@@ -796,7 +796,7 @@ export function PhotoList({
                                     onChange={() =>
                                         onChangeSelectAllCheckBox(item.date)
                                     }
-                                    span={columns}
+                                    margin={columns}
                                 />
                             </DateContainer>,
                             <div key={`${item.date}-gap`} />,
@@ -812,7 +812,7 @@ export function PhotoList({
                             onChange={() =>
                                 onChangeSelectAllCheckBox(listItem.date)
                             }
-                            span={columns}
+                            margin={columns}
                         />
                     </DateContainer>
                 );
