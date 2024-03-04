@@ -26,7 +26,7 @@ import { formatDate, getDate, isSameDay } from '@ente/shared/time/format';
 import { Trans } from 'react-i18next';
 import { t } from 'i18next';
 import memoize from 'memoize-one';
-import { SelectedState } from 'types/gallery';
+import { handleSelectCreator } from 'utils/photoFrame';
 
 const A_DAY = 24 * 60 * 60 * 1000;
 const FOOTER_HEIGHT = 90;
@@ -271,7 +271,7 @@ export function PhotoList({
 
     const [checkedDates, setCheckedDates] = useState({});
 
-    const [selectedDates, setSelectedDates] = useState<string[]>([]);
+    // const [selectedDates, setSelectedDates] = useState<string[]>([]);
 
     const fittableColumns = getFractionFittableColumns(width);
     let columns = Math.floor(fittableColumns);
@@ -720,8 +720,6 @@ export function PhotoList({
         }
     };
 
-    const trimSpaces = (value) => value.replace(/ +/g, '');
-
     useEffect(() => {
         const notSelectedFiles = displayFiles?.filter(
             (item) => !galleryContext.selectedFile[item.id]
@@ -742,86 +740,39 @@ export function PhotoList({
         unselectedDates.forEach((date) => {
             setCheckedDates((prev) => ({
                 ...prev,
-                [`selectAll-${trimSpaces(date)}`]: false,
+                [date]: false,
             })); // To uncheck select all checkbox if any of the file on the date is unselected
         });
 
         localSelectedDates.map((date) => {
             setCheckedDates((prev) => ({
                 ...prev,
-                [`selectAll-${trimSpaces(date)}`]: true,
+                [date]: true,
             }));
             // To check select all checkbox if all of the files on the date is selected manually
         });
-
-        setSelectedDates(localSelectedDates);
     }, [galleryContext.selectedFile]);
 
-    const onChangeSelectAllCheckBox = (event, date: string) => {
-        const dates: string[] = !selectedDates.includes(date)
-            ? [...selectedDates, date]
-            : [...selectedDates.filter((e) => e !== date)];
+    const handleSelect = handleSelectCreator(
+        galleryContext.setSelectedFiles,
+        activeCollectionID
+    );
 
-        if (dates.length === 0) {
-            // when the last select all checkbox is unchecked dates array becomes empty
-            setCheckedDates((prev) => ({
-                ...prev,
-                [`selectAll-${trimSpaces(date)}`]: false,
-            }));
-            galleryContext.setSelectedFiles({
-                ownCount: 0, // to unselect all files on a day
-                count: 0,
-                collectionID: 0,
-            });
-        }
+    const onChangeSelectAllCheckBox = (date: string) => {
+        const dates = { ...checkedDates, [date]: !checkedDates[date] };
+        const isDateSelected = !checkedDates[date];
 
-        setSelectedDates(dates);
-
-        const selected: SelectedState = {
-            ownCount: 0,
-            count: 0,
-            collectionID: activeCollectionID,
-        };
+        setCheckedDates(dates);
 
         const filesOnADay = displayFiles?.filter(
-            (item) =>
-                galleryContext.selectedFile[item.id] &&
-                !dates.includes(getDate(item)) &&
-                getDate(item) !== date
-        ); // where all files on a day aren't selected and the select all checkbox is unchecked
+            (item) => getDate(item) === date
+        ); // all files on a checked/ unchecked day
 
-        displayFiles?.forEach((item) => {
-            const itemDate = getDate(item);
-            const selectedFilesCount = Object.keys(selected).filter(
-                (key) => typeof selected[key] === 'boolean'
-            );
-
-            if (dates.includes(itemDate)) {
-                selected.ownCount++;
-                selected.count++;
-                selected[item.id] = true; // to select all files on a day
-                galleryContext.setSelectedFiles(selected);
-            } else if (
-                filesOnADay.length !== 0 &&
-                !checkedDates[`selectAll-${trimSpaces(itemDate)}`]
-            ) {
-                filesOnADay.map((file) => {
-                    selected.ownCount = selectedFilesCount.length;
-                    selected.count = selectedFilesCount.length;
-                    selected[file.id] = true; // to handle files when select all checkbox is unchecked but there are files selected on that day
-                    galleryContext.setSelectedFiles(selected);
-                });
-            } else {
-                if (
-                    checkedDates[`selectAll-${trimSpaces(itemDate)}`] === true
-                ) {
-                    galleryContext.setSelectedFiles({
-                        ownCount: 0, // to unselect all files on a day
-                        count: 0,
-                        collectionID: 0,
-                    });
-                }
-            }
+        filesOnADay.forEach((file) => {
+            handleSelect(
+                file.id,
+                file.ownerID === galleryContext?.user?.id
+            )(isDateSelected);
         });
     };
 
@@ -837,18 +788,11 @@ export function PhotoList({
                             <DateContainer key={item.date} span={item.span}>
                                 {item.date}
                                 <SelectAllCheckBoxContainer
-                                    key={`selectAll-${item.date}`}
-                                    name={`selectAll-${item.date}`}
-                                    checked={
-                                        checkedDates[
-                                            `selectAll-${trimSpaces(item.date)}`
-                                        ]
-                                    }
+                                    key={item.date}
+                                    name={item.date}
+                                    checked={checkedDates[item.date]}
                                     onChange={() =>
-                                        onChangeSelectAllCheckBox(
-                                            event,
-                                            item.date
-                                        )
+                                        onChangeSelectAllCheckBox(item.date)
                                     }
                                     span={columns}
                                 />
@@ -860,15 +804,11 @@ export function PhotoList({
                     <DateContainer span={columns}>
                         {listItem.date}
                         <SelectAllCheckBoxContainer
-                            key={`selectAll-${listItem.date}`}
-                            name={`selectAll-${listItem.date}`}
-                            checked={
-                                checkedDates[
-                                    `selectAll-${trimSpaces(listItem.date)}`
-                                ]
-                            }
+                            key={listItem.date}
+                            name={listItem.date}
+                            checked={checkedDates[listItem.date]}
                             onChange={() =>
-                                onChangeSelectAllCheckBox(event, listItem.date)
+                                onChangeSelectAllCheckBox(listItem.date)
                             }
                             span={columns}
                         />

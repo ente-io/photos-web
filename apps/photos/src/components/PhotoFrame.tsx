@@ -10,7 +10,11 @@ import DownloadManager, {
 import AutoSizer from 'react-virtualized-auto-sizer';
 import PhotoViewer from 'components/PhotoViewer';
 import { TRASH_SECTION } from 'constants/collection';
-import { updateFileMsrcProps, updateFileSrcProps } from 'utils/photoFrame';
+import {
+    handleSelectCreator,
+    updateFileMsrcProps,
+    updateFileSrcProps,
+} from 'utils/photoFrame';
 import {
     SelectedState,
     SetFilesDownloadProgressAttributesCreator,
@@ -227,52 +231,12 @@ const PhotoFrame = ({
         setIsPhotoSwipeOpen?.(true);
     };
 
-    const handleSelect =
-        (id: number, isOwnFile: boolean, index?: number) =>
-        (checked: boolean) => {
-            if (typeof index !== 'undefined') {
-                if (checked) {
-                    setRangeStart(index);
-                } else {
-                    setRangeStart(undefined);
-                }
-            }
-            setSelected((selected) => {
-                if (selected.collectionID !== activeCollectionID) {
-                    selected = { ownCount: 0, count: 0, collectionID: 0 };
-                }
+    const handleSelect = handleSelectCreator(
+        setSelected,
+        activeCollectionID,
+        setRangeStart
+    );
 
-                const handleCounterChange = (count: number) => {
-                    if (selected[id] === checked) {
-                        return count;
-                    }
-                    if (checked) {
-                        return count + 1;
-                    } else {
-                        return count - 1;
-                    }
-                };
-
-                const handleAllCounterChange = () => {
-                    if (isOwnFile) {
-                        return {
-                            ownCount: handleCounterChange(selected.ownCount),
-                            count: handleCounterChange(selected.count),
-                        };
-                    } else {
-                        return {
-                            count: handleCounterChange(selected.count),
-                        };
-                    }
-                };
-                return {
-                    ...selected,
-                    [id]: checked,
-                    collectionID: activeCollectionID,
-                    ...handleAllCounterChange(),
-                };
-            });
-        };
     const onHoverOver = (index: number) => () => {
         setCurrentHover(index);
     };
