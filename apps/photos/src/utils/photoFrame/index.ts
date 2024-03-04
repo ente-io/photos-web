@@ -12,8 +12,8 @@ export async function isPlaybackPossible(url: string): Promise<boolean> {
             resolve(false);
         }, WAIT_FOR_VIDEO_PLAYBACK);
 
-        const video = document.createElement('video');
-        video.addEventListener('canplay', function () {
+        const video = document.createElement("video");
+        video.addEventListener("canplay", function () {
             clearTimeout(t);
             video.remove(); // Clean up the video element
             // also check for duration > 0 to make sure it is not a broken video
@@ -23,7 +23,7 @@ export async function isPlaybackPossible(url: string): Promise<boolean> {
                 resolve(false);
             }
         });
-        video.addEventListener('error', function () {
+        video.addEventListener("error", function () {
             clearTimeout(t);
             video.remove();
             resolve(false);
@@ -73,14 +73,14 @@ export function updateFileMsrcProps(file: EnteFile, url: string) {
 export async function updateFileSrcProps(
     file: EnteFile,
     srcURLs: SourceURLs,
-    enableDownload: boolean
+    enableDownload: boolean,
 ) {
     const { url, isRenderable, isOriginal } = srcURLs;
     file.w = window.innerWidth;
     file.h = window.innerHeight;
     file.isSourceLoaded =
         file.metadata.fileType === FILE_TYPE.LIVE_PHOTO
-            ? srcURLs.type === 'livePhoto'
+            ? srcURLs.type === "livePhoto"
             : true;
     file.isConverted = !isOriginal;
     file.conversionFailed = !isRenderable;
@@ -100,7 +100,7 @@ export async function updateFileSrcProps(
                 </video>
                 `;
     } else if (file.metadata.fileType === FILE_TYPE.LIVE_PHOTO) {
-        if (srcURLs.type === 'normal') {
+        if (srcURLs.type === "normal") {
             file.html = `
                 <div class = 'pswp-item-container'>
                     <img id = "live-photo-image-${file.id}" src="${url}" onContextMenu="return false;"/>
@@ -125,7 +125,7 @@ export async function updateFileSrcProps(
     } else {
         logError(
             Error(`unknown file type - ${file.metadata.fileType}`),
-            'Unknown file type'
+            "Unknown file type",
         );
         file.src = url as string;
     }

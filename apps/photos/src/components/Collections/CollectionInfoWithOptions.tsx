@@ -1,16 +1,17 @@
-import { CollectionInfo } from './CollectionInfo';
-import { Collection, CollectionSummary } from 'types/collection';
-import CollectionOptions from 'components/Collections/CollectionOptions';
-import { SetCollectionNamerAttributes } from 'components/Collections/CollectionNamer';
-import { SpaceBetweenFlex } from '@ente/shared/components/Container';
-import { CollectionInfoBarWrapper } from './styledComponents';
-import { shouldShowOptions } from 'utils/collection';
-import { CollectionSummaryType } from 'constants/collection';
-import Favorite from '@mui/icons-material/FavoriteRounded';
-import ArchiveOutlined from '@mui/icons-material/ArchiveOutlined';
-import PeopleIcon from '@mui/icons-material/People';
-import LinkIcon from '@mui/icons-material/Link';
-import { SetFilesDownloadProgressAttributesCreator } from 'types/gallery';
+import { SpaceBetweenFlex } from "@ente/shared/components/Container";
+import ArchiveOutlined from "@mui/icons-material/ArchiveOutlined";
+import Favorite from "@mui/icons-material/FavoriteRounded";
+import LinkIcon from "@mui/icons-material/Link";
+import PeopleIcon from "@mui/icons-material/People";
+import { SetCollectionNamerAttributes } from "components/Collections/CollectionNamer";
+import CollectionOptions from "components/Collections/CollectionOptions";
+import { CollectionSummaryType } from "constants/collection";
+import { Dispatch, SetStateAction } from "react";
+import { Collection, CollectionSummary } from "types/collection";
+import { SetFilesDownloadProgressAttributesCreator } from "types/gallery";
+import { shouldShowOptions } from "utils/collection";
+import { CollectionInfo } from "./CollectionInfo";
+import { CollectionInfoBarWrapper } from "./styledComponents";
 
 interface Iprops {
     activeCollection: Collection;
@@ -20,6 +21,7 @@ interface Iprops {
     setFilesDownloadProgressAttributesCreator: SetFilesDownloadProgressAttributesCreator;
     isActiveCollectionDownloadInProgress: () => boolean;
     setActiveCollectionID: (collectionID: number) => void;
+    setShowAlbumCastDialog: Dispatch<SetStateAction<boolean>>;
 }
 
 export default function CollectionInfoWithOptions({
@@ -49,6 +51,7 @@ export default function CollectionInfoWithOptions({
                 return <></>;
         }
     };
+
     return (
         <CollectionInfoBarWrapper>
             <SpaceBetweenFlex>

@@ -1,15 +1,15 @@
-import { Remote } from 'comlink';
-import { runningInBrowser } from 'utils/common';
-import { DedicatedConvertWorker } from 'worker/convert.worker';
-import { ComlinkWorker } from '@ente/shared/worker/comlinkWorker';
+import { ComlinkWorker } from "@ente/shared/worker/comlinkWorker";
+import { Remote } from "comlink";
+import { runningInBrowser } from "utils/common";
+import { DedicatedConvertWorker } from "worker/convert.worker";
 
 class ComlinkConvertWorker {
     private comlinkWorkerInstance: Remote<DedicatedConvertWorker>;
 
     async getInstance() {
         if (!this.comlinkWorkerInstance) {
-            this.comlinkWorkerInstance = await getDedicatedConvertWorker()
-                .remote;
+            this.comlinkWorkerInstance =
+                await getDedicatedConvertWorker().remote;
         }
         return this.comlinkWorkerInstance;
     }
@@ -20,8 +20,8 @@ export const getDedicatedConvertWorker = () => {
         const cryptoComlinkWorker = new ComlinkWorker<
             typeof DedicatedConvertWorker
         >(
-            'ente-convert-worker',
-            new Worker(new URL('worker/convert.worker.ts', import.meta.url))
+            "ente-convert-worker",
+            new Worker(new URL("worker/convert.worker.ts", import.meta.url)),
         );
         return cryptoComlinkWorker;
     }

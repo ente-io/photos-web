@@ -1,4 +1,4 @@
-import { KeyAttributes } from '@ente/shared/user/types';
+import { KeyAttributes } from "@ente/shared/user/types";
 
 export interface UserVerificationResponse {
     id: number;
@@ -6,6 +6,7 @@ export interface UserVerificationResponse {
     encryptedToken?: string;
     token?: string;
     twoFactorSessionID: string;
+    passkeySessionID: string;
     srpM2?: string;
 }
 

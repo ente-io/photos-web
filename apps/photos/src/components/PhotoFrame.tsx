@@ -1,37 +1,37 @@
-import { GalleryContext } from 'pages/gallery';
-import PreviewCard from './pages/gallery/PreviewCard';
-import { useContext, useEffect, useState } from 'react';
-import { EnteFile } from 'types/file';
-import { styled } from '@mui/material';
+import { PHOTOS_PAGES } from "@ente/shared/constants/pages";
+import { CustomError } from "@ente/shared/error";
+import useMemoSingleThreaded from "@ente/shared/hooks/useMemoSingleThreaded";
+import { addLogLine } from "@ente/shared/logging";
+import { logError } from "@ente/shared/sentry";
+import { styled } from "@mui/material";
+import PhotoViewer from "components/PhotoViewer";
+import { TRASH_SECTION } from "constants/collection";
+import { FILE_TYPE } from "constants/file";
+import { useRouter } from "next/router";
+import { GalleryContext } from "pages/gallery";
+import PhotoSwipe from "photoswipe";
+import { useContext, useEffect, useState } from "react";
+import AutoSizer from "react-virtualized-auto-sizer";
+import { Duplicate } from "services/deduplicationService";
 import DownloadManager, {
     LivePhotoSourceURL,
     SourceURLs,
 } from 'services/download';
-import AutoSizer from 'react-virtualized-auto-sizer';
-import PhotoViewer from 'components/PhotoViewer';
-import { TRASH_SECTION } from 'constants/collection';
 import {
     handleSelectCreator,
     updateFileMsrcProps,
     updateFileSrcProps,
 } from 'utils/photoFrame';
+import { EnteFile } from "types/file";
 import {
     SelectedState,
     SetFilesDownloadProgressAttributesCreator,
-} from 'types/gallery';
-import { useRouter } from 'next/router';
-import { logError } from '@ente/shared/sentry';
-import { addLogLine } from '@ente/shared/logging';
-import PhotoSwipe from 'photoswipe';
-import useMemoSingleThreaded from '@ente/shared/hooks/useMemoSingleThreaded';
-import { FILE_TYPE } from 'constants/file';
-import { PHOTOS_PAGES } from '@ente/shared/constants/pages';
-import { PhotoList } from './PhotoList';
-import { DedupePhotoList } from './PhotoList/dedupe';
-import { Duplicate } from 'services/deduplicationService';
-import { CustomError } from '@ente/shared/error';
+} from "types/gallery";
+import { PhotoList } from "./PhotoList";
+import { DedupePhotoList } from "./PhotoList/dedupe";
+import PreviewCard from "./pages/gallery/PreviewCard";
 
-const Container = styled('div')`
+const Container = styled("div")`
     display: block;
     flex: 1;
     width: 100%;
@@ -44,7 +44,7 @@ const Container = styled('div')`
     }
 `;
 
-const PHOTOSWIPE_HASH_SUFFIX = '&opened';
+const PHOTOSWIPE_HASH_SUFFIX = "&opened";
 
 interface Props {
     page:
@@ -56,7 +56,7 @@ interface Props {
     syncWithRemote: () => Promise<void>;
     favItemIds?: Set<number>;
     setSelected: (
-        selected: SelectedState | ((selected: SelectedState) => SelectedState)
+        selected: SelectedState | ((selected: SelectedState) => SelectedState),
     ) => void;
     selected: SelectedState;
     tempDeletedFileIds?: Set<number>;
@@ -121,7 +121,7 @@ const PhotoFrame = ({
 
     useEffect(() => {
         const currentURL = new URL(window.location.href);
-        const end = currentURL.hash.lastIndexOf('&');
+        const end = currentURL.hash.lastIndexOf("&");
         const hash = currentURL.hash.slice(1, end !== -1 ? end : undefined);
         if (open) {
             router.push({
@@ -136,23 +136,23 @@ const PhotoFrame = ({
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'Shift') {
+            if (e.key === "Shift") {
                 setIsShiftKeyPressed(true);
             }
         };
         const handleKeyUp = (e: KeyboardEvent) => {
-            if (e.key === 'Shift') {
+            if (e.key === "Shift") {
                 setIsShiftKeyPressed(false);
             }
         };
-        document.addEventListener('keydown', handleKeyDown, false);
-        document.addEventListener('keyup', handleKeyUp, false);
+        document.addEventListener("keydown", handleKeyDown, false);
+        document.addEventListener("keyup", handleKeyUp, false);
 
-        router.events.on('hashChangeComplete', (url: string) => {
-            const start = url.indexOf('#');
+        router.events.on("hashChangeComplete", (url: string) => {
+            const start = url.indexOf("#");
             const hash = url.slice(start !== -1 ? start : url.length);
             const shouldPhotoSwipeBeOpened = hash.endsWith(
-                PHOTOSWIPE_HASH_SUFFIX
+                PHOTOSWIPE_HASH_SUFFIX,
             );
             if (shouldPhotoSwipeBeOpened) {
                 setIsPhotoSwipeOpen?.(true);
@@ -164,8 +164,8 @@ const PhotoFrame = ({
         });
 
         return () => {
-            document.removeEventListener('keydown', handleKeyDown, false);
-            document.removeEventListener('keyup', handleKeyUp, false);
+            document.removeEventListener("keydown", handleKeyDown, false);
+            document.removeEventListener("keyup", handleKeyUp, false);
         };
     }, []);
 
@@ -185,7 +185,7 @@ const PhotoFrame = ({
             // this is to prevent outdated updateURL call from updating the wrong file
             if (file.id !== id) {
                 addLogLine(
-                    `[${id}]PhotoSwipe: updateURL: file id mismatch: ${file.id} !== ${id}`
+                    `[${id}]PhotoSwipe: updateURL: file id mismatch: ${file.id} !== ${id}`,
                 );
                 throw Error(CustomError.UPDATE_URL_FILE_ID_MISMATCH);
             }
@@ -199,13 +199,13 @@ const PhotoFrame = ({
         index: number,
         id: number,
         srcURLs: SourceURLs,
-        forceUpdate?: boolean
+        forceUpdate?: boolean,
     ) => {
         const file = displayFiles[index];
         // this is to prevent outdate updateSrcURL call from updating the wrong file
         if (file.id !== id) {
             addLogLine(
-                `[${id}]PhotoSwipe: updateSrcURL: file id mismatch: ${file.id}`
+                `[${id}]PhotoSwipe: updateSrcURL: file id mismatch: ${file.id}`,
             );
             throw Error(CustomError.UPDATE_URL_FILE_ID_MISMATCH);
         }
@@ -242,7 +242,7 @@ const PhotoFrame = ({
     };
 
     const handleRangeSelect = (index: number) => () => {
-        if (typeof rangeStart !== 'undefined' && rangeStart !== index) {
+        if (typeof rangeStart !== "undefined" && rangeStart !== index) {
             const direction =
                 (index - rangeStart) / Math.abs(index - rangeStart);
             let checked = true;
@@ -260,20 +260,20 @@ const PhotoFrame = ({
             ) {
                 handleSelect(
                     displayFiles[i].id,
-                    displayFiles[i].ownerID === galleryContext.user?.id
+                    displayFiles[i].ownerID === galleryContext.user?.id,
                 )(!checked);
             }
             handleSelect(
                 displayFiles[index].id,
                 displayFiles[index].ownerID === galleryContext.user?.id,
-                index
+                index,
             )(!checked);
         }
     };
     const getThumbnail = (
         item: EnteFile,
         index: number,
-        isScrolling: boolean
+        isScrolling: boolean,
     ) => (
         <PreviewCard
             key={`tile-${item.id}-selected-${selected[item.id] ?? false}`}
@@ -284,7 +284,7 @@ const PhotoFrame = ({
             onSelect={handleSelect(
                 item.id,
                 item.ownerID === galleryContext.user?.id,
-                index
+                index,
             )}
             selected={
                 selected.collectionID === activeCollectionID &&
@@ -306,21 +306,21 @@ const PhotoFrame = ({
     const getSlideData = async (
         instance: PhotoSwipe<PhotoSwipe.Options>,
         index: number,
-        item: EnteFile
+        item: EnteFile,
     ) => {
         addLogLine(
             `[${
                 item.id
             }] getSlideData called for thumbnail:${!!item.msrc} sourceLoaded:${
                 item.isSourceLoaded
-            } fetching:${fetching[item.id]}`
+            } fetching:${fetching[item.id]}`,
         );
 
         if (!item.msrc) {
             try {
                 if (thumbFetching[item.id]) {
                     addLogLine(
-                        `[${item.id}] thumb download already in progress`
+                        `[${item.id}] thumb download already in progress`,
                     );
                     return;
                 }
@@ -332,7 +332,7 @@ const PhotoFrame = ({
                     addLogLine(
                         `[${
                             item.id
-                        }] calling invalidateCurrItems for thumbnail msrc :${!!item.msrc}`
+                        }] calling invalidateCurrItems for thumbnail msrc :${!!item.msrc}`,
                     );
                     instance.invalidateCurrItems();
                     if ((instance as any).isOpen()) {
@@ -342,13 +342,13 @@ const PhotoFrame = ({
                     if (e.message !== CustomError.URL_ALREADY_SET) {
                         logError(
                             e,
-                            'updating photoswipe after msrc url update failed'
+                            "updating photoswipe after msrc url update failed",
                         );
                     }
                     // ignore
                 }
             } catch (e) {
-                logError(e, 'getSlideData failed get msrc url failed');
+                logError(e, "getSlideData failed get msrc url failed");
                 thumbFetching[item.id] = false;
             }
         }
@@ -379,12 +379,12 @@ const PhotoFrame = ({
                     url: imageURL,
                     isOriginal: false,
                     isRenderable: !!imageURL,
-                    type: 'normal',
+                    type: "normal",
                 };
                 try {
                     await updateSrcURL(index, item.id, dummyImgSrcUrl);
                     addLogLine(
-                        `[${item.id}] calling invalidateCurrItems for live photo imgSrc, source loaded :${item.isSourceLoaded}`
+                        `[${item.id}] calling invalidateCurrItems for live photo imgSrc, source loaded :${item.isSourceLoaded}`,
                     );
                     instance.invalidateCurrItems();
                     if ((instance as any).isOpen()) {
@@ -394,7 +394,7 @@ const PhotoFrame = ({
                     if (e.message !== CustomError.URL_ALREADY_SET) {
                         logError(
                             e,
-                            'updating photoswipe after for live photo imgSrc update failed'
+                            "updating photoswipe after for live photo imgSrc update failed",
                         );
                     }
                 }
@@ -408,17 +408,17 @@ const PhotoFrame = ({
                     url: { video: videoURL, image: imageURL },
                     isOriginal: false,
                     isRenderable: !!videoURL,
-                    type: 'livePhoto',
+                    type: "livePhoto",
                 };
                 try {
                     await updateSrcURL(
                         index,
                         item.id,
                         loadedLivePhotoSrcURL,
-                        true
+                        true,
                     );
                     addLogLine(
-                        `[${item.id}] calling invalidateCurrItems for live photo complete, source loaded :${item.isSourceLoaded}`
+                        `[${item.id}] calling invalidateCurrItems for live photo complete, source loaded :${item.isSourceLoaded}`,
                     );
                     instance.invalidateCurrItems();
                     if ((instance as any).isOpen()) {
@@ -428,7 +428,7 @@ const PhotoFrame = ({
                     if (e.message !== CustomError.URL_ALREADY_SET) {
                         logError(
                             e,
-                            'updating photoswipe for live photo complete update failed'
+                            "updating photoswipe for live photo complete update failed",
                         );
                     }
                 }
@@ -436,7 +436,7 @@ const PhotoFrame = ({
                 try {
                     await updateSrcURL(index, item.id, srcURLs);
                     addLogLine(
-                        `[${item.id}] calling invalidateCurrItems for src, source loaded :${item.isSourceLoaded}`
+                        `[${item.id}] calling invalidateCurrItems for src, source loaded :${item.isSourceLoaded}`,
                     );
                     instance.invalidateCurrItems();
                     if ((instance as any).isOpen()) {
@@ -446,13 +446,13 @@ const PhotoFrame = ({
                     if (e.message !== CustomError.URL_ALREADY_SET) {
                         logError(
                             e,
-                            'updating photoswipe after src url update failed'
+                            "updating photoswipe after src url update failed",
                         );
                     }
                 }
             }
         } catch (e) {
-            logError(e, 'getSlideData failed get src url failed');
+            logError(e, "getSlideData failed get src url failed");
             fetching[item.id] = false;
             // no-op
         }
@@ -461,7 +461,7 @@ const PhotoFrame = ({
     const getConvertedItem = async (
         instance: PhotoSwipe<PhotoSwipe.Options>,
         index: number,
-        item: EnteFile
+        item: EnteFile,
     ) => {
         if (
             item.metadata.fileType !== FILE_TYPE.VIDEO &&
@@ -469,14 +469,14 @@ const PhotoFrame = ({
         ) {
             logError(
                 new Error(),
-                'getConvertedVideo called for non video file'
+                "getConvertedVideo called for non video file",
             );
             return;
         }
         if (item.conversionFailed) {
             logError(
                 new Error(),
-                'getConvertedVideo called for file that conversion failed'
+                "getConvertedVideo called for file that conversion failed",
             );
             return;
         }
@@ -485,7 +485,7 @@ const PhotoFrame = ({
             addLogLine(
                 `[${
                     item.id
-                }] calling invalidateCurrItems for thumbnail msrc :${!!item.msrc}`
+                }] calling invalidateCurrItems for thumbnail msrc :${!!item.msrc}`,
             );
             instance.invalidateCurrItems();
             if ((instance as any).isOpen()) {
@@ -493,13 +493,13 @@ const PhotoFrame = ({
             }
         } catch (e) {
             if (e.message !== CustomError.URL_ALREADY_SET) {
-                logError(e, 'updating photoswipe after msrc url update failed');
+                logError(e, "updating photoswipe after msrc url update failed");
             }
             // ignore
         }
         try {
             addLogLine(
-                `[${item.id}] new file getConvertedVideo request- ${item.metadata.title}}`
+                `[${item.id}] new file getConvertedVideo request- ${item.metadata.title}}`,
             );
             fetching[item.id] = true;
 
@@ -508,7 +508,7 @@ const PhotoFrame = ({
             try {
                 await updateSrcURL(index, item.id, srcURL, true);
                 addLogLine(
-                    `[${item.id}] calling invalidateCurrItems for src, source loaded :${item.isSourceLoaded}`
+                    `[${item.id}] calling invalidateCurrItems for src, source loaded :${item.isSourceLoaded}`,
                 );
                 instance.invalidateCurrItems();
                 if ((instance as any).isOpen()) {
@@ -518,13 +518,13 @@ const PhotoFrame = ({
                 if (e.message !== CustomError.URL_ALREADY_SET) {
                     logError(
                         e,
-                        'updating photoswipe after src url update failed'
+                        "updating photoswipe after src url update failed",
                     );
                 }
                 throw e;
             }
         } catch (e) {
-            logError(e, 'getConvertedVideo failed get src url failed');
+            logError(e, "getConvertedVideo failed get src url failed");
             fetching[item.id] = false;
             // no-op
         }

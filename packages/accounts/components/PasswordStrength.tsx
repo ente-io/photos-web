@@ -1,9 +1,9 @@
-import { Typography } from '@mui/material';
-import { PasswordStrength } from '@ente/accounts/constants';
-import { useMemo } from 'react';
-import { t } from 'i18next';
-import { estimatePasswordStrength } from '@ente/accounts/utils';
-import { FlexWrapper } from '@ente/shared/components/Container';
+import { PasswordStrength } from "@ente/accounts/constants";
+import { estimatePasswordStrength } from "@ente/accounts/utils";
+import { FlexWrapper } from "@ente/shared/components/Container";
+import { Typography } from "@mui/material";
+import { t } from "i18next";
+import { useMemo } from "react";
 
 export const PasswordStrengthHint = ({
     password,
@@ -12,10 +12,10 @@ export const PasswordStrengthHint = ({
 }): JSX.Element => {
     const passwordStrength = useMemo(
         () => estimatePasswordStrength(password),
-        [password]
+        [password],
     );
     return (
-        <FlexWrapper mt={'8px'} mb={'4px'}>
+        <FlexWrapper mt={"8px"} mb={"4px"}>
             <Typography
                 variant="small"
                 sx={(theme) => ({
@@ -23,14 +23,15 @@ export const PasswordStrengthHint = ({
                         passwordStrength === PasswordStrength.WEAK
                             ? theme.colors.danger.A700
                             : passwordStrength === PasswordStrength.MODERATE
-                            ? theme.colors.warning.A500
-                            : theme.colors.accent.A500,
+                              ? theme.colors.warning.A500
+                              : theme.colors.accent.A500,
                 })}
-                textAlign={'left'}
-                flex={1}>
+                textAlign={"left"}
+                flex={1}
+            >
                 {password
-                    ? t('PASSPHRASE_STRENGTH', { context: passwordStrength })
-                    : ''}
+                    ? t("PASSPHRASE_STRENGTH", { context: passwordStrength })
+                    : ""}
             </Typography>
         </FlexWrapper>
     );

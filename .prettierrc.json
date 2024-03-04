@@ -1,6 +1,7 @@
 {
     "tabWidth": 4,
-    "trailingComma": "es5",
-    "singleQuote": true,
-    "jsxBracketSameLine": true
+    "plugins": [
+        "prettier-plugin-organize-imports",
+        "prettier-plugin-packagejson"
+    ]
 }

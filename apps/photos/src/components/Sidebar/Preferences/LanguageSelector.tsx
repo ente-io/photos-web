@@ -1,52 +1,58 @@
-import DropdownInput, { DropdownOption } from 'components/DropdownInput';
-import { Language } from '@ente/shared/i18n/locale';
-import { useLocalState } from '@ente/shared/hooks/useLocalState';
-import { t } from 'i18next';
-import { useRouter } from 'next/router';
-import { getBestPossibleUserLocale } from '@ente/shared/i18n/utils';
-import { LS_KEYS } from '@ente/shared/storage/localStorage';
+import {
+    getLocaleInUse,
+    setLocaleInUse,
+    supportedLocales,
+    type SupportedLocale,
+} from "@/ui/i18n";
+import DropdownInput, { DropdownOption } from "components/DropdownInput";
+import { t } from "i18next";
+import { useRouter } from "next/router";
 
-const getLocaleDisplayName = (l: Language) => {
-    switch (l) {
-        case Language.en:
-            return 'English';
-        case Language.fr:
-            return 'Français';
-        case Language.zh:
-            return '中文';
-        case Language.nl:
-            return 'Nederlands';
-        case Language.es:
-            return 'Español';
+/**
+ * Human readable name for each supported locale
+ *
+ * TODO (MR): This names themselves should be localized.
+ */
+export const localeName = (locale: SupportedLocale) => {
+    switch (locale) {
+        case "en-US":
+            return "English";
+        case "fr-FR":
+            return "Français";
+        case "zh-CN":
+            return "中文";
+        case "nl-NL":
+            return "Nederlands";
+        case "es-ES":
+            return "Español";
+        case "pt-BR":
+            return "Brazilian Portuguese";
     }
 };
 
-const getLanguageOptions = (): DropdownOption<Language>[] => {
-    return Object.values(Language).map((lang) => ({
-        label: getLocaleDisplayName(lang),
-        value: lang,
+const getLanguageOptions = (): DropdownOption<SupportedLocale>[] => {
+    return supportedLocales.map((locale) => ({
+        label: localeName(locale),
+        value: locale,
     }));
 };
 
 export const LanguageSelector = () => {
-    const [userLocale, setUserLocale] = useLocalState(
-        LS_KEYS.LOCALE,
-        getBestPossibleUserLocale()
-    );
-
+    const locale = getLocaleInUse();
+    // Enhancement: Is this full reload needed?
     const router = useRouter();
 
-    const updateCurrentLocale = (newLocale: Language) => {
-        setUserLocale(newLocale);
+    const updateCurrentLocale = (newLocale: SupportedLocale) => {
+        setLocaleInUse(newLocale);
         router.reload();
     };
 
     return (
         <DropdownInput
             options={getLanguageOptions()}
-            label={t('LANGUAGE')}
-            labelProps={{ color: 'text.muted' }}
-            selected={userLocale}
+            label={t("LANGUAGE")}
+            labelProps={{ color: "text.muted" }}
+            selected={locale}
             setSelected={updateCurrentLocale}
         />
     );

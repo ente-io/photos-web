@@ -1,9 +1,8 @@
-import isElectron from 'is-electron';
-import { logError } from '@ente/shared/sentry';
-import { getAppEnv } from '../apps/env';
-import { APP_ENV } from '../apps/constants';
-import { formatLog, logWeb } from './web';
-import { WorkerSafeElectronService } from '../electron/service';
+import { isDevBuild } from "@/utils/env";
+import { logError } from "@ente/shared/sentry";
+import isElectron from "is-electron";
+import { WorkerSafeElectronService } from "../electron/service";
+import { formatLog, logWeb } from "./web";
 
 export const MAX_LOG_SIZE = 5 * 1024 * 1024; // 5MB
 export const MAX_LOG_LINES = 1000;
@@ -13,8 +12,8 @@ export function addLogLine(
     ...optionalParams: (string | number | boolean)[]
 ) {
     try {
-        const completeLog = [log, ...optionalParams].join(' ');
-        if (getAppEnv() === APP_ENV.DEVELOPMENT) {
+        const completeLog = [log, ...optionalParams].join(" ");
+        if (isDevBuild) {
             console.log(completeLog);
         }
         if (isElectron()) {
@@ -23,18 +22,18 @@ export function addLogLine(
             logWeb(completeLog);
         }
     } catch (e) {
-        logError(e, 'failed to addLogLine', undefined, true);
+        logError(e, "failed to addLogLine", undefined, true);
         // ignore
     }
 }
 
 export const addLocalLog = (getLog: () => string) => {
-    if (getAppEnv() === APP_ENV.DEVELOPMENT) {
+    if (isDevBuild) {
         console.log(
             formatLog({
                 logLine: getLog(),
                 timestamp: Date.now(),
-            })
+            }),
         );
     }
 };
